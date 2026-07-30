@@ -46,6 +46,28 @@ export function SearchIcon({ size = 22 }: IconProps) {
   )
 }
 
+export function QuoteIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M9.5 7.5 C 7 8 5.5 10 5.5 12.5 L 5.5 16 L 10 16 L 10 11.5 L 7.5 11.5 C 7.5 9.8 8.3 8.6 9.5 7.5 Z" />
+        <path d="M18 7.5 C 15.5 8 14 10 14 12.5 L 14 16 L 18.5 16 L 18.5 11.5 L 16 11.5 C 16 9.8 16.8 8.6 18 7.5 Z" />
+      </g>
+    </svg>
+  )
+}
+
+export function NoteIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M15.5 5.5 L 18.5 8.5 L 9 18 L 5.5 18.5 L 6 15 Z" />
+        <path d="M13.5 7.5 L 16.5 10.5" />
+      </g>
+    </svg>
+  )
+}
+
 export function SettingsIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
