@@ -11,7 +11,6 @@ import styles from './Library.module.css'
 type ShelfView = 'Stack' | 'Shelf' | 'Grid'
 const VIEWS: ShelfView[] = ['Stack', 'Shelf', 'Grid']
 const VIEW_KEY = 'flyleaf-shelf-view'
-const STACK_ROTATIONS = [-2.5, 2, -1.5, 2.5]
 const SPINE_ROTATIONS = [0, -1, 0.5, -0.5]
 
 function getStoredView(): ShelfView {
@@ -56,7 +55,7 @@ function Library() {
             <input
               type="search"
               className={styles.searchInput}
-              placeholder="Search your books and memories…"
+              placeholder="Search books and memories"
               aria-label="Search your books and memories"
               autoComplete="off"
               spellCheck={false}

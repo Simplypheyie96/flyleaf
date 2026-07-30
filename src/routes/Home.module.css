@@ -124,7 +124,9 @@
 .entryHint {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--color-ink-faint);
+  /* soft, not faint: translucent cards cost ~2 points of contrast, and this
+     is small text that still has to clear AA */
+  color: var(--color-ink-soft);
 }
 
 /* ---- Recent memories: timeline rail with typed dots ---- */
@@ -180,8 +182,8 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: var(--color-paper);
-  border: 1px solid var(--border-hairline);
+  background: var(--card-chip);
+  border: 1px solid var(--card-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -238,18 +240,27 @@
 /* -- Note: ruled sticky, handwriting on the lines, folded corner -- */
 .noteCard {
   border-radius: var(--radius-sm);
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0 27px,
-    var(--note-rule) 27px 28px
-  );
-  background-origin: content-box;
   clip-path: polygon(
     0 0,
     100% 0,
     100% calc(100% - 18px),
     calc(100% - 18px) 100%,
     0 100%
+  );
+}
+
+/* Ruled lines live on an overlay, not the card's own background-image:
+   a backdrop-filtered element with a background-image drops its content
+   in Chromium. */
+.noteCard::after {
+  content: '';
+  position: absolute;
+  inset: var(--space-5);
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 27px,
+    var(--note-rule) 27px 28px
   );
 }
 
