@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { flushSync } from 'react-dom'
 import type { CSSProperties } from 'react'
 import BookCover from '../components/BookCover'
 import GlassSurface from '../components/GlassSurface'
@@ -25,7 +26,20 @@ function Library() {
 
   function choose(next: ShelfView) {
     localStorage.setItem(VIEW_KEY, next)
-    setView(next)
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+    const startViewTransition = (
+      document as Document & {
+        startViewTransition?: (cb: () => void) => void
+      }
+    ).startViewTransition
+    if (!reduceMotion && startViewTransition) {
+      // Books physically rearrange between views — never a hard cut.
+      startViewTransition.call(document, () => flushSync(() => setView(next)))
+    } else {
+      setView(next)
+    }
   }
 
   return (
@@ -76,15 +90,21 @@ function Library() {
               <div
                 key={book.title}
                 className={styles.stackItem}
-                style={{ zIndex: libraryBooks.length - i }}
+                style={
+                  {
+                    zIndex: libraryBooks.length - i,
+                    viewTransitionName: `book-${i}`,
+                  } as CSSProperties
+                }
               >
-                <BookCover
-                  title={book.title}
-                  author={book.author}
-                  hue={book.hue}
-                  rotate={STACK_ROTATIONS[i % STACK_ROTATIONS.length]}
-                  small={i > 0}
-                />
+                <div className={styles.print}>
+                  <BookCover
+                    title={book.title}
+                    author={book.author}
+                    hue={book.hue}
+                    small={i > 0}
+                  />
+                </div>
               </div>
             ))}
           </div>
@@ -100,6 +120,7 @@ function Library() {
                   {
                     '--spine-hue': `var(--color-${book.hue})`,
                     '--spine-rotate': `${SPINE_ROTATIONS[i % SPINE_ROTATIONS.length]}deg`,
+                    viewTransitionName: `book-${i}`,
                   } as CSSProperties
                 }
               >
@@ -112,14 +133,18 @@ function Library() {
 
         {view === 'Grid' && (
           <div className={styles.grid}>
-            {libraryBooks.map((book) => (
-              <BookCover
+            {libraryBooks.map((book, i) => (
+              <div
                 key={book.title}
-                title={book.title}
-                author={book.author}
-                hue={book.hue}
-                small
-              />
+                style={{ viewTransitionName: `book-${i}` } as CSSProperties}
+              >
+                <BookCover
+                  title={book.title}
+                  author={book.author}
+                  hue={book.hue}
+                  small
+                />
+              </div>
             ))}
           </div>
         )}
