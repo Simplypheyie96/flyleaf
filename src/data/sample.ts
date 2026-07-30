@@ -24,6 +24,19 @@ export const currentlyReading: SampleBook = {
   entryHint: '2 quotes · 1 voice memo',
 }
 
+export interface SampleLibraryBook {
+  title: string
+  author: string
+  hue: 'image' | 'quote' | 'note' | 'voice' | 'highlight'
+}
+
+export const libraryBooks: SampleLibraryBook[] = [
+  { title: 'The Lantern Season', author: 'A. Winters', hue: 'image' },
+  { title: 'Salt Meridian', author: 'R. Okonkwo', hue: 'voice' },
+  { title: 'A Field Guide to Quiet Hours', author: 'M. Hale', hue: 'quote' },
+  { title: 'The Cartographer’s Daughter', author: 'E. Vasquez', hue: 'highlight' },
+]
+
 export const recentMemories: SampleMemory[] = [
   {
     type: 'quote',
