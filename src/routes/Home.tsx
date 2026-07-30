@@ -144,7 +144,7 @@ function Home() {
                     title={book.title}
                     author={book.author}
                     hue="image"
-                    width={124}
+                    width={104}
                     rotate={-2}
                   />
                   <div className={styles.heroInfo}>
@@ -152,7 +152,9 @@ function Home() {
                     <p className={styles.heroAuthor}>{book.author}</p>
                     <div className={styles.gauge}>
                       <div className={styles.gaugeHead}>
-                        <span>Progress</span>
+                        <span>
+                          {book.pagesRead} / {book.pages}
+                        </span>
                         <span>{progressPct}%</span>
                       </div>
                       <div
@@ -170,7 +172,8 @@ function Home() {
                       </div>
                     </div>
                     <p className={styles.entryHint}>
-                      {book.pagesRead} of {book.pages} · {book.entryHint}
+                      {book.memories} {book.memories === 1 ? 'memory' : 'memories'}{' '}
+                      kept
                     </p>
                   </div>
                 </div>

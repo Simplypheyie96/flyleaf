@@ -61,7 +61,7 @@
 
 .hero {
   display: flex;
-  gap: var(--space-6);
+  gap: var(--space-5);
   align-items: center;
 }
 
@@ -74,8 +74,13 @@
   flex: 1;
 }
 
+/* Sized to sit inside the card next to the cover, not to fight it: a long
+   title should wrap to two comfortable lines, never overflow. */
 .heroTitle {
-  font-size: var(--text-lg);
+  font-size: var(--text-md);
+  line-height: 1.25;
+  text-wrap: balance;
+  overflow-wrap: break-word;
 }
 
 .heroAuthor {
@@ -86,26 +91,31 @@
   color: var(--color-ink-soft);
 }
 
-/* Retro bordered progress gauge (per refs) */
+/* Progress gauge — a quiet inset panel. Neutral on purpose: the sage tint it
+   used to carry was the only green on the screen and read as a status colour
+   the app doesn't otherwise use. */
 .gauge {
   margin-top: var(--space-2);
-  border: 1.5px solid color-mix(in oklch, var(--color-ink), transparent 30%);
+  border: 1px solid color-mix(in oklch, var(--color-ink), transparent 82%);
   border-radius: 10px;
-  padding: var(--space-2) var(--space-3);
-  background: var(--gauge-bg);
+  padding: var(--space-3);
+  background: color-mix(in oklch, var(--color-ink), transparent 95%);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
 }
 
+/* Page count left, percentage right — the count lives here so the hero has
+   one metadata line, not two competing ones. */
 .gaugeHead {
   display: flex;
   justify-content: space-between;
+  gap: var(--space-3);
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink);
+  letter-spacing: 0.06em;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
 }
 
 .gaugeTrack {
@@ -121,12 +131,15 @@
   background: var(--color-ink);
 }
 
+/* A count, not an inventory — the memories themselves live in the timeline
+   below, so the hero only says how many are kept. */
 .entryHint {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   /* soft, not faint: translucent cards cost ~2 points of contrast, and this
      is small text that still has to clear AA */
   color: var(--color-ink-soft);
+  white-space: nowrap;
 }
 
 /* ---- Recent memories: timeline rail with typed dots ---- */

@@ -68,7 +68,6 @@
   --card-note-solid: oklch(0.968 0.042 100);
   --card-voice-solid: oklch(0.955 0.02 265);
   --card-edge-light: oklch(1 0 0 / 0.7); /* lit top edge on cards */
-  --gauge-bg: oklch(0.92 0.045 135); /* retro progress gauge, sage */
   --note-rule: oklch(0.6 0.08 100 / 0.25); /* ruled lines on notes */
 
   /* ---- Glass (chrome only) ---- */
@@ -157,7 +156,6 @@
   --card-note-solid: var(--card-fallback);
   --card-voice-solid: var(--card-fallback);
   --card-edge-light: oklch(0.95 0.015 250 / 0.16); /* moonlit top edge */
-  --gauge-bg: oklch(0.3 0.035 135);
   --note-rule: oklch(0.75 0.06 100 / 0.16);
   --tape-fill: oklch(0.6 0.02 260 / 0.3);
   --tape-edge: oklch(0.8 0.02 255 / 0.22);
