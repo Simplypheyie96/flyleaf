@@ -50,19 +50,27 @@ Layer two things; do not blend them as equals:
   Pulses while recording, glows on playback, listen back anytime. Deliberate
   contrast — everything else is hand-made/nostalgic; the orb is a bit of future.
 
-## Color & atmosphere (no red theme)
-Atmospheric, warm, lamp-lit — reading in the evening. Aged paper, candle-glow
-warmth, soft shadows, low-contrast easy-on-the-eyes surfaces. One quiet warm
-accent (muted amber/ochre) used sparingly — never the app's identity color.
-Prefer cozy/dim over bright pure-white.
+## Color & atmosphere — "paper in the sky" (no red theme)
+> Direction updated at step 01 review (owner-approved, replaces the original
+> lamp-lit/cream direction). References live in `refs/inspirations/`.
+Modern, airy, cloud-like — Apple-level restraint (hairline borders,
+featherweight shadows, capsule selection) with tactile paper content floating
+on a textured sky. Backgrounds always carry a subtle cloud feeling + fine
+grain — never a flat solid. The token sheet in `src/styles/tokens.css` is the
+single source of truth.
 
 ## Light & dark — both, auto-switch (follows system + manual override)
-- **Light (warm day):** aged cream base (~#F6F1E7), ink-charcoal text (~#2A2724),
-  soft warm shadows. Never bright pure-white.
-- **Dark (candle-lit night):** deep warm charcoal/brown base (not cold black),
-  candle-glow accents, gentle glow on orb + glass chrome, low-contrast text.
-Same accent family + muted entry colors, retuned per background. Glass adapts
-translucency per mode. Test AA+ in BOTH. Design light first, derive dark.
+- **Light (open-sky day):** powder-blue sky gradient (top ~oklch(0.9 0.045 235),
+  misty near-white below) with soft cumulus masses; cool near-white paper
+  cards; near-black cool ink; ink-pill primary actions; fountain-pen blue for
+  the handwriting accent.
+- **Dark (night sky):** dusk-indigo gradient (never pure black) with faint
+  moonlit wisps; night-slate paper; candle-cream ink; light "moonlit" pill
+  actions; periwinkle handwriting accent.
+Shadows are featherweight + neutral-cool (5–9% alpha) over hairline borders —
+never big warm drops. Entry hues stay muted (sage/honey/periwinkle/clay/
+mustard), retuned per background. Glass adapts translucency per mode.
+Test AA+ in BOTH. Design light first, derive dark.
 
 ## Typography
 - Literary serif for titles + reading UI.
@@ -72,9 +80,10 @@ translucency per mode. Test AA+ in BOTH. Design light first, derive dark.
 Reinforce books/reading/storytelling throughout.
 
 ## Entry-type identity (color + icon, not tags)
-Each type has its own muted-warm identity, consistent everywhere:
+Each type has its own muted identity, consistent everywhere:
 Quotes (quote-mark) · Notes (pencil) · Voice memos (orb / mic+waveform) ·
-Images (photo-corner) · Highlights (highlighter). Keep hues muted and warm.
+Images (photo-corner) · Highlights (highlighter). Keep hues muted and airy —
+sage / honey / periwinkle / clay / mustard, tuned per theme in tokens.css.
 
 ## Library shelf — three views for v1
 - **Stack** — books piled physically, rotation + depth shadows. Emotional default.
@@ -99,6 +108,11 @@ Pipeline, in order:
 Guarantee: a user never sees a book without a beautiful cover.
 
 ## Navigation philosophy
+> IA decided at step 01 review (owner): three destinations — **Home** (greeting,
+> currently reading, recent memories) · **Library** (full bookshelf:
+> Stack/Shelf/Grid, with search over the user's books + entries living INSIDE
+> the Library, not as a tab) · **Settings**. Modern icon tabs: icon-only at
+> rest, active tab expands to icon + label capsule.
 Avoid a generic tab-bar-only layout. Pages feel distinct; interactions teach the
 app; carry the user along. The journey is immersive and guided.
 
@@ -179,8 +193,9 @@ References inform SPECIFIC parts, never the whole mood:
 - metal/beam (jakubantalik.com) → OPTIONAL, only a subtle premium touch on the
   glass CHROME if useful. Not the content.
 - ASCII Magic, OriginKit → NOT used; their digital/retro mood fights Flyleaf.
-Everything else stays warm, analog, nostalgic. Do not let any reference's cold or
-futuristic mood leak beyond its scoped element. Run `audit-reference-originality`
+Everything else stays tactile, analog, airy — paper keepsakes under an open
+sky. Do not let any reference's harsh or futuristic mood leak beyond its
+scoped element. Run `audit-reference-originality`
 before shipping; never reuse a reference's name, branding, or assets.
 
 ## Accounts, data & sync — LOCAL-FIRST, free device migration (see 09)

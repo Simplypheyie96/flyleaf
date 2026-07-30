@@ -2,6 +2,10 @@
 
 > Feed after 05. Search across everything the user has personally saved.
 
+> **IA UPDATE (owner decision, step 01 review):** search is NOT a bottom-bar
+> tab. It opens from inside the **Library** (the search field/icon in the
+> Library header). Same surface and scopes as below, just entered from there.
+
 ## Core idea
 One search that spans the whole personal archive — books, quotes, notes, voice
 memos, images, highlights — so nothing is ever lost. Also the entry point for

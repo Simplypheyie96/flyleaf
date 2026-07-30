@@ -1,0 +1,50 @@
+/* Shared style for the gentle bottom notices (update ready, install invite).
+   Sits above the bottom-bar zone, never covers content permanently. */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
+  translate: -50% 0;
+  z-index: 60;
+  width: min(92vw, 420px);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.message {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-ink);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.quiet {
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  cursor: pointer;
+}
+
+.quiet:hover {
+  color: var(--color-ink);
+}
+
+.compact {
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-5);
+}

@@ -1,0 +1,42 @@
+/* PaperSurface — tactile scrapbook material. CONTENT ONLY, never chrome. */
+.paper {
+  position: relative;
+  background: var(--color-paper);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-5);
+  box-shadow: var(--elevation-1);
+  rotate: var(--paper-rotate, 0deg);
+}
+
+/* Aged paper grain. */
+.paper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/* Taped variant: a translucent strip over the top edge. */
+.taped::after {
+  content: '';
+  position: absolute;
+  top: calc(-1 * var(--space-3));
+  left: 50%;
+  width: 88px;
+  height: 26px;
+  translate: -50% 0;
+  rotate: -2deg;
+  background: var(--tape-fill);
+  border-inline: 1px solid var(--tape-edge);
+  box-shadow: 0 1px 2px oklch(from var(--shadow-tint) l c h / 0.1);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .paper::before {
+    display: none;
+  }
+}

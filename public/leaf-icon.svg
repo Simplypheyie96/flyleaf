@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c2e4f8"/>
+      <stop offset="1" stop-color="#e9f6fb"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#sky)"/>
+  <!-- Leaf: soft round body with one stem corner (the brand silhouette) -->
+  <path d="M256 116
+           C 333 116 396 179 396 256
+           C 396 333 333 396 256 396
+           L 144 396
+           C 128 396 116 384 116 368
+           L 116 256
+           C 116 179 179 116 256 116 Z"
+        fill="#fdfeff"/>
+  <!-- Veins in sky blue -->
+  <g fill="none" stroke="#9dc8e8" stroke-width="10" stroke-linecap="round">
+    <path d="M154 362 Q 240 300 344 180"/>
+    <path d="M222 310 Q 232 260 226 212"/>
+    <path d="M286 250 Q 310 226 318 186"/>
+  </g>
+</svg>
