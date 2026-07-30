@@ -8,15 +8,12 @@ export interface SampleBook {
   pages: number
   highlightsThisWeek: number
   entryHint: string
-  /** Tint token for the placeholder cover (replaced by real covers in 03). */
-  coverHue: 'image' | 'quote' | 'note' | 'voice' | 'highlight'
 }
 
-export interface SampleMemory {
-  type: 'quote' | 'note'
-  text: string
-  source: string
-}
+export type SampleMemory =
+  | { type: 'quote'; text: string; source: string }
+  | { type: 'note'; text: string; source: string }
+  | { type: 'voice'; duration: string; source: string; date: string }
 
 export const currentlyReading: SampleBook = {
   title: 'The Lantern Season',
@@ -25,16 +22,19 @@ export const currentlyReading: SampleBook = {
   pages: 502,
   highlightsThisWeek: 3,
   entryHint: '2 quotes · 1 voice memo',
-  coverHue: 'image',
 }
-
-export const booksInProgress = 3
 
 export const recentMemories: SampleMemory[] = [
   {
     type: 'quote',
-    text: '“The rain kept its own kind of time.”',
+    text: 'The rain kept its own kind of time.',
     source: 'The Lantern Season',
+  },
+  {
+    type: 'voice',
+    duration: '0:42',
+    source: 'The Lantern Season',
+    date: '12 Jul',
   },
   {
     type: 'note',

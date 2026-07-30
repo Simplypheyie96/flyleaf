@@ -8,10 +8,9 @@
 }
 
 .title {
-  font-size: var(--text-2xl);
+  font-size: 2rem;
   font-weight: 540;
   letter-spacing: -0.01em;
-  max-width: 9ch;
 }
 
 .subtitle {
@@ -36,7 +35,7 @@
   top: calc(-1 * var(--space-2));
 }
 
-/* ---- Section heads: italic serif + mono VIEW ALL ---- */
+/* ---- Section heads: italic serif ---- */
 .sectionHead {
   position: relative;
   display: flex;
@@ -55,58 +54,87 @@
   color: var(--color-ink);
 }
 
-.viewAll {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: var(--color-ink-soft);
-  padding: var(--space-2);
-  margin: calc(-1 * var(--space-2));
+/* ---- Still reading hero — the book gets room to breathe ---- */
+.heroCard {
+  padding: var(--space-6) var(--space-5);
 }
 
-.viewAll:hover {
-  color: var(--color-ink);
-}
-
-/* ---- Still reading hero ---- */
 .hero {
   display: flex;
-  gap: var(--space-5);
-  align-items: stretch;
+  gap: var(--space-6);
+  align-items: center;
 }
 
+/* A designed cover: framed, ruled, with a spine — a printed object */
 .cover {
+  position: relative;
   flex-shrink: 0;
-  width: 108px;
+  width: 124px;
   aspect-ratio: 2 / 3;
-  border-radius: 6px 12px 12px 6px; /* book: tight spine, soft fore-edge */
+  border-radius: 4px 10px 10px 4px;
   background: oklch(from var(--color-image) 0.9 0.04 h);
-  /* The cover is its own printed object — its ink never follows the theme */
   color: oklch(from var(--color-image) 0.32 0.06 h);
-  border: 1px solid var(--border-hairline);
-  box-shadow: var(--elevation-1);
+  rotate: -2deg;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-3);
   text-align: center;
+}
+
+/* Inner printed frame */
+.cover::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px solid oklch(from var(--color-image) 0.45 0.06 h / 0.55);
+  border-radius: 2px 6px 6px 2px;
+  pointer-events: none;
+}
+
+/* Spine shade along the binding */
+.cover::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 7px;
+  border-radius: 4px 0 0 4px;
+  background: oklch(from var(--color-image) 0.78 0.05 h / 0.8);
+  pointer-events: none;
+}
+
+.coverTop {
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding-top: var(--space-2);
+  color: oklch(from var(--color-image) 0.45 0.06 h);
 }
 
 .coverTitle {
   font-family: var(--font-serif);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  line-height: 1.25;
+  font-size: var(--text-base);
+  font-weight: 620;
+  line-height: 1.3;
+  padding-inline: var(--space-2);
+}
+
+.coverRule {
+  display: block;
+  width: 28px;
+  border-top: 1px solid oklch(from var(--color-image) 0.45 0.06 h / 0.6);
+  margin-block: var(--space-2);
+  margin-inline: auto;
 }
 
 .coverAuthor {
   font-family: var(--font-mono);
   font-size: 0.625rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  padding-bottom: var(--space-2);
   color: oklch(from var(--color-image) 0.45 0.06 h);
 }
 
@@ -213,6 +241,10 @@
   background: var(--color-note);
 }
 
+.memoryVoice .dot {
+  background: var(--color-voice);
+}
+
 /* Corner icon chip, floating off the card's top-right (per refs) */
 .chip {
   position: absolute;
@@ -223,7 +255,6 @@
   border-radius: 50%;
   background: var(--color-paper);
   border: 1px solid var(--border-hairline);
-  box-shadow: var(--elevation-1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -237,7 +268,11 @@
   color: var(--color-note);
 }
 
-/* Typewriter meta: "QUOTE · THE LANTERN SEASON" */
+.memoryVoice .chip {
+  color: var(--color-voice);
+}
+
+/* Typewriter meta */
 .memoryType {
   display: block;
   font-family: var(--font-mono);
@@ -245,24 +280,104 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-ink-soft);
-  margin-bottom: var(--space-3);
 }
 
-.memoryText {
+/* -- Quote: an oversized mark, centered reading voice, source below -- */
+.quoteCard {
+  padding: var(--space-6) var(--space-6) var(--space-5);
+}
+
+.quoteMark {
+  display: block;
   font-family: var(--font-serif);
-  font-size: var(--text-base);
-  line-height: 1.5;
+  font-size: 3rem;
+  line-height: 0.6;
+  color: var(--color-quote);
+  opacity: 0.85;
 }
 
-.memoryQuote .memoryText {
+.quoteText {
+  font-family: var(--font-serif);
   font-style: italic;
-}
-
-/* Personal notes read as handwriting on the page */
-.memoryNote .memoryText {
-  font-family: var(--font-hand);
   font-size: var(--text-md);
   line-height: 1.55;
+  margin-top: var(--space-3);
+}
+
+.quoteMeta {
+  margin-top: var(--space-4);
+}
+
+/* -- Note: ruled sticky, handwriting on the lines, folded corner -- */
+.noteCard {
+  border-radius: var(--radius-sm);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 27px,
+    var(--note-rule) 27px 28px
+  );
+  background-origin: content-box;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 18px),
+    calc(100% - 18px) 100%,
+    0 100%
+  );
+}
+
+.noteText {
+  font-family: var(--font-hand);
+  font-size: var(--text-md);
+  line-height: 28px;
+  margin-top: var(--space-2);
+}
+
+/* -- Voice memo: a player, not a paragraph -- */
+.voiceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-block: var(--space-2);
+}
+
+.playButton {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-ink);
+  color: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.playButton:hover {
+  background: var(--color-ink-soft);
+}
+
+.waveform {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 32px;
+}
+
+.wavebar {
+  flex: 1;
+  max-width: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-voice);
+}
+
+.voiceMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-2);
 }
 
 /* ---- Empty state ---- */

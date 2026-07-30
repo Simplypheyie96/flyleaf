@@ -68,6 +68,18 @@ export function NoteIcon({ size = 22 }: IconProps) {
   )
 }
 
+export function VoiceIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <rect x="9.5" y="4.5" width="5" height="10" rx="2.5" />
+        <path d="M6 11.5 C 6 15 8.5 17 12 17 C 15.5 17 18 15 18 11.5" />
+        <path d="M12 17 L 12 20" />
+      </g>
+    </svg>
+  )
+}
+
 export function SettingsIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
