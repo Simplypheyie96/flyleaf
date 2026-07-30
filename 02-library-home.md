@@ -1,0 +1,77 @@
+# 02 — Screen: Library Home
+
+> Feed after 01 is approved. Build the home screen. Follow the build-order
+> discipline from CLAUDE.md: static light mobile first, then views, then motion,
+> then dark, then desktop. STOP at each gate.
+
+## Core idea
+The home screen: a reader's personal collection, shown as their chosen shelf
+view (Stack / Shelf / Grid), with a warm greeting, a "currently reading" hero,
+and floating glass chrome. Opening it should feel like opening your own
+cherished bookshelf.
+
+## Technology
+- Reuse `GlassSurface` (chrome) and `PaperSurface` (books) from 01.
+- Book covers come from the cover pipeline (built in 03); for now use placeholder
+  cover data so layout can be validated.
+
+## Layout (wireframe in words)
+- Greeting header: "Welcome back, [Name]" (handwriting accent) + a quiet prompt
+  ("3 books in progress").
+- Currently reading: prominent near top — active book(s) as a small carousel,
+  cover + title + progress + hint of recent entries ("2 quotes, 1 voice memo").
+- Collection: main scroll area, rendered in the chosen view.
+- Floating glass chrome (does not scroll with content):
+  - Tab bar (bottom on mobile): Library · Search · Add · Profile.
+  - View switcher (Stack/Shelf/Grid): floating glass control.
+  - Prominent "+ Add a book" primary action.
+- Hierarchy: greeting → currently reading → collection → floating actions on top.
+
+## Copy (render EXACTLY)
+- Greeting: Welcome back, [Name].
+- Currently-reading label: Still reading
+- Progress example: 214 of 502 · 3 highlights this week
+- Collection label: Your collection
+- View labels: Stack · Shelf · Grid
+- Primary action: + Add a book
+- Empty state: Your shelf is waiting. Add the first book you want to remember.
+
+## Shelf views
+- **Stack** (default): covers piled, slight rotation, depth shadows, top book
+  most visible. Tactile.
+- **Shelf/spine:** books standing, spines out, like a bookcase; tap pulls forward.
+- **Grid:** tidy cover thumbnails; utility view.
+
+## Animation (apply in step 3, not before)
+- View switch: books rearrange between Stack/Shelf/Grid with a physical,
+  eased transition — never a hard cut.
+- Book tap: gentle lift + soft shadow bloom before navigating into detail.
+- Currently-reading carousel: soft momentum scroll.
+- ALL with `prefers-reduced-motion` fallback (cross-fade instead of movement).
+
+## Constraints (change 1–2 things only)
+- FONT: literary serif titles / grotesk labels.
+- MATERIAL: aged-paper books + Apple-glass chrome.
+- MODE: build LIGHT first, derive dark after.
+- Default view: STACK.
+
+## Negative prompt
+No pure-white background. No flat rectangular book cards — books feel physical.
+No social-feed patterns. No reference names/covers. No glass that hurts
+legibility. No childish styling.
+
+## Responsive (after mobile approved)
+Mobile: single column, bottom floating glass tab bar, thumb-reachable actions.
+iPad/desktop: side rail replaces bottom bar, glass side-docks, multi-column
+collection, larger currently-reading hero. Never a stretched phone UI.
+
+## Build order + gates
+1. Light, mobile, STACK, static → STOP, approve look.
+2. Add Shelf + Grid + animated switching → STOP.
+3. Add remaining motion (book lift, carousel) + reduced-motion → STOP.
+4. Derive dark mode → STOP.
+5. iPad/desktop layout → STOP.
+
+## Success
+Feels like a personal bookshelf; one glance shows my books + what I'm reading;
+adding a book is obvious; the view choice persists and feels like mine.
