@@ -1,92 +1,75 @@
-import { useState } from 'react'
+import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom'
 import GlassSurface from './components/GlassSurface'
 import InstallPrompt from './components/InstallPrompt'
-import LeafButton from './components/LeafButton'
-import PaperSurface from './components/PaperSurface'
 import SplashScreen from './components/SplashScreen'
-import ThemeToggle from './components/ThemeToggle'
-import UpdateToast from './components/UpdateToast'
 import { BookIcon, HomeIcon, SettingsIcon } from './components/TabIcons'
+import UpdateToast from './components/UpdateToast'
+import Home from './routes/Home'
+import Library from './routes/Library'
+import Settings from './routes/Settings'
+import Styleguide from './routes/Styleguide'
 import styles from './App.module.css'
 
 const TABS = [
-  { label: 'Home', Icon: HomeIcon },
-  { label: 'Library', Icon: BookIcon },
-  { label: 'Settings', Icon: SettingsIcon },
+  { label: 'Home', to: '/', Icon: HomeIcon },
+  { label: 'Library', to: '/library', Icon: BookIcon },
+  { label: 'Settings', to: '/settings', Icon: SettingsIcon },
 ]
 
-/* Foundations demo — proves tokens, type, materials, and the shell zones.
-   Real screens replace this from 02 onward. */
-function App() {
-  const [activeTab, setActiveTab] = useState('Home')
-
-  const navPills = TABS.map(({ label, Icon }) => {
-    const active = activeTab === label
-    return (
-      <button
-        key={label}
-        type="button"
-        className={styles.navPill}
-        aria-pressed={active}
-        aria-label={label}
-        onClick={() => setActiveTab(label)}
-      >
-        <Icon />
-        {active && <span className={styles.navLabel}>{label}</span>}
-      </button>
-    )
-  })
-
+function NavPills() {
   return (
     <>
+      {TABS.map(({ label, to, Icon }) => (
+        <NavLink
+          key={to}
+          to={to}
+          end={to === '/'}
+          className={styles.navPill}
+          aria-label={label}
+        >
+          {({ isActive }) => (
+            <>
+              <Icon />
+              {isActive && <span className={styles.navLabel}>{label}</span>}
+            </>
+          )}
+        </NavLink>
+      ))}
+    </>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
       <SplashScreen />
-      <main className={styles.page}>
-        <div className={styles.column}>
-          <header className={styles.masthead}>
-            <p className={styles.greeting}>Good evening, reader.</p>
-            <h1 className={styles.title}>Flyleaf</h1>
-          </header>
 
-          <div>
-            <PaperSurface taped rotate={-1.2} className={styles.entryCard}>
-              <p className={styles.cardLine}>“Every book deserves a flyleaf.”</p>
-              <p className={styles.cardCaption}>Paper — content surface</p>
-            </PaperSurface>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/library" element={<Library />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/styleguide" element={<Styleguide />} />
+      </Routes>
 
-            <GlassSurface className={styles.glassOverlap}>
-              <ThemeToggle />
-            </GlassSurface>
-          </div>
-
-          <div className={styles.buttons}>
-            <LeafButton>Begin a journey</LeafButton>
-            <LeafButton variant="plus" aria-label="Add an entry">
-              +
-            </LeafButton>
-            <LeafButton disabled>Begin a journey</LeafButton>
-          </div>
-        </div>
-      </main>
-
-      {/* Shell zones: bottom bar on phones, side rail on iPad/desktop */}
+      {/* Shell zones: bottom capsule bar on phones, side rail on iPad/desktop */}
       <div className={styles.bottomBar}>
         <GlassSurface>
           <nav className={styles.barNav} aria-label="Main">
-            {navPills}
+            <NavPills />
           </nav>
         </GlassSurface>
       </div>
       <div className={styles.sideRail}>
         <GlassSurface>
           <nav className={styles.railNav} aria-label="Main">
-            {navPills}
+            <NavPills />
           </nav>
         </GlassSurface>
       </div>
 
       <UpdateToast />
       <InstallPrompt />
-    </>
+    </BrowserRouter>
   )
 }
 
