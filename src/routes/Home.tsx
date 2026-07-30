@@ -1,18 +1,13 @@
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import LeafButton from '../components/LeafButton'
 import PaperSurface from '../components/PaperSurface'
-import { NoteIcon, QuoteIcon } from '../components/TabIcons'
-import {
-  currentlyReading,
-  recentMemories,
-} from '../data/sample'
+import { QuoteIcon, VoiceIcon } from '../components/TabIcons'
+import { currentlyReading, recentMemories } from '../data/sample'
+import type { SampleMemory } from '../data/sample'
 import pageStyles from './page.module.css'
 import styles from './Home.module.css'
 
-const MEMORY_ICONS = {
-  quote: QuoteIcon,
-  note: NoteIcon,
-}
+const WAVE_HEIGHTS = [10, 18, 26, 14, 30, 22, 12, 24, 16, 28, 18, 10, 20, 14]
 
 function Sparkle({ className }: { className: string }) {
   return (
@@ -28,6 +23,82 @@ function Sparkle({ className }: { className: string }) {
         d="M12 2 C 13 8 16 11 22 12 C 16 13 13 16 12 22 C 11 16 8 13 2 12 C 8 11 11 8 12 2 Z"
       />
     </svg>
+  )
+}
+
+/* Each entry type is its own object: a quotation, a sticky note, a player. */
+function MemoryCard({ memory, index }: { memory: SampleMemory; index: number }) {
+  const rotate = index % 2 === 0 ? 0.6 : -0.6
+
+  if (memory.type === 'quote') {
+    return (
+      <div className={`${styles.timelineItem} ${styles.memoryQuote}`}>
+        <span className={styles.dot} aria-hidden="true" />
+        <PaperSurface tone="quote" rotate={rotate} className={styles.quoteCard}>
+          <span className={styles.chip} aria-hidden="true">
+            <QuoteIcon size={16} />
+          </span>
+          <span className={styles.quoteMark} aria-hidden="true">
+            “
+          </span>
+          <p className={styles.quoteText}>{memory.text}</p>
+          <span className={`${styles.memoryType} ${styles.quoteMeta}`}>
+            {memory.source}
+          </span>
+        </PaperSurface>
+      </div>
+    )
+  }
+
+  if (memory.type === 'voice') {
+    return (
+      <div className={`${styles.timelineItem} ${styles.memoryVoice}`}>
+        <span className={styles.dot} aria-hidden="true" />
+        <PaperSurface tone="voice" rotate={rotate}>
+          <span className={styles.chip} aria-hidden="true">
+            <VoiceIcon size={16} />
+          </span>
+          <div className={styles.voiceRow}>
+            <button
+              type="button"
+              className={styles.playButton}
+              aria-label="Play voice memo"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                <path fill="currentColor" d="M5 3.5 L 12.5 8 L 5 12.5 Z" />
+              </svg>
+            </button>
+            <div className={styles.waveform} aria-hidden="true">
+              {WAVE_HEIGHTS.map((h, i) => (
+                <span
+                  key={i}
+                  className={styles.wavebar}
+                  style={{ height: `${h}px` }}
+                />
+              ))}
+            </div>
+          </div>
+          <div className={styles.voiceMeta}>
+            <span className={styles.memoryType}>
+              Voice memo · {memory.duration}
+            </span>
+            <span className={styles.memoryType}>{memory.date}</span>
+          </div>
+        </PaperSurface>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`${styles.timelineItem} ${styles.memoryNote}`}>
+      <span className={styles.dot} aria-hidden="true" />
+      <PaperSurface tone="note" rotate={rotate} className={styles.noteCard}>
+        <span className={styles.memoryType}>
+          Note · {memory.source}
+        </span>
+        <p className={styles.noteText}>{memory.text}</p>
+      </PaperSurface>
+    </div>
   )
 }
 
@@ -65,15 +136,16 @@ function Home() {
                 <h2 id="still-reading" className={styles.sectionLabel}>
                   Still reading
                 </h2>
-                <Link className={styles.viewAll} to="/library">
-                  View all
-                </Link>
               </div>
-              <PaperSurface rotate={-0.6}>
+              <PaperSurface rotate={-0.4} className={styles.heroCard}>
                 <div className={styles.hero}>
                   <div className={styles.cover} aria-hidden="true">
+                    <span className={styles.coverTop}>A novel</span>
                     <span className={styles.coverTitle}>{book.title}</span>
-                    <span className={styles.coverAuthor}>{book.author}</span>
+                    <span>
+                      <span className={styles.coverRule} />
+                      <span className={styles.coverAuthor}>{book.author}</span>
+                    </span>
                   </div>
                   <div className={styles.heroInfo}>
                     <h3 className={styles.heroTitle}>{book.title}</h3>
@@ -115,33 +187,13 @@ function Home() {
                 />
               </div>
               <div className={styles.timeline}>
-                {recentMemories.map((memory, i) => {
-                  const Icon = MEMORY_ICONS[memory.type]
-                  const typeClass =
-                    memory.type === 'quote'
-                      ? styles.memoryQuote
-                      : styles.memoryNote
-                  return (
-                    <div
-                      key={memory.text}
-                      className={`${styles.timelineItem} ${typeClass}`}
-                    >
-                      <span className={styles.dot} aria-hidden="true" />
-                      <PaperSurface
-                        tone={memory.type}
-                        rotate={i % 2 === 0 ? 0.6 : -0.6}
-                      >
-                        <span className={styles.chip} aria-hidden="true">
-                          <Icon size={16} />
-                        </span>
-                        <span className={styles.memoryType}>
-                          {memory.type} · {memory.source}
-                        </span>
-                        <p className={styles.memoryText}>{memory.text}</p>
-                      </PaperSurface>
-                    </div>
-                  )
-                })}
+                {recentMemories.map((memory, i) => (
+                  <MemoryCard
+                    key={`${memory.type}-${i}`}
+                    memory={memory}
+                    index={i}
+                  />
+                ))}
               </div>
             </section>
           </>

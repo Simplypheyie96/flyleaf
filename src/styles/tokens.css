@@ -52,8 +52,10 @@
   /* ---- Entry-card tints (each type owns a surface, per refs) ---- */
   --card-quote: oklch(0.93 0.028 70); /* warm tan */
   --card-note: oklch(0.955 0.055 100); /* sticky yellow */
+  --card-voice: oklch(0.935 0.025 265); /* pale periwinkle */
   --card-edge-light: oklch(1 0 0 / 0.7); /* lit top edge on cards */
   --gauge-bg: oklch(0.92 0.045 135); /* retro progress gauge, sage */
+  --note-rule: oklch(0.6 0.08 100 / 0.25); /* ruled lines on notes */
 
   /* ---- Glass (chrome only) ---- */
   --glass-fill: oklch(0.99 0.005 240 / 0.6);
@@ -126,10 +128,15 @@
   --grain-bg-opacity: 0.025;
 
   --color-paper: oklch(0.285 0.022 262); /* night slate paper */
-  --card-quote: oklch(0.32 0.032 70); /* deep tan */
-  --card-note: oklch(0.33 0.045 100); /* deep olive-gold */
-  --card-edge-light: oklch(0.95 0.015 250 / 0.22); /* moonlit top edge */
-  --gauge-bg: oklch(0.33 0.04 135);
+  /* Night cards: one clean raised slate; type reads via spine + accents,
+     never muddy full-bleed tints */
+  --color-paper-raised: oklch(0.315 0.022 262);
+  --card-quote: var(--color-paper-raised);
+  --card-note: var(--color-paper-raised);
+  --card-voice: var(--color-paper-raised);
+  --card-edge-light: oklch(0.95 0.015 250 / 0.16); /* moonlit top edge */
+  --gauge-bg: oklch(0.3 0.035 135);
+  --note-rule: oklch(0.75 0.06 100 / 0.16);
   --tape-fill: oklch(0.6 0.02 260 / 0.3);
   --tape-edge: oklch(0.8 0.02 255 / 0.22);
 

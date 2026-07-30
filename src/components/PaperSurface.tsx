@@ -7,7 +7,7 @@ interface PaperSurfaceProps {
   rotate?: number
   taped?: boolean
   /** Entry-type surface tint. */
-  tone?: 'default' | 'quote' | 'note'
+  tone?: 'default' | 'quote' | 'note' | 'voice'
   className?: string
 }
 
@@ -15,6 +15,7 @@ const TONE_CLASS = {
   default: undefined,
   quote: styles.toneQuote,
   note: styles.toneNote,
+  voice: styles.toneVoice,
 }
 
 /** Aged-paper content surface — entries, cards, keepsakes. */
