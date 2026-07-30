@@ -5,8 +5,10 @@
   padding-inline: var(--space-2);
 }
 
+/* Matches Home: one display serif per screen, at the scale's page-title step
+   rather than an off-scale 2rem. */
 .title {
-  font-size: 2rem;
+  font-size: var(--text-xl);
   font-weight: 540;
   letter-spacing: -0.01em;
 }

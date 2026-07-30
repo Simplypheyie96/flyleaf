@@ -143,18 +143,22 @@
   --color-paper: oklch(0.285 0.022 262); /* night slate paper */
 
   /* Night cards: frosted slate lifted off the night sky — same material as
-     the search field. Type reads via spine + accents, never muddy tints. */
+     the search field. */
   --card-fill: oklch(0.34 0.026 264 / 0.58);
   --card-border: oklch(0.95 0.015 250 / 0.15);
   --card-fallback: oklch(0.305 0.024 263);
   --card-chip: oklch(0.36 0.026 264 / 0.85);
   --color-paper-raised: var(--card-fill);
-  --card-quote: var(--color-paper-raised);
-  --card-note: var(--color-paper-raised);
-  --card-voice: var(--color-paper-raised);
-  --card-quote-solid: var(--card-fallback);
-  --card-note-solid: var(--card-fallback);
-  --card-voice-solid: var(--card-fallback);
+
+  /* Each type keeps its own tint at night, hue-matched to its accent (sage /
+     honey / periwinkle). Held at the fill's lightness so nothing brightens —
+     only the hue moves, which is enough to tell a quote from a note. */
+  --card-quote: oklch(0.35 0.03 152 / 0.58);
+  --card-note: oklch(0.355 0.03 95 / 0.58);
+  --card-voice: oklch(0.35 0.035 285 / 0.58);
+  --card-quote-solid: oklch(0.31 0.022 152);
+  --card-note-solid: oklch(0.315 0.022 95);
+  --card-voice-solid: oklch(0.31 0.026 285);
   --card-edge-light: oklch(0.95 0.015 250 / 0.16); /* moonlit top edge */
   --note-rule: oklch(0.75 0.06 100 / 0.16);
   --tape-fill: oklch(0.6 0.02 260 / 0.3);
