@@ -89,37 +89,51 @@
   text-align: center;
 }
 
-/* ---- Stack: a fanned spread across the table, front book fully
-        visible, the rest peeking out behind (per refs) ---- */
+/* ---- Stack: a centered deck of framed prints — front book matted and
+        fully visible, the rest tucked behind at slight angles (per ref) ---- */
 .stack {
   position: relative;
-  height: clamp(240px, 68vw, 300px);
+  height: clamp(300px, 88vw, 380px);
   margin-block: var(--space-4);
 }
 
 .stackItem {
   position: absolute;
-  width: 44%;
+  left: 50%;
+  top: 50%;
+  width: 54%;
+  translate: -50% -50%;
 }
 
 .stackItem:nth-child(1) {
-  left: 0;
-  top: 8%;
+  rotate: -4deg;
 }
 
 .stackItem:nth-child(2) {
-  left: 18%;
-  top: 0;
+  rotate: 8deg;
+  translate: -46% -52%;
 }
 
 .stackItem:nth-child(3) {
-  left: 36%;
-  top: 12%;
+  rotate: -14deg;
+  translate: -55% -49%;
 }
 
 .stackItem:nth-child(4) {
-  left: 54%;
-  top: 4%;
+  rotate: 16deg;
+  translate: -48% -47%;
+}
+
+/* The white matte frame around each cover, like a kept print */
+.print {
+  background: var(--color-paper);
+  border: 1px solid var(--border-hairline);
+  border-radius: 14px;
+  padding: 9px;
+}
+
+.print > * {
+  width: 100%;
 }
 
 /* ---- Shelf: spines standing on a shelf line ---- */
