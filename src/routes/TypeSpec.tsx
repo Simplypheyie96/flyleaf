@@ -2,25 +2,32 @@
    content, so the direction can be chosen by eye rather than by description.
    Delete this route (and the losing font packages) once a direction is picked.
 
-   Round two. Round one showed three FOUR-voice systems, which is the thing
-   that actually looked wrong: serif + sans + typewriter mono + handwriting all
-   on one card. Every panel below is built on a role split instead —
+   Round three, rebuilt around the Lumina reference. Two things it does that
+   neither earlier round did:
 
-     voice     the book and the reader: titles, quotes, section heads
-     structure the app: labels, counts, metadata, nav, buttons
-     hand      one accent, note cards only
+     · Two fonts, and one of them is the mono. Round two retired mono on the
+       grounds that nothing in a book journal was typed on a typewriter. The
+       reference says otherwise: mono carries the labels AND the body copy,
+       and a high-contrast display serif carries the values. There is no sans
+       anywhere, so --font-sans points at the mono in every panel.
 
-   Typewriter mono is retired in all three. What made it read as a small label
-   was the uppercase and the letterspacing, not the monospacing, so those stay
-   and only the family changes. */
-import '@fontsource-variable/source-serif-4'
-import '@fontsource-variable/source-serif-4/wght-italic.css'
-import '@fontsource-variable/source-sans-3'
-import '@fontsource-variable/crimson-pro'
-import '@fontsource-variable/crimson-pro/wght-italic.css'
-import '@fontsource-variable/inter-tight'
-import '@fontsource-variable/newsreader'
-import '@fontsource-variable/newsreader/wght-italic.css'
+     · Labels are mono, values are serif. Flyleaf does the exact inverse today
+       — 214 / 502, 43% and "3 memories kept" are all mono and nothing is
+       serif — which is why our metadata reads as scattered and theirs reads
+       as composed. The stat block below the hero shows the inversion on
+       Flyleaf's own numbers.
+
+   Handwriting stays on note cards and nowhere else. */
+import '@fontsource/instrument-serif/400.css'
+import '@fontsource/instrument-serif/400-italic.css'
+import '@fontsource-variable/geist-mono'
+import '@fontsource-variable/bodoni-moda'
+import '@fontsource-variable/bodoni-moda/wght-italic.css'
+import '@fontsource-variable/jetbrains-mono'
+import '@fontsource-variable/fraunces/full.css'
+import '@fontsource-variable/fraunces/full-italic.css'
+import '@fontsource/ibm-plex-mono/400.css'
+import '@fontsource/ibm-plex-mono/500.css'
 import '@fontsource-variable/caveat'
 
 import BookCover from '../components/BookCover'
@@ -33,23 +40,32 @@ import styles from './TypeSpec.module.css'
 
 const SYSTEMS = [
   {
-    key: 'kin',
-    name: '1 · One superfamily',
-    note: 'Source Serif 4 and Source Sans 3 — a serif and a sans drawn by the same hand to sit together. Nothing can clash by construction; the hierarchy is size, weight and italic only.',
-    className: styles.kin,
+    key: 'editorial',
+    name: '1 · Instrument Serif + Geist Mono',
+    note: 'The reference, near enough exactly: a hairline display serif for anything that is a value, a clean grotesque mono for everything that is a label. One weight of serif, so it can never go bold and shouty.',
+    className: styles.editorial,
   },
   {
-    key: 'roles',
-    name: '2 · Strict roles',
-    note: 'Crimson Pro for the voice, Inter Tight for the structure. Deliberately unlike each other, so a quote reads as something a person wrote and a label reads as something the app said.',
-    className: styles.roles,
+    key: 'didone',
+    name: '2 · Bodoni Moda + JetBrains Mono',
+    note: 'The same idea pushed further — a true Didone, thick strokes against genuine hairlines. Sharpest and coldest of the three; the most fashion-magazine of them.',
+    className: styles.didone,
   },
   {
-    key: 'solo',
-    name: '3 · One family, full stop',
-    note: 'Newsreader alone — titles, quotes, labels, counts, all of it. Separated only by size, weight and tracking. The most book-like, and the quietest.',
-    className: styles.solo,
+    key: 'warm',
+    name: '3 · Fraunces + IBM Plex Mono',
+    note: 'Same structure, softened. Fraunces with its wonk turned off and IBM Plex Mono underneath keep the editorial skeleton but read warmer, which suits a reading journal in daylight better than a hairline Didone does.',
+    className: styles.warm,
   },
+]
+
+/* The reference's core move, on Flyleaf's own numbers: mono says what it is,
+   serif says what it is worth. */
+const STATS = [
+  { label: 'Progress', value: '43%' },
+  { label: 'Pages', value: '214' },
+  { label: 'Memories', value: '3' },
+  { label: 'Started', value: 'March' },
 ]
 
 function Specimen() {
@@ -59,7 +75,6 @@ function Specimen() {
     <>
       <header className={home.masthead}>
         <h1 className={home.title}>Your Personal Archive</h1>
-        {/* handwriting has come off the subtitle — it now belongs to the voice */}
         <p className={`${home.subtitle} ${styles.voiceSub}`}>
           collecting whispers and ink
         </p>
@@ -95,6 +110,15 @@ function Specimen() {
           </div>
         </div>
       </PaperSurface>
+
+      <dl className={styles.stats}>
+        {STATS.map((s) => (
+          <div key={s.label} className={styles.stat}>
+            <dt className={styles.statLabel}>{s.label}</dt>
+            <dd className={styles.statValue}>{s.value}</dd>
+          </div>
+        ))}
+      </dl>
 
       <div className={home.sectionHead}>
         <h2 className={home.sectionLabel}>Recent memories</h2>

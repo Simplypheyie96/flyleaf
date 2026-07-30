@@ -2,11 +2,10 @@
    re-points the font tokens; every other style comes from Home, so the one
    thing that changes between panels is the type.
 
-   --font-mono is pointed at each system's structure face rather than at a
-   typewriter. The rules that use it (author, page count, memory count, card
-   meta, search field, view pills) already carry uppercase and letterspacing,
-   which is what made them read as labels — the monospacing was never doing
-   that work. */
+   --font-sans points at each system's mono. That is not a shortcut: the
+   reference has no sans anywhere, mono carries the body copy as well as the
+   labels, and Flyleaf has little enough prose for that to hold. If a panel
+   wins, --font-sans gets deleted rather than aliased. */
 
 .panel {
   display: flex;
@@ -40,8 +39,8 @@
   color: var(--color-ink);
 }
 
-/* The subtitle used to be handwriting. Handwriting is now rationed to note
-   cards, so this joins the voice: an italic standfirst under the masthead. */
+/* Handwriting is rationed to note cards now, so the subtitle joins the voice
+   as an italic standfirst under the masthead. */
 .voiceSub {
   font-family: var(--font-serif);
   font-style: italic;
@@ -57,26 +56,79 @@
   display: none;
 }
 
-/* ---- 1 · One superfamily ---- */
-.kin {
-  --font-serif: 'Source Serif 4 Variable', Georgia, serif;
-  --font-sans: 'Source Sans 3 Variable', system-ui, sans-serif;
-  --font-mono: 'Source Sans 3 Variable', system-ui, sans-serif;
+/* ---- The label/value inversion, on Flyleaf's own numbers ----
+   Mono says what the thing is, serif says what it is worth. Today the app
+   does the opposite: every number is mono and nothing is serif. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5) var(--space-4);
+  padding: var(--space-5) var(--space-2);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.statLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.statValue {
+  /* dd carries a 40px start indent by default, which would push every value
+     out of line with its label */
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  line-height: 1.1;
+  /* these all change as you read */
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+/* ---- 1 · Instrument Serif + Geist Mono ---- */
+.editorial {
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-sans: 'Geist Mono Variable', ui-monospace, monospace;
+  --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
   --font-hand: 'Caveat Variable', cursive;
 }
 
-/* ---- 2 · Strict roles ---- */
-.roles {
-  --font-serif: 'Crimson Pro Variable', Georgia, serif;
-  --font-sans: 'Inter Tight Variable', system-ui, sans-serif;
-  --font-mono: 'Inter Tight Variable', system-ui, sans-serif;
+/* Instrument Serif ships one weight. Left alone, every heading in this panel
+   would render as a synthesized bold, which on a hairline serif is obvious
+   and ugly — so the display elements are pinned to the weight that exists. */
+.editorial :is(h1, h2, h3),
+.editorial .statValue {
+  font-weight: 400;
+}
+
+/* ---- 2 · Bodoni Moda + JetBrains Mono ---- */
+.didone {
+  --font-serif: 'Bodoni Moda Variable', Georgia, serif;
+  --font-sans: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
   --font-hand: 'Caveat Variable', cursive;
 }
 
-/* ---- 3 · One family, full stop ---- */
-.solo {
-  --font-serif: 'Newsreader Variable', Georgia, serif;
-  --font-sans: 'Newsreader Variable', Georgia, serif;
-  --font-mono: 'Newsreader Variable', Georgia, serif;
+/* ---- 3 · Fraunces + IBM Plex Mono ---- */
+.warm {
+  --font-serif: 'Fraunces Variable', Georgia, serif;
+  --font-sans: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --font-hand: 'Caveat Variable', cursive;
+}
+
+/* WONK and SOFT are Fraunces' own axes with no CSS property of their own.
+   Both at 0 turns off the quirk that made it look unserious last round;
+   opsz at the display end keeps the stroke contrast the reference has. */
+.warm :is(h1, h2, h3),
+.warm .statValue {
+  font-variation-settings: 'SOFT' 0, 'WONK' 0, 'opsz' 144;
 }
