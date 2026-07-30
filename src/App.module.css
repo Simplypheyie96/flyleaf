@@ -1,6 +1,7 @@
 .page {
   min-height: 100svh;
-  padding: var(--space-7) var(--space-5) var(--space-8);
+  padding: var(--space-7) var(--space-5)
+    calc(var(--space-8) + var(--space-7) + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -33,6 +34,10 @@
 }
 
 /* Paper card content — reading voice: italic serif, quiet caption */
+.entryCard {
+  padding-bottom: var(--space-8);
+}
+
 .cardLine {
   font-family: var(--font-serif);
   font-style: italic;
@@ -49,27 +54,41 @@
   color: var(--color-ink-soft);
 }
 
-/* The card keeps clear space below its text so the glass bar overlaps
-   paper, never words. */
-.entryCard {
-  padding-bottom: var(--space-8);
-}
-
-/* Glass bar overlapping the paper card below it */
-.glassBar {
+/* Glass chip overlapping the paper card below it — the glass-over-paper proof */
+.glassOverlap {
   margin-top: calc(-1 * var(--space-6));
-  margin-inline: var(--space-4);
+  margin-inline: auto;
   z-index: 1;
+  width: fit-content;
 }
 
-.glassNav {
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  padding-inline: var(--space-2);
+}
+
+/* ---- Shell zones ---- */
+
+/* Mobile: floating bottom bar */
+.bottomBar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  translate: -50% 0;
+  z-index: 50;
+  width: min(92vw, 420px);
+}
+
+.barNav {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: var(--space-2);
 }
 
-/* iOS-style tab pills: capsule selection floating inside the glass bar */
 .navPill {
   flex: 1;
   min-height: var(--tap-min);
@@ -82,6 +101,11 @@
   letter-spacing: 0.04em;
   color: var(--color-ink-soft);
   cursor: pointer;
+  white-space: nowrap;
+}
+
+.navPill:hover {
+  color: var(--color-ink);
 }
 
 .navPill[aria-pressed='true'] {
@@ -91,14 +115,33 @@
   box-shadow: var(--elevation-1);
 }
 
-.buttons {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-4);
-  padding-inline: var(--space-2);
+/* Desktop / iPad: side rail replaces the bottom bar */
+.sideRail {
+  display: none;
+  position: fixed;
+  left: var(--space-5);
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 50;
 }
 
-.togglePaper {
-  align-self: center;
+.railNav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (min-width: 1024px) {
+  .page {
+    padding-bottom: var(--space-7);
+    padding-left: calc(var(--space-8) + var(--space-8));
+  }
+
+  .bottomBar {
+    display: none;
+  }
+
+  .sideRail {
+    display: block;
+  }
 }

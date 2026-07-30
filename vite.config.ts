@@ -18,11 +18,18 @@ export default defineConfig({
           'A private companion for preserving your journey through every book you read.',
         start_url: '/',
         display: 'standalone',
-        background_color: '#F6F1E7',
-        theme_color: '#F6F1E7',
-        // Placeholder leaf-mark icons come with 01's design phase; the real
-        // branded set lands in 08.
-        icons: [],
+        background_color: '#c2e4f8',
+        theme_color: '#c2e4f8',
+        icons: [
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+          {
+            src: '/icon-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],

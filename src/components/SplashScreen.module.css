@@ -1,0 +1,45 @@
+/* Launch splash — the first impression on open. Sky + leaf mark + wordmark,
+   fades away once fonts are ready. */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  background: linear-gradient(
+    to bottom,
+    var(--color-sky-high),
+    var(--color-sky-low)
+  );
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+.leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mark {
+  width: 96px;
+  height: 96px;
+  border-radius: 22px;
+  box-shadow: var(--elevation-2);
+}
+
+.wordmark {
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash {
+    transition: none;
+  }
+}
