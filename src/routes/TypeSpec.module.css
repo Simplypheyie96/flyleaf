@@ -1,0 +1,69 @@
+/* TEMPORARY — scaffolding for the type-direction decision. Each panel simply
+   re-points the four font tokens; every other style comes from Home, so what
+   changes between panels is only the type. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-block: var(--space-6);
+  border-top: 1px dashed color-mix(in oklch, var(--color-ink), transparent 75%);
+}
+
+.panel:first-child {
+  border-top: none;
+}
+
+.tag {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--color-ink), transparent 94%);
+  /* deliberately NOT themed by the panel — the label must stay legible and
+     constant while the specimen below it changes */
+  font-family: system-ui, sans-serif;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-ink-soft);
+}
+
+.tag strong {
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+}
+
+/* the memory cards sit on a timeline rail on Home; here they stand alone */
+.loose {
+  padding-inline-start: 0;
+}
+
+.loose::before,
+.loose > span:first-child {
+  display: none;
+}
+
+/* ---- A · The reading room ---- */
+.reading {
+  --font-serif: 'Literata Variable', Georgia, serif;
+  --font-sans: 'Instrument Sans Variable', system-ui, sans-serif;
+  --font-mono: 'Courier Prime', monospace;
+  --font-hand: 'Caveat Variable', cursive;
+}
+
+/* ---- B · The small press ---- */
+.press {
+  --font-serif: 'Fraunces Variable', Georgia, serif;
+  --font-sans: 'Newsreader Variable', Georgia, serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-hand: 'Caveat Variable', cursive;
+}
+
+/* ---- C · The modern journal ---- */
+.journal {
+  --font-serif: 'Bricolage Grotesque Variable', system-ui, sans-serif;
+  --font-sans: 'Inter Tight Variable', system-ui, sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-hand: 'Caveat Variable', cursive;
+}
