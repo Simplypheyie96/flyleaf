@@ -89,10 +89,16 @@
   gap: var(--space-2);
 }
 
+/* Modern tabs: icon-only at rest; the active tab grows into an
+   icon + label capsule. */
 .navPill {
-  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   min-height: var(--tap-min);
-  padding: var(--space-2) var(--space-4);
+  min-width: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
   border: none;
   border-radius: var(--radius-pill);
   background: transparent;
@@ -109,10 +115,15 @@
 }
 
 .navPill[aria-pressed='true'] {
+  padding-inline: var(--space-4);
   background: var(--color-chip-active);
   color: var(--color-ink);
   border: 1px solid var(--border-hairline);
   box-shadow: var(--elevation-1);
+}
+
+.navLabel {
+  line-height: 1;
 }
 
 /* Desktop / iPad: side rail replaces the bottom bar */
