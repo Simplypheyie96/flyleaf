@@ -17,6 +17,8 @@
 }
 
 .option[aria-pressed='true'] {
-  background: var(--color-accent-tint);
+  background: var(--color-chip-active);
   color: var(--color-ink);
+  border: 1px solid var(--border-hairline);
+  box-shadow: var(--elevation-1);
 }

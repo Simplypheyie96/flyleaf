@@ -14,11 +14,14 @@
   --color-sky-high: oklch(0.9 0.045 235); /* powder blue, top of page */
   --color-sky-low: oklch(0.965 0.015 225); /* misty near-white, bottom */
   --color-bg: oklch(0.93 0.032 232); /* flat fallback / mid-sky */
-  --cloud: oklch(1 0 0 / 0.55); /* soft cloud masses */
+  --cloud: oklch(1 0 0 / 0.6); /* wide cloud halos */
+  --cloud-core: oklch(1 0 0 / 0.95); /* bright cumulus cores */
   --grain-bg-opacity: 0.035;
 
   /* ---- Paper (content) ---- */
-  --color-paper: oklch(0.988 0.004 95); /* warm near-white card */
+  --color-paper: oklch(0.988 0.003 240); /* cool near-white card */
+  --tape-fill: oklch(0.96 0.008 240 / 0.55);
+  --tape-edge: oklch(0.7 0.02 245 / 0.3);
 
   /* ---- Ink ---- */
   --color-ink: oklch(0.25 0.015 255);
@@ -36,7 +39,8 @@
   /* ---- The one quiet warm accent (sun through clouds) ---- */
   --color-accent: oklch(0.66 0.11 78); /* graphic uses: icons, fills */
   --color-accent-text: oklch(0.5 0.1 70); /* AA-safe on sky for large text */
-  --color-accent-tint: oklch(0.93 0.02 240); /* selected chips */
+  --color-accent-tint: oklch(0.93 0.02 240);
+  --color-chip-active: oklch(0.995 0.002 240); /* selected pill on glass */
 
   /* ---- Entry-type identities (muted, airy) ---- */
   --color-quote: oklch(0.55 0.06 140); /* sage */
@@ -111,10 +115,13 @@
   --color-sky-high: oklch(0.26 0.04 268); /* dusk indigo, top */
   --color-sky-low: oklch(0.19 0.022 266); /* deep night, bottom */
   --color-bg: oklch(0.22 0.03 267);
-  --cloud: oklch(0.55 0.04 270 / 0.09); /* faint moonlit wisps */
+  --cloud: oklch(0.6 0.04 270 / 0.1); /* moonlit wisps */
+  --cloud-core: oklch(0.68 0.045 272 / 0.14);
   --grain-bg-opacity: 0.05;
 
   --color-paper: oklch(0.285 0.022 262); /* night slate paper */
+  --tape-fill: oklch(0.6 0.02 260 / 0.3);
+  --tape-edge: oklch(0.8 0.02 255 / 0.22);
 
   --color-ink: oklch(0.92 0.012 250);
   --color-ink-soft: oklch(0.74 0.018 255);
@@ -131,6 +138,7 @@
   --color-accent: oklch(0.78 0.1 80); /* moon-honey */
   --color-accent-text: oklch(0.78 0.1 80);
   --color-accent-tint: oklch(0.34 0.03 265);
+  --color-chip-active: oklch(0.37 0.03 265);
 
   --color-quote: oklch(0.7 0.06 140);
   --color-note: oklch(0.75 0.09 85);

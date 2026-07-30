@@ -9,18 +9,20 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  background: var(--color-bg);
-}
-
-body {
-  margin: 0;
-  min-height: 100svh;
+  /* The sky lives on <html> so the cloud layers (body pseudo-elements at
+     z-index -1) can float above it but under all content. */
   background: linear-gradient(
       to bottom,
       var(--color-sky-high),
       var(--color-sky-low)
     )
-    fixed;
+    fixed
+    var(--color-bg);
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: var(--text-base);
@@ -35,10 +37,23 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(42% 22% at 18% 16%, var(--cloud), transparent 70%),
-    radial-gradient(55% 26% at 85% 30%, var(--cloud), transparent 72%),
-    radial-gradient(48% 20% at 30% 58%, var(--cloud), transparent 70%),
-    radial-gradient(60% 24% at 75% 82%, var(--cloud), transparent 72%);
+    /* cloud 1 — upper left: lumpy cumulus from overlapping ellipses */
+    radial-gradient(20% 7% at 14% 12%, var(--cloud-core), transparent 58%),
+    radial-gradient(16% 8% at 26% 9%, var(--cloud-core), transparent 58%),
+    radial-gradient(22% 7% at 30% 14%, var(--cloud-core), transparent 58%),
+    radial-gradient(13% 5.5% at 40% 11%, var(--cloud-core), transparent 56%),
+    /* cloud 2 — right, mid-page */
+    radial-gradient(18% 6.5% at 78% 34%, var(--cloud-core), transparent 58%),
+    radial-gradient(14% 6% at 88% 31%, var(--cloud-core), transparent 56%),
+    radial-gradient(20% 6% at 84% 38%, var(--cloud-core), transparent 58%),
+    /* cloud 3 — lower left drift */
+    radial-gradient(17% 6% at 18% 72%, var(--cloud-core), transparent 58%),
+    radial-gradient(13% 5% at 28% 69%, var(--cloud-core), transparent 56%),
+    radial-gradient(19% 5.5% at 25% 75%, var(--cloud-core), transparent 58%),
+    /* wide soft halos so each cloud sits in mist */
+    radial-gradient(50% 18% at 26% 12%, var(--cloud), transparent 72%),
+    radial-gradient(44% 16% at 84% 34%, var(--cloud), transparent 72%),
+    radial-gradient(46% 15% at 23% 72%, var(--cloud), transparent 72%);
 }
 
 /* Fine grain so the sky feels like textured paper, not a flat gradient. */
