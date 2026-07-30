@@ -89,16 +89,37 @@
   text-align: center;
 }
 
-/* ---- Stack: a pile of books, top one fully visible ---- */
+/* ---- Stack: a fanned spread across the table, front book fully
+        visible, the rest peeking out behind (per refs) ---- */
 .stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-block: var(--space-4);
+  position: relative;
+  height: clamp(240px, 68vw, 300px);
+  margin-block: var(--space-4);
 }
 
-.stackItem + .stackItem {
-  margin-top: -148px;
+.stackItem {
+  position: absolute;
+  width: 44%;
+}
+
+.stackItem:nth-child(1) {
+  left: 0;
+  top: 8%;
+}
+
+.stackItem:nth-child(2) {
+  left: 18%;
+  top: 0;
+}
+
+.stackItem:nth-child(3) {
+  left: 36%;
+  top: 12%;
+}
+
+.stackItem:nth-child(4) {
+  left: 54%;
+  top: 4%;
 }
 
 /* ---- Shelf: spines standing on a shelf line ---- */

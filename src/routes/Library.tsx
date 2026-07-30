@@ -82,8 +82,8 @@ function Library() {
                   title={book.title}
                   author={book.author}
                   hue={book.hue}
-                  width={170}
                   rotate={STACK_ROTATIONS[i % STACK_ROTATIONS.length]}
+                  small={i > 0}
                 />
               </div>
             ))}
