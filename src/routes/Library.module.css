@@ -9,12 +9,13 @@
    rather than an off-scale 2rem. */
 .title {
   font-size: var(--text-xl);
-  font-weight: 540;
   letter-spacing: -0.01em;
 }
 
+/* Matches Home: italic serif standfirst, not a second handwritten thing. */
 .subtitle {
-  font-family: var(--font-hand);
+  font-family: var(--font-serif);
+  font-style: italic;
   font-size: var(--text-md);
   color: var(--color-ink-soft);
 }
@@ -39,7 +40,9 @@
   border: none;
   background: transparent;
   color: var(--color-ink);
-  font-family: var(--font-mono);
+  /* Sans: what the reader types here is a phrase, not a label. Stated rather
+     than inherited — inputs don't take the body font on their own. */
+  font-family: var(--font-sans);
   font-size: 16px; /* keeps iOS from zooming */
 }
 
@@ -164,11 +167,19 @@
   rotate: var(--spine-rotate, 0deg);
 }
 
+/* A step up from the old 13px: the serif has no bold to lean on now, so the
+   title needs the size to stay readable down the width of a spine.
+   One line, always. In vertical-rl a wrap starts a second column, which runs
+   sideways off a 46px spine — real books solve this the same way, by cutting
+   the title. The full one is a tap away in stack and grid. */
 .spineTitle {
   font-family: var(--font-serif);
-  font-size: var(--text-xs);
-  font-weight: 620;
+  font-size: var(--text-sm);
   line-height: 1;
+  min-height: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .spineAuthor {

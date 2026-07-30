@@ -89,12 +89,22 @@
   /* ---- Paper grain strength ---- */
   --grain-opacity: 0.035;
 
-  /* ---- Type (archival editorial: display serif · typewriter mono ·
-          handwriting · quiet sans) ---- */
-  --font-serif: 'Playfair Display Variable', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Karla Variable', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Courier Prime', 'Courier New', monospace;
-  --font-hand: 'Architects Daughter', 'Segoe Script', cursive;
+  /* ---- Type ----
+     Two voices, split by who is speaking.
+
+       serif  the book and the reader — titles, section heads, quotes, and
+              any value worth reading as a value. One weight, one italic:
+              Instrument Serif has no bold, and nothing may ask it for one.
+       sans   the app — body copy, buttons, anything that runs to a sentence.
+       mono   the app again, but only its short uppercase labels. Geist Mono
+              is the same family as the sans, so this is one voice in two
+              cuts rather than a second typeface.
+       hand   note cards, and nowhere else. The only decorative thing on the
+              screen, which is what makes it read as a note.  */
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Geist Variable', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'Courier New', monospace;
+  --font-hand: 'Caveat Variable', 'Segoe Script', cursive;
 
   --text-xs: 0.8125rem; /* 13 — captions */
   --text-sm: 0.9375rem; /* 15 — labels */
