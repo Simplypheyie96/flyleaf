@@ -1,0 +1,22 @@
+.group {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+.option {
+  min-height: var(--tap-min);
+  min-width: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 560;
+  cursor: pointer;
+}
+
+.option[aria-pressed='true'] {
+  background: var(--color-accent-tint);
+  color: var(--color-ink);
+}

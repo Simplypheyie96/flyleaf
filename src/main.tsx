@@ -1,7 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import '@fontsource-variable/literata'
+import '@fontsource-variable/karla'
+import '@fontsource-variable/caveat'
+import './styles/tokens.css'
 import './index.css'
+import { applyTheme, getPref } from './theme'
 import App from './App.tsx'
+
+applyTheme(getPref())
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
