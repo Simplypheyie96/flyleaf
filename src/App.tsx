@@ -9,6 +9,7 @@ import Home from './routes/Home'
 import Library from './routes/Library'
 import Settings from './routes/Settings'
 import Styleguide from './routes/Styleguide'
+import TypeSpec from './routes/TypeSpec'
 import styles from './App.module.css'
 
 const TABS = [
@@ -50,6 +51,7 @@ function App() {
         <Route path="/library" element={<Library />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/styleguide" element={<Styleguide />} />
+        <Route path="/typespec" element={<TypeSpec />} />
       </Routes>
 
       {/* Shell zones: bottom capsule bar + adjacent add action on phones,
