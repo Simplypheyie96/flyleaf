@@ -7,8 +7,10 @@
   padding-inline: var(--space-2);
 }
 
+/* The one display serif on the screen. Everything structural below it is a
+   label, so this doesn't have to shout to be read as the title. */
 .title {
-  font-size: 2rem;
+  font-size: var(--text-xl);
   font-weight: 540;
   letter-spacing: -0.01em;
 }
@@ -35,7 +37,7 @@
   top: calc(-1 * var(--space-2));
 }
 
-/* ---- Section heads: italic serif ---- */
+/* ---- Section heads: small letterspaced labels ---- */
 .sectionHead {
   position: relative;
   display: flex;
@@ -46,12 +48,16 @@
   margin-bottom: var(--space-4);
 }
 
+/* A signpost, not a headline — grotesk per the type system, since these name
+   sections rather than title anything. Competing serifs at this size were what
+   made the page feel oversized. */
 .sectionLabel {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 520;
-  font-size: var(--text-xl);
-  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
 }
 
 /* ---- Still reading hero — the book gets room to breathe ---- */
