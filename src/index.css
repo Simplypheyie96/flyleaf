@@ -1,4 +1,4 @@
-/* Base reset + typographic defaults. All values come from tokens.css. */
+/* Base reset + the sky. All values come from tokens.css. */
 *,
 *::before,
 *::after {
@@ -9,15 +9,47 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  background: var(--color-bg);
 }
 
 body {
   margin: 0;
-  background: var(--color-bg);
+  min-height: 100svh;
+  background: linear-gradient(
+      to bottom,
+      var(--color-sky-high),
+      var(--color-sky-low)
+    )
+    fixed;
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: var(--leading-body);
+}
+
+/* Soft cloud masses drifting behind everything — pure gradients, no images. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 22% at 18% 16%, var(--cloud), transparent 70%),
+    radial-gradient(55% 26% at 85% 30%, var(--cloud), transparent 72%),
+    radial-gradient(48% 20% at 30% 58%, var(--cloud), transparent 70%),
+    radial-gradient(60% 24% at 75% 82%, var(--cloud), transparent 72%);
+}
+
+/* Fine grain so the sky feels like textured paper, not a flat gradient. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--grain-bg-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
 }
 
 h1,
@@ -43,7 +75,7 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-accent-text);
   outline-offset: 3px;
   border-radius: 2px;
 }

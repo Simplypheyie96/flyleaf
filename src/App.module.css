@@ -24,7 +24,7 @@
 .greeting {
   font-family: var(--font-hand);
   font-size: var(--text-lg);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .title {
