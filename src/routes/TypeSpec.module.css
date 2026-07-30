@@ -1,6 +1,12 @@
-/* TEMPORARY — scaffolding for the type-direction decision. Each panel simply
-   re-points the four font tokens; every other style comes from Home, so what
-   changes between panels is only the type. */
+/* TEMPORARY — scaffolding for the type-direction decision. Each panel only
+   re-points the font tokens; every other style comes from Home, so the one
+   thing that changes between panels is the type.
+
+   --font-mono is pointed at each system's structure face rather than at a
+   typewriter. The rules that use it (author, page count, memory count, card
+   meta, search field, view pills) already carry uppercase and letterspacing,
+   which is what made them read as labels — the monospacing was never doing
+   that work. */
 
 .panel {
   display: flex;
@@ -34,6 +40,13 @@
   color: var(--color-ink);
 }
 
+/* The subtitle used to be handwriting. Handwriting is now rationed to note
+   cards, so this joins the voice: an italic standfirst under the masthead. */
+.voiceSub {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
 /* the memory cards sit on a timeline rail on Home; here they stand alone */
 .loose {
   padding-inline-start: 0;
@@ -44,26 +57,26 @@
   display: none;
 }
 
-/* ---- A · The reading room ---- */
-.reading {
-  --font-serif: 'Literata Variable', Georgia, serif;
-  --font-sans: 'Instrument Sans Variable', system-ui, sans-serif;
-  --font-mono: 'Courier Prime', monospace;
+/* ---- 1 · One superfamily ---- */
+.kin {
+  --font-serif: 'Source Serif 4 Variable', Georgia, serif;
+  --font-sans: 'Source Sans 3 Variable', system-ui, sans-serif;
+  --font-mono: 'Source Sans 3 Variable', system-ui, sans-serif;
   --font-hand: 'Caveat Variable', cursive;
 }
 
-/* ---- B · The small press ---- */
-.press {
-  --font-serif: 'Fraunces Variable', Georgia, serif;
-  --font-sans: 'Newsreader Variable', Georgia, serif;
-  --font-mono: 'Space Mono', monospace;
-  --font-hand: 'Caveat Variable', cursive;
-}
-
-/* ---- C · The modern journal ---- */
-.journal {
-  --font-serif: 'Bricolage Grotesque Variable', system-ui, sans-serif;
+/* ---- 2 · Strict roles ---- */
+.roles {
+  --font-serif: 'Crimson Pro Variable', Georgia, serif;
   --font-sans: 'Inter Tight Variable', system-ui, sans-serif;
-  --font-mono: 'Space Mono', monospace;
+  --font-mono: 'Inter Tight Variable', system-ui, sans-serif;
+  --font-hand: 'Caveat Variable', cursive;
+}
+
+/* ---- 3 · One family, full stop ---- */
+.solo {
+  --font-serif: 'Newsreader Variable', Georgia, serif;
+  --font-sans: 'Newsreader Variable', Georgia, serif;
+  --font-mono: 'Newsreader Variable', Georgia, serif;
   --font-hand: 'Caveat Variable', cursive;
 }

@@ -1,19 +1,27 @@
-/* TEMPORARY — a side-by-side of the three candidate type systems on real
-   Flyleaf content, so the direction can be chosen by eye rather than by
-   description. Delete this route (and the losing font packages) once a
-   direction is picked. */
-import '@fontsource-variable/literata'
-import '@fontsource-variable/literata/wght-italic.css'
-import '@fontsource-variable/instrument-sans'
-import '@fontsource-variable/caveat'
-import '@fontsource-variable/fraunces'
-import '@fontsource-variable/fraunces/wght-italic.css'
+/* TEMPORARY — a side-by-side of the candidate type systems on real Flyleaf
+   content, so the direction can be chosen by eye rather than by description.
+   Delete this route (and the losing font packages) once a direction is picked.
+
+   Round two. Round one showed three FOUR-voice systems, which is the thing
+   that actually looked wrong: serif + sans + typewriter mono + handwriting all
+   on one card. Every panel below is built on a role split instead —
+
+     voice     the book and the reader: titles, quotes, section heads
+     structure the app: labels, counts, metadata, nav, buttons
+     hand      one accent, note cards only
+
+   Typewriter mono is retired in all three. What made it read as a small label
+   was the uppercase and the letterspacing, not the monospacing, so those stay
+   and only the family changes. */
+import '@fontsource-variable/source-serif-4'
+import '@fontsource-variable/source-serif-4/wght-italic.css'
+import '@fontsource-variable/source-sans-3'
+import '@fontsource-variable/crimson-pro'
+import '@fontsource-variable/crimson-pro/wght-italic.css'
+import '@fontsource-variable/inter-tight'
 import '@fontsource-variable/newsreader'
 import '@fontsource-variable/newsreader/wght-italic.css'
-import '@fontsource/space-mono'
-import '@fontsource-variable/bricolage-grotesque'
-import '@fontsource-variable/inter-tight'
-import '@fontsource-variable/inter-tight/wght-italic.css'
+import '@fontsource-variable/caveat'
 
 import BookCover from '../components/BookCover'
 import PaperSurface from '../components/PaperSurface'
@@ -25,22 +33,22 @@ import styles from './TypeSpec.module.css'
 
 const SYSTEMS = [
   {
-    key: 'reading',
-    name: 'A · The reading room',
-    note: 'Literata — the typeface Google built for Play Books — with Instrument Sans and Caveat. A well-made paperback: warm, sturdy, calm.',
-    className: styles.reading,
+    key: 'kin',
+    name: '1 · One superfamily',
+    note: 'Source Serif 4 and Source Sans 3 — a serif and a sans drawn by the same hand to sit together. Nothing can clash by construction; the hierarchy is size, weight and italic only.',
+    className: styles.kin,
   },
   {
-    key: 'press',
-    name: 'B · The small press',
-    note: 'Fraunces (old-style, with wonk) over Newsreader and Space Mono. An independent literary journal — the Kafka/RED direction.',
-    className: styles.press,
+    key: 'roles',
+    name: '2 · Strict roles',
+    note: 'Crimson Pro for the voice, Inter Tight for the structure. Deliberately unlike each other, so a quote reads as something a person wrote and a label reads as something the app said.',
+    className: styles.roles,
   },
   {
-    key: 'journal',
-    name: 'C · The modern journal',
-    note: 'Bricolage Grotesque over Inter Tight. A current app that happens to hold books — the GO Plus direction. Biggest departure.',
-    className: styles.journal,
+    key: 'solo',
+    name: '3 · One family, full stop',
+    note: 'Newsreader alone — titles, quotes, labels, counts, all of it. Separated only by size, weight and tracking. The most book-like, and the quietest.',
+    className: styles.solo,
   },
 ]
 
@@ -51,7 +59,10 @@ function Specimen() {
     <>
       <header className={home.masthead}>
         <h1 className={home.title}>Your Personal Archive</h1>
-        <p className={home.subtitle}>collecting whispers and ink</p>
+        {/* handwriting has come off the subtitle — it now belongs to the voice */}
+        <p className={`${home.subtitle} ${styles.voiceSub}`}>
+          collecting whispers and ink
+        </p>
       </header>
 
       <div className={home.sectionHead}>
