@@ -12,6 +12,18 @@ const strokeProps = {
   strokeLinejoin: 'round',
 } as const
 
+export function HomeIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M4.5 10.5 L 12 4.5 L 19.5 10.5" />
+        <path d="M6.5 9.5 L 6.5 18.5 C 6.5 19 7 19.5 7.5 19.5 L 16.5 19.5 C 17 19.5 17.5 19 17.5 18.5 L 17.5 9.5" />
+        <path d="M10 19.5 L 10 14.5 C 10 14 10.5 13.5 11 13.5 L 13 13.5 C 13.5 13.5 14 14 14 14.5 L 14 19.5" />
+      </g>
+    </svg>
+  )
+}
+
 export function BookIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">

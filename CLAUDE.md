@@ -108,6 +108,11 @@ Pipeline, in order:
 Guarantee: a user never sees a book without a beautiful cover.
 
 ## Navigation philosophy
+> IA decided at step 01 review (owner): three destinations — **Home** (greeting,
+> currently reading, recent memories) · **Library** (full bookshelf:
+> Stack/Shelf/Grid, with search over the user's books + entries living INSIDE
+> the Library, not as a tab) · **Settings**. Modern icon tabs: icon-only at
+> rest, active tab expands to icon + label capsule.
 Avoid a generic tab-bar-only layout. Pages feel distinct; interactions teach the
 app; carry the user along. The journey is immersive and guided.
 

@@ -1,8 +1,19 @@
-# 02 — Screen: Library Home
+# 02 — Screens: Home + Library
 
-> Feed after 01 is approved. Build the home screen. Follow the build-order
-> discipline from CLAUDE.md: static light mobile first, then views, then motion,
-> then dark, then desktop. STOP at each gate.
+> Feed after 01 is approved. Follow the build-order discipline from CLAUDE.md:
+> static light mobile first, then views, then motion, then dark, then desktop.
+> STOP at each gate.
+
+> **IA UPDATE (owner decision, step 01 review):** this step now covers TWO
+> destinations, Apple Books-style:
+> - **Home** — the warm landing: handwriting greeting, "currently reading"
+>   hero, recent memories (latest entries), quick "begin a journey" action.
+> - **Library** — the full bookshelf described below (Stack / Shelf / Grid),
+>   with a search field in its header scoped to the user's books + entries
+>   (the search surface itself is built in 06 — leave the field as an entry
+>   point).
+> The greeting/hero material below moves to Home; the shelf views belong to
+> Library. Build Home first, then Library.
 
 ## Core idea
 The home screen: a reader's personal collection, shown as their chosen shelf

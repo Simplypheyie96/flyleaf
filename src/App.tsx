@@ -6,19 +6,19 @@ import PaperSurface from './components/PaperSurface'
 import SplashScreen from './components/SplashScreen'
 import ThemeToggle from './components/ThemeToggle'
 import UpdateToast from './components/UpdateToast'
-import { BookIcon, SearchIcon, SettingsIcon } from './components/TabIcons'
+import { BookIcon, HomeIcon, SettingsIcon } from './components/TabIcons'
 import styles from './App.module.css'
 
 const TABS = [
+  { label: 'Home', Icon: HomeIcon },
   { label: 'Library', Icon: BookIcon },
-  { label: 'Search', Icon: SearchIcon },
   { label: 'Settings', Icon: SettingsIcon },
 ]
 
 /* Foundations demo — proves tokens, type, materials, and the shell zones.
    Real screens replace this from 02 onward. */
 function App() {
-  const [activeTab, setActiveTab] = useState('Library')
+  const [activeTab, setActiveTab] = useState('Home')
 
   const navPills = TABS.map(({ label, Icon }) => {
     const active = activeTab === label
