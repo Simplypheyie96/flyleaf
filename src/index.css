@@ -1,0 +1,12 @@
+/* Temporary bare reset. The real token sheet (light/dark themes, type system,
+   spacing/radius/elevation scales) is built in step 01 after spec approval. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
