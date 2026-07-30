@@ -1,30 +1,73 @@
+/* ---- Masthead: big serif + thin handwriting subtitle (per refs) ---- */
 .masthead {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
   padding-inline: var(--space-2);
 }
 
-.greeting {
-  font-family: var(--font-hand);
-  font-size: var(--text-lg);
-  color: var(--color-accent-text);
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 540;
+  letter-spacing: -0.01em;
+  max-width: 9ch;
 }
 
-.prompt {
-  font-size: var(--text-sm);
+.subtitle {
+  font-family: var(--font-hand);
+  font-size: var(--text-md);
   color: var(--color-ink-soft);
 }
 
-/* Section headings: editorial italic serif, like a chapter title */
+.sparkle {
+  position: absolute;
+  color: var(--color-voice);
+  opacity: 0.55;
+}
+
+.sparkleMast {
+  right: var(--space-4);
+  bottom: var(--space-2);
+}
+
+.sparkleMemories {
+  right: calc(-1 * var(--space-1));
+  top: calc(-1 * var(--space-2));
+}
+
+/* ---- Section heads: italic serif + mono VIEW ALL ---- */
+.sectionHead {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-inline: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
 .sectionLabel {
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 520;
   font-size: var(--text-xl);
   color: var(--color-ink);
-  padding-inline: var(--space-2);
-  margin-bottom: var(--space-4);
+}
+
+.viewAll {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-ink-soft);
+  padding: var(--space-2);
+  margin: calc(-1 * var(--space-2));
+}
+
+.viewAll:hover {
+  color: var(--color-ink);
 }
 
 /* ---- Still reading hero ---- */
@@ -73,6 +116,7 @@
   justify-content: center;
   gap: var(--space-2);
   min-width: 0;
+  flex: 1;
 }
 
 .heroTitle {
@@ -87,24 +131,39 @@
   color: var(--color-ink-soft);
 }
 
-.progressTrack {
+/* Retro bordered progress gauge (per refs) */
+.gauge {
   margin-top: var(--space-2);
-  height: 4px;
+  border: 1.5px solid color-mix(in oklch, var(--color-ink), transparent 30%);
+  border-radius: 10px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--gauge-bg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.gaugeHead {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.gaugeTrack {
+  height: 6px;
   border-radius: var(--radius-pill);
-  background: color-mix(in oklch, var(--color-ink), transparent 90%);
+  background: color-mix(in oklch, var(--color-ink), transparent 85%);
   overflow: hidden;
 }
 
-.progressFill {
+.gaugeFill {
   height: 100%;
   border-radius: inherit;
-  background: var(--color-accent-text);
-}
-
-.progressLine {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--color-ink-soft);
+  background: var(--color-ink);
 }
 
 .entryHint {
@@ -113,40 +172,80 @@
   color: var(--color-ink-faint);
 }
 
-/* ---- Recent memories ---- */
-.memories {
+/* ---- Recent memories: timeline rail with typed dots ---- */
+.timeline {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  padding-inline-start: var(--space-6);
 }
 
-.memoryHead {
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: var(--space-3);
+  bottom: var(--space-3);
+  border-inline-start: 2px dashed
+    color-mix(in oklch, var(--color-ink), transparent 75%);
+}
+
+.timelineItem {
+  position: relative;
+}
+
+.dot {
+  position: absolute;
+  left: calc(-1 * var(--space-6) - 1px);
+  top: 18px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--color-bg);
+}
+
+.memoryQuote .dot {
+  background: var(--color-quote);
+}
+
+.memoryNote .dot {
+  background: var(--color-note);
+}
+
+/* Corner icon chip, floating off the card's top-right (per refs) */
+.chip {
+  position: absolute;
+  top: calc(-1 * var(--space-3));
+  right: calc(-1 * var(--space-1));
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-paper);
+  border: 1px solid var(--border-hairline);
+  box-shadow: var(--elevation-1);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  justify-content: center;
+}
+
+.memoryQuote .chip {
+  color: var(--color-quote);
+}
+
+.memoryNote .chip {
+  color: var(--color-note);
 }
 
 /* Typewriter meta: "QUOTE · THE LANTERN SEASON" */
 .memoryType {
+  display: block;
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-
-.memoryQuote .memoryType,
-.memoryQuote .memoryIcon {
-  color: var(--color-quote);
-}
-
-.memoryNote .memoryType,
-.memoryNote .memoryIcon {
-  color: var(--color-note);
-}
-
-.memoryIcon {
-  display: inline-flex;
+  color: var(--color-ink-soft);
+  margin-bottom: var(--space-3);
 }
 
 .memoryText {

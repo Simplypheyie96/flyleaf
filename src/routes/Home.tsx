@@ -1,9 +1,8 @@
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import LeafButton from '../components/LeafButton'
 import PaperSurface from '../components/PaperSurface'
 import { NoteIcon, QuoteIcon } from '../components/TabIcons'
 import {
-  booksInProgress,
   currentlyReading,
   recentMemories,
 } from '../data/sample'
@@ -15,7 +14,24 @@ const MEMORY_ICONS = {
   note: NoteIcon,
 }
 
-/* The warm landing: greeting → still reading → recent memories → add.
+function Sparkle({ className }: { className: string }) {
+  return (
+    <svg
+      className={className}
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        fill="currentColor"
+        d="M12 2 C 13 8 16 11 22 12 C 16 13 13 16 12 22 C 11 16 8 13 2 12 C 8 11 11 8 12 2 Z"
+      />
+    </svg>
+  )
+}
+
+/* The warm landing: archive masthead → still reading → memory timeline.
    Sample data until 03 (covers) and the entry store are wired.
    `?empty` previews the first-time reader state. */
 function Home() {
@@ -27,16 +43,15 @@ function Home() {
     <main className={pageStyles.page}>
       <div className={pageStyles.column}>
         <header className={styles.masthead}>
-          <p className={styles.greeting}>Welcome back, reader.</p>
-          {!empty && (
-            <p className={styles.prompt}>{booksInProgress} books in progress</p>
-          )}
+          <h1 className={styles.title}>Your Personal Archive</h1>
+          <p className={styles.subtitle}>collecting whispers and ink</p>
+          <Sparkle className={`${styles.sparkle} ${styles.sparkleMast}`} />
         </header>
 
         {empty ? (
           <PaperSurface taped rotate={-0.8}>
             <div className={styles.empty}>
-              <h1 className={styles.emptyHeadline}>Your shelf is waiting.</h1>
+              <h2 className={styles.emptyHeadline}>Your shelf is waiting.</h2>
               <p className={styles.emptyBody}>
                 Add the first book you want to remember.
               </p>
@@ -46,9 +61,14 @@ function Home() {
         ) : (
           <>
             <section aria-labelledby="still-reading">
-              <h1 id="still-reading" className={styles.sectionLabel}>
-                Still reading
-              </h1>
+              <div className={styles.sectionHead}>
+                <h2 id="still-reading" className={styles.sectionLabel}>
+                  Still reading
+                </h2>
+                <Link className={styles.viewAll} to="/library">
+                  View all
+                </Link>
+              </div>
               <PaperSurface rotate={-0.6}>
                 <div className={styles.hero}>
                   <div className={styles.cover} aria-hidden="true">
@@ -56,36 +76,45 @@ function Home() {
                     <span className={styles.coverAuthor}>{book.author}</span>
                   </div>
                   <div className={styles.heroInfo}>
-                    <h2 className={styles.heroTitle}>{book.title}</h2>
+                    <h3 className={styles.heroTitle}>{book.title}</h3>
                     <p className={styles.heroAuthor}>{book.author}</p>
-                    <div
-                      className={styles.progressTrack}
-                      role="progressbar"
-                      aria-label="Reading progress"
-                      aria-valuenow={book.pagesRead}
-                      aria-valuemin={0}
-                      aria-valuemax={book.pages}
-                    >
+                    <div className={styles.gauge}>
+                      <div className={styles.gaugeHead}>
+                        <span>Progress</span>
+                        <span>{progressPct}%</span>
+                      </div>
                       <div
-                        className={styles.progressFill}
-                        style={{ width: `${progressPct}%` }}
-                      />
+                        className={styles.gaugeTrack}
+                        role="progressbar"
+                        aria-label="Reading progress"
+                        aria-valuenow={book.pagesRead}
+                        aria-valuemin={0}
+                        aria-valuemax={book.pages}
+                      >
+                        <div
+                          className={styles.gaugeFill}
+                          style={{ width: `${progressPct}%` }}
+                        />
+                      </div>
                     </div>
-                    <p className={styles.progressLine}>
-                      {book.pagesRead} of {book.pages} ·{' '}
-                      {book.highlightsThisWeek} highlights this week
+                    <p className={styles.entryHint}>
+                      {book.pagesRead} of {book.pages} · {book.entryHint}
                     </p>
-                    <p className={styles.entryHint}>{book.entryHint}</p>
                   </div>
                 </div>
               </PaperSurface>
             </section>
 
             <section aria-labelledby="recent-memories">
-              <h2 id="recent-memories" className={styles.sectionLabel}>
-                Recent memories
-              </h2>
-              <div className={styles.memories}>
+              <div className={styles.sectionHead}>
+                <h2 id="recent-memories" className={styles.sectionLabel}>
+                  Recent memories
+                </h2>
+                <Sparkle
+                  className={`${styles.sparkle} ${styles.sparkleMemories}`}
+                />
+              </div>
+              <div className={styles.timeline}>
                 {recentMemories.map((memory, i) => {
                   const Icon = MEMORY_ICONS[memory.type]
                   const typeClass =
@@ -93,22 +122,24 @@ function Home() {
                       ? styles.memoryQuote
                       : styles.memoryNote
                   return (
-                    <PaperSurface
+                    <div
                       key={memory.text}
-                      rotate={i % 2 === 0 ? 0.7 : -0.7}
-                      taped={i === 0}
-                      className={typeClass}
+                      className={`${styles.timelineItem} ${typeClass}`}
                     >
-                      <div className={styles.memoryHead}>
-                        <span className={styles.memoryIcon}>
+                      <span className={styles.dot} aria-hidden="true" />
+                      <PaperSurface
+                        tone={memory.type}
+                        rotate={i % 2 === 0 ? 0.6 : -0.6}
+                      >
+                        <span className={styles.chip} aria-hidden="true">
                           <Icon size={16} />
                         </span>
                         <span className={styles.memoryType}>
                           {memory.type} · {memory.source}
                         </span>
-                      </div>
-                      <p className={styles.memoryText}>{memory.text}</p>
-                    </PaperSurface>
+                        <p className={styles.memoryText}>{memory.text}</p>
+                      </PaperSurface>
+                    </div>
                   )
                 })}
               </div>
