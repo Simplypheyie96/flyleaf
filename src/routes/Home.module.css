@@ -16,14 +16,15 @@
   color: var(--color-ink-soft);
 }
 
+/* Section headings: editorial italic serif, like a chapter title */
 .sectionLabel {
-  font-size: var(--text-xs);
-  font-weight: 620;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-soft);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 520;
+  font-size: var(--text-xl);
+  color: var(--color-ink);
   padding-inline: var(--space-2);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 /* ---- Still reading hero ---- */
@@ -39,6 +40,8 @@
   aspect-ratio: 2 / 3;
   border-radius: 6px 12px 12px 6px; /* book: tight spine, soft fore-edge */
   background: oklch(from var(--color-image) 0.9 0.04 h);
+  /* The cover is its own printed object — its ink never follows the theme */
+  color: oklch(from var(--color-image) 0.32 0.06 h);
   border: 1px solid var(--border-hairline);
   box-shadow: var(--elevation-1);
   display: flex;
@@ -57,10 +60,11 @@
 }
 
 .coverAuthor {
-  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-ink-soft);
+  color: oklch(from var(--color-image) 0.45 0.06 h);
 }
 
 .heroInfo {
@@ -76,7 +80,10 @@
 }
 
 .heroAuthor {
-  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--color-ink-soft);
 }
 
@@ -95,11 +102,13 @@
 }
 
 .progressLine {
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--color-ink-soft);
 }
 
 .entryHint {
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--color-ink-faint);
 }
@@ -115,13 +124,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
+/* Typewriter meta: "QUOTE · THE LANTERN SEASON" */
 .memoryType {
+  font-family: var(--font-mono);
   font-size: 0.6875rem;
-  font-weight: 620;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -149,16 +159,11 @@
   font-style: italic;
 }
 
-.memorySource {
-  margin-top: var(--space-2);
-  font-size: var(--text-xs);
-  color: var(--color-ink-soft);
-}
-
-/* ---- Add action ---- */
-.action {
-  display: flex;
-  padding-inline: var(--space-2);
+/* Personal notes read as handwriting on the page */
+.memoryNote .memoryText {
+  font-family: var(--font-hand);
+  font-size: var(--text-md);
+  line-height: 1.55;
 }
 
 /* ---- Empty state ---- */
