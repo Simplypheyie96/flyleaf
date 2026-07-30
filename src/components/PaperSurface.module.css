@@ -1,8 +1,13 @@
-/* PaperSurface — tactile scrapbook material. CONTENT ONLY, never chrome. */
+/* PaperSurface — frosted content material, the same family as the search
+   field. CONTENT ONLY, never chrome. Translucent so the sky reads through. */
 .paper {
   position: relative;
-  background: var(--paper-tone, var(--color-paper));
-  border: 1px solid var(--border-hairline);
+  /* background-color, not the shorthand: variants layer rules/textures
+     on background-image (see the ruled note card). */
+  background-color: var(--paper-tone, var(--card-fill));
+  -webkit-backdrop-filter: blur(var(--card-blur)) saturate(140%);
+  backdrop-filter: blur(var(--card-blur)) saturate(140%);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius-md);
   padding: var(--space-5) var(--space-5);
   /* Fully flat: hairline + lit top edge only. No drop shadows on paper. */
@@ -13,14 +18,17 @@
 /* Entry-type surfaces — a quote never looks like a note */
 .toneQuote {
   --paper-tone: var(--card-quote);
+  --paper-tone-solid: var(--card-quote-solid);
 }
 
 .toneNote {
   --paper-tone: var(--card-note);
+  --paper-tone-solid: var(--card-note-solid);
 }
 
 .toneVoice {
   --paper-tone: var(--card-voice);
+  --paper-tone-solid: var(--card-voice-solid);
 }
 
 /* Aged paper grain. */
@@ -50,7 +58,18 @@
 }
 
 @media (prefers-reduced-transparency: reduce) {
+  .paper {
+    background-color: var(--paper-tone-solid, var(--card-fallback));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
   .paper::before {
     display: none;
+  }
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .paper {
+    background-color: var(--paper-tone-solid, var(--card-fallback));
   }
 }
