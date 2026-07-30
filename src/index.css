@@ -71,7 +71,10 @@ h1,
 h2,
 h3 {
   font-family: var(--font-serif);
-  font-weight: 540;
+  /* Instrument Serif ships 400 and nothing else. Ask for more and the browser
+     synthesises it, which on a hairline serif is unmissable — the strokes
+     smear instead of thickening. Size carries the hierarchy here, not weight. */
+  font-weight: 400;
   line-height: var(--leading-tight);
   color: var(--color-ink);
   text-wrap: balance;

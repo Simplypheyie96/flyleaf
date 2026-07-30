@@ -11,12 +11,14 @@
    label, so this doesn't have to shout to be read as the title. */
 .title {
   font-size: var(--text-xl);
-  font-weight: 540;
   letter-spacing: -0.01em;
 }
 
+/* Handwriting is rationed to note cards now, so this is an italic standfirst
+   under the masthead rather than a second handwritten thing above the fold. */
 .subtitle {
-  font-family: var(--font-hand);
+  font-family: var(--font-serif);
+  font-style: italic;
   font-size: var(--text-md);
   color: var(--color-ink-soft);
 }
@@ -52,7 +54,6 @@
 .sectionLabel {
   font-family: var(--font-serif);
   font-style: italic;
-  font-weight: 520;
   font-size: var(--text-md);
   color: var(--color-ink);
 }
@@ -139,8 +140,10 @@
 
 /* A count, not an inventory — the memories themselves live in the timeline
    below, so the hero only says how many are kept. */
+/* Sans, not mono: "3 memories kept" is a sentence, and mono is rationed to
+   short uppercase labels. In mono it also sat at the same texture as the page
+   count directly above it, so the two read as one block of machine output. */
 .entryHint {
-  font-family: var(--font-mono);
   font-size: var(--text-xs);
   /* soft, not faint: translucent cards cost ~2 points of contrast, and this
      is small text that still has to clear AA */

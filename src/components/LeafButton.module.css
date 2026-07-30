@@ -58,15 +58,16 @@
   opacity: 0.08;
 }
 
-/* The "+" action: a rounder leaf, same stem corner. */
+/* The "+" action: a rounder leaf, same stem corner.
+   Keeps the sans it inherits from .button. It used to borrow the display serif
+   for a prettier glyph, but a "+" is a control, not the book's voice — and at
+   the 620 this pill sets, a serif with only one weight gets synthesised. */
 .plus {
   width: 56px;
   min-width: 56px;
   height: 56px;
   padding: 0;
   border-radius: 50% 50% 50% 18%;
-  font-family: var(--font-serif);
   font-size: var(--text-xl);
-  font-weight: 460;
   line-height: 1;
 }

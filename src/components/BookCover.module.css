@@ -45,8 +45,7 @@
 
 .title {
   font-family: var(--font-serif);
-  font-size: var(--text-base);
-  font-weight: 620;
+  font-size: var(--text-md);
   line-height: 1.3;
   padding-inline: var(--space-2);
 }
