@@ -37,7 +37,7 @@
   top: calc(-1 * var(--space-2));
 }
 
-/* ---- Section heads: small letterspaced labels ---- */
+/* ---- Section heads: italic serif ---- */
 .sectionHead {
   position: relative;
   display: flex;
@@ -48,16 +48,13 @@
   margin-bottom: var(--space-4);
 }
 
-/* A signpost, not a headline — grotesk per the type system, since these name
-   sections rather than title anything. Competing serifs at this size were what
-   made the page feel oversized. */
+/* Italic serif, a clear step below the masthead so the two don't compete. */
 .sectionLabel {
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: var(--text-xs);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-ink-soft);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 520;
+  font-size: var(--text-md);
+  color: var(--color-ink);
 }
 
 /* ---- Still reading hero — the book gets room to breathe ---- */
