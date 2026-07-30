@@ -117,6 +117,9 @@
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   letter-spacing: 0.06em;
+  /* the page count and percentage both climb as you read; proportional digits
+     would shift the row on every update */
+  font-variant-numeric: tabular-nums;
   color: var(--color-ink-soft);
   white-space: nowrap;
 }
