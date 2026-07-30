@@ -5,7 +5,7 @@
   padding-inline: var(--space-2);
 }
 
-/* Was handwriting. Caveat is rationed to note cards now, so the living
+/* Was handwriting. The hand is rationed to note cards now, so the living
    reference has to show the same italic-serif standfirst the screens use —
    otherwise the styleguide documents a system the app no longer has. */
 .greeting {

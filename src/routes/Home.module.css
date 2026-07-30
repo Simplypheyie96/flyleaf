@@ -286,11 +286,16 @@
   );
 }
 
+/* The ruled lines are a fixed 28px grid on the card, so the writing has to be
+   nudged onto them by hand: where a baseline falls inside its line box depends
+   on the font's own ascent, and Patrick Hand's is not Caveat's. Without the
+   nudge the text floats ~12px above each rule instead of sitting on it.
+   Re-measure this if --font-hand or the 28px rhythm ever changes. */
 .noteText {
   font-family: var(--font-hand);
   font-size: var(--text-md);
   line-height: 28px;
-  margin-top: var(--space-2);
+  margin-top: calc(var(--space-2) + 12px);
 }
 
 /* -- Voice memo: a player, not a paragraph -- */

@@ -100,11 +100,13 @@
               is the same family as the sans, so this is one voice in two
               cuts rather than a second typeface.
        hand   note cards, and nowhere else. The only decorative thing on the
-              screen, which is what makes it read as a note.  */
+              screen, which is what makes it read as a note. Upright print,
+              not cursive — a note exists to be reread, so legibility beats
+              flourish. Slanted script is why the old one was hard work.  */
   --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
   --font-sans: 'Geist Variable', system-ui, -apple-system, sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, 'Courier New', monospace;
-  --font-hand: 'Caveat Variable', 'Segoe Script', cursive;
+  --font-hand: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
 
   --text-xs: 0.8125rem; /* 13 — captions */
   --text-sm: 0.9375rem; /* 15 — labels */
