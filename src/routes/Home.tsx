@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom'
+import BookCover from '../components/BookCover'
 import LeafButton from '../components/LeafButton'
 import PaperSurface from '../components/PaperSurface'
 import { QuoteIcon, VoiceIcon } from '../components/TabIcons'
@@ -139,14 +140,13 @@ function Home() {
               </div>
               <PaperSurface rotate={-0.4} className={styles.heroCard}>
                 <div className={styles.hero}>
-                  <div className={styles.cover} aria-hidden="true">
-                    <span className={styles.coverTop}>A novel</span>
-                    <span className={styles.coverTitle}>{book.title}</span>
-                    <span>
-                      <span className={styles.coverRule} />
-                      <span className={styles.coverAuthor}>{book.author}</span>
-                    </span>
-                  </div>
+                  <BookCover
+                    title={book.title}
+                    author={book.author}
+                    hue="image"
+                    width={124}
+                    rotate={-2}
+                  />
                   <div className={styles.heroInfo}>
                     <h3 className={styles.heroTitle}>{book.title}</h3>
                     <p className={styles.heroAuthor}>{book.author}</p>
