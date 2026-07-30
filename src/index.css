@@ -1,0 +1,98 @@
+/* Base reset + the sky. All values come from tokens.css. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* The sky lives on <html> so the cloud layers (body pseudo-elements at
+     z-index -1) can float above it but under all content. */
+  background: linear-gradient(
+      to bottom,
+      var(--color-sky-high),
+      var(--color-sky-low)
+    )
+    fixed
+    var(--color-bg);
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+}
+
+/* Soft cloud masses drifting behind everything — pure gradients, no images. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    /* cloud 1 — upper left: lumpy cumulus from overlapping ellipses */
+    radial-gradient(20% 7% at 14% 12%, var(--cloud-core), transparent 58%),
+    radial-gradient(16% 8% at 26% 9%, var(--cloud-core), transparent 58%),
+    radial-gradient(22% 7% at 30% 14%, var(--cloud-core), transparent 58%),
+    radial-gradient(13% 5.5% at 40% 11%, var(--cloud-core), transparent 56%),
+    /* cloud 2 — right, mid-page */
+    radial-gradient(18% 6.5% at 78% 34%, var(--cloud-core), transparent 58%),
+    radial-gradient(14% 6% at 88% 31%, var(--cloud-core), transparent 56%),
+    radial-gradient(20% 6% at 84% 38%, var(--cloud-core), transparent 58%),
+    /* cloud 3 — lower left drift */
+    radial-gradient(17% 6% at 18% 72%, var(--cloud-core), transparent 58%),
+    radial-gradient(13% 5% at 28% 69%, var(--cloud-core), transparent 56%),
+    radial-gradient(19% 5.5% at 25% 75%, var(--cloud-core), transparent 58%),
+    /* wide soft halos so each cloud sits in mist */
+    radial-gradient(50% 18% at 26% 12%, var(--cloud), transparent 72%),
+    radial-gradient(44% 16% at 84% 34%, var(--cloud), transparent 72%),
+    radial-gradient(46% 15% at 23% 72%, var(--cloud), transparent 72%);
+}
+
+/* Fine grain so the sky feels like textured paper, not a flat gradient. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--grain-bg-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  font-weight: 560;
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+  text-wrap: balance;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 3px;
+  border-radius: 2px;
+}

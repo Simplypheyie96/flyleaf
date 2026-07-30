@@ -1,11 +1,27 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Flyleaf</title>
-</head>
-<body>
-  <p>Flyleaf — build in progress. This placeholder verifies Vercel deploys and will be replaced in step 01.</p>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/leaf-icon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#c2e4f8" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c2338" />
+    <title>Flyleaf</title>
+    <script>
+      /* Set the theme before first paint to avoid a flash of the wrong mode. */
+      try {
+        var pref = localStorage.getItem('flyleaf-theme')
+        var dark =
+          pref === 'dark' ||
+          (pref !== 'light' &&
+            matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

@@ -1,0 +1,72 @@
+/* LeafButton — the brand's leaf motif lives in the silhouette: soft corners
+   with one stem corner, plus a faint vein flourish across the face.
+   Ink pill by day, moonlit pill by night (tokens invert it). */
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-min);
+  padding: var(--space-3) var(--space-6);
+  border: none;
+  border-radius: var(--radius-leaf);
+  background: var(--color-action);
+  color: var(--color-on-action);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 620;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: var(--elevation-1);
+  overflow: hidden;
+}
+
+/* Vein flourish — one midrib with two side veins, barely there.
+   Drawn in currentColor via mask so it works on both pill colors. */
+.button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 56' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='black' stroke-width='1'%3E%3Cpath d='M8 52 Q80 40 152 6'/%3E%3Cpath d='M52 42 Q64 28 66 14'/%3E%3Cpath d='M96 30 Q110 20 114 8'/%3E%3C/g%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 56' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='black' stroke-width='1'%3E%3Cpath d='M8 52 Q80 40 152 6'/%3E%3Cpath d='M52 42 Q64 28 66 14'/%3E%3Cpath d='M96 30 Q110 20 114 8'/%3E%3C/g%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
+}
+
+.button:hover {
+  background: var(--color-action-hover);
+  box-shadow: var(--elevation-2);
+}
+
+.button:active {
+  background: var(--color-action-press);
+  box-shadow: none;
+  translate: 0 1px;
+}
+
+.button:disabled {
+  background: var(--color-action-disabled);
+  color: var(--color-on-action-disabled);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.button:disabled::after {
+  opacity: 0.08;
+}
+
+/* The "+" action: a rounder leaf, same stem corner. */
+.plus {
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 50% 50% 50% 18%;
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  font-weight: 460;
+  line-height: 1;
+}
