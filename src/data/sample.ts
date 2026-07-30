@@ -7,7 +7,8 @@ export interface SampleBook {
   pagesRead: number
   pages: number
   highlightsThisWeek: number
-  entryHint: string
+  /** Total kept memories — summarised, never itemised, on the hero. */
+  memories: number
 }
 
 export type SampleMemory =
@@ -21,7 +22,7 @@ export const currentlyReading: SampleBook = {
   pagesRead: 214,
   pages: 502,
   highlightsThisWeek: 3,
-  entryHint: '2 quotes · 1 voice memo',
+  memories: 3,
 }
 
 export interface SampleLibraryBook {
