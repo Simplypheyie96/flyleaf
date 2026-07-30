@@ -39,6 +39,6 @@ export const recentMemories: SampleMemory[] = [
   {
     type: 'note',
     text: 'The lighthouse chapter reads like a memory of the future.',
-    source: 'Chapter 12 · The Lantern Season',
+    source: 'Chapter 12',
   },
 ]

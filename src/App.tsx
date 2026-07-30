@@ -1,6 +1,7 @@
 import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom'
 import GlassSurface from './components/GlassSurface'
 import InstallPrompt from './components/InstallPrompt'
+import LeafButton from './components/LeafButton'
 import SplashScreen from './components/SplashScreen'
 import { BookIcon, HomeIcon, SettingsIcon } from './components/TabIcons'
 import UpdateToast from './components/UpdateToast'
@@ -51,13 +52,17 @@ function App() {
         <Route path="/styleguide" element={<Styleguide />} />
       </Routes>
 
-      {/* Shell zones: bottom capsule bar on phones, side rail on iPad/desktop */}
+      {/* Shell zones: bottom capsule bar + adjacent add action on phones,
+          side rail on iPad/desktop */}
       <div className={styles.bottomBar}>
         <GlassSurface>
           <nav className={styles.barNav} aria-label="Main">
             <NavPills />
           </nav>
         </GlassSurface>
+        <LeafButton variant="plus" aria-label="Add a book">
+          +
+        </LeafButton>
       </div>
       <div className={styles.sideRail}>
         <GlassSurface>
@@ -65,6 +70,9 @@ function App() {
             <NavPills />
           </nav>
         </GlassSurface>
+        <LeafButton variant="plus" aria-label="Add a book">
+          +
+        </LeafButton>
       </div>
 
       <UpdateToast />

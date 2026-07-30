@@ -103,19 +103,16 @@ function Home() {
                         <span className={styles.memoryIcon}>
                           <Icon size={16} />
                         </span>
-                        <span className={styles.memoryType}>{memory.type}</span>
+                        <span className={styles.memoryType}>
+                          {memory.type} · {memory.source}
+                        </span>
                       </div>
                       <p className={styles.memoryText}>{memory.text}</p>
-                      <p className={styles.memorySource}>{memory.source}</p>
                     </PaperSurface>
                   )
                 })}
               </div>
             </section>
-
-            <div className={styles.action}>
-              <LeafButton>+ Add a book</LeafButton>
-            </div>
           </>
         )}
       </div>
