@@ -1,0 +1,38 @@
+/* ============================================================
+   Global motion that can't live in a CSS Module.
+
+   View-transition pseudo-elements are named at the document level: the name
+   comes from an inline `view-transition-name` string, which a module's hashed
+   class names can never match. Everything else stays in its component.
+   ============================================================ */
+
+/* The whole-page cross-fade the browser adds by default. Off: only the books
+   are supposed to move, and a full-page dissolve underneath them muddies it. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* Each book is one group, tweened between its old and new box. `--ease-move`
+   is the long-tail curve: these travel far enough that you watch them land. */
+::view-transition-group(*) {
+  animation-duration: var(--dur-move);
+  animation-timing-function: var(--ease-move);
+}
+
+/* The old and new contents of a book cross-dissolve inside the moving box,
+   faster than the move itself so the swap is over before the book arrives —
+   otherwise you watch a spine and a cover overlap for the whole journey. */
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: var(--dur-base);
+  animation-timing-function: var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Distance goes; a short dissolve stays so the change is still traceable.
+     `--dur-move` is already collapsed by the token swap in tokens.css. */
+  ::view-transition-group(*) {
+    animation-timing-function: var(--ease-out);
+  }
+}

@@ -49,6 +49,60 @@
   --color-image: oklch(0.58 0.08 45); /* clay */
   --color-highlight: oklch(0.62 0.1 95); /* mustard */
 
+  /* ---- Books: spines, covers, and the board they stand on ----
+     A book is a physical object, and it is the same object in both themes —
+     it keeps its hue and only the light on it changes. So what lives here is
+     the *recipe*, not the colour: the hue arrives per book (--spine-hue /
+     --cover-hue) and every surface derives L and C from these. That is what
+     lets the shelf go to night without the books being restated anywhere.
+
+     Lightness is the whole story between the themes. By day a board is pale
+     stock with dark print; by night it is a dim board with the print catching
+     what light there is, so the ink figures invert while the hue does not. */
+  --book-face-l: 0.82; /* the spine board */
+  --book-face-c: 0.062;
+  --book-head-l: 0.95; /* the paper block at the head, brighter than the board */
+  --book-head-c: 0.018;
+  --book-ink-l: 0.3; /* what is printed down the spine */
+  --book-ink-c: 0.05;
+  --book-cover-l: 0.915; /* the front board, at its lit top edge */
+  --book-cover-c: 0.038;
+  --book-cover-ink-l: 0.32;
+  --book-cover-ink-c: 0.06;
+  --book-rule-l: 0.45; /* printed frame rules and the small caps on a cover */
+  --book-rule-c: 0.06;
+  /* Modelling: where the board turns away from the light, and where it
+     catches it. Both are composited at low alpha over the board itself, so
+     they have to sit either side of it in lightness in BOTH themes — at
+     night a 0.2 shade would be lighter than the board and read as a
+     highlight. */
+  --book-shade: oklch(0.2 0.02 250);
+  --book-sheen: oklch(1 0 0);
+  /* The shelf ledge. Ink by day; at night the board is a shadow, not a
+     pale bar — which is what following --color-ink into dark would give. */
+  --shelf-board: var(--color-ink);
+
+  /* ---- Card material: frosted, same family as the search field.
+          Content cards are translucent so the sky reads through them. ---- */
+  --card-fill: oklch(0.995 0.004 240 / 0.55);
+  --card-border: oklch(1 0 0 / 0.55);
+  --card-blur: 16px;
+  --card-fallback: oklch(0.985 0.006 238); /* opaque stand-in */
+  --card-chip: oklch(0.99 0.004 240 / 0.85); /* small nested badges */
+
+  /* ---- Entry-card tints (each type owns a surface, per refs) ---- */
+  /* Tints are whispers over the sky, not opaque paper — enough hue to tell
+     a quote from a note, never enough to go muddy against the blue. */
+  --card-quote: oklch(0.985 0.042 72 / 0.55); /* warm tan */
+  --card-note: oklch(0.98 0.05 100 / 0.52); /* sticky yellow */
+  --card-voice: oklch(0.975 0.024 275 / 0.52); /* pale periwinkle */
+  /* Opaque twins, used where transparency is unavailable or unwanted */
+  --card-quote-solid: oklch(0.955 0.022 70);
+  --card-note-solid: oklch(0.968 0.042 100);
+  --card-voice-solid: oklch(0.955 0.02 265);
+  --card-edge-light: oklch(1 0 0 / 0.7); /* lit top edge on cards */
+  --note-rule: oklch(0.6 0.08 100 / 0.25); /* ruled lines on notes */
+
   /* ---- Glass (chrome only) ---- */
   --glass-fill: oklch(0.99 0.005 240 / 0.6);
   --glass-border: oklch(1 0 0 / 0.6);
@@ -57,23 +111,35 @@
   --glass-blur: 14px;
   --glass-fallback: oklch(0.975 0.008 235);
 
-  /* ---- Hairlines + featherweight elevation ---- */
-  --border-hairline: oklch(0.3 0.02 250 / 0.08);
+  /* ---- Hairlines carry structure; shadows are whispers ---- */
+  --border-hairline: oklch(0.3 0.02 250 / 0.1);
   --shadow-tint: oklch(0.3 0.03 250);
-  --elevation-1: 0 1px 2px oklch(0.3 0.03 250 / 0.05),
-    0 2px 8px oklch(0.3 0.03 250 / 0.05);
+  --elevation-1: 0 1px 2px oklch(0.3 0.03 250 / 0.04);
   --elevation-2: 0 1px 3px oklch(0.3 0.03 250 / 0.05),
-    0 6px 16px oklch(0.3 0.03 250 / 0.07);
-  --elevation-3: 0 2px 6px oklch(0.3 0.03 250 / 0.06),
-    0 12px 28px oklch(0.3 0.03 250 / 0.09);
+    0 3px 8px oklch(0.3 0.03 250 / 0.04);
+  --elevation-3: 0 2px 8px oklch(0.3 0.03 250 / 0.06);
 
   /* ---- Paper grain strength ---- */
-  --grain-opacity: 0.045;
+  --grain-opacity: 0.035;
 
-  /* ---- Type ---- */
-  --font-serif: 'Literata Variable', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Karla Variable', system-ui, -apple-system, sans-serif;
-  --font-hand: 'Caveat Variable', 'Segoe Script', cursive;
+  /* ---- Type ----
+     Two voices, split by who is speaking.
+
+       serif  the book and the reader — titles, section heads, quotes, and
+              any value worth reading as a value. One weight, one italic:
+              Instrument Serif has no bold, and nothing may ask it for one.
+       sans   the app — body copy, buttons, anything that runs to a sentence.
+       mono   the app again, but only its short uppercase labels. Geist Mono
+              is the same family as the sans, so this is one voice in two
+              cuts rather than a second typeface.
+       hand   note cards, and nowhere else. The only decorative thing on the
+              screen, which is what makes it read as a note. Upright print,
+              not cursive — a note exists to be reread, so legibility beats
+              flourish. Slanted script is why the old one was hard work.  */
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Geist Variable', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'Courier New', monospace;
+  --font-hand: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
 
   --text-xs: 0.8125rem; /* 13 — captions */
   --text-sm: 0.9375rem; /* 15 — labels */
@@ -107,6 +173,49 @@
 
   /* ---- Tap targets ---- */
   --tap-min: 44px;
+
+  /* ---- Motion ----
+     Paper has weight. Nothing here snaps, and nothing here bounces — a kept
+     archive should feel handled, not springy. Four durations only, so no
+     component invents its own timing.
+
+       press  the finger is still down; anything slower reads as lag
+       quick  a pill selects, a colour changes — state, not travel
+       base   a card settles into a new state
+       move   something crosses the screen and has to be followed
+
+     Two curves. `out` is the default: leaves quickly, lands softly. `move` is
+     the same shape with a longer tail, for things that travel far enough that
+     you watch them arrive. `in` is for exits only, which should be faster than
+     entrances so the screen never feels like it is waiting on itself. */
+  --dur-press: 120ms;
+  --dur-quick: 180ms;
+  --dur-base: 260ms;
+  --dur-move: 420ms;
+  --stagger: 45ms;
+
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-move: cubic-bezier(0.32, 0.72, 0.28, 1);
+  --ease-in: cubic-bezier(0.55, 0.06, 0.68, 0.19);
+
+  /* Distances, so a lift is the same height everywhere it happens. */
+  --lift: 3px;
+  --press: 1px;
+  --travel: 8px;
+}
+
+/* Reduced motion is a token swap, not a switch: distance goes to zero and the
+   long travel collapses to a short cross-fade, so a state change is still
+   traceable instead of snapping. Components that move rather than fade also
+   carry their own @media block — this only guarantees nothing travels. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-move: 140ms;
+    --stagger: 0ms;
+    --lift: 0px;
+    --press: 0px;
+    --travel: 0px;
+  }
 }
 
 [data-theme='dark'] {
@@ -117,9 +226,29 @@
   --color-bg: oklch(0.22 0.03 267);
   --cloud: oklch(0.6 0.04 270 / 0.1); /* moonlit wisps */
   --cloud-core: oklch(0.68 0.045 272 / 0.14);
-  --grain-bg-opacity: 0.05;
+  --grain-bg-opacity: 0.025;
 
   --color-paper: oklch(0.285 0.022 262); /* night slate paper */
+
+  /* Night cards: frosted slate lifted off the night sky — same material as
+     the search field. */
+  --card-fill: oklch(0.34 0.026 264 / 0.58);
+  --card-border: oklch(0.95 0.015 250 / 0.15);
+  --card-fallback: oklch(0.305 0.024 263);
+  --card-chip: oklch(0.36 0.026 264 / 0.85);
+  --color-paper-raised: var(--card-fill);
+
+  /* Each type keeps its own tint at night, hue-matched to its accent (sage /
+     honey / periwinkle). Held at the fill's lightness so nothing brightens —
+     only the hue moves, which is enough to tell a quote from a note. */
+  --card-quote: oklch(0.35 0.03 152 / 0.58);
+  --card-note: oklch(0.355 0.03 95 / 0.58);
+  --card-voice: oklch(0.35 0.035 285 / 0.58);
+  --card-quote-solid: oklch(0.31 0.022 152);
+  --card-note-solid: oklch(0.315 0.022 95);
+  --card-voice-solid: oklch(0.31 0.026 285);
+  --card-edge-light: oklch(0.95 0.015 250 / 0.16); /* moonlit top edge */
+  --note-rule: oklch(0.75 0.06 100 / 0.16);
   --tape-fill: oklch(0.6 0.02 260 / 0.3);
   --tape-edge: oklch(0.8 0.02 255 / 0.22);
 
@@ -146,20 +275,47 @@
   --color-image: oklch(0.72 0.08 45);
   --color-highlight: oklch(0.77 0.1 95);
 
+  /* Books at night. Not the light recipe reversed — the boards come down to
+     sit clearly above the sky (0.22) without glaring off it, which pale
+     daytime stock at 0.82 does badly, and the print goes light so it still
+     reads on a board that is now darker than the ink was. Chroma drops a
+     little with the light: a colour is less saturated when there is less of
+     it, and the hues stay far enough apart to tell one book from another. */
+  --book-face-l: 0.41;
+  --book-face-c: 0.05;
+  --book-head-l: 0.6;
+  --book-head-c: 0.028;
+  --book-ink-l: 0.96;
+  --book-ink-c: 0.02;
+  --book-cover-l: 0.41;
+  --book-cover-c: 0.045;
+  --book-cover-ink-l: 0.96;
+  --book-cover-ink-c: 0.018;
+  /* 0.82, not the 0.72 this started at: the author and the printed frame are
+     the smallest type on a cover, and at 0.72 on this board they measured
+     3.42:1 — under AA. The rules brighten with them, which is right, since
+     both are ink catching the same light. */
+  --book-rule-l: 0.82;
+  --book-rule-c: 0.05;
+  /* Both sit either side of a 0.42–0.44 board, as they must. The sheen is a
+     lit room rather than white: pure white over a dark board reads as a
+     specular hit on plastic, not paper catching a lamp. */
+  --book-shade: oklch(0.06 0.015 265);
+  --book-sheen: oklch(0.75 0.03 255);
+  --shelf-board: oklch(0.05 0.02 265);
+
   --glass-fill: oklch(0.28 0.03 265 / 0.55);
   --glass-border: oklch(0.95 0.015 250 / 0.16);
   --glass-highlight: oklch(0.95 0.015 250 / 0.1);
   --glass-shade: oklch(0.1 0.01 265 / 0.25);
   --glass-fallback: oklch(0.28 0.03 265);
 
-  --border-hairline: oklch(0.95 0.015 250 / 0.1);
+  /* Night: no glow halos — hairlines + the tightest possible shadows */
+  --border-hairline: oklch(0.95 0.015 250 / 0.14);
   --shadow-tint: oklch(0.08 0.01 265);
-  --elevation-1: 0 1px 2px oklch(0.08 0.01 265 / 0.2),
-    0 2px 8px oklch(0.08 0.01 265 / 0.2);
-  --elevation-2: 0 1px 3px oklch(0.08 0.01 265 / 0.22),
-    0 6px 16px oklch(0.08 0.01 265 / 0.26);
-  --elevation-3: 0 2px 6px oklch(0.08 0.01 265 / 0.24),
-    0 12px 28px oklch(0.08 0.01 265 / 0.32);
+  --elevation-1: 0 1px 2px oklch(0.08 0.01 265 / 0.25);
+  --elevation-2: 0 1px 3px oklch(0.08 0.01 265 / 0.3);
+  --elevation-3: 0 2px 6px oklch(0.08 0.01 265 / 0.3);
 
-  --grain-opacity: 0.06;
+  --grain-opacity: 0.02;
 }

@@ -29,8 +29,11 @@ cherished bookshelf.
 ## Layout (wireframe in words)
 - Greeting header: "Welcome back, [Name]" (handwriting accent) + a quiet prompt
   ("3 books in progress").
-- Currently reading: prominent near top — active book(s) as a small carousel,
-  cover + title + progress + hint of recent entries ("2 quotes, 1 voice memo").
+- Currently reading: prominent near top — cover + title + progress + hint of
+  recent entries ("2 quotes, 1 voice memo").
+  NOT a carousel (Mabel, step 02 motion pass): one book is shown at a time.
+  With more than one in progress, you flip between them, and an indicator
+  below the card says there are more. Deferred until real books exist.
 - Collection: main scroll area, rendered in the chosen view.
 - Floating glass chrome (does not scroll with content):
   - Tab bar (bottom on mobile): Library · Search · Add · Profile.
@@ -40,7 +43,8 @@ cherished bookshelf.
 
 ## Copy (render EXACTLY)
 - Greeting: Welcome back, [Name].
-- Currently-reading label: Still reading
+- Currently-reading label: Currently reading
+  (was "Still reading" — changed by Mabel during the step 02 motion pass)
 - Progress example: 214 of 502 · 3 highlights this week
 - Collection label: Your collection
 - View labels: Stack · Shelf · Grid

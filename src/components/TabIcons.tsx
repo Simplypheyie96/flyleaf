@@ -46,6 +46,123 @@ export function SearchIcon({ size = 22 }: IconProps) {
   )
 }
 
+export function QuoteIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M9.5 7.5 C 7 8 5.5 10 5.5 12.5 L 5.5 16 L 10 16 L 10 11.5 L 7.5 11.5 C 7.5 9.8 8.3 8.6 9.5 7.5 Z" />
+        <path d="M18 7.5 C 15.5 8 14 10 14 12.5 L 14 16 L 18.5 16 L 18.5 11.5 L 16 11.5 C 16 9.8 16.8 8.6 18 7.5 Z" />
+      </g>
+    </svg>
+  )
+}
+
+export function NoteIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M15.5 5.5 L 18.5 8.5 L 9 18 L 5.5 18.5 L 6 15 Z" />
+        <path d="M13.5 7.5 L 16.5 10.5" />
+      </g>
+    </svg>
+  )
+}
+
+export function VoiceIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <rect x="9.5" y="4.5" width="5" height="10" rx="2.5" />
+        <path d="M6 11.5 C 6 15 8.5 17 12 17 C 15.5 17 18 15 18 11.5" />
+        <path d="M12 17 L 12 20" />
+      </g>
+    </svg>
+  )
+}
+
+/* ---- Library view switcher ----
+   Three literal objects rather than three abstractions: a pile seen edge-on,
+   spines standing on a shelf, thumbnails in a grid. Drawn on the same 24px
+   grid and stroke weight as the tab icons so the switcher reads as part of
+   the same chrome. */
+
+/* Two covers at an angle, the way the Stack view actually piles them — not
+   three horizontal bars, which at this size close up into a hamburger menu.
+   The front card is filled so it reads as being on top of the other rather
+   than crossing it. */
+export function StackIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        {/* Offset diagonally as well as rotated. Two cards turned about one
+            shared centre land on top of each other and read as a single
+            rounded square. */}
+        <rect
+          x="4.4"
+          y="3.4"
+          width="10.4"
+          height="13.2"
+          rx="2.1"
+          transform="rotate(-13 9.6 10)"
+        />
+        <rect
+          x="9.2"
+          y="7.4"
+          width="10.4"
+          height="13.2"
+          rx="2.1"
+          /* Knocks out the card behind it, so it has to match whatever
+             surface the icon is sitting on — which changes when the pill
+             becomes the selected one. */
+          fill="var(--icon-knockout, var(--color-bg, white))"
+          transform="rotate(7 14.4 14)"
+        />
+      </g>
+    </svg>
+  )
+}
+
+/* Spines standing on a board. Drawn 4.9 wide rather than 3.8: at a 1.8 stroke
+   the old width left barely two units of interior, so the three rects sealed
+   themselves shut and the icon came out as one dark block. */
+export function ShelfIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      {/* Gaps of 2.4, not 0.9. A 1.8 stroke sits centred on the path and so
+          overhangs 0.9 either side: at the tighter spacing the neighbouring
+          strokes met exactly and the three spines fused into one block. The
+          board sits clear of the feet for the same reason. */}
+      <g {...strokeProps}>
+        <rect x="3" y="5" width="4.4" height="12.4" rx="1.2" />
+        <rect x="9.8" y="6.3" width="4.4" height="11.1" rx="1.2" />
+        {/* The lean is what separates a shelf from a bar chart. */}
+        <rect
+          x="16.6"
+          y="5"
+          width="4.4"
+          height="12.4"
+          rx="1.2"
+          transform="rotate(8 18.8 17.4)"
+        />
+        <path d="M2.2 20 L 21.8 20" />
+      </g>
+    </svg>
+  )
+}
+
+export function GridIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <rect x="4.6" y="4.6" width="6.2" height="6.2" rx="1.6" />
+        <rect x="13.2" y="4.6" width="6.2" height="6.2" rx="1.6" />
+        <rect x="4.6" y="13.2" width="6.2" height="6.2" rx="1.6" />
+        <rect x="13.2" y="13.2" width="6.2" height="6.2" rx="1.6" />
+      </g>
+    </svg>
+  )
+}
+
 export function SettingsIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">

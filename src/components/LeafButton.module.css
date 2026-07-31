@@ -19,6 +19,12 @@
   cursor: pointer;
   box-shadow: var(--elevation-1);
   overflow: hidden;
+  /* The press used to be an untransitioned 1px jump, which read as the layout
+     glitching rather than the button taking the touch. It settles back now. */
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
 }
 
 /* Vein flourish — one midrib with two side veins, barely there.
@@ -36,15 +42,23 @@
     center / 100% 100% no-repeat;
 }
 
-.button:hover {
-  background: var(--color-action-hover);
-  box-shadow: var(--elevation-2);
+/* Hover is a pointer-only state — on touch it sticks after the tap, so the
+   button stays lifted long after the finger has gone. */
+@media (hover: hover) {
+  .button:hover {
+    background: var(--color-action-hover);
+    box-shadow: var(--elevation-2);
+    transform: translateY(calc(-1 * var(--lift) / 2));
+  }
 }
 
 .button:active {
   background: var(--color-action-press);
   box-shadow: none;
-  translate: 0 1px;
+  transform: translateY(var(--press));
+  /* Down is immediate, the release settles — a control should feel like it
+     met the finger, not like it thought about it. */
+  transition-duration: var(--dur-press);
 }
 
 .button:disabled {
@@ -58,15 +72,16 @@
   opacity: 0.08;
 }
 
-/* The "+" action: a rounder leaf, same stem corner. */
+/* The "+" action: a rounder leaf, same stem corner.
+   Keeps the sans it inherits from .button. It used to borrow the display serif
+   for a prettier glyph, but a "+" is a control, not the book's voice — and at
+   the 620 this pill sets, a serif with only one weight gets synthesised. */
 .plus {
   width: 56px;
   min-width: 56px;
   height: 56px;
   padding: 0;
   border-radius: 50% 50% 50% 18%;
-  font-family: var(--font-serif);
   font-size: var(--text-xl);
-  font-weight: 460;
   line-height: 1;
 }
