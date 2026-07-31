@@ -77,7 +77,33 @@
 .railNav {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--space-1);
+}
+
+/* In the rail, the active tab does not grow a label.
+
+   Growing sideways into an icon + label capsule works in the bottom bar
+   because the bar is a row: the capsule takes width the row has spare. A
+   column has no spare width. The label sets the rail's width for every tab,
+   so the icon-only ones end up stranded in a box sized to the longest word —
+   and the glass around them, asked for a pill radius, rounds to half of
+   whatever the smaller dimension is and turns into an egg. The active tab's
+   own corners are then rounder than the egg's, so they break the silhouette
+   at the top.
+
+   Every tab is a square here and the active one is the same square filled,
+   which makes the glass a narrow vertical stadium and inscribes the active
+   circle exactly inside its cap. The name is not lost: each pill carries an
+   aria-label, so the label was only ever the sighted half of it. */
+.railNav .navLabel {
+  display: none;
+}
+
+.railNav .navPill,
+.railNav .navPill[aria-current='page'] {
+  width: var(--tap-min);
+  padding: 0;
 }
 
 @media (min-width: 1024px) {
