@@ -1,0 +1,364 @@
+/* ---- Masthead: big serif + thin handwriting subtitle (per refs) ---- */
+.masthead {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-inline: var(--space-2);
+}
+
+/* The one display serif on the screen. Everything structural below it is a
+   label, so this doesn't have to shout to be read as the title. */
+.title {
+  font-size: var(--text-xl);
+  letter-spacing: -0.01em;
+}
+
+/* Handwriting is rationed to note cards now, so this is an italic standfirst
+   under the masthead rather than a second handwritten thing above the fold. */
+.subtitle {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-md);
+  color: var(--color-ink-soft);
+}
+
+.sparkle {
+  position: absolute;
+  color: var(--color-voice);
+  opacity: 0.55;
+}
+
+.sparkleMast {
+  right: var(--space-4);
+  bottom: var(--space-2);
+}
+
+.sparkleMemories {
+  right: calc(-1 * var(--space-1));
+  top: calc(-1 * var(--space-2));
+}
+
+/* ---- Section heads: italic serif ---- */
+.sectionHead {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-inline: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+/* Italic serif, a clear step below the masthead so the two don't compete. */
+.sectionLabel {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-md);
+  color: var(--color-ink);
+}
+
+/* ---- Currently reading hero — the book gets room to breathe ---- */
+.heroCard {
+  padding: var(--space-6) var(--space-5);
+}
+
+.hero {
+  display: flex;
+  gap: var(--space-5);
+  align-items: center;
+}
+
+.heroInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+
+/* Sized to sit inside the card next to the cover, not to fight it: a long
+   title should wrap to two comfortable lines, never overflow. */
+.heroTitle {
+  font-size: var(--text-md);
+  line-height: 1.25;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+.heroAuthor {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+/* Progress gauge — a quiet inset panel. Neutral on purpose: the sage tint it
+   used to carry was the only green on the screen and read as a status colour
+   the app doesn't otherwise use. */
+.gauge {
+  margin-top: var(--space-2);
+  border: 1px solid color-mix(in oklch, var(--color-ink), transparent 82%);
+  border-radius: 10px;
+  padding: var(--space-3);
+  background: color-mix(in oklch, var(--color-ink), transparent 95%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Page count left, percentage right — the count lives here so the hero has
+   one metadata line, not two competing ones. */
+.gaugeHead {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  /* the page count and percentage both climb as you read; proportional digits
+     would shift the row on every update */
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+}
+
+.gaugeTrack {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklch, var(--color-ink), transparent 85%);
+  overflow: hidden;
+}
+
+.gaugeFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-ink);
+}
+
+/* A count, not an inventory — the memories themselves live in the timeline
+   below, so the hero only says how many are kept. */
+/* Sans, not mono: "3 memories kept" is a sentence, and mono is rationed to
+   short uppercase labels. In mono it also sat at the same texture as the page
+   count directly above it, so the two read as one block of machine output. */
+.entryHint {
+  font-size: var(--text-xs);
+  /* soft, not faint: translucent cards cost ~2 points of contrast, and this
+     is small text that still has to clear AA */
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+}
+
+/* ---- Recent memories: timeline rail with typed dots ---- */
+.timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-inline-start: var(--space-6);
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: var(--space-3);
+  bottom: var(--space-3);
+  border-inline-start: 2px dashed
+    color-mix(in oklch, var(--color-ink), transparent 75%);
+}
+
+.timelineItem {
+  position: relative;
+}
+
+.dot {
+  position: absolute;
+  left: calc(-1 * var(--space-6) - 1px);
+  top: 18px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--color-bg);
+}
+
+.memoryQuote .dot {
+  background: var(--color-quote);
+}
+
+.memoryNote .dot {
+  background: var(--color-note);
+}
+
+.memoryVoice .dot {
+  background: var(--color-voice);
+}
+
+/* Corner icon chip, floating off the card's top-right (per refs) */
+.chip {
+  position: absolute;
+  top: calc(-1 * var(--space-3));
+  right: calc(-1 * var(--space-1));
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--card-chip);
+  border: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.memoryQuote .chip {
+  color: var(--color-quote);
+}
+
+.memoryNote .chip {
+  color: var(--color-note);
+}
+
+.memoryVoice .chip {
+  color: var(--color-voice);
+}
+
+/* Typewriter meta */
+.memoryType {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+/* -- Quote: an oversized mark, centered reading voice, source below -- */
+.quoteCard {
+  padding: var(--space-6) var(--space-6) var(--space-5);
+}
+
+.quoteMark {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 3rem;
+  line-height: 0.6;
+  color: var(--color-quote);
+  opacity: 0.85;
+}
+
+.quoteText {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-md);
+  line-height: 1.55;
+  margin-top: var(--space-3);
+}
+
+.quoteMeta {
+  margin-top: var(--space-4);
+}
+
+/* -- Note: ruled sticky, handwriting on the lines, folded corner -- */
+.noteCard {
+  border-radius: var(--radius-sm);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 18px),
+    calc(100% - 18px) 100%,
+    0 100%
+  );
+}
+
+/* Ruled lines live on an overlay, not the card's own background-image:
+   a backdrop-filtered element with a background-image drops its content
+   in Chromium. */
+.noteCard::after {
+  content: '';
+  position: absolute;
+  inset: var(--space-5);
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 27px,
+    var(--note-rule) 27px 28px
+  );
+}
+
+/* The ruled lines are a fixed 28px grid on the card, so the writing has to be
+   nudged onto them by hand: where a baseline falls inside its line box depends
+   on the font's own ascent, and Patrick Hand's is not Caveat's. Without the
+   nudge the text floats ~12px above each rule instead of sitting on it.
+   Re-measure this if --font-hand or the 28px rhythm ever changes. */
+.noteText {
+  font-family: var(--font-hand);
+  font-size: var(--text-md);
+  line-height: 28px;
+  margin-top: calc(var(--space-2) + 12px);
+}
+
+/* -- Voice memo: a player, not a paragraph -- */
+.voiceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-block: var(--space-2);
+}
+
+.playButton {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-ink);
+  color: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.playButton:hover {
+  background: var(--color-ink-soft);
+}
+
+.waveform {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 32px;
+}
+
+.wavebar {
+  flex: 1;
+  max-width: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-voice);
+}
+
+.voiceMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-2);
+}
+
+/* ---- Empty state ---- */
+.empty {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-6);
+}
+
+.emptyHeadline {
+  font-size: var(--text-xl);
+}
+
+.emptyBody {
+  color: var(--color-ink-soft);
+}
