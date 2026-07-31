@@ -104,16 +104,37 @@
   pointer-events: none;
 }
 
-.top {
-  font-family: var(--font-mono);
-  font-size: 0.5625rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding-top: var(--space-2);
-  color: oklch(
-    from var(--cover-hue, var(--color-image)) var(--book-rule-l)
-      var(--book-rule-c) h
-  );
+/* A real cover is someone else's finished design. It gets the board and the
+   bound edge — so it is the same physical object as the drawn covers beside
+   it — and nothing else: no frame over the artwork, no type of ours on top. */
+.photographed {
+  padding: 0;
+  overflow: hidden;
+}
+
+.photographed::before {
+  content: none;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  /* Editions are photographed at every aspect ratio there is; the board is
+     always 2:3. Cover-crop rather than letterbox, so a shelf stays a shelf. */
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
+/* The drawn motif takes whatever height the type leaves it, and no more — the
+   type is the thing that has to be readable, the art is what makes the board
+   worth looking at. */
+.art {
+  flex: 1;
+  min-height: 0;
+  width: 78%;
+  overflow: visible;
+  opacity: 0.85;
 }
 
 .title {
@@ -156,12 +177,15 @@
     calc(var(--space-2) + 6px);
 }
 
-.small .top {
-  display: none;
-}
-
 .small .title {
   font-size: var(--text-xs);
+}
+
+/* At thumbnail size the motif is doing more identifying work than the title
+   is — you find a book on a contact sheet by its shape and colour long before
+   you read it — so it keeps its share of the board rather than shrinking. */
+.small .art {
+  width: 84%;
 }
 
 .small .author {
