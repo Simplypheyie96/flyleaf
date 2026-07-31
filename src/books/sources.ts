@@ -47,7 +47,7 @@ export async function searchBooks(
     orNothing(searchGoogleBooks(q, signal)),
   ])
 
-  return merge(open, google).slice(0, TOTAL)
+  return lendCovers(merge(open, google)).slice(0, TOTAL)
 }
 
 /* ---- Open Library ---- */
@@ -181,6 +181,57 @@ function merge(...lists: BookResult[][]) {
   }
 
   return [...byId.values()]
+}
+
+/* ---- Lending covers between near-identical records ----
+
+   A book arrives from one catalogue without a cover and from the other with
+   one, under a title just different enough not to merge: Open Library files
+   Raynor Winn's memoir as "Salt Path", Google Books as "The Salt Path". The
+   strict key sees two books, and the reader gets a drawn cover for a book
+   whose photograph we are already holding two rows down the same list.
+
+   So after merging, a result with no cover is offered one from a looser match
+   — leading article dropped, subtitle dropped, the author's last name only.
+   The looseness is deliberate and safe here in a way it would not be for
+   merging: the worst case is a different edition's jacket for the same book by
+   the same author, and the reader is reading the title as well as looking at
+   the board when they point at the right one. Merging those records instead
+   would throw away a title the reader might have been searching for.
+
+   Nothing extra is fetched — this only reuses URLs already in hand. */
+function looseKey(title: string, author: string) {
+  const stem = title
+    .toLowerCase()
+    // "Quiet: The Power of Introverts" and "Quiet" are the same book to a
+    // reader; so are a title and its parenthesised series note.
+    .split(/[:(]/)[0]
+    .replace(/^(the|a|an)\s+/, '')
+    .replace(/[^a-z0-9]+/g, '')
+  // Catalogues disagree constantly about initials and middle names, and agree
+  // about surnames.
+  const surname =
+    author.toLowerCase().replace(/[^a-z\s]/g, '').trim().split(/\s+/).pop() ?? ''
+  return `${stem}|${surname}`
+}
+
+function lendCovers(results: BookResult[]) {
+  const lenders = new Map<string, string[]>()
+  for (const book of results) {
+    if (!book.covers.length) continue
+    const key = looseKey(book.title, book.author)
+    // First one wins: results arrive in relevance order, so the earliest
+    // match is the closest edition.
+    if (!lenders.has(key)) lenders.set(key, book.covers)
+  }
+
+  for (const book of results) {
+    if (book.covers.length) continue
+    const lent = lenders.get(looseKey(book.title, book.author))
+    if (lent) book.covers = [...lent]
+  }
+
+  return results
 }
 
 /** A source that fails contributes nothing, rather than failing the search. */

@@ -163,6 +163,31 @@ export function GridIcon({ size = 22 }: IconProps) {
   )
 }
 
+/* Drawn a little inside the box rather than corner to corner: a full-bleed
+   cross reads as a delete, and this only puts a sheet away. */
+export function CloseIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M7.75 7.75 L 16.25 16.25" />
+        <path d="M16.25 7.75 L 7.75 16.25" />
+      </g>
+    </svg>
+  )
+}
+
+/* A chevron with no shaft. Back here moves between steps of one sheet, not to
+   a previous page, and an arrow would promise the larger journey. */
+export function BackIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M14.25 6 L 8.75 12 L 14.25 18" />
+      </g>
+    </svg>
+  )
+}
+
 export function SettingsIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
