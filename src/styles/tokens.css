@@ -34,7 +34,14 @@
   --color-action-press: oklch(0.2 0.02 255);
   --color-on-action: oklch(0.985 0.005 240);
   --color-action-disabled: oklch(0.88 0.015 240);
-  --color-on-action-disabled: oklch(0.52 0.02 245);
+  /* A disabled control is exempt from the contrast rule and its label is not.
+     "Continue" sits greyed out under an empty title field for as long as it
+     takes to type a book in, and it is the only thing on that stage saying
+     what finishing does — a reader who cannot read it does not know what they
+     are working towards. 0.52 measured 3.85 on the muted fill; 0.47 is 4.9.
+     The fill, the cursor and the disabled attribute are what say inactive,
+     which is three more ways than the label was ever carrying. */
+  --color-on-action-disabled: oklch(0.47 0.02 245);
 
   /* ---- The one quiet warm accent (sun through clouds) ---- */
   --color-accent: oklch(0.66 0.11 78); /* graphic uses: icons, fills */
@@ -276,7 +283,10 @@
   --color-action-press: oklch(0.85 0.02 252);
   --color-on-action: oklch(0.22 0.03 265);
   --color-action-disabled: oklch(0.32 0.02 262);
-  --color-on-action-disabled: oklch(0.58 0.02 258);
+  /* Same reasoning as by day, and a longer way to travel: on the night fill
+     0.58 measured 2.97, which is a label you can see is there without being
+     able to read it. 0.70 is 4.7. */
+  --color-on-action-disabled: oklch(0.7 0.02 258);
 
   --color-accent: oklch(0.78 0.1 80); /* moon-honey */
   --color-accent-text: oklch(0.78 0.06 262); /* moonlit periwinkle ink */

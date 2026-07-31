@@ -42,19 +42,33 @@ export interface BookResult {
 const PER_SOURCE = 12
 const TOTAL = 20
 
+export interface SearchOutcome {
+  results: BookResult[]
+  /* How many of the catalogues actually answered.
+     Zero and nothing found are two different sentences to say to a reader. One
+     means the book is not in these catalogues under that spelling; the other
+     means the search never happened — no signal, a blocking network, both
+     services down at once. Telling someone on a train that their book "may be
+     out of print" is a small lie, and it sends them off to check the spelling
+     of a title that was never looked up. */
+  answered: number
+}
+
 export async function searchBooks(
   query: string,
   signal?: AbortSignal,
-): Promise<BookResult[]> {
+): Promise<SearchOutcome> {
   const q = query.trim()
-  if (q.length < 2) return []
+  if (q.length < 2) return { results: [], answered: 0 }
 
   const [open, google] = await Promise.all([
     orNothing(searchOpenLibrary(q, signal)),
     orNothing(searchGoogleBooks(q, signal)),
   ])
 
-  return lendCovers(merge(open, google)).slice(0, TOTAL)
+  const answered = [open, google].filter((list) => list !== null).length
+  const results = lendCovers(merge(open ?? [], google ?? [])).slice(0, TOTAL)
+  return { results, answered }
 }
 
 /* ---- Open Library ---- */
@@ -280,11 +294,15 @@ function lendCovers(results: BookResult[]) {
   return results
 }
 
-/** A source that fails contributes nothing, rather than failing the search. */
-async function orNothing(work: Promise<BookResult[]>): Promise<BookResult[]> {
+/* A source that fails contributes nothing, rather than failing the search —
+   but it says so. `null` is a source that never answered; `[]` is a source that
+   answered and holds no such book. Google returns the second constantly on its
+   shared keyless quota, and the difference is the whole reason the caller can
+   tell an empty shelf from a dead line. */
+async function orNothing(work: Promise<BookResult[]>): Promise<BookResult[] | null> {
   try {
     return await work
   } catch {
-    return []
+    return null
   }
 }

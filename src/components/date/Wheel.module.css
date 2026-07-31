@@ -87,10 +87,20 @@
 }
 
 /* The curvature. Rows away from the band sit back and shrink, which is what
-   makes a flat list read as a drum turning rather than a menu sliding. */
-.row[data-off='1'] { opacity: 0.55; transform: scale(0.9); }
-.row[data-off='2'] { opacity: 0.28; transform: scale(0.82); }
-.row[data-off='3'] { opacity: 0.14; transform: scale(0.76); }
+   makes a flat list read as a drum turning rather than a menu sliding.
+
+   It is nearly all shrink now. The fade used to carry most of it — 0.55, 0.28,
+   0.14 — and against this ink on this drum those measure 3.65, 1.80 and 1.32
+   to 1 by day and 4.10, 2.13 and 1.46 by night, on 18px serif that needs 4.5.
+   None of these rows is decoration: every one is a `role="option"` that jumps
+   the picker to that month when you tap it, so the floor applies to all of
+   them. Solved on the rendered pair, the alpha where this ink clears 4.5 is
+   0.618 by day and 0.592 by night; 0.64 is the floor the whole ramp now sits
+   above, and the scale steps were opened up to take over the depth the fade
+   used to be doing. */
+.row[data-off='1'] { opacity: 0.8; transform: scale(0.88); }
+.row[data-off='2'] { opacity: 0.72; transform: scale(0.78); }
+.row[data-off='3'] { opacity: 0.64; transform: scale(0.68); }
 
 @media (prefers-reduced-motion: reduce) {
   .row { transition: none; }
