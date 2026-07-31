@@ -87,8 +87,13 @@
      highlight. */
   --book-shade: oklch(0.2 0.02 250);
   --book-sheen: oklch(1 0 0);
-  /* The shelf ledge. Ink by day; at night the board is a shadow, not a
-     pale bar — which is what following --color-ink into dark would give. */
+  /* The shelf ledge, in two materials. The join is the contact shadow where
+     the books meet the wood; the board is the face below it that catches the
+     light. By day they are the same ink — a ledge on pale stock is made
+     entirely by adding darkness, so one colour at four alphas draws the whole
+     thing. They part company at night, where adding darkness to a dark page
+     draws nothing. */
+  --shelf-join: var(--color-ink);
   --shelf-board: var(--color-ink);
 
   /* ---- Card material: frosted, same family as the search field.
@@ -319,7 +324,16 @@
      specular hit on plastic, not paper catching a lamp. */
   --book-shade: oklch(0.06 0.015 265);
   --book-sheen: oklch(0.75 0.03 255);
-  --shelf-board: oklch(0.05 0.02 265);
+  /* The join stays where it was — a contact shadow is dark in any room. The
+     board face inverts: at night it is a dim slate lit from above rather than
+     more darkness laid on darkness. 0.74 is the material, not the result; the
+     alphas in Library.module.css bring the rendered face down to 0.32 at the
+     front edge and 0.23 at the underside — above the 0.19 sky, so it reads as
+     a solid, and well under the 0.40 spines, so it never competes with the
+     books standing on it. The join lands at 0.14, darker than the sky, which
+     is what keeps it a shadow rather than a second edge. */
+  --shelf-join: oklch(0.05 0.02 265);
+  --shelf-board: oklch(0.74 0.02 262);
 
   --glass-fill: oklch(0.28 0.03 265 / 0.55);
   --glass-border: oklch(0.95 0.015 250 / 0.16);

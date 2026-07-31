@@ -131,6 +131,20 @@
   display: block;
 }
 
+/* At night the drawn boards come down to 0.40 with the rest of the room. A
+   photograph does not — it arrives at whatever the publisher printed, so a
+   pale jacket sits in the grid like a lit screen among unlit objects, and the
+   eye goes to it rather than to the book the reader was looking for.
+
+   Brightness rather than a scrim or a desaturation. It is multiplicative, so
+   it takes the same proportion off every cover: a pale jacket comes down a
+   long way, a dark one barely moves, which is what less light in a room
+   actually does. And it leaves the hue alone — the cover is someone else's
+   finished design and dimming the lamp is as far as this is entitled to go. */
+[data-theme='dark'] .image {
+  filter: brightness(0.8);
+}
+
 /* Thumbnail (a search result, 44px across). No type at all: at this size a set
    title is a grey smudge. The motif alone, which is what the eye matches
    against the row's real title anyway — and it takes the whole board, since

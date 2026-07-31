@@ -245,6 +245,24 @@
    the transition between two of them *is* the swap animation. */
 .deck {
   margin-block: var(--space-4);
+
+  /* How far each card behind the front is faded back. A variable rather than a
+     number on the slot, because the right amount is not the same in both
+     modes: fading toward a pale page reads as haze, and the card is still a
+     card. Fading the same card toward a near-black page reads as switching it
+     off — at 0.6 the fourth book's title was unreadable and its tap target,
+     which is sized to the millimetre, was aimed at something you could barely
+     see. Depth at night comes from the scale and the rotation, which are
+     unchanged; the opacity is given back. */
+  --deck-fade-1: 0.92;
+  --deck-fade-2: 0.78;
+  --deck-fade-3: 0.6;
+}
+
+[data-theme='dark'] .deck {
+  --deck-fade-1: 0.96;
+  --deck-fade-2: 0.89;
+  --deck-fade-3: 0.8;
 }
 
 .stack {
@@ -306,21 +324,21 @@
   translate: -59% -53%;
   rotate: 4deg;
   scale: 0.95;
-  opacity: 0.92;
+  opacity: var(--deck-fade-1);
 }
 
 .stackItem[data-slot='2'] {
   translate: -30% -56%;
   rotate: 8deg;
   scale: 0.9;
-  opacity: 0.78;
+  opacity: var(--deck-fade-2);
 }
 
 .stackItem[data-slot='3'] {
   translate: -1% -58%;
   rotate: 12deg;
   scale: 0.85;
-  opacity: 0.6;
+  opacity: var(--deck-fade-3);
 }
 
 /* Below about 360px the fan runs out of room before the thumb does: the steps
@@ -525,13 +543,32 @@
      made this read as an extruded metal bar. */
   background: linear-gradient(
     to bottom,
-    color-mix(in oklch, var(--shelf-board), transparent 66%) 0,
+    color-mix(in oklch, var(--shelf-join), transparent 66%) 0,
     color-mix(in oklch, var(--shelf-board), transparent 89%) 2px,
     color-mix(in oklch, var(--shelf-board), transparent 83%) 5px,
     color-mix(in oklch, var(--shelf-board), transparent 73%) 100%
   );
   /* Cast onto the page below, so the board reads as standing off it. */
   box-shadow: var(--elevation-1);
+}
+
+/* The night board. Same three bands, same light coming from above — only the
+   material is different, so the alphas have to run the other way. By day the
+   face is drawn by how much ink is added, and the front edge is the band with
+   the least of it. By night the face is drawn by how much light it catches,
+   so the front edge is the band with the most, falling away towards an
+   underside that keeps almost none.
+
+   Without this the whole ledge collapsed: near-black at four alphas over a
+   near-black sky is one smudge, and five books stood on a crack. */
+[data-theme='dark'] .ledge {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--shelf-join), transparent 45%) 0,
+    color-mix(in oklch, var(--shelf-board), transparent 79%) 2px,
+    color-mix(in oklch, var(--shelf-board), transparent 85%) 5px,
+    color-mix(in oklch, var(--shelf-board), transparent 94%) 100%
+  );
 }
 
 /* ---- A spine ----

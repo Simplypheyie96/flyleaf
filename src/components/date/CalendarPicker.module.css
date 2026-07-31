@@ -103,7 +103,12 @@
   letter-spacing: 0.08em;
   text-align: center;
   text-transform: uppercase;
-  color: var(--color-ink-faint);
+  /* Soft, not faint. The faint token is marked large-or-decorative in
+     tokens.css and this is neither: 11px, letter-spaced, uppercase, and the
+     only thing telling you which column is Wednesday. It measured 3.7:1 on the
+     night panel, under the 4.5 a body-sized string needs; soft takes it to
+     5.8 and leaves the heads quieter than the dates, which is the point. */
+  color: var(--color-ink-soft);
 }
 
 .grid {
