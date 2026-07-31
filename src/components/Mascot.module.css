@@ -1,0 +1,138 @@
+/* The perch.
+
+   A strip immediately above whatever it is placed on, as tall as the part of
+   the creature that is meant to show. `overflow: hidden` is what does the
+   cropping — see the note in Mascot.tsx for why the card cannot do it — and
+   the strip's own bottom edge lands exactly on the card's top edge, so the
+   clipped silhouette reads as the creature going behind it. */
+.strip {
+  position: relative;
+  /* Of the 44-unit field, 22 show — kept in step with SHOWN in Mascot.tsx.
+     Expressed against the width because that is what the SVG is sized by. */
+  height: calc(var(--mascot-w) * 22 / 44);
+  overflow: hidden;
+  pointer-events: none;
+  /* One field unit in rendered pixels — 44 across. Every distance below is
+     written in these rather than in px so the whole creature scales together
+     at any --mascot-w. */
+  --unit: calc(var(--mascot-w) / 44);
+  /* The strip's own bottom edge IS the crop, so it has to touch the card. */
+  margin-block-end: 0;
+}
+
+/* ---- Travels the edge, and stops to look ----
+
+   Two animations on two elements, on one clock. The track carries it sideways;
+   the drawing itself carries it up and down. Splitting them is what lets the
+   two read as one creature doing two things rather than as a sprite on a path:
+   the travel can hop while the head independently ducks and rises.
+
+   Three stations across the card — near edge, middle, far edge — with a hold
+   at each. It crosses at a low depth where the ears and the crown of the skull
+   clear the card but the eyes do not, so you can watch it go without it ever
+   being fully out. At each station it comes up far enough for the eyes, looks,
+   and drops before setting off again.
+
+   Depths, in field units (44 across the drawing):
+     -2  travelling — ears and about four units of skull; eyes still under
+     -9  looking    — eyes three units clear of the crop
+   Anything shallower than -9 lands the eyes ON the crop line, where they read
+   as half-drawn rather than as looking over it.
+
+   14s because the whole point is that it is peripheral. A shorter cycle turns
+   a thing you happen to notice into a thing that is waving at you. */
+.track {
+  display: block;
+  width: 100%;
+  animation: cross 14s infinite;
+}
+
+.art {
+  display: block;
+  animation: peek 14s infinite;
+}
+
+/* The far station is `100% - width`: 100% of the track is the card, so this is
+   the creature flush with the far edge and never clipped by the strip. The
+   odd intermediate percentages are the hops — three per leg, a few units up,
+   too brief for their exact x to matter. */
+@keyframes cross {
+  0%, 20% { transform: translate(0, 0); }
+  23% { transform: translate(14%, calc(var(--unit) * -3)); }
+  25% { transform: translate(21%, 0); }
+  27% { transform: translate(34%, calc(var(--unit) * -3)); }
+  30%, 48% { transform: translate(calc(50% - var(--mascot-w) / 2), 0); }
+  51% { transform: translate(62%, calc(var(--unit) * -3)); }
+  53% { transform: translate(70%, 0); }
+  55% { transform: translate(82%, calc(var(--unit) * -3)); }
+  58%, 76% { transform: translate(calc(100% - var(--mascot-w)), 0); }
+  /* Back in one longer run rather than three hops: a return trip that is as
+     eventful as the outward one reads as pacing. */
+  81% { transform: translate(56%, calc(var(--unit) * -3)); }
+  86% { transform: translate(24%, calc(var(--unit) * -3)); }
+  90%, 100% { transform: translate(0, 0); }
+}
+
+/* Down through every travel window (20–30, 48–58, 76–90), up in the middle of
+   every hold. Up is quick and curious, down slower and a little reluctant. */
+@keyframes peek {
+  0%, 6% {
+    transform: translateY(calc(var(--unit) * -2));
+    animation-timing-function: var(--ease-out);
+  }
+  10%, 16% {
+    transform: translateY(calc(var(--unit) * -9));
+    animation-timing-function: var(--ease-in);
+  }
+  20%, 34% {
+    transform: translateY(calc(var(--unit) * -2));
+    animation-timing-function: var(--ease-out);
+  }
+  38%, 44% {
+    transform: translateY(calc(var(--unit) * -9));
+    animation-timing-function: var(--ease-in);
+  }
+  48%, 62% {
+    transform: translateY(calc(var(--unit) * -2));
+    animation-timing-function: var(--ease-out);
+  }
+  66%, 72% {
+    transform: translateY(calc(var(--unit) * -9));
+    animation-timing-function: var(--ease-in);
+  }
+  76%, 100% { transform: translateY(calc(var(--unit) * -2)); }
+}
+
+/* An ear flicks at the end of each look, on the way down — the beat that stops
+   three identical stops from reading as three identical stops. */
+.earR {
+  animation: flick 14s var(--ease-out) infinite;
+}
+
+@keyframes flick {
+  0%, 16%, 26%, 44%, 54%, 72%, 82%, 100% { rotate: 0deg; }
+  20% { rotate: 13deg; }
+  48% { rotate: -9deg; }
+  76% { rotate: 11deg; }
+}
+
+/* Motion is the whole point of this thing, so reduced motion does not get a
+   faster version of it — it gets the pose. */
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .art,
+  .earR {
+    animation: none;
+  }
+
+  /* Up and looking, a third of the way along — the station it would be at, not
+     the crossing it would be mid-way through. Parked at travelling depth it is
+     ears on a card, which out of context reads as a rendering fault. */
+  .track {
+    transform: translateX(28%);
+  }
+
+  .art {
+    transform: translateY(calc(var(--unit) * -9));
+  }
+}

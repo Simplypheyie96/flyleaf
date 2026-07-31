@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import BookCover from '../components/BookCover'
 import LeafButton from '../components/LeafButton'
+import Mascot from '../components/Mascot'
 import PaperSurface from '../components/PaperSurface'
 import { QuoteIcon, VoiceIcon } from '../components/TabIcons'
 import { currentlyReading, recentMemories } from '../data/sample'
@@ -138,6 +139,10 @@ function Home() {
                   Currently reading
                 </h2>
               </div>
+              {/* Immediately above the card and nowhere else in the app: it is
+                  cropped by its own strip, so it has to sit flush on the one
+                  surface it is meant to be hiding behind. */}
+              <Mascot />
               <PaperSurface rotate={-0.4} className={styles.heroCard}>
                 <div className={styles.hero}>
                   <BookCover
