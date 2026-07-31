@@ -1,3 +1,16 @@
+/* The Library asks for more room than the shared default. Books are objects
+   laid out side by side, so width buys more of them at once — where Home's
+   feed only stretches the same card wider. 760 is where a shelf stops reading
+   as one shelf and starts reading as a wall. */
+.shelfColumn {
+  --column-max: clamp(420px, 72vw, 760px);
+  /* The grid below sizes itself off this column, not off the viewport — the
+     column is what actually constrains it, and it is narrower than the window
+     by a rail and two margins. Scoped to the Library rather than the shared
+     column so Home takes no containment it has no use for. */
+  container-type: inline-size;
+}
+
 /* Title and view control share one line: the switcher is chrome that belongs
    to the shelf below it, so it sits with the shelf's name rather than floating
    in the content as a row of buttons. Baseline-independent — the text block is
@@ -130,7 +143,13 @@
   color: var(--color-ink);
 }
 
+/* The reading measure in index.css caps every <p> at --measure, which is right
+   for prose and wrong for this: a two-word meta label has no measure to hold.
+   Below a 468px column the cap never bit, so the label centred on the shelf by
+   accident; at 760 it centred inside a 468px box pinned to the leading edge
+   instead, and sat visibly off the books it counts. */
 .count {
+  max-width: none;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   letter-spacing: 0.08em;
@@ -203,11 +222,16 @@
   margin-block: var(--space-4);
 }
 
+/* The percentage is what centres the pile on any column; the cap is what keeps
+   it a pile. Left uncapped, a 760px column gives 410px covers in a container
+   the height clamp holds at 380 — the books outgrow the surface they are piled
+   on. 228px is the width this was drawn at, so the phone is untouched and a
+   desk gets the same object with more air around it. */
 .stackItem {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 54%;
+  width: min(54%, 228px);
   translate: -50% -50%;
 }
 
@@ -387,12 +411,27 @@
   white-space: nowrap;
 }
 
-/* ---- Grid: tidy thumbnails ---- */
+/* ---- Grid: tidy thumbnails ----
+   Three across is the phone layout, and it is stated rather than derived: a
+   bare `auto-fill` floor low enough to keep three columns on a 342px column
+   gives six on a wide one, and one high enough to look right wide drops a
+   small phone to two. So the phone gets the fixed three it was designed with,
+   and auto-fill takes over only once the column has room for a fourth. */
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-4);
   padding-block: var(--space-2);
+}
+
+/* A wider column earns more books, not bigger ones: this is a contact sheet of
+   a collection, and a cover blown up to 250px is a product shot. The query is
+   on the column, not the viewport, and the threshold is the width at which a
+   fourth phone-sized cover fits — content, not a device. */
+@container (min-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+  }
 }
 
 .grid > * {

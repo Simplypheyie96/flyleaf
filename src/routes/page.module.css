@@ -10,7 +10,15 @@
 
 .column {
   width: 100%;
-  max-width: 420px;
+  /* Fluid, not stepped: the column takes the room a screen gives it, with no
+     device breakpoints, because nothing here breaks at 768 or 1024. The floor
+     is the phone width this was designed at.
+
+     The cap is a variable because a route knows what its own content wants,
+     and one number cannot serve both screens. This default is the feed width —
+     Home is a column of memories, and a card holding one line of a quote is a
+     stretched banner long before 760. A shelf raises it. */
+  max-width: var(--column-max, clamp(420px, 72vw, 560px));
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
@@ -19,6 +27,9 @@
 @media (min-width: 1024px) {
   .page {
     padding-bottom: var(--space-7);
-    padding-left: calc(var(--space-8) + var(--space-8));
+    /* Clearance for the side rail, which replaces the bottom bar at this
+       width. Logical, so the rail and its clearance stay on the same side
+       when the document direction flips. */
+    padding-inline-start: calc(var(--space-8) + var(--space-8));
   }
 }
