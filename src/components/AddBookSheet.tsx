@@ -319,6 +319,16 @@ function SearchStage({
             spelled differently — you can put it on the shelf yourself.
           </p>
         )}
+
+        {/* Said differently from a miss on purpose. A reader with no signal is
+            not looking at a spelling mistake, and sending them off to check one
+            wastes their time on a search that never left the phone. */}
+        {state.status === 'unreachable' && (
+          <p className={styles.quiet}>
+            The catalogues didn’t answer — you may be offline. Try again in a
+            moment, or put the book on the shelf yourself.
+          </p>
+        )}
       </div>
 
       {/* Always offered, not only after a miss: the catalogues are a

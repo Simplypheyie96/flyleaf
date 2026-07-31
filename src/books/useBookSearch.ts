@@ -5,9 +5,11 @@ export type SearchState =
   | { status: 'idle' }
   | { status: 'searching' }
   | { status: 'done'; results: BookResult[] }
+  /** No catalogue answered at all — offline, blocked, or both down together. */
+  | { status: 'unreachable' }
 
-/** Debounced, cancelling book search. Never rejects: a dead source is a
-    result of zero, which the sheet already knows how to answer. */
+/** Debounced, cancelling book search. Never rejects: a search that could not be
+    run is a state of its own, which the sheet knows how to answer. */
 export function useBookSearch(query: string): SearchState {
   const [state, setState] = useState<SearchState>({ status: 'idle' })
 
@@ -27,8 +29,13 @@ export function useBookSearch(query: string): SearchState {
     let live = true
     const timer = setTimeout(() => {
       searchBooks(q, controller.signal)
-        .then((results) => live && setState({ status: 'done', results }))
-        .catch(() => live && setState({ status: 'done', results: [] }))
+        .then(({ results, answered }) => {
+          if (!live) return
+          // One source answering is a real search: Google is out of quota far
+          // more often than it is up, and Open Library alone is the search.
+          setState(answered > 0 ? { status: 'done', results } : { status: 'unreachable' })
+        })
+        .catch(() => live && setState({ status: 'unreachable' }))
     }, 350)
 
     return () => {
