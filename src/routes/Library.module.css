@@ -1,8 +1,20 @@
+/* Title and view control share one line: the switcher is chrome that belongs
+   to the shelf below it, so it sits with the shelf's name rather than floating
+   in the content as a row of buttons. Baseline-independent — the text block is
+   two lines and the control is one tall pill, so they centre on each other. */
 .masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-inline: var(--space-2);
+}
+
+.mastheadText {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding-inline: var(--space-2);
+  min-width: 0;
 }
 
 /* Matches Home: one display serif per screen, at the scale's page-title step
@@ -54,48 +66,68 @@
   outline: none;
 }
 
-/* View switcher: mono pills */
+/* ---- View switcher: icons in a glass pill ----
+   Icon-only. Three words beside a two-line masthead would need ~172px of the
+   ~358px the phone gives us, which leaves the title nowhere to go; the icons
+   are literal enough (a pile, spines, a grid) to carry it, and the name is
+   still there for screen readers, on hover and on long-press. */
 .switcher {
+  --glass-pad: 0;
+  --glass-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+.switcherInner {
   display: flex;
-  justify-content: center;
-  gap: var(--space-1);
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
 }
 
 .viewPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Both axes on the tap minimum. At 42px wide these cleared the height rule
+     and quietly failed the width one — an icon-only control has no label to
+     grow it, so the floor has to be stated on both sides. */
+  min-width: var(--tap-min);
   min-height: var(--tap-min);
-  padding: var(--space-2) var(--space-4);
-  /* Was `border: none` with a border only on the pressed pill, which moved the
-     other two by a pixel each time the selection changed. The border is always
-     here now and only its colour changes. */
+  /* The border is always here and only its colour changes — a border that
+     appears on selection would nudge the other two icons sideways. */
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
   background: transparent;
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-soft);
+  color: var(--color-ink-faint);
   cursor: pointer;
-  /* Colour only: the pill is a label, and a label that also moves competes
-     with the books it just sent across the screen. */
+  /* Colour and fill only. The control just sent four books across the screen;
+     if it moves as well, there are two things to watch and neither reads. */
   transition:
     background-color var(--dur-quick) var(--ease-out),
     border-color var(--dur-quick) var(--ease-out),
+    box-shadow var(--dur-quick) var(--ease-out),
     color var(--dur-quick) var(--ease-out);
 }
 
-.viewPill:hover {
-  color: var(--color-ink);
+@media (hover: hover) {
+  .viewPill:hover {
+    color: var(--color-ink-soft);
+  }
 }
 
 .viewPill:active {
   transform: translateY(var(--press));
+  transition-duration: var(--dur-press);
 }
 
 .viewPill[aria-pressed='true'] {
+  /* The Stack glyph knocks its front card out of the one behind it, so the
+     knockout has to follow the capsule it's sitting in. */
+  --icon-knockout: var(--color-chip-active);
   background: var(--color-chip-active);
-  color: var(--color-ink);
   border-color: var(--border-hairline);
+  box-shadow: var(--elevation-1);
+  color: var(--color-ink);
 }
 
 .count {
@@ -113,8 +145,8 @@
    rises by the same amount here as anything else that rises.
 
    `transform`, never `translate`, and never `rotate`: stack items and spines
-   set both of those individual properties for their layout, and the FLIP
-   engine animates `transform`. This has to compose with all three. */
+   set both of those individual properties for their layout, and the two
+   compose *before* transform. This has to leave them alone. */
 .book {
   border-radius: 14px;
   transition:
@@ -136,7 +168,8 @@
   transition-duration: var(--dur-press);
 }
 
-/* ---- Cross-fade engine only: the wrapper turns the page ----
+/* ---- Cross-fade fallback only: the wrapper turns the page ----
+   Reached under reduced motion, and on engines without view transitions.
    Out is quicker than in, so the shelf is never empty for long. */
 .out {
   opacity: 0;
@@ -209,40 +242,130 @@
   width: 100%;
 }
 
-/* ---- Shelf: spines standing on a shelf line ---- */
+/* ---- Shelf: books standing on a board ----
+   Left-aligned rather than centred, because that is where books go: they lean
+   against the left end of a shelf and the empty run to the right is the room
+   still left in the collection. Centring four books on a wide board reads as a
+   display of four objects, not as a shelf being filled. */
 .shelf {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  gap: var(--space-2);
-  padding-block: var(--space-4) 0;
-  border-bottom: 3px solid color-mix(in oklch, var(--color-ink), transparent 60%);
-  padding-bottom: 2px;
+  margin-block: var(--space-4) var(--space-3);
 }
 
+.shelfRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding-inline: var(--space-4);
+}
+
+/* ---- The board ----
+   Three bands in one gradient, top to bottom: the join where the books meet
+   the wood, the front edge of the board catching the light, and the underside
+   turning away from it. A 3px border-bottom, which is what this was, is a
+   line — a shelf has a thickness you can see. */
+.ledge {
+  height: 9px;
+  border-radius: 1px 1px 3px 3px;
+  /* A continuous fall-off rather than flat bands: the join where the books
+     meet the wood is the darkest line, the front edge takes the light just
+     under it, and the face turns away towards the underside. Banded stops
+     made this read as an extruded metal bar. */
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--color-ink), transparent 66%) 0,
+    color-mix(in oklch, var(--color-ink), transparent 89%) 2px,
+    color-mix(in oklch, var(--color-ink), transparent 83%) 5px,
+    color-mix(in oklch, var(--color-ink), transparent 73%) 100%
+  );
+  /* Cast onto the page below, so the board reads as standing off it. */
+  box-shadow: var(--elevation-1);
+}
+
+/* ---- A spine ----
+   Width, height and lean all come in per book from Library.tsx: a shelf of
+   identical blocks is the single thing that gives away a fake bookcase.
+   Anchored at the base so a leaning book keeps its foot on the board. */
 .spine {
-  width: 46px;
-  height: 200px;
-  border-radius: 4px 4px 2px 2px;
-  background: oklch(from var(--spine-hue) 0.88 0.045 h);
-  color: oklch(from var(--spine-hue) 0.32 0.06 h);
-  border: 1px solid var(--border-hairline);
+  position: relative;
+  width: var(--spine-w, 46px);
+  height: var(--spine-h, 200px);
+  flex-shrink: 0;
+  border-radius: 3px 3px 1px 1px;
+  /* The head of the text block — the paper edge you see looking down at a
+     shelf. One border does what would otherwise be another pseudo-element. */
+  border-top: 2px solid oklch(from var(--spine-hue) 0.95 0.018 h);
+  background: oklch(from var(--spine-hue) 0.82 0.062 h);
+  color: oklch(from var(--spine-hue) 0.3 0.05 h);
   writing-mode: vertical-rl;
+  /* Latin runs sideways with the spine, punctuation included. The default
+     `mixed` is a CJK rule: it stands quotes and apostrophes upright, where
+     each costs a full em and throws off both the look and the fitting
+     measurement in Library.tsx. */
+  text-orientation: sideways;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-block: var(--space-3);
-  rotate: var(--spine-rotate, 0deg);
+  /* Air at the head and the foot. `padding-inline`, not `padding-block`: in
+     vertical-rl the inline axis is the vertical one, so `padding-block` is
+     what puts padding on the left and right. */
+  padding-inline: var(--space-3);
+  rotate: var(--spine-tilt, 0deg);
+  transform-origin: bottom center;
+  /* Sitting on the board, not floating above it: tight, dark, directly under. */
+  box-shadow: 0 2px 3px -1px oklch(0.2 0.02 250 / 0.28);
+}
+
+/* The last book leans into the empty run — the honest signal that the shelf
+   has room. Set here rather than per index so it stays on whichever book is
+   actually last as the collection grows. Leans rightward, away from its
+   neighbour, so nothing collides. */
+.shelfRow .spine:last-child {
+  rotate: 3deg;
+  margin-inline-start: 3px;
+}
+
+/* Curvature. A spine is the rounded back of a bound book, so light lands in a
+   band down the middle and both edges fall away — the left further, since the
+   neighbour is shading it. This is most of what separates a spine from a
+   coloured rectangle. */
+.spine::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    oklch(0.2 0.02 250 / 0.2) 0%,
+    oklch(0.2 0.02 250 / 0.05) 14%,
+    oklch(1 0 0 / 0.24) 40%,
+    oklch(1 0 0 / 0.1) 64%,
+    oklch(0.2 0.02 250 / 0.07) 86%,
+    oklch(0.2 0.02 250 / 0.22) 100%
+  );
+}
+
+/* The two rules stamped near the head and the foot of most bound spines.
+   Inset 6px, clear of the 12px text padding. */
+.spine::after {
+  content: '';
+  position: absolute;
+  inset: 6px 5px;
+  pointer-events: none;
+  border-top: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  opacity: 0.28;
 }
 
 /* A step up from the old 13px: the serif has no bold to lean on now, so the
    title needs the size to stay readable down the width of a spine.
    One column, always — in vertical-rl a wrap starts a second column, which
-   runs sideways off a 46px spine. The cut happens in Library.tsx, not here:
+   runs sideways off the spine. The cut happens in Library.tsx, not here:
    `overflow: hidden` + `text-overflow` looked like it worked but only hid a
    Chromium paint bug behind a clip. `nowrap` stays as a guard against a
    break the character cap didn't foresee. */
 .spineTitle {
+  position: relative; /* above the shading, not under it */
   font-family: var(--font-serif);
   font-size: var(--text-sm);
   line-height: 1;
@@ -250,6 +373,7 @@
 }
 
 .spineAuthor {
+  position: relative;
   font-family: var(--font-mono);
   font-size: 0.5625rem;
   letter-spacing: 0.08em;
@@ -277,51 +401,4 @@
    fore-edge round — or it reads as a rectangle behind the book. */
 .grid .book {
   border-radius: 4px 10px 10px 4px;
-}
-
-/* ---- TEMPORARY: motion trial ----
-   Three switch approaches, live, so the difference can be judged by tapping
-   rather than by description. Deliberately plain — it is scaffolding, not a
-   surface. Delete this block with the SWITCH_TRIAL flag in Library.tsx. */
-.trial {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px dashed color-mix(in oklch, var(--color-ink), transparent 70%);
-  border-radius: var(--radius-md);
-}
-
-.trialLabel {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-faint);
-}
-
-.trialPills {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.trialPill {
-  min-height: var(--tap-min);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-pill);
-  background: transparent;
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--color-ink-soft);
-  cursor: pointer;
-  transition:
-    background-color var(--dur-quick) var(--ease-out),
-    color var(--dur-quick) var(--ease-out);
-}
-
-.trialPill[aria-pressed='true'] {
-  background: var(--color-chip-active);
-  color: var(--color-ink);
 }
