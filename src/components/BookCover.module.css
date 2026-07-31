@@ -50,6 +50,10 @@
     inset 0 0 0 1px oklch(from var(--book-shade) l c h / 0.07),
     inset -4px -5px 10px -8px oklch(from var(--book-shade) l c h / 0.5);
   rotate: var(--cover-rotate, 0deg);
+  /* The board is exactly 2:3 and nothing printed on it may change that, so
+     anything that outgrows its budget is clipped at the edge rather than
+     allowed to stand the book taller than the one beside it. */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -156,6 +160,14 @@
   text-wrap: balance;
 }
 
+/* Holds the rule and the byline together as one block at the foot, and gives
+   the author a definite width to ellipsis against. */
+.byline {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .rule {
   display: block;
   width: 28px;
@@ -186,19 +198,39 @@
     calc(var(--space-2) + 6px);
 }
 
+/* Two lines, and the rest is an ellipsis. The board is a fixed 2:3 and the
+   motif has a floor, so a long title has a real budget rather than an open
+   one; the whole title is a tap away and is read on the book's own page. */
 .small .title {
   font-size: var(--text-xs);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 /* At thumbnail size the motif is doing more identifying work than the title
    is — you find a book on a contact sheet by its shape and colour long before
-   you read it — so it keeps its share of the board rather than shrinking. */
+   you read it — so it keeps its share of the board rather than shrinking.
+   The floor is what makes that true: a three-line title like "A Field Guide to
+   Quiet Hours" takes every spare pixel under `flex: 1` and leaves the motif a
+   dot, so the art is given a third of the board before the type gets the
+   rest. */
 .small .art {
   width: 84%;
+  min-height: 32%;
 }
 
+/* One line. "T. FAIRWEATHER" wrapped to two and took the height out of the
+   motif, and a wrapped byline reads as two authors rather than one. */
 .small .author {
   font-size: 0.5rem;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* At thumbnail size the frame's second rule lands 3px from the first and the

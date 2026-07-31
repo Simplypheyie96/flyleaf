@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import BookCover from '../components/BookCover'
+import BookCover, { hueFor } from '../components/BookCover'
 import GlassSurface from '../components/GlassSurface'
 import {
   GridIcon,
@@ -8,7 +8,7 @@ import {
   ShelfIcon,
   StackIcon,
 } from '../components/TabIcons'
-import { libraryBooks } from '../data/sample'
+import { useLibrary } from '../data/useLibrary'
 import { runSwitch } from '../motion/viewSwitch'
 import type { FadePhase } from '../motion/viewSwitch'
 import pageStyles from './page.module.css'
@@ -139,6 +139,8 @@ function getStoredView(): ShelfView {
 /* The full bookshelf: Stack (emotional default) · Shelf · Grid.
    Search here is the entry point to the archive search surface (06). */
 function Library() {
+  const books = useLibrary()
+  const libraryBooks = books ?? []
   const [view, setView] = useState<ShelfView>(getStoredView)
   const [phase, setPhase] = useState<FadePhase>('idle')
   const [fitted, setFitted] = useState<Record<string, string>>({})
@@ -159,7 +161,7 @@ function Library() {
       setFitted(
         Object.fromEntries(
           libraryBooks.map((book, i) => [
-            book.title,
+            book.id,
             fitTitle(book.title, book.author, SPINES[i % SPINES.length].h),
           ]),
         ),
@@ -171,7 +173,9 @@ function Library() {
     return () => {
       live = false
     }
-  }, [view])
+    // Re-fit when the shelf itself changes: a book added at the front moves
+    // every book behind it onto a different spine, with a different budget.
+  }, [view, books])
 
   // The cross-fade fallback runs on timeouts; leaving the page mid-switch must
   // not leave a setState pointed at an unmounted tree.
@@ -244,11 +248,21 @@ function Library() {
         </GlassSurface>
 
         <div className={phaseClass}>
-          {view === 'Stack' && (
+          {/* Only once Dexie has answered. `books` is undefined until then,
+              and a full library must not flash its own empty state on the way
+              in. */}
+          {books && libraryBooks.length === 0 && (
+            <p className={styles.empty}>
+              Nothing on the shelf yet. Add the book you are reading, and it
+              will be here — cover and all.
+            </p>
+          )}
+
+          {libraryBooks.length > 0 && view === 'Stack' && (
             <div className={styles.stack}>
               {libraryBooks.map((book, i) => (
                 <div
-                  key={book.title}
+                  key={book.id}
                   className={`${styles.stackItem} ${styles.book}`}
                   style={
                     {
@@ -261,7 +275,8 @@ function Library() {
                   <BookCover
                     title={book.title}
                     author={book.author}
-                    hue={book.hue}
+                    hue={hueFor(book.id)}
+                    covers={book.covers}
                     size={i > 0 ? 'small' : 'full'}
                   />
                 </div>
@@ -269,18 +284,18 @@ function Library() {
             </div>
           )}
 
-          {view === 'Shelf' && (
+          {libraryBooks.length > 0 && view === 'Shelf' && (
             <div className={styles.shelf}>
               <div className={styles.shelfRow}>
                 {libraryBooks.map((book, i) => {
                   const s = SPINES[i % SPINES.length]
                   return (
                     <div
-                      key={book.title}
+                      key={book.id}
                       className={`${styles.spine} ${styles.book}`}
                       style={
                         {
-                          '--spine-hue': `var(--color-${book.hue})`,
+                          '--spine-hue': `var(--color-${hueFor(book.id)})`,
                           '--spine-w': `${s.w}px`,
                           '--spine-h': `${s.h}px`,
                           '--spine-tilt': `${s.tilt}deg`,
@@ -290,7 +305,7 @@ function Library() {
                       }
                     >
                       <span className={styles.spineTitle} title={book.title}>
-                        {fitted[book.title] ?? book.title}
+                        {fitted[book.id] ?? book.title}
                       </span>
                       <span className={styles.spineAuthor}>{book.author}</span>
                     </div>
@@ -301,11 +316,11 @@ function Library() {
             </div>
           )}
 
-          {view === 'Grid' && (
+          {libraryBooks.length > 0 && view === 'Grid' && (
             <div className={styles.grid}>
               {libraryBooks.map((book, i) => (
                 <div
-                  key={book.title}
+                  key={book.id}
                   className={styles.book}
                   style={
                     {
@@ -317,7 +332,8 @@ function Library() {
                   <BookCover
                     title={book.title}
                     author={book.author}
-                    hue={book.hue}
+                    hue={hueFor(book.id)}
+                    covers={book.covers}
                     size="small"
                   />
                 </div>
@@ -326,7 +342,11 @@ function Library() {
           )}
         </div>
 
-        <p className={styles.count}>{libraryBooks.length} books</p>
+        {libraryBooks.length > 0 && (
+          <p className={styles.count}>
+            {libraryBooks.length} {libraryBooks.length === 1 ? 'book' : 'books'}
+          </p>
+        )}
       </div>
     </main>
   )
