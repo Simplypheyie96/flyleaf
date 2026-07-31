@@ -119,6 +119,44 @@
     calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
 }
 
+/* ---- Wide: a sheet stops being a sheet ----
+   1024px is not a device size, it is where App.module.css retires the bottom
+   bar for the side rail. That is the honest trigger: a sheet rises from the
+   bottom edge because that edge is where the thumb lives and where the app's
+   actions already are. Once navigation has moved to the leading edge, the
+   bottom of the window is just the bottom of the window, and a panel pinned
+   to it is a phone layout wearing a large screen — two thirds of the display
+   empty above a form that has drifted away from everything it belongs to.
+
+   So above the rail's breakpoint the panel comes to the middle and closes its
+   corners. It keeps its width, its max-height and every one of its stages;
+   only where it sits changes. */
+@media (min-width: 1024px) {
+  .dialog {
+    align-items: center;
+  }
+
+  .panel {
+    /* All four corners now: a square-bottomed panel floating in the middle of
+       the screen reads as something that has come loose from the edge. */
+    --glass-radius: var(--radius-lg);
+  }
+
+  /* The handle is a drag target for dismissing the sheet downward, and there
+     is no downward for it to go from here. Gone rather than inert — a grab
+     cursor over something that cannot be grabbed is worse than no handle. The
+     header's Close button is the way out and has been all along. */
+  .grab {
+    display: none;
+  }
+
+  .inner {
+    /* The 28px the handle was occupying has to come back as real padding, or
+       the title sits against the top of the glass. */
+    padding-block-start: var(--space-5);
+  }
+}
+
 /* ---- Header ---- */
 
 /* Centred rather than baseline-aligned: a round control has no baseline to
@@ -341,10 +379,25 @@
 
 /* ---- Forms: shelving it yourself, and the confirm step ---- */
 
+/* Both form stages are built the way the search stage is: a header that stays,
+   a body that scrolls, and the button that finishes the job pinned under it.
+
+   The whole form used to be the scroller, submit button included. With the
+   calendar folded open that put six rows of dates between the reader and the
+   only control that adds the book — off the bottom of a 900px laptop
+   entirely, so the sheet looked like it had no way to finish. */
 .form {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  min-height: 0;
+}
+
+.formBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  flex: 1;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
