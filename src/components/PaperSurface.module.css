@@ -15,20 +15,46 @@
   rotate: var(--paper-rotate, 0deg);
 }
 
-/* Entry-type surfaces — a quote never looks like a note */
+/* Entry-type surfaces — a quote never looks like a note.
+
+   A tinted surface carries its own lighting. Every tone below re-points the
+   room's ink, border and reverse tokens at the `--tint-*` set, which by day
+   is a straight pass-through and after dark is the day-ish interior of a pale
+   sheet lying on a dark page. Shadowing the room's own token names rather
+   than inventing new ones is what keeps this contained to this file: the
+   card's contents go on asking for --color-ink and get the right answer for
+   the surface they happen to be printed on, and nothing downstream has to
+   know there are two lamps in the room. */
+.toneQuote,
+.toneNote,
+.toneVoice {
+  --color-ink: var(--tint-ink);
+  --color-ink-soft: var(--tint-ink-soft);
+  --color-ink-faint: var(--tint-ink-faint);
+  --color-bg: var(--tint-reverse);
+  --card-border: var(--tint-border);
+  --card-edge-light: var(--tint-edge);
+  --card-chip: var(--tint-chip);
+  --note-rule: var(--tint-rule);
+  color: var(--color-ink);
+}
+
 .toneQuote {
   --paper-tone: var(--card-quote);
   --paper-tone-solid: var(--card-quote-solid);
+  --color-quote: var(--tint-quote);
 }
 
 .toneNote {
   --paper-tone: var(--card-note);
   --paper-tone-solid: var(--card-note-solid);
+  --color-note: var(--tint-note);
 }
 
 .toneVoice {
   --paper-tone: var(--card-voice);
   --paper-tone-solid: var(--card-voice-solid);
+  --color-voice: var(--tint-voice);
 }
 
 /* Aged paper grain. */
