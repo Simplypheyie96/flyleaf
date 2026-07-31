@@ -271,31 +271,38 @@
   );
 }
 
-/* Ruled lines live on an overlay, not the card's own background-image:
-   a backdrop-filtered element with a background-image drops its content
-   in Chromium. */
-.noteCard::after {
-  content: '';
-  position: absolute;
-  inset: var(--space-5);
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0 27px,
-    var(--note-rule) 27px 28px
-  );
-}
+/* The rules are drawn on the writing, not on the card.
 
-/* The ruled lines are a fixed 28px grid on the card, so the writing has to be
-   nudged onto them by hand: where a baseline falls inside its line box depends
-   on the font's own ascent, and Patrick Hand's is not Caveat's. Without the
-   nudge the text floats ~12px above each rule instead of sitting on it.
-   Re-measure this if --font-hand or the 28px rhythm ever changes. */
+   They used to be an overlay inset from the card's four edges, which meant the
+   rule grid and the first baseline were measured from two different origins —
+   the card's padding, and whatever markup happened to sit above this
+   paragraph. The two only agreed by hand, and they had drifted: every rule was
+   running 4px above its baseline, straight through the x-height.
+
+   Anchored to the text's own line boxes there is nothing left to drift. Each
+   rule sits at a fixed offset inside a 28px band, and the bands ARE the line
+   boxes, so a rule cannot fall anywhere but under its own line.
+
+   (The reason it was an overlay at all — a backdrop-filtered element loses its
+   content when given a background-image in Chromium — applies to the card,
+   which is glass. This paragraph is not, so it can carry its own background.) */
 .noteText {
   font-family: var(--font-hand);
   font-size: var(--text-md);
   line-height: 28px;
-  margin-top: calc(var(--space-2) + 12px);
+  margin-top: var(--space-2);
+  /* Where the baseline falls inside a 28px line box, for --font-hand at
+     --text-md. Measured, not guessed, and the one number here that is a fact
+     about the typeface rather than about the layout: re-measure it if the
+     face, the size, or the 28px pitch changes. */
+  --note-baseline: 20.5px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 calc(var(--note-baseline) + 1px),
+    var(--note-rule) calc(var(--note-baseline) + 1px)
+      calc(var(--note-baseline) + 2px),
+    transparent calc(var(--note-baseline) + 2px) 28px
+  );
 }
 
 /* -- Voice memo: a player, not a paragraph -- */

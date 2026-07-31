@@ -65,12 +65,21 @@
   --book-head-c: 0.018;
   --book-ink-l: 0.3; /* what is printed down the spine */
   --book-ink-c: 0.05;
-  --book-cover-l: 0.915; /* the front board, at its lit top edge */
-  --book-cover-c: 0.038;
-  --book-cover-ink-l: 0.32;
-  --book-cover-ink-c: 0.06;
-  --book-rule-l: 0.45; /* printed frame rules and the small caps on a cover */
-  --book-rule-c: 0.06;
+  /* The front board: pastel stock, pale and genuinely coloured rather than
+     pale and nearly grey. Chroma is what keeps a light tint from drifting
+     toward beige, which is why it goes UP as lightness does. */
+  --book-cover-l: 0.945;
+  --book-cover-c: 0.05;
+  /* Floss — the two threads a cover is worked in, and the cream their eyes are
+     knotted in. Bright and saturated on purpose: thread on pale cloth has to
+     sing, and the muddier weight this started at read as an old sampler. The
+     hue itself arrives per book from CoverArt, which keeps its own set of
+     angles rather than borrowing the five entry hues. */
+  --floss-l: 0.66;
+  --floss-c: 0.165;
+  --floss-green-l: 0.6; /* foliage sits back from the blooms */
+  --floss-green-c: 0.115;
+  --floss-cream: oklch(0.99 0.008 85);
   /* Modelling: where the board turns away from the light, and where it
      catches it. Both are composited at low alpha over the board itself, so
      they have to sit either side of it in lightness in BOTH themes — at
@@ -287,16 +296,24 @@
   --book-head-c: 0.028;
   --book-ink-l: 0.96;
   --book-ink-c: 0.02;
-  --book-cover-l: 0.41;
-  --book-cover-c: 0.045;
-  --book-cover-ink-l: 0.96;
-  --book-cover-ink-c: 0.018;
-  /* 0.82, not the 0.72 this started at: the author and the printed frame are
-     the smallest type on a cover, and at 0.72 on this board they measured
-     3.42:1 — under AA. The rules brighten with them, which is right, since
-     both are ink catching the same light. */
-  --book-rule-l: 0.82;
-  --book-rule-c: 0.05;
+  /* The night board is a tinted charcoal, not a dim version of the day board.
+     Chroma is what forces it: brown IS dark orange, so any warm ground with
+     enough colour in it to read comes out brown at this lightness, and there
+     is no L that fixes a hue. Taking the chroma almost out lets the cloth keep
+     its identity — a peach book is still faintly warm — without any board on
+     the shelf going brown. The floss is what carries colour at night, which is
+     also what happens to real needlework under a lamp. */
+  --book-cover-l: 0.4;
+  --book-cover-c: 0.012;
+  /* Floss at night. Lighter and slightly less saturated than by day: the same
+     chroma against a dim board reads as neon rather than as thread, and the
+     thread has to stay lighter than the cloth it is worked on or the whole
+     motif sinks into it. */
+  --floss-l: 0.76;
+  --floss-c: 0.15;
+  --floss-green-l: 0.7;
+  --floss-green-c: 0.1;
+  --floss-cream: oklch(0.95 0.012 85);
   /* Both sit either side of a 0.42–0.44 board, as they must. The sheen is a
      lit room rather than white: pure white over a dark board reads as a
      specular hit on plastic, not paper catching a lamp. */

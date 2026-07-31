@@ -1,9 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
-import type { RefObject } from 'react'
-import BookCover, { hueFor } from './BookCover'
+import type { PointerEvent, RefObject } from 'react'
+import BookCover from './BookCover'
 import GlassSurface from './GlassSurface'
 import LeafButton from './LeafButton'
-import { BackIcon, CloseIcon, SearchIcon } from './TabIcons'
+import {
+  BackIcon,
+  BookIcon,
+  CalendarIcon,
+  CaretIcon,
+  CloseIcon,
+  HeadphonesIcon,
+  NoteIcon,
+  ScreenIcon,
+  SearchIcon,
+} from './TabIcons'
+import CalendarPicker from './date/CalendarPicker'
+import { longDate, todayISO } from './date/dates'
 import { useBookSearch } from '../books/useBookSearch'
 import type { BookResult } from '../books/sources'
 import { seedFrom } from '../books/seed'
@@ -25,15 +37,31 @@ type Stage =
   | { kind: 'manual' }
   | { kind: 'confirm'; book: BookResult }
 
-const FORMATS: { value: BookFormat; label: string }[] = [
-  { value: 'physical', label: 'Physical' },
-  { value: 'digital', label: 'Digital' },
-  { value: 'audio', label: 'Audio' },
+/* Tabs, the same object as the nav and the shelf switcher: the icon is always
+   there and only the chosen one says its name. Three words side by side all
+   look equally chosen, which is the problem with a row of plain pills — the
+   one that is wearing its label is unmistakably the answer. */
+const FORMATS: { value: BookFormat; label: string; Icon: typeof BookIcon }[] = [
+  { value: 'physical', label: 'Physical', Icon: BookIcon },
+  { value: 'digital', label: 'Digital', Icon: ScreenIcon },
+  { value: 'audio', label: 'Audio', Icon: HeadphonesIcon },
 ]
+
+/* How far down the sheet has to be dragged before letting go puts it away,
+   and how fast a short drag has to be moving to count instead.
+
+   Two tests rather than one, because there are two gestures here and they
+   feel nothing alike: a deliberate push down the screen, and a quick flick
+   off the bottom. Distance alone would ignore the flick; speed alone would
+   dismiss a slow, careful drag that stopped short — which reads as the sheet
+   ignoring you. */
+const DISMISS_AT = 96
+const FLICK = 0.5 // px per ms
 
 function AddBookSheet({ open, onClose }: AddBookSheetProps) {
   const dialog = useRef<HTMLDialogElement>(null)
   const field = useRef<HTMLInputElement>(null)
+  const { panel, grabProps } = useDragToDismiss(onClose)
   const [query, setQuery] = useState('')
   const [stage, setStage] = useState<Stage>({ kind: 'search' })
   const search = useBookSearch(stage.kind === 'search' ? query : '')
@@ -82,7 +110,20 @@ function AddBookSheet({ open, onClose }: AddBookSheetProps) {
       // the panel inside it is what actually fills the sheet.
       onClick={(event) => event.target === dialog.current && onClose()}
     >
-      <GlassSurface className={styles.panel}>
+      <GlassSurface ref={panel} className={styles.panel}>
+        {/* The grab handle. A sheet that can be pushed away has to say so —
+            without it the only way out is a button in the corner, and every
+            reader who has used a phone tries the drag first and concludes the
+            sheet is stuck.
+
+            Decorative, and deliberately not focusable: it is a second route
+            out for a thumb, never the only one. Close and Escape are the
+            routes for everyone else, which is what keeps a drag-only dismissal
+            from locking out a keyboard or a screen reader. */}
+        <div className={styles.grab} {...grabProps}>
+          <span className={styles.grabber} aria-hidden="true" />
+        </div>
+
         <div className={styles.inner}>
           {stage.kind === 'search' && (
             <SearchStage
@@ -114,6 +155,75 @@ function AddBookSheet({ open, onClose }: AddBookSheetProps) {
       </GlassSurface>
     </dialog>
   )
+}
+
+/* Dragging the sheet down to put it away.
+
+   Written against pointer events rather than touch events so it is one code
+   path for a thumb, a trackpad and a mouse, and so `setPointerCapture` keeps
+   the gesture attached to the handle even when the finger slides off it —
+   which it always does, because the handle is 32px tall and the drag is
+   hundreds.
+
+   The transform is written straight to the node rather than held in state.
+   A drag produces a pointermove per frame, and re-rendering a sheet with a
+   twelve-row search list inside it at that rate is how a gesture that should
+   be free starts dropping frames. Nothing else on screen depends on the
+   offset, so nothing else needs to know about it. */
+function useDragToDismiss(onClose: () => void) {
+  const panel = useRef<HTMLDivElement>(null)
+  const drag = useRef<{ from: number; at: number; by: number } | null>(null)
+
+  function offset(by: number, settle: boolean) {
+    const el = panel.current
+    if (!el) return
+    el.style.transition = settle
+      ? 'transform var(--dur-base) var(--ease-out)'
+      : 'none'
+    el.style.transform = by ? `translateY(${by}px)` : ''
+  }
+
+  function release(settle: boolean) {
+    drag.current = null
+    offset(0, settle)
+  }
+
+  return {
+    panel,
+    grabProps: {
+      onPointerDown(event: PointerEvent<HTMLDivElement>) {
+        event.currentTarget.setPointerCapture(event.pointerId)
+        drag.current = { from: event.clientY, at: event.timeStamp, by: 0 }
+      },
+      onPointerMove(event: PointerEvent<HTMLDivElement>) {
+        const d = drag.current
+        if (!d) return
+        // Downward only. A bottom sheet dragged up has nowhere to go, and
+        // letting it lift off the bottom edge exposes the gap behind it.
+        d.by = Math.max(0, event.clientY - d.from)
+        offset(d.by, false)
+      },
+      onPointerUp(event: PointerEvent<HTMLDivElement>) {
+        const d = drag.current
+        if (!d) return
+        const speed = d.by / Math.max(1, event.timeStamp - d.at)
+        if (d.by > DISMISS_AT || speed > FLICK) {
+          /* Cleared without a transition and then closed in the same tick, so
+             the reset is never painted — the sheet simply goes. Leaving the
+             offset on the node would reopen it that far down the screen. */
+          release(false)
+          onClose()
+          return
+        }
+        release(true)
+      },
+      // The gesture was taken away from us mid-drag — a system swipe, a call
+      // arriving. The sheet was never dismissed, so it goes back.
+      onPointerCancel() {
+        if (drag.current) release(true)
+      },
+    },
+  }
 }
 
 /* ---- Stage one: search ---- */
@@ -189,7 +299,6 @@ function SearchStage({
                 title={book.title}
                 author={book.author}
                 covers={book.covers}
-                hue={hueFor(book.id)}
                 className={styles.resultCover}
               />
               <span className={styles.resultText}>
@@ -213,9 +322,16 @@ function SearchStage({
 
       {/* Always offered, not only after a miss: the catalogues are a
           convenience, and a reader who knows the book should never have to
-          fail a search first to be allowed to add it. */}
-      <button type="button" className={styles.manualLink} onClick={onManual}>
-        Add a book by hand
+          fail a search first to be allowed to add it.
+
+          Which is exactly why it stopped being a text link. A link under a
+          list of results reads as a footnote to the search, and this is the
+          other half of the choice, not a consolation for the search failing.
+          Dashed rather than filled because it is still the second route: an
+          outline of a thing you have to fill in yourself. */}
+      <button type="button" className={styles.manualButton} onClick={onManual}>
+        <NoteIcon size={19} />
+        Shelve it yourself
       </button>
     </>
   )
@@ -262,7 +378,7 @@ function ManualStage({
         >
           <BackIcon size={20} />
         </button>
-        <h2 className={styles.title}>By hand</h2>
+        <h2 className={styles.title}>Shelve it yourself</h2>
       </header>
 
       <label className={styles.label}>
@@ -286,7 +402,12 @@ function ManualStage({
       </label>
 
       <label className={styles.label}>
-        Pages <span className={styles.optional}>optional</span>
+        {/* Both words in one flex item. Loose in the label they are two, and
+            the label is a column, so “optional” dropped onto a line of its own
+            and read as an instruction rather than as an aside. */}
+        <span className={styles.labelLine}>
+          Pages <span className={styles.optional}>optional</span>
+        </span>
         <input
           className={styles.textInput}
           type="number"
@@ -316,11 +437,35 @@ function ConfirmStage({
   onDone: () => void
 }) {
   const [format, setFormat] = useState<BookFormat>('physical')
-  const [startedOn, setStartedOn] = useState(today())
+  const [startedOn, setStartedOn] = useState(todayISO)
+  /* The calendar is folded away to begin with. Almost every book is added the
+     day it is started, so the answer is already right on the row and opening
+     it is the exception, not the step. */
+  const [picking, setPicking] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  const scroller = useRef<HTMLFormElement>(null)
+  const picker = useRef<HTMLDivElement>(null)
+
+  /* Follow the calendar down when it unfolds. The form is the sheet's scroller
+     and the panel is the better part of 300px, so on a short phone opening it
+     otherwise leaves the entire grid below the fold with nothing to say it is
+     there.
+
+     Measured and nudged by hand rather than `scrollIntoView`: that call walks
+     every scrollable ancestor, and it is what scrolled the whole page out from
+     under an earlier version of this control. */
+  useEffect(() => {
+    const panel = picker.current
+    const box = scroller.current
+    if (!picking || !panel || !box) return
+    const over = panel.getBoundingClientRect().bottom - box.getBoundingClientRect().bottom
+    if (over > 0) box.scrollTo({ top: box.scrollTop + over + 12, behavior: 'smooth' })
+  }, [picking])
 
   return (
     <form
+      ref={scroller}
       className={styles.form}
       onSubmit={async (event) => {
         event.preventDefault()
@@ -350,7 +495,6 @@ function ConfirmStage({
           title={book.title}
           author={book.author}
           covers={book.covers}
-          hue={hueFor(book.id)}
         />
         <div className={styles.chosenText}>
           <p className={styles.chosenTitle}>{book.title}</p>
@@ -358,47 +502,81 @@ function ConfirmStage({
         </div>
       </div>
 
-      <fieldset className={styles.formats}>
+      <fieldset className={styles.group}>
         <legend className={styles.label}>How are you reading it?</legend>
-        <div className={styles.formatRow}>
-          {FORMATS.map(({ value, label }) => (
+        <div className={styles.chipRow}>
+          {FORMATS.map(({ value, label, Icon }) => (
             <button
               key={value}
               type="button"
-              className={styles.format}
+              className={styles.chip}
               aria-pressed={format === value}
+              // The label is only painted on the chosen one, so the other two
+              // need their name somewhere a screen reader and a hover can
+              // still reach it.
+              aria-label={label}
+              title={label}
               onClick={() => setFormat(value)}
             >
-              {label}
+              <Icon size={20} />
+              {format === value && <span>{label}</span>}
             </button>
           ))}
         </div>
       </fieldset>
 
-      <label className={styles.label}>
-        Started
-        <input
-          className={styles.textInput}
-          type="date"
-          value={startedOn}
-          max={today()}
-          onChange={(event) => setStartedOn(event.target.value)}
-        />
-      </label>
+      {/* The date, in our own control.
+
+          This was a `<input type="date">` laid over the row at zero opacity,
+          on the theory that a tap anywhere would land on the real input and
+          open the platform's own picker. On a phone it does. On desktop
+          Chrome it does not: clicking the body of a date input only focuses a
+          segment, and the one thing that opens the calendar is the little
+          indicator at its end — which at zero opacity is invisible. The row
+          was unclickable for anyone on a laptop, and a control that works by
+          accident of platform is not a control.
+
+          So it is ours now, on every device: the row is a button, and the
+          calendar unfolds underneath it. See CalendarPicker. */}
+      <div className={styles.dateField}>
+        <span className={styles.label} id="started-label">
+          When did you start it?
+        </span>
+        <button
+          type="button"
+          className={styles.dateBox}
+          onClick={() => setPicking((on) => !on)}
+          aria-expanded={picking}
+          aria-labelledby="started-label started-value"
+        >
+          <CalendarIcon size={20} />
+          <span className={styles.dateValue} id="started-value">
+            {longDate(startedOn)}
+          </span>
+          <CaretIcon size={18} className={styles.dateCaret} />
+        </button>
+
+        {picking && (
+          <div ref={picker} className={styles.datePicker}>
+            <CalendarPicker
+              value={startedOn}
+              onChange={setStartedOn}
+              // Nobody starts a book after today, and a stray year in the
+              // future would sort the shelf wrong forever.
+              max={todayISO()}
+              // The book's own threads, so the bloom on the chosen day is the
+              // one already on its cover.
+              seed={seedFrom(book.title, book.author)}
+            />
+          </div>
+        )}
+      </div>
 
       <LeafButton type="submit" disabled={saving} className={styles.submit}>
         {saving ? 'Adding…' : 'Add to library'}
       </LeafButton>
     </form>
   )
-}
-
-/** Local date, not UTC: "today" is where the reader is, not where the clock
-    happens to be zeroed. toISOString() would put half the world a day out. */
-function today() {
-  const now = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
 }
 
 export default AddBookSheet

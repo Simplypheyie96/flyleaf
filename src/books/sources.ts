@@ -8,11 +8,18 @@
    right book. What we keep afterwards is ours.
 
    Both are called straight from the browser rather than through a function of
-   ours. That is deliberate, and it is the whole cost story: no server to run,
-   no key to hold or rotate, no shared project quota that a busy week could
-   exhaust for everybody, and the rate limit that applies is the reader's own
-   IP rather than a pool. It also means search keeps working from a preview
-   build, a fork, or localhost with nothing configured.
+   ours: no server to run and no key to hold or rotate, and search keeps
+   working from a preview build, a fork, or localhost with nothing configured.
+
+   That has one cost, and it is worth stating plainly rather than discovering
+   again. Keyless Google Books requests are billed to a single anonymous
+   Google project shared by everyone on the internet who calls it without a
+   key, so it answers `429 Quota exceeded … for consumer
+   'project_number:624717413613'` for long stretches — not because of anything
+   this reader did, and not something a different IP fixes. Treat Google as a
+   bonus that is often simply absent. Open Library has no such pool and is the
+   source that has to carry the search, which is why it is asked for every
+   cover identifier it holds rather than just the obvious one.
 
    Nothing here may ever be load-bearing. Both sources are allowed to be down,
    rate-limited, or wrong; the reader can always type the book in by hand, and
@@ -57,9 +64,17 @@ async function searchOpenLibrary(q: string, signal?: AbortSignal) {
   // work and runs to megabytes on a common query.
   const url = new URL('https://openlibrary.org/search.json')
   url.searchParams.set('q', q)
+  /* cover_edition_key and isbn are asked for because `cover_i` alone leaves a
+     lot of books bare. `cover_i` is the cover of the *work*, and plenty of
+     works have none while the specific edition Open Library considers primary
+     does — that edition is cover_edition_key. ISBNs reach a third shelf again,
+     which is where older and translated editions tend to be filed.
+
+     They cost nothing extra: same request, same round trip, and each one is
+     only ever a URL we hand to an <img> that is already prepared to fail. */
   url.searchParams.set(
     'fields',
-    'title,author_name,first_publish_year,number_of_pages_median,cover_i',
+    'title,author_name,first_publish_year,number_of_pages_median,cover_i,cover_edition_key,isbn',
   )
   url.searchParams.set('limit', String(PER_SOURCE))
 
@@ -77,7 +92,7 @@ async function searchOpenLibrary(q: string, signal?: AbortSignal) {
         author,
         year: doc.first_publish_year,
         pages: doc.number_of_pages_median,
-        covers: doc.cover_i ? [openLibraryCover(doc.cover_i)] : [],
+        covers: openLibraryCovers(doc),
       },
     ]
   })
@@ -89,14 +104,35 @@ interface OpenLibraryDoc {
   first_publish_year?: number
   number_of_pages_median?: number
   cover_i?: number
+  cover_edition_key?: string
+  isbn?: string[]
+}
+
+/* Every route to a cover this record knows about, best first. BookCover walks
+   the list and stops at the first that decodes, so a longer list only ever
+   costs anything for a book that would otherwise have had no photograph at
+   all — and a book that has none still gets its drawn cover at the end.
+
+   Only two ISBNs. A work can list a hundred editions, and the ones past the
+   first couple are book-club reissues and foreign printings whose jackets are
+   not the book the reader pictured; each one is also another 404 to wait
+   through before the drawn cover appears. */
+function openLibraryCovers(doc: OpenLibraryDoc) {
+  const urls = [
+    doc.cover_i && coverUrl('id', doc.cover_i),
+    doc.cover_edition_key && coverUrl('olid', doc.cover_edition_key),
+    ...(doc.isbn ?? []).slice(0, 2).map((isbn) => coverUrl('isbn', isbn)),
+  ]
+  return [...new Set(urls.filter((url) => typeof url === 'string'))]
 }
 
 /* `default=false` is the important part: without it a missing cover returns a
    grey placeholder image with a 200, which we would happily print on the
    board. With it the request 404s, the <img> errors, and the book falls
-   through to a drawn cover — which is the behaviour we actually want. */
-function openLibraryCover(id: number) {
-  return `https://covers.openlibrary.org/b/id/${id}-M.jpg?default=false`
+   through to the next candidate and finally to a drawn cover — which is the
+   behaviour we actually want. */
+function coverUrl(kind: 'id' | 'olid' | 'isbn', key: string | number) {
+  return `https://covers.openlibrary.org/b/${kind}/${key}-M.jpg?default=false`
 }
 
 /* ---- Google Books ---- */
@@ -191,13 +227,21 @@ function merge(...lists: BookResult[][]) {
    strict key sees two books, and the reader gets a drawn cover for a book
    whose photograph we are already holding two rows down the same list.
 
-   So after merging, a result with no cover is offered one from a looser match
-   — leading article dropped, subtitle dropped, the author's last name only.
-   The looseness is deliberate and safe here in a way it would not be for
-   merging: the worst case is a different edition's jacket for the same book by
-   the same author, and the reader is reading the title as well as looking at
-   the board when they point at the right one. Merging those records instead
-   would throw away a title the reader might have been searching for.
+   So after merging, every result is offered the covers of its looser match —
+   leading article dropped, subtitle dropped, the author's last name only —
+   appended after its own. The looseness is deliberate and safe here in a way
+   it would not be for merging: the worst case is a different edition's jacket
+   for the same book by the same author, and the reader is reading the title as
+   well as looking at the board when they point at the right one. Merging those
+   records instead would throw away a title the reader might have been
+   searching for.
+
+   Appended rather than only filled in when a record has nothing. Once Open
+   Library started offering an OLID and ISBN route to a cover, "has no covers"
+   stopped meaning "has no cover": a record can now carry three URLs that all
+   404 and would have been passed over as already provided for. Sitting at the
+   end of the list, a lent cover costs nothing until everything ahead of it has
+   actually failed.
 
    Nothing extra is fetched — this only reuses URLs already in hand. */
 function looseKey(title: string, author: string) {
@@ -226,9 +270,11 @@ function lendCovers(results: BookResult[]) {
   }
 
   for (const book of results) {
-    if (book.covers.length) continue
     const lent = lenders.get(looseKey(book.title, book.author))
-    if (lent) book.covers = [...lent]
+    if (!lent) continue
+    for (const url of lent) {
+      if (!book.covers.includes(url)) book.covers.push(url)
+    }
   }
 
   return results

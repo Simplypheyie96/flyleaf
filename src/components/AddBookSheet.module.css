@@ -56,13 +56,46 @@
   flex: 1;
 }
 
+/* ---- The grab handle ---- */
+
+/* The bar is 4px tall and nobody can hit 4px. This is the target: full width
+   and 28px of it, so the gesture starts anywhere along the top of the sheet
+   rather than on the mark itself. */
+.grab {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  /* The browser must not claim the vertical gesture for a scroll or a
+     pull-to-refresh — without this the drag is intercepted before the first
+     pointermove ever arrives. */
+  touch-action: none;
+  cursor: grab;
+}
+
+.grab:active {
+  cursor: grabbing;
+}
+
+.grabber {
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-ink-faint);
+  opacity: 0.5;
+}
+
 .inner {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  /* The handle already sits 28px above this, so the sheet's own top padding
+     comes off — otherwise the header is pushed down by a control that exists
+     to be unobtrusive. */
   gap: var(--space-5);
-  padding: var(--space-5) var(--space-5)
+  padding: 0 var(--space-5)
     calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
 }
 
@@ -159,9 +192,35 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  /* The list is the only thing that scrolls, and it must not look cut off at
-     the fold — a little room under the last row reads as the end of a list. */
-  padding-block-end: var(--space-2);
+  /* Pulled out by exactly one row's padding.
+
+     A row needs inline padding so its hover chip has a shape, but that padding
+     was also pushing every cover 8px inboard of the search field and the title
+     above it — four different leading edges down one narrow sheet, which is
+     what read as crooked. Widening the scroller instead puts the row's
+     PADDING in this margin and its CONTENT back on the sheet's own edge. */
+  margin-inline: calc(var(--space-2) * -1);
+
+  /* A row sliced off mid-cover at the scroll edge looks like a rendering
+     fault; the same row faded out reads as "there is more here."
+
+     The padding and the negative margin are a pair, and they are what keep
+     this from costing any space: the box grows by --fade at each end and is
+     then pulled back by the same amount, so the sheet's spacing is unchanged
+     and the first row still starts exactly where it did. What it buys is that
+     at rest the fade band sits over that padding — empty — so the top row is
+     never dimmed for no reason. The band only ever eats content once there is
+     content scrolled underneath it. */
+  --fade: var(--space-4);
+  padding-block: var(--fade);
+  margin-block: calc(var(--fade) * -1);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--fade),
+    #000 calc(100% - var(--fade)),
+    transparent 100%
+  );
 }
 
 .result {
@@ -218,19 +277,49 @@
   text-wrap: pretty;
 }
 
-.manualLink {
-  align-self: center;
+/* The second way in, and it has to look like a way in. Dashed, not filled:
+   this is the outline of a book you have not written down yet, and the filled
+   weight in this sheet belongs to Add to library at the end of the flow. Its
+   own row with real space above it, so it is not read as the last search
+   result. */
+.manualButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   min-height: var(--tap-min);
-  padding-inline: var(--space-3);
-  border: none;
-  background: none;
+  margin-block-start: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  /* Mixed from the label's own ink rather than taken from the tint token: the
+     tint sits at 0.93 lightness and all but vanished against the sheet, and
+     this way the dash and the words in it are visibly the same colour, and it
+     follows the ink when the ink flips at night. */
+  border: 1.5px dashed color-mix(in oklch, var(--color-accent-text), transparent 62%);
+  border-radius: var(--radius-pill);
+  background: var(--card-fill);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   color: var(--color-accent-text);
   cursor: pointer;
+  transition:
+    transform var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out),
+    background-color var(--dur-quick) var(--ease-out);
 }
 
-/* ---- Forms: by hand, and the confirm step ---- */
+@media (hover: hover) {
+  .manualButton:hover {
+    border-color: var(--color-accent-text);
+    background: var(--color-paper);
+  }
+}
+
+.manualButton:active {
+  transform: scale(0.98);
+  transition-duration: var(--dur-press);
+}
+
+/* ---- Forms: shelving it yourself, and the confirm step ---- */
 
 .form {
   display: flex;
@@ -250,6 +339,12 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-ink-soft);
+}
+
+.labelLine {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
 }
 
 .optional {
@@ -279,6 +374,99 @@
   outline-offset: 1px;
 }
 
+/* ---- The date ---- */
+
+/* Same stack as `.label`, so the caption sits over its control on the same
+   rhythm as Title and Author above it. */
+.dateField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* The closed state, and the way in: the answer already written out, and a
+   caret saying there is a calendar folded under it. */
+.dateBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding-block: 0;
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--card-fill);
+  color: var(--color-ink-soft);
+  text-align: start;
+  cursor: pointer;
+  transition: border-color var(--dur-press) var(--ease-out);
+}
+
+.dateValue {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  /* A long weekday in a long locale — "Wednesday, 30 September 2026" — is the
+     one string here that can outgrow the row. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dateCaret {
+  flex: none;
+  color: var(--color-ink-faint);
+  transition: transform var(--dur-quick) var(--ease-out);
+}
+
+.dateBox[aria-expanded='true'] {
+  border-color: var(--color-accent-text);
+}
+
+.dateBox[aria-expanded='true'] .dateCaret {
+  transform: rotate(180deg);
+  color: var(--color-ink-soft);
+}
+
+.dateBox:hover {
+  color: var(--color-ink);
+}
+
+.dateBox:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 1px;
+}
+
+/* The calendar sits in its own bordered panel below the row rather than
+   floating over the sheet: the sheet already scrolls, and a second layer over
+   a layer that can be dragged away is one gesture too many to keep straight. */
+.datePicker {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--card-fill);
+  animation: unfold var(--dur-base) var(--ease-out);
+}
+
+@keyframes unfold {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .datePicker { animation: none; }
+  .dateCaret { transition: none; }
+}
+
 .chosen {
   display: flex;
   align-items: center;
@@ -300,35 +488,70 @@
   text-wrap: balance;
 }
 
-.formats {
+/* A fieldset is the right element for a group of buttons answering one
+   question, but the UA dresses it as a box: `margin-inline: 2px` and
+   `min-inline-size: min-content`, which stood these two groups 2px inside
+   every other left edge in the sheet. Reset to the plain stack it looks like. */
+.group {
   border: none;
   padding: 0;
+  margin: 0;
+  min-inline-size: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
 }
 
-.formatRow {
+/* A legend renders outside its fieldset's flex flow, so the `gap` above never
+   reaches it — the question was sitting hard against its own answers while
+   every other label in the sheet had 8px under it. Restated here, where it
+   can actually land. */
+.group > legend {
+  margin-block-end: var(--space-2);
+}
+
+.chipRow {
   display: flex;
   gap: var(--space-2);
 }
 
-.format {
-  flex: 1;
+/* The one selectable pill in the app: nav tab, shelf switcher, format, day.
+   Sized to its own content rather than stretched to a third of the row, so
+   the chosen one can put its name on without the other two reserving room for
+   words they are not showing. */
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   min-height: var(--tap-min);
+  min-width: var(--tap-min);
+  padding-inline: var(--space-3);
   border-radius: var(--radius-pill);
-  border: 1px solid var(--card-border);
+  /* Transparent rather than absent, so taking the hairline on selection does
+     not move the pill or its neighbours by a pixel. */
+  border: 1px solid transparent;
   background: var(--card-fill);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
+  font-weight: 620;
+  letter-spacing: 0.04em;
   color: var(--color-ink-soft);
+  white-space: nowrap;
   cursor: pointer;
 }
 
-.format[aria-pressed='true'] {
+.chip:hover {
+  color: var(--color-ink);
+}
+
+.chip[aria-pressed='true'] {
+  padding-inline: var(--space-4);
   background: var(--color-chip-active);
   border-color: var(--border-hairline);
   color: var(--color-ink);
+  box-shadow: var(--elevation-1);
 }
 
 .submit {
