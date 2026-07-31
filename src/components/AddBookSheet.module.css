@@ -24,6 +24,14 @@
 .dialog[open] {
   /* Rising from the bottom edge on a phone, the way a sheet does. */
   display: flex;
+
+  /* A view transition ignores the top layer, so without a name of its own the
+     sheet is simply absent from the snapshot and cuts to nothing the instant
+     it closes — while the cover it was holding takes 420ms to reach the shelf.
+     Naming it puts it back in the picture so it can be dissolved instead.
+     On `[open]` only: a closed sheet holding a name is a name the document is
+     carrying for no reason. */
+  view-transition-name: add-sheet;
 }
 
 .dialog::backdrop {
@@ -471,6 +479,16 @@
   display: flex;
   align-items: center;
   gap: var(--space-5);
+}
+
+/* Wraps the cover only so it can carry a view-transition-name of its own —
+   the box the browser measures on the way to the shelf. `flex` rather than
+   `inline-block` so it is exactly the cover's height with no baseline gap
+   under it, which would otherwise be captured as part of the travelling box
+   and land as a sliver of empty space on the shelf. */
+.chosenCover {
+  display: flex;
+  flex-shrink: 0;
 }
 
 .chosenText {

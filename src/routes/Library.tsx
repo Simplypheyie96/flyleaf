@@ -15,6 +15,7 @@ import {
 } from '../components/TabIcons'
 import type { Book } from '../data/db'
 import { useLibrary } from '../data/useLibrary'
+import { shelved } from '../motion/shelfLanding'
 import { runSwitch } from '../motion/viewSwitch'
 import type { FadePhase } from '../motion/viewSwitch'
 import pageStyles from './page.module.css'
@@ -276,7 +277,7 @@ function StackDeck({ books }: { books: Book[] }) {
               style={
                 {
                   zIndex: n - slot,
-                  viewTransitionName: `book-${i}`,
+                  viewTransitionName: `book-${book.id}`,
                   '--enter-delay': `calc(${i} * var(--stagger))`,
                 } as CSSProperties
               }
@@ -373,6 +374,14 @@ function StackDeck({ books }: { books: Book[] }) {
 function Library() {
   const books = useLibrary()
   const libraryBooks = books ?? []
+
+  /* Tell the add sheet the moment a book it is waiting for is on screen, so
+     the cover it is holding can finish travelling here. Before paint, because
+     that is when the view transition snapshots the shelf — an effect that ran
+     after would be a frame too late. */
+  useLayoutEffect(() => {
+    shelved(libraryBooks.map((book) => book.id))
+  })
   const [view, setView] = useState<ShelfView>(getStoredView)
   const [phase, setPhase] = useState<FadePhase>('idle')
   const [fitted, setFitted] = useState<
@@ -481,7 +490,10 @@ function Library() {
           </div>
         </GlassSurface>
 
-        <div className={phaseClass}>
+        {/* `data-shelf` is how the add sheet knows there is somewhere for a
+            book to land. Added here rather than checked by route so it stays
+            true by construction: if this is on screen, so are the books. */}
+        <div className={phaseClass} data-shelf>
           {/* Only once Dexie has answered. `books` is undefined until then,
               and a full library must not flash its own empty state on the way
               in. */}
@@ -522,7 +534,7 @@ function Library() {
                           '--spine-w': `${s.w}px`,
                           '--spine-h': `${s.h}px`,
                           '--spine-tilt': `${s.tilt}deg`,
-                          viewTransitionName: `book-${i}`,
+                          viewTransitionName: `book-${book.id}`,
                           '--enter-delay': `calc(${i} * var(--stagger))`,
                         } as CSSProperties
                       }
@@ -561,7 +573,7 @@ function Library() {
                   className={styles.book}
                   style={
                     {
-                      viewTransitionName: `book-${i}`,
+                      viewTransitionName: `book-${book.id}`,
                       '--enter-delay': `calc(${i} * var(--stagger))`,
                     } as CSSProperties
                   }
