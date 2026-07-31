@@ -138,11 +138,17 @@ function Home() {
                 <h2 id="currently-reading" className={styles.sectionLabel}>
                   Currently reading
                 </h2>
+                {/* The lane is the gap between the end of the heading and the
+                    right edge of the card, and it is the mascot's whole world:
+                    the creature's travel is written as a share of it, so the
+                    heading is a wall it cannot pass without anything having to
+                    measure the words. The lane takes no vertical space of its
+                    own — the strip hangs out of it — so putting the creature
+                    here does not push the card down away from its label. */}
+                <div className={styles.mascotLane}>
+                  <Mascot />
+                </div>
               </div>
-              {/* Immediately above the card and nowhere else in the app: it is
-                  cropped by its own strip, so it has to sit flush on the one
-                  surface it is meant to be hiding behind. */}
-              <Mascot />
               <PaperSurface rotate={-0.4} className={styles.heroCard}>
                 <div className={styles.hero}>
                   <BookCover
