@@ -268,10 +268,10 @@
      made this read as an extruded metal bar. */
   background: linear-gradient(
     to bottom,
-    color-mix(in oklch, var(--color-ink), transparent 66%) 0,
-    color-mix(in oklch, var(--color-ink), transparent 89%) 2px,
-    color-mix(in oklch, var(--color-ink), transparent 83%) 5px,
-    color-mix(in oklch, var(--color-ink), transparent 73%) 100%
+    color-mix(in oklch, var(--shelf-board), transparent 66%) 0,
+    color-mix(in oklch, var(--shelf-board), transparent 89%) 2px,
+    color-mix(in oklch, var(--shelf-board), transparent 83%) 5px,
+    color-mix(in oklch, var(--shelf-board), transparent 73%) 100%
   );
   /* Cast onto the page below, so the board reads as standing off it. */
   box-shadow: var(--elevation-1);
@@ -289,9 +289,15 @@
   border-radius: 3px 3px 1px 1px;
   /* The head of the text block — the paper edge you see looking down at a
      shelf. One border does what would otherwise be another pseudo-element. */
-  border-top: 2px solid oklch(from var(--spine-hue) 0.95 0.018 h);
-  background: oklch(from var(--spine-hue) 0.82 0.062 h);
-  color: oklch(from var(--spine-hue) 0.3 0.05 h);
+  /* Hue in, recipe from the sheet — the same board, under a different light,
+     in each theme. The head edge is the paper block seen end-on, so it is
+     always the brightest part of the spine. */
+  border-top: 2px solid
+    oklch(from var(--spine-hue) var(--book-head-l) var(--book-head-c) h);
+  background: oklch(
+    from var(--spine-hue) var(--book-face-l) var(--book-face-c) h
+  );
+  color: oklch(from var(--spine-hue) var(--book-ink-l) var(--book-ink-c) h);
   writing-mode: vertical-rl;
   /* Latin runs sideways with the spine, punctuation included. The default
      `mixed` is a CJK rule: it stands quotes and apostrophes upright, where
@@ -308,7 +314,7 @@
   rotate: var(--spine-tilt, 0deg);
   transform-origin: bottom center;
   /* Sitting on the board, not floating above it: tight, dark, directly under. */
-  box-shadow: 0 2px 3px -1px oklch(0.2 0.02 250 / 0.28);
+  box-shadow: 0 2px 3px -1px oklch(from var(--book-shade) l c h / 0.28);
 }
 
 /* The last book leans into the empty run — the honest signal that the shelf
@@ -332,12 +338,12 @@
   pointer-events: none;
   background: linear-gradient(
     to right,
-    oklch(0.2 0.02 250 / 0.2) 0%,
-    oklch(0.2 0.02 250 / 0.05) 14%,
-    oklch(1 0 0 / 0.24) 40%,
-    oklch(1 0 0 / 0.1) 64%,
-    oklch(0.2 0.02 250 / 0.07) 86%,
-    oklch(0.2 0.02 250 / 0.22) 100%
+    oklch(from var(--book-shade) l c h / 0.2) 0%,
+    oklch(from var(--book-shade) l c h / 0.05) 14%,
+    oklch(from var(--book-sheen) l c h / 0.24) 40%,
+    oklch(from var(--book-sheen) l c h / 0.1) 64%,
+    oklch(from var(--book-shade) l c h / 0.07) 86%,
+    oklch(from var(--book-shade) l c h / 0.22) 100%
   );
 }
 
