@@ -64,6 +64,18 @@
   flex: 1;
 }
 
+/* Denser glass at night, and only here. By day the sheet sits over a pale page
+   and 55% is a pane you can see the library through. At night it sits over the
+   one bright thing on the screen — the deck — and the covers come through the
+   panel and land behind the search results, so a row's thumbnail has somebody
+   else's flowers in it. The panel keeps its own fill rather than moving the
+   global token, because the nav bar and the view switcher float over empty sky
+   and are right as they are. */
+[data-theme='dark'] .panel {
+  --glass-fill: oklch(0.28 0.03 265 / 0.82);
+  --glass-fallback: oklch(0.25 0.028 265);
+}
+
 /* ---- The grab handle ---- */
 
 /* The bar is 4px tall and nobody can hit 4px. This is the target: full width
@@ -360,7 +372,10 @@
   font-size: var(--text-xs);
   letter-spacing: 0;
   text-transform: none;
-  color: var(--color-ink-faint);
+  /* Same reason as the calendar's column heads: this is a word the reader has
+     to read to know the field can be skipped, not an ornament, so it uses the
+     soft ink the faint token is not allowed to stand in for. */
+  color: var(--color-ink-soft);
 }
 
 .textInput {
