@@ -199,7 +199,7 @@ function Library() {
 
   return (
     <main className={pageStyles.page}>
-      <div className={pageStyles.column}>
+      <div className={`${pageStyles.column} ${styles.shelfColumn}`}>
         <header className={styles.masthead}>
           <div className={styles.mastheadText}>
             <h1 className={styles.title}>The Library</h1>

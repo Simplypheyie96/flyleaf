@@ -61,7 +61,9 @@
 .sideRail {
   display: none;
   position: fixed;
-  left: var(--space-5);
+  /* Logical: the rail belongs to the leading edge, and the page reserves its
+     clearance with padding-inline-start. Both flip together or neither does. */
+  inset-inline-start: var(--space-5);
   top: 50%;
   translate: 0 -50%;
   z-index: 50;
