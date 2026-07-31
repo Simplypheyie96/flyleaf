@@ -148,6 +148,27 @@
    Below a 468px column the cap never bit, so the label centred on the shelf by
    accident; at 760 it centred inside a 468px box pinned to the leading edge
    instead, and sat visibly off the books it counts. */
+/* An empty shelf is the first thing a new reader sees, so it is written in the
+   same voice as the rest of the app rather than as a system message — and it
+   is given the height a shelf would have taken, so the page does not collapse
+   around it and then jump when the first book lands. */
+.empty {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 34ch;
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-4);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  text-align: center;
+  text-wrap: pretty;
+}
+
 .count {
   max-width: none;
   font-family: var(--font-mono);
@@ -434,8 +455,13 @@
   }
 }
 
+/* A grid item's automatic minimum size is its min-content size, so a long
+   title was quietly overriding the cover's 2:3 and standing one book 19px
+   taller than the one beside it. A contact sheet is only a contact sheet if
+   every board is the same board. */
 .grid > * {
   min-width: 0;
+  min-height: 0;
 }
 
 /* The bloom has to follow the cover's own silhouette — spine edge square,

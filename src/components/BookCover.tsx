@@ -91,12 +91,20 @@ function BookCover({
 
   return (
     <div className={className_} style={style}>
-      {typeset && <span className={styles.title}>{title}</span>}
+      {/* The small board clamps to two lines, so the whole title has to stay
+          reachable somewhere other than the book's own page. */}
+      {typeset && (
+        <span className={styles.title} title={title}>
+          {title}
+        </span>
+      )}
       <CoverArt className={styles.art} seed={seedFrom(title, author)} />
       {typeset && (
         <span className={styles.byline}>
           <span className={styles.rule} />
-          <span className={styles.author}>{author}</span>
+          <span className={styles.author} title={author}>
+            {author}
+          </span>
         </span>
       )}
       {src && (
