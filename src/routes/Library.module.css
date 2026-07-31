@@ -64,7 +64,10 @@
 .viewPill {
   min-height: var(--tap-min);
   padding: var(--space-2) var(--space-4);
-  border: none;
+  /* Was `border: none` with a border only on the pressed pill, which moved the
+     other two by a pixel each time the selection changed. The border is always
+     here now and only its colour changes. */
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
   background: transparent;
   font-family: var(--font-mono);
@@ -73,16 +76,26 @@
   text-transform: uppercase;
   color: var(--color-ink-soft);
   cursor: pointer;
+  /* Colour only: the pill is a label, and a label that also moves competes
+     with the books it just sent across the screen. */
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
 }
 
 .viewPill:hover {
   color: var(--color-ink);
 }
 
+.viewPill:active {
+  transform: translateY(var(--press));
+}
+
 .viewPill[aria-pressed='true'] {
   background: var(--color-chip-active);
   color: var(--color-ink);
-  border: 1px solid var(--border-hairline);
+  border-color: var(--border-hairline);
 }
 
 .count {
@@ -92,6 +105,61 @@
   text-transform: uppercase;
   color: var(--color-ink-faint);
   text-align: center;
+}
+
+/* ---- A book, in any of the three views ----
+   Tap feedback: the book lifts off the page and its shadow blooms under it,
+   then it goes down under the finger. Lift and press are tokens so a book
+   rises by the same amount here as anything else that rises.
+
+   `transform`, never `translate`, and never `rotate`: stack items and spines
+   set both of those individual properties for their layout, and the FLIP
+   engine animates `transform`. This has to compose with all three. */
+.book {
+  border-radius: 14px;
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .book:hover {
+    transform: translateY(calc(-1 * var(--lift)));
+    box-shadow: var(--elevation-3);
+  }
+}
+
+.book:active {
+  transform: translateY(var(--press));
+  box-shadow: var(--elevation-1);
+  /* Down should read as instant; the rise back up can take its time. */
+  transition-duration: var(--dur-press);
+}
+
+/* ---- Cross-fade engine only: the wrapper turns the page ----
+   Out is quicker than in, so the shelf is never empty for long. */
+.out {
+  opacity: 0;
+  transform: translateY(calc(var(--travel) * 0.5));
+  transition:
+    opacity var(--dur-quick) var(--ease-in),
+    transform var(--dur-quick) var(--ease-in);
+}
+
+.in .book {
+  animation: bookRise var(--dur-move) var(--ease-out) var(--enter-delay, 0ms)
+    backwards;
+}
+
+@keyframes bookRise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--travel));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ---- Stack: a centered deck of framed prints — front book matted and
@@ -169,17 +237,16 @@
 
 /* A step up from the old 13px: the serif has no bold to lean on now, so the
    title needs the size to stay readable down the width of a spine.
-   One line, always. In vertical-rl a wrap starts a second column, which runs
-   sideways off a 46px spine — real books solve this the same way, by cutting
-   the title. The full one is a tap away in stack and grid. */
+   One column, always — in vertical-rl a wrap starts a second column, which
+   runs sideways off a 46px spine. The cut happens in Library.tsx, not here:
+   `overflow: hidden` + `text-overflow` looked like it worked but only hid a
+   Chromium paint bug behind a clip. `nowrap` stays as a guard against a
+   break the character cap didn't foresee. */
 .spineTitle {
   font-family: var(--font-serif);
   font-size: var(--text-sm);
   line-height: 1;
-  min-height: 0;
-  overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .spineAuthor {
@@ -188,6 +255,10 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   opacity: 0.75;
+  /* The author never wraps either: it is the item the flex row squeezes
+     first, and a squeezed author is what put "E." and "VASQUEZ" in two
+     columns beside each other. */
+  white-space: nowrap;
 }
 
 /* ---- Grid: tidy thumbnails ---- */
@@ -200,4 +271,57 @@
 
 .grid > * {
   min-width: 0;
+}
+
+/* The bloom has to follow the cover's own silhouette — spine edge square,
+   fore-edge round — or it reads as a rectangle behind the book. */
+.grid .book {
+  border-radius: 4px 10px 10px 4px;
+}
+
+/* ---- TEMPORARY: motion trial ----
+   Three switch approaches, live, so the difference can be judged by tapping
+   rather than by description. Deliberately plain — it is scaffolding, not a
+   surface. Delete this block with the SWITCH_TRIAL flag in Library.tsx. */
+.trial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px dashed color-mix(in oklch, var(--color-ink), transparent 70%);
+  border-radius: var(--radius-md);
+}
+
+.trialLabel {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.trialPills {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.trialPill {
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
+}
+
+.trialPill[aria-pressed='true'] {
+  background: var(--color-chip-active);
+  color: var(--color-ink);
 }
