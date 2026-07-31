@@ -3,7 +3,7 @@ import type { RefObject } from 'react'
 import BookCover, { hueFor } from './BookCover'
 import GlassSurface from './GlassSurface'
 import LeafButton from './LeafButton'
-import { SearchIcon } from './TabIcons'
+import { BackIcon, CloseIcon, SearchIcon } from './TabIcons'
 import { useBookSearch } from '../books/useBookSearch'
 import type { BookResult } from '../books/sources'
 import { seedFrom } from '../books/seed'
@@ -141,8 +141,13 @@ function SearchStage({
     <>
       <header className={styles.head}>
         <h2 className={styles.title}>Add a book</h2>
-        <button type="button" className={styles.close} onClick={onClose}>
-          Close
+        <button
+          type="button"
+          className={styles.iconButton}
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <CloseIcon size={20} />
         </button>
       </header>
 
@@ -249,8 +254,13 @@ function ManualStage({
       }}
     >
       <header className={styles.head}>
-        <button type="button" className={styles.close} onClick={onBack}>
-          Back
+        <button
+          type="button"
+          className={styles.iconButton}
+          onClick={onBack}
+          aria-label="Back to search"
+        >
+          <BackIcon size={20} />
         </button>
         <h2 className={styles.title}>By hand</h2>
       </header>
@@ -323,8 +333,13 @@ function ConfirmStage({
       }}
     >
       <header className={styles.head}>
-        <button type="button" className={styles.close} onClick={onBack}>
-          Back
+        <button
+          type="button"
+          className={styles.iconButton}
+          onClick={onBack}
+          aria-label="Back to search"
+        >
+          <BackIcon size={20} />
         </button>
         <h2 className={styles.title}>Onto the shelf</h2>
       </header>

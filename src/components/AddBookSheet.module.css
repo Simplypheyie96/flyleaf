@@ -68,40 +68,54 @@
 
 /* ---- Header ---- */
 
+/* Centred rather than baseline-aligned: a round control has no baseline to
+   share with a serif title, and aligning one to the other drops the disc
+   below the line it belongs to. */
 .head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-4);
+  align-items: center;
+  gap: var(--space-3);
 }
 
+/* The one rule that lays out both headers. Search reads
+   `[title ......... close]`, the two form steps read `[back] title ......`,
+   and pushing the free space off the title's trailing edge gives each the
+   arrangement it wants without either stage restating the header. */
 .title {
+  margin-inline-end: auto;
   font-family: var(--font-serif);
   font-size: var(--text-lg);
   line-height: var(--leading-tight);
   color: var(--color-ink);
 }
 
-/* A text control, so it must not read as body copy sitting next to a title.
-   Given the accent ink and a tap target, and placed in a fixed corner. */
-.close {
-  min-height: var(--tap-min);
+/* Close and Back are the two controls in this sheet that are not the point of
+   it, so they stop being words. A word in the header competes with the title
+   beside it for the same reading; a disc is read as an object and dismissed
+   in one glance.
+
+   The same frosted material as the search field below it, so everything the
+   reader can touch inside the sheet is visibly one family — and the chip is
+   what carries the affordance, which is why the glyph can stay ink instead of
+   shouting in the accent colour. */
+.iconButton {
+  flex: none;
+  width: var(--tap-min);
+  height: var(--tap-min);
   display: inline-flex;
   align-items: center;
-  padding-inline: var(--space-2);
-  margin-inline-end: calc(var(--space-2) * -1);
-  border: none;
-  background: none;
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  color: var(--color-accent-text);
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--card-border);
+  background: var(--card-fill);
+  color: var(--color-ink-soft);
   cursor: pointer;
 }
 
-/* The Back control leads the header, so its negative margin flips with it. */
-.head .close:first-child {
-  margin-inline: calc(var(--space-2) * -1) 0;
+.iconButton:hover {
+  color: var(--color-ink);
 }
+
 
 /* ---- Search field ---- */
 
