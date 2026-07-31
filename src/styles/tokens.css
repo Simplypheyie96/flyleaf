@@ -134,6 +134,32 @@
   --card-edge-light: oklch(1 0 0 / 0.7); /* lit top edge on cards */
   --note-rule: oklch(0.6 0.08 100 / 0.25); /* ruled lines on notes */
 
+  /* ---- The inside of a tinted card ----
+
+     A tinted card is a lit surface, and at night that stops being the same
+     statement as the room it is lying on: the page is a dark sky and the card
+     is a pale sheet on it, so everything printed on the card has to be lit by
+     the card rather than by the room. These are the tokens for that interior,
+     and PaperSurface maps them onto the names its contents already use, so no
+     component has to know which theme it is in.
+
+     By day the two lamps are the same one, so every value here is simply the
+     room's own — the whole set exists for the night block below, and being
+     able to see that it is a straight pass-through by day is the point. */
+  --tint-ink: var(--color-ink);
+  --tint-ink-soft: var(--color-ink-soft);
+  --tint-ink-faint: var(--color-ink-faint);
+  /* What a glyph reversed OUT of the ink is filled with — the play triangle
+     sitting in its dark disc. */
+  --tint-reverse: var(--color-bg);
+  --tint-border: var(--card-border);
+  --tint-edge: var(--card-edge-light);
+  --tint-chip: var(--card-chip);
+  --tint-rule: var(--note-rule);
+  --tint-quote: var(--color-quote);
+  --tint-note: var(--color-note);
+  --tint-voice: var(--color-voice);
+
   /* ---- Glass (chrome only) ---- */
   --glass-fill: oklch(0.99 0.005 240 / 0.6);
   --glass-border: oklch(1 0 0 / 0.6);
@@ -269,17 +295,56 @@
   --card-chip: oklch(0.36 0.026 264 / 0.85);
   --color-paper-raised: var(--card-fill);
 
-  /* Each type keeps its own tint at night, hue-matched to its accent (sage /
-     honey / periwinkle). Held at the fill's lightness so nothing brightens —
-     only the hue moves, which is enough to tell a quote from a note. */
-  --card-quote: oklch(0.35 0.03 152 / 0.58);
-  --card-note: oklch(0.355 0.03 95 / 0.58);
-  --card-voice: oklch(0.35 0.035 285 / 0.58);
-  --card-quote-solid: oklch(0.31 0.022 152);
-  --card-note-solid: oklch(0.315 0.022 95);
-  --card-voice-solid: oklch(0.31 0.026 285);
+  /* ---- Entry-card tints: moonlit ----
+
+     These used to be the same tints held down at the fill's lightness, on the
+     theory that nothing should brighten after dark. That theory is what made
+     them mud, and it is the same wrong turn the book covers took: a warm hue
+     below about L 0.8 reads brown or khaki no matter how little chroma it
+     carries, and hue 95 — the note — is the worst of them. Dimming a yellow
+     does not give you a night yellow, it gives you a dirty one.
+
+     So they are lit, exactly as the covers now are: L 0.87 and the same
+     0.045-ish chroma, which is what lets the note stay yellow instead of
+     having to be re-hued into something that is not a sticky note. A memory
+     is a pale sheet of paper lying on a dark desk, which is a truer thing for
+     this app to say after dark than a dark sheet on a darker one. The near-
+     opaque alpha is deliberate: at 0.58 the night sky came up through the
+     paper and pulled all three back toward the slate they came from. */
+  --card-quote: oklch(0.87 0.045 168 / 0.96);
+  --card-note: oklch(0.885 0.05 95 / 0.96);
+  --card-voice: oklch(0.87 0.042 285 / 0.96);
+  --card-quote-solid: oklch(0.87 0.045 168);
+  --card-note-solid: oklch(0.885 0.05 95);
+  --card-voice-solid: oklch(0.87 0.042 285);
   --card-edge-light: oklch(0.95 0.015 250 / 0.16); /* moonlit top edge */
   --note-rule: oklch(0.75 0.06 100 / 0.16);
+
+  /* The interior of those lit cards. Every one of these is a day-ish value
+     living inside the night theme, because that is the literal situation: the
+     card is a lit surface and the room is not, so its contents are lit by it
+     rather than by the room. Without this the pale night ink would be printed
+     on pale paper and the cards would be blank.
+
+     The accents come down rather than up — the night versions were brightened
+     to survive a dark card (0.70–0.75) and would wash straight out on a 0.87
+     sheet, so they sit a little below even their daytime lightness to hold
+     against the extra chroma in the tint under them. */
+  --tint-ink: oklch(0.3 0.03 265);
+  --tint-ink-soft: oklch(0.44 0.025 265);
+  /* 0.48, not the 0.53 the lightness pattern would suggest: measured on the
+     tints it lands at 4.5 where the day faint lands at 4.4, and a "faint" that
+     is fainter after dark than it is by day is a regression dressed up as a
+     theme. */
+  --tint-ink-faint: oklch(0.48 0.022 265);
+  --tint-reverse: oklch(0.95 0.01 250);
+  --tint-border: oklch(0.25 0.03 265 / 0.12);
+  --tint-edge: oklch(1 0 0 / 0.55);
+  --tint-chip: oklch(1 0 0 / 0.55);
+  --tint-rule: oklch(0.5 0.07 95 / 0.3);
+  --tint-quote: oklch(0.5 0.07 140);
+  --tint-note: oklch(0.52 0.1 85);
+  --tint-voice: oklch(0.5 0.08 265);
   --tape-fill: oklch(0.6 0.02 260 / 0.3);
   --tape-edge: oklch(0.8 0.02 255 / 0.22);
 
