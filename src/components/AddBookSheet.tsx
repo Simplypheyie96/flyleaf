@@ -382,42 +382,44 @@ function ManualStage({
         <h2 className={styles.title}>Shelve it yourself</h2>
       </header>
 
-      <label className={styles.label}>
-        Title
-        <input
-          className={styles.textInput}
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          required
-        />
-      </label>
+      <div className={styles.formBody}>
+        <label className={styles.label}>
+          Title
+          <input
+            className={styles.textInput}
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            required
+          />
+        </label>
 
-      <label className={styles.label}>
-        Author
-        <input
-          className={styles.textInput}
-          value={author}
-          onChange={(event) => setAuthor(event.target.value)}
-          required
-        />
-      </label>
+        <label className={styles.label}>
+          Author
+          <input
+            className={styles.textInput}
+            value={author}
+            onChange={(event) => setAuthor(event.target.value)}
+            required
+          />
+        </label>
 
-      <label className={styles.label}>
-        {/* Both words in one flex item. Loose in the label they are two, and
-            the label is a column, so “optional” dropped onto a line of its own
-            and read as an instruction rather than as an aside. */}
-        <span className={styles.labelLine}>
-          Pages <span className={styles.optional}>optional</span>
-        </span>
-        <input
-          className={styles.textInput}
-          type="number"
-          inputMode="numeric"
-          min="1"
-          value={pages}
-          onChange={(event) => setPages(event.target.value)}
-        />
-      </label>
+        <label className={styles.label}>
+          {/* Both words in one flex item. Loose in the label they are two, and
+              the label is a column, so “optional” dropped onto a line of its
+              own and read as an instruction rather than as an aside. */}
+          <span className={styles.labelLine}>
+            Pages <span className={styles.optional}>optional</span>
+          </span>
+          <input
+            className={styles.textInput}
+            type="number"
+            inputMode="numeric"
+            min="1"
+            value={pages}
+            onChange={(event) => setPages(event.target.value)}
+          />
+        </label>
+      </div>
 
       <LeafButton type="submit" disabled={!ready} className={styles.submit}>
         Continue
@@ -445,13 +447,13 @@ function ConfirmStage({
   const [picking, setPicking] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  const scroller = useRef<HTMLFormElement>(null)
+  const scroller = useRef<HTMLDivElement>(null)
   const picker = useRef<HTMLDivElement>(null)
 
-  /* Follow the calendar down when it unfolds. The form is the sheet's scroller
-     and the panel is the better part of 300px, so on a short phone opening it
-     otherwise leaves the entire grid below the fold with nothing to say it is
-     there.
+  /* Follow the calendar down when it unfolds. The form's body is the sheet's
+     scroller and the panel is the better part of 300px, so on a short phone
+     opening it otherwise leaves the entire grid below the fold with nothing to
+     say it is there.
 
      Measured and nudged by hand rather than `scrollIntoView`: that call walks
      every scrollable ancestor, and it is what scrolled the whole page out from
@@ -466,7 +468,6 @@ function ConfirmStage({
 
   return (
     <form
-      ref={scroller}
       className={styles.form}
       onSubmit={async (event) => {
         event.preventDefault()
@@ -494,97 +495,99 @@ function ConfirmStage({
         <h2 className={styles.title}>Onto the shelf</h2>
       </header>
 
-      <div className={styles.chosen}>
-        {/* The same name the shelf gives this book, so the browser treats the
-            cover here and the book that appears there as one object and
-            tweens the gap. Safe to hold while the sheet is open: the book is
-            not on the shelf yet, so the name is unique until the moment it
-            needs to stop being. */}
-        <span
-          className={styles.chosenCover}
-          style={{ viewTransitionName: `book-${book.id}` } as CSSProperties}
-        >
-          <BookCover
-            width={92}
-            title={book.title}
-            author={book.author}
-            covers={book.covers}
-          />
-        </span>
-        <div className={styles.chosenText}>
-          <p className={styles.chosenTitle}>{book.title}</p>
-          <p className={styles.resultMeta}>{book.author}</p>
-        </div>
-      </div>
-
-      <fieldset className={styles.group}>
-        <legend className={styles.label}>How are you reading it?</legend>
-        <div className={styles.chipRow}>
-          {FORMATS.map(({ value, label, Icon }) => (
-            <button
-              key={value}
-              type="button"
-              className={styles.chip}
-              aria-pressed={format === value}
-              // The label is only painted on the chosen one, so the other two
-              // need their name somewhere a screen reader and a hover can
-              // still reach it.
-              aria-label={label}
-              title={label}
-              onClick={() => setFormat(value)}
-            >
-              <Icon size={20} />
-              {format === value && <span>{label}</span>}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      {/* The date, in our own control.
-
-          This was a `<input type="date">` laid over the row at zero opacity,
-          on the theory that a tap anywhere would land on the real input and
-          open the platform's own picker. On a phone it does. On desktop
-          Chrome it does not: clicking the body of a date input only focuses a
-          segment, and the one thing that opens the calendar is the little
-          indicator at its end — which at zero opacity is invisible. The row
-          was unclickable for anyone on a laptop, and a control that works by
-          accident of platform is not a control.
-
-          So it is ours now, on every device: the row is a button, and the
-          calendar unfolds underneath it. See CalendarPicker. */}
-      <div className={styles.dateField}>
-        <span className={styles.label} id="started-label">
-          When did you start it?
-        </span>
-        <button
-          type="button"
-          className={styles.dateBox}
-          onClick={() => setPicking((on) => !on)}
-          aria-expanded={picking}
-          aria-labelledby="started-label started-value"
-        >
-          <CalendarIcon size={20} />
-          <span className={styles.dateValue} id="started-value">
-            {longDate(startedOn)}
-          </span>
-          <CaretIcon size={18} className={styles.dateCaret} />
-        </button>
-
-        {picking && (
-          <div ref={picker} className={styles.datePicker}>
-            <CalendarPicker
-              value={startedOn}
-              onChange={setStartedOn}
-              // Nobody starts a book after today, and a stray year in the
-              // future would sort the shelf wrong forever.
-              max={todayISO()}
-              // The book's own threads, so the bloom on the chosen day is the
-              // one already on its cover.
-              seed={seedFrom(book.title, book.author)}
+      <div ref={scroller} className={styles.formBody}>
+        <div className={styles.chosen}>
+          {/* The same name the shelf gives this book, so the browser treats
+              the cover here and the book that appears there as one object and
+              tweens the gap. Safe to hold while the sheet is open: the book is
+              not on the shelf yet, so the name is unique until the moment it
+              needs to stop being. */}
+          <span
+            className={styles.chosenCover}
+            style={{ viewTransitionName: `book-${book.id}` } as CSSProperties}
+          >
+            <BookCover
+              width={92}
+              title={book.title}
+              author={book.author}
+              covers={book.covers}
             />
+          </span>
+          <div className={styles.chosenText}>
+            <p className={styles.chosenTitle}>{book.title}</p>
+            <p className={styles.resultMeta}>{book.author}</p>
           </div>
-        )}
+        </div>
+
+        <fieldset className={styles.group}>
+          <legend className={styles.label}>How are you reading it?</legend>
+          <div className={styles.chipRow}>
+            {FORMATS.map(({ value, label, Icon }) => (
+              <button
+                key={value}
+                type="button"
+                className={styles.chip}
+                aria-pressed={format === value}
+                // The label is only painted on the chosen one, so the other
+                // two need their name somewhere a screen reader and a hover
+                // can still reach it.
+                aria-label={label}
+                title={label}
+                onClick={() => setFormat(value)}
+              >
+                <Icon size={20} />
+                {format === value && <span>{label}</span>}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        {/* The date, in our own control.
+
+            This was a `<input type="date">` laid over the row at zero opacity,
+            on the theory that a tap anywhere would land on the real input and
+            open the platform's own picker. On a phone it does. On desktop
+            Chrome it does not: clicking the body of a date input only focuses
+            a segment, and the one thing that opens the calendar is the little
+            indicator at its end — which at zero opacity is invisible. The row
+            was unclickable for anyone on a laptop, and a control that works by
+            accident of platform is not a control.
+
+            So it is ours now, on every device: the row is a button, and the
+            calendar unfolds underneath it. See CalendarPicker. */}
+        <div className={styles.dateField}>
+          <span className={styles.label} id="started-label">
+            When did you start it?
+          </span>
+          <button
+            type="button"
+            className={styles.dateBox}
+            onClick={() => setPicking((on) => !on)}
+            aria-expanded={picking}
+            aria-labelledby="started-label started-value"
+          >
+            <CalendarIcon size={20} />
+            <span className={styles.dateValue} id="started-value">
+              {longDate(startedOn)}
+            </span>
+            <CaretIcon size={18} className={styles.dateCaret} />
+          </button>
+
+          {picking && (
+            <div ref={picker} className={styles.datePicker}>
+              <CalendarPicker
+                value={startedOn}
+                onChange={setStartedOn}
+                // Nobody starts a book after today, and a stray year in the
+                // future would sort the shelf wrong forever.
+                max={todayISO()}
+                // The book's own threads, so the bloom on the chosen day is
+                // the one already on its cover.
+                seed={seedFrom(book.title, book.author)}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <LeafButton type="submit" disabled={saving} className={styles.submit}>
