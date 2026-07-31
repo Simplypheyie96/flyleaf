@@ -230,16 +230,12 @@
   translate: -48% -47%;
 }
 
-/* The white matte frame around each cover, like a kept print */
-.print {
-  background: var(--color-paper);
-  border: 1px solid var(--border-hairline);
-  border-radius: 14px;
-  padding: 9px;
-}
-
-.print > * {
-  width: 100%;
+/* No matte. The books pile as books, not as a stack of framed prints — the
+   cover's own bound edge and hairline are what separate one from the next.
+   The hover bloom has to follow that silhouette (spine edge square, fore-edge
+   round) or it paints a rectangle behind the book. */
+.stackItem.book {
+  border-radius: 4px 10px 10px 4px;
 }
 
 /* ---- Shelf: books standing on a board ----

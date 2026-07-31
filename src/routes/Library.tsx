@@ -258,14 +258,12 @@ function Library() {
                     } as CSSProperties
                   }
                 >
-                  <div className={styles.print}>
-                    <BookCover
-                      title={book.title}
-                      author={book.author}
-                      hue={book.hue}
-                      small={i > 0}
-                    />
-                  </div>
+                  <BookCover
+                    title={book.title}
+                    author={book.author}
+                    hue={book.hue}
+                    small={i > 0}
+                  />
                 </div>
               ))}
             </div>
