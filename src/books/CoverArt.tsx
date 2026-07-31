@@ -552,14 +552,22 @@ const cloth: Family = (rng) => {
      books drawn ten apart came out looking like the same stamp — which is
      exactly the failure this family has to avoid, since it is the most rigid
      of the five and has the least room to hide a repeat. */
-  const outer = between(rng, 38, 46)
+  /* The wide ranges on `outer` and `deviceR` are the point. Held to 38–46 on a
+     120 board, every stamp was a ring of the same size around a small device:
+     three books in one search result read as the same drawing even though the
+     borders were a dash wheel, a dot wheel and a dot wheel with a third rule.
+     Fine detail is what a binder varies, but fine detail is the first thing a
+     44px thumbnail throws away, so the silhouette has to vary too. */
+  const outer = between(rng, 30, 52)
   const border = pick(rng, ['dash', 'dot', 'alternating', 'none'] as const)
   const ticks = intBetween(rng, 16, 30)
-  const inner = round(outer - between(rng, 8, 15))
+  const inner = round(outer - between(rng, 7, 16))
   const doubleRule = rng() < 0.45
   const centre = pick(rng, ['diamond', 'star', 'dot', 'cross', 'rosette'] as const)
   const spokes = pick(rng, [4, 6, 8] as const)
-  const deviceR = round(between(rng, 10, 15))
+  // Up to two thirds of the inner rule, so the device reads as the subject of
+  // some stamps and as a mark inside a large field on others.
+  const deviceR = round(between(rng, 0.28, 0.66) * inner)
 
   return (
     <g strokeWidth="1.1">

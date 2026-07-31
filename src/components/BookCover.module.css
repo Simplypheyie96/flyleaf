@@ -106,17 +106,26 @@
 
 /* A real cover is someone else's finished design. It gets the board and the
    bound edge — so it is the same physical object as the drawn covers beside
-   it — and nothing else: no frame over the artwork, no type of ours on top. */
-.photographed {
-  padding: 0;
-  overflow: hidden;
-}
-
+   it — and nothing else: no frame over the artwork, no type of ours on top.
+   Applied once the photograph has decoded, never before: until then the drawn
+   cover underneath is what the reader sees. */
 .photographed::before {
   content: none;
 }
 
+.photographed .title,
+.photographed .art,
+.photographed .byline {
+  visibility: hidden;
+}
+
+/* Laid over the drawn cover rather than replacing it, so a slow or dead
+   catalogue shows a book instead of an empty rectangle. It sits above the
+   printed frame and below `::after`, which is later in the DOM — the bound
+   edge belongs to the board, not to whoever designed the jacket. */
 .image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   /* Editions are photographed at every aspect ratio there is; the board is
@@ -201,4 +210,38 @@
 
 .small::after {
   width: 7px;
+}
+
+/* Thumbnail (a search result, 44px across). No type at all: at this size a set
+   title is a grey smudge, and — because the board is a flex column — it is
+   also a smudge tall enough to break the row, since min-content height beats
+   `aspect-ratio` and a six-word title wraps to six lines. The motif alone,
+   which is what the eye matches against the row's real title anyway. */
+.thumb {
+  padding: var(--space-2) var(--space-1) var(--space-2)
+    calc(var(--space-1) + 4px);
+}
+
+.thumb .art {
+  width: 76%;
+  opacity: 1;
+}
+
+/* The motif is drawn on a 120-unit board and here it lands on 33px, which
+   takes a 0.9 stroke down to a quarter of a pixel — the browser renders that
+   as a grey suggestion and the whole thumbnail reads as blank. Holding the
+   stroke at its authored width in screen pixels keeps the drawing a drawing
+   at the one size where it is the only thing on the board. */
+.thumb .art * {
+  vector-effect: non-scaling-stroke;
+}
+
+.thumb::before {
+  inset: 4px 3px 4px 7px;
+  border-radius: 1px 3px 3px 1px;
+  outline: none;
+}
+
+.thumb::after {
+  width: 5px;
 }
