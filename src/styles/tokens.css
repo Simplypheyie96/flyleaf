@@ -72,6 +72,16 @@
   --book-head-c: 0.018;
   --book-ink-l: 0.3; /* what is printed down the spine */
   --book-ink-c: 0.05;
+  /* What is printed on the front board. The same ink as the rest of the page
+     by day; at night the board is lit while the page is not, so the two part
+     company and this gets its own value. */
+  --cover-ink: var(--color-ink);
+  /* The byline, which is softer than the title. It is a per-theme value rather
+     than one formula because what has to stay constant is its CONTRAST against
+     the board, not its lightness: the night board is 0.86 where the day board
+     is 0.945, so the same ink loses most of a contrast point after dark. Both
+     of these land near 5:1 on the darkest hue in the set. */
+  --cover-ink-soft: oklch(from var(--cover-ink) 0.5 0.02 h);
   /* The front board: pastel stock, pale and genuinely coloured rather than
      pale and nearly grey. Chroma is what keeps a light tint from drifting
      toward beige, which is why it goes UP as lightness does. */
@@ -299,48 +309,64 @@
   --color-image: oklch(0.72 0.08 45);
   --color-highlight: oklch(0.77 0.1 95);
 
-  /* Books at night. Not the light recipe reversed — the boards come down to
-     sit clearly above the sky (0.22) without glaring off it, which pale
-     daytime stock at 0.82 does badly, and the print goes light so it still
-     reads on a board that is now darker than the ink was. Chroma drops a
-     little with the light: a colour is less saturated when there is less of
-     it, and the hues stay far enough apart to tell one book from another. */
-  --book-face-l: 0.41;
-  --book-face-c: 0.05;
-  --book-head-l: 0.6;
-  --book-head-c: 0.028;
-  --book-ink-l: 0.96;
-  --book-ink-c: 0.02;
-  /* The night board is a tinted charcoal, not a dim version of the day board.
-     Chroma is what forces it: brown IS dark orange, so any warm ground with
-     enough colour in it to read comes out brown at this lightness, and there
-     is no L that fixes a hue. Taking the chroma almost out lets the cloth keep
-     its identity — a peach book is still faintly warm — without any board on
-     the shelf going brown. The floss is what carries colour at night, which is
-     also what happens to real needlework under a lamp. */
-  --book-cover-l: 0.4;
-  --book-cover-c: 0.012;
-  /* Floss at night. Lighter and slightly less saturated than by day: the same
-     chroma against a dim board reads as neon rather than as thread, and the
-     thread has to stay lighter than the cloth it is worked on or the whole
-     motif sinks into it. */
-  --floss-l: 0.76;
-  --floss-c: 0.15;
-  --floss-green-l: 0.7;
-  --floss-green-c: 0.1;
-  --floss-cream: oklch(0.95 0.012 85);
-  /* Both sit either side of a 0.42–0.44 board, as they must. The sheen is a
-     lit room rather than white: pure white over a dark board reads as a
-     specular hit on plastic, not paper catching a lamp. */
-  --book-shade: oklch(0.06 0.015 265);
-  --book-sheen: oklch(0.75 0.03 255);
+  /* Books at night — lit, not dimmed.
+
+     The obvious recipe is to take the day board down until it stops glaring
+     off the sky, and that is what this block used to do. It cannot work, for a
+     reason that is a property of the colour space rather than of these
+     numbers: brown IS dark orange. Any warm hue below about L 0.8 reads brown
+     or khaki no matter how little chroma it carries, and there is no chroma
+     that rescues it — draining chroma to 0.012, which is what the dim recipe
+     resorted to, does not make a pastel board, it makes six identical charcoal
+     ones. Two darker recipes were built and looked at before this one; both
+     still put clay on hue 35 and olive on hue 85.
+
+     So the boards go the other way. A book at night is a lit object on a dark
+     ground, not a dark object — which is also what a book under a reading lamp
+     actually looks like. At 0.86 the same hues that turned to mud come back as
+     blush, sand, lilac and mint, and the sky at 0.22 does the separating that
+     lightness used to be asked to do. Held below the day's 0.945 so it reads
+     as caught in lamplight rather than as a hole punched in the screen.
+
+     Everything else follows from the boards being pale: the floss comes DOWN
+     to near its daylight values because it is worked on light cloth again, and
+     the print goes dark for the same reason. */
+  --book-face-l: 0.8;
+  --book-face-c: 0.06;
+  --book-head-l: 0.92;
+  --book-head-c: 0.02;
+  --book-ink-l: 0.32;
+  --book-ink-c: 0.05;
+  --book-cover-l: 0.86;
+  --book-cover-c: 0.045;
+  --floss-l: 0.64;
+  --floss-c: 0.165;
+  --floss-green-l: 0.58;
+  --floss-green-c: 0.115;
+  --floss-cream: oklch(0.99 0.008 85);
+  /* A cover's title is printed in --color-ink, which at night is pale because
+     every other night surface is dark. A lit board is the one that is not, so
+     it gets its own ink rather than the global one. */
+  --cover-ink: oklch(0.34 0.03 265);
+  --cover-ink-soft: oklch(0.44 0.02 265);
+  /* The shade is the board's own contact shadow, so it is read against the
+     board and not against the room: darker than the daytime 0.2 because there
+     is less light around it, but nowhere near the near-black it was when the
+     board itself was dark. The sheen goes back to white — over a pale board
+     that is paper catching a lamp, which is the thing it was always meant to
+     be and could not be over charcoal. */
+  --book-shade: oklch(0.14 0.02 265);
+  --book-sheen: oklch(1 0 0);
   /* The join stays where it was — a contact shadow is dark in any room. The
      board face inverts: at night it is a dim slate lit from above rather than
      more darkness laid on darkness. 0.74 is the material, not the result; the
      alphas in Library.module.css bring the rendered face down to 0.32 at the
      front edge and 0.23 at the underside — above the 0.19 sky, so it reads as
-     a solid, and well under the 0.40 spines, so it never competes with the
-     books standing on it. The join lands at 0.14, darker than the sky, which
+     a solid, and far under the now-lit 0.8 spines, so the ledge stays the
+     thing the books are standing on rather than a fourth pale band among
+     them. The gap widened when the spines came up; that is the right
+     direction, because a lit book on a dim ledge is what the whole night
+     palette is now saying. The join lands at 0.14, darker than the sky, which
      is what keeps it a shadow rather than a second edge. */
   --shelf-join: oklch(0.05 0.02 265);
   --shelf-board: oklch(0.74 0.02 262);
