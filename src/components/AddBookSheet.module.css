@@ -1,0 +1,322 @@
+/* The add sheet. Glass, because it is chrome floating over the library
+   rather than a page of its own — the shelf stays visible underneath, which
+   is the whole point of a sheet: you are adding to something that is still
+   there. */
+
+.dialog {
+  /* The top layer has no inherited layout, so the sheet positions itself. */
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 100%;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* Only when open. An author-origin `display` beats the UA's
+   `dialog:not([open]) { display: none }` whatever its specificity, so a bare
+   `display: flex` here leaves a closed sheet in the flow, full height, with
+   the page shoved off the bottom of the screen. */
+.dialog[open] {
+  /* Rising from the bottom edge on a phone, the way a sheet does. */
+  display: flex;
+}
+
+.dialog::backdrop {
+  background: oklch(from var(--shadow-tint) l c h / 0.28);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.panel {
+  --glass-pad: 0;
+  --glass-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  width: 100%;
+  max-width: 560px;
+  /* Tall enough to hold a list worth scanning, short enough that the library
+     still shows above it and the sheet reads as a sheet. */
+  max-height: min(86svh, 720px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* GlassSurface wraps whatever it is given in a scrim, so the sheet's flex
+   column has to pass through that layer. Without this the panel's max-height
+   never reaches the results list, and forty results push the sheet past the
+   bottom of the screen instead of scrolling inside it. */
+.panel > * {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-5)
+    calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+}
+
+/* ---- Header ---- */
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+/* A text control, so it must not read as body copy sitting next to a title.
+   Given the accent ink and a tap target, and placed in a fixed corner. */
+.close {
+  min-height: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--space-2);
+  margin-inline-end: calc(var(--space-2) * -1);
+  border: none;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-accent-text);
+  cursor: pointer;
+}
+
+/* The Back control leads the header, so its negative margin flips with it. */
+.head .close:first-child {
+  margin-inline: calc(var(--space-2) * -1) 0;
+}
+
+/* ---- Search field ---- */
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--card-fill);
+  border: 1px solid var(--card-border);
+  color: var(--color-ink-soft);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap-min);
+  border: none;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 16px; /* keeps iOS from zooming the sheet on focus */
+}
+
+.input::placeholder {
+  color: var(--color-ink-faint);
+}
+
+.input:focus {
+  outline: none;
+}
+
+/* ---- Results ---- */
+
+.results {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  /* The list is the only thing that scrolls, and it must not look cut off at
+     the fold — a little room under the last row reads as the end of a list. */
+  padding-block-end: var(--space-2);
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-2);
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  text-align: start;
+  cursor: pointer;
+}
+
+.result:hover,
+.result:focus-visible {
+  background: var(--card-fill);
+}
+
+.resultCover {
+  flex-shrink: 0;
+}
+
+.resultText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.resultTitle {
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  line-height: 1.25;
+  color: var(--color-ink);
+}
+
+.resultMeta {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--color-ink-soft);
+}
+
+/* The three empty answers — nothing typed, still looking, nothing found —
+   all read as the same calm voice rather than as an error. */
+.quiet {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  padding: var(--space-5) var(--space-2);
+  text-wrap: pretty;
+}
+
+.manualLink {
+  align-self: center;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-3);
+  border: none;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-accent-text);
+  cursor: pointer;
+}
+
+/* ---- Forms: by hand, and the confirm step ---- */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.optional {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-ink-faint);
+}
+
+.textInput {
+  width: 100%;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--card-fill);
+  color: var(--color-ink);
+  /* Serif: what the reader types here is the book's own title and author, and
+     it is typeset in this face on the cover a moment later. */
+  font-family: var(--font-serif);
+  font-size: 16px;
+}
+
+.textInput:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 1px;
+}
+
+.chosen {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.chosenText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.chosenTitle {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+.formats {
+  border: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.formatRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.format {
+  flex: 1;
+  min-height: var(--tap-min);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--card-border);
+  background: var(--card-fill);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+}
+
+.format[aria-pressed='true'] {
+  background: var(--color-chip-active);
+  border-color: var(--border-hairline);
+  color: var(--color-ink);
+}
+
+.submit {
+  align-self: stretch;
+}

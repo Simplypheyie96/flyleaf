@@ -262,7 +262,7 @@ function Library() {
                     title={book.title}
                     author={book.author}
                     hue={book.hue}
-                    small={i > 0}
+                    size={i > 0 ? 'small' : 'full'}
                   />
                 </div>
               ))}
@@ -318,7 +318,7 @@ function Library() {
                     title={book.title}
                     author={book.author}
                     hue={book.hue}
-                    small
+                    size="small"
                   />
                 </div>
               ))}
