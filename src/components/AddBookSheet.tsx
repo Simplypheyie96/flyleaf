@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import type { RefObject } from 'react'
 import BookCover, { hueFor } from './BookCover'
 import GlassSurface from './GlassSurface'
 import LeafButton from './LeafButton'
@@ -32,6 +33,7 @@ const FORMATS: { value: BookFormat; label: string }[] = [
 
 function AddBookSheet({ open, onClose }: AddBookSheetProps) {
   const dialog = useRef<HTMLDialogElement>(null)
+  const field = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
   const [stage, setStage] = useState<Stage>({ kind: 'search' })
   const search = useBookSearch(stage.kind === 'search' ? query : '')
@@ -56,6 +58,20 @@ function AddBookSheet({ open, onClose }: AddBookSheetProps) {
     }
   }, [open])
 
+  /* The reader opened a sheet whose only purpose is this field, so the field
+     is where the caret belongs — and on a phone, that is what raises the
+     keyboard.
+
+     `autoFocus` cannot do it: React applies it when the input mounts, which
+     is while the dialog is still closed and nothing inside it is focusable,
+     and `showModal()` afterwards hands focus to the first focusable element
+     instead — Close. Keying on the stage as well as on `open` covers the
+     render where the sheet has opened but the stage has not been reset yet,
+     and gives the field back to the reader when they come back from confirm. */
+  useEffect(() => {
+    if (open && stage.kind === 'search') field.current?.focus()
+  }, [open, stage.kind])
+
   return (
     <dialog
       ref={dialog}
@@ -70,6 +86,7 @@ function AddBookSheet({ open, onClose }: AddBookSheetProps) {
         <div className={styles.inner}>
           {stage.kind === 'search' && (
             <SearchStage
+              field={field}
               query={query}
               onQuery={setQuery}
               state={search}
@@ -102,6 +119,7 @@ function AddBookSheet({ open, onClose }: AddBookSheetProps) {
 /* ---- Stage one: search ---- */
 
 interface SearchStageProps {
+  field: RefObject<HTMLInputElement | null>
   query: string
   onQuery: (q: string) => void
   state: ReturnType<typeof useBookSearch>
@@ -111,6 +129,7 @@ interface SearchStageProps {
 }
 
 function SearchStage({
+  field,
   query,
   onQuery,
   state,
@@ -130,14 +149,13 @@ function SearchStage({
       <div className={styles.field}>
         <SearchIcon size={18} />
         <input
+          ref={field}
           className={styles.input}
           type="search"
           value={query}
           onChange={(event) => onQuery(event.target.value)}
           placeholder="Title or author"
           aria-label="Search for a book by title or author"
-          // The reader opened a sheet whose only purpose is this field.
-          autoFocus
         />
       </div>
 
