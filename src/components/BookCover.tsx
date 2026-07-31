@@ -1,30 +1,22 @@
 import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
-import CoverArt from '../books/CoverArt'
+import CoverArt, { groundHue } from '../books/CoverArt'
 import { seedFrom } from '../books/seed'
 import styles from './BookCover.module.css'
-
-export type CoverHue = 'image' | 'quote' | 'note' | 'voice' | 'highlight'
-
-const HUES: CoverHue[] = ['image', 'quote', 'note', 'voice', 'highlight']
-
-/* A book's tint comes from its own seed, so a shelf is varied without anyone
-   choosing, and a book is the same colour on every device and after every
-   reinstall. Nothing about the tint is stored. */
-export function hueFor(id: number): CoverHue {
-  return HUES[id % HUES.length]
-}
 
 /** How much board there is to work with, which decides what can go on it.
     `full` is a cover you look at, `small` a cover you scan on a shelf, and
     `thumb` a cover you pick out of a list at 44px — where a set title is
-    unreadable anyway, so only the motif is worth printing. */
+    unreadable anyway, so only the motif is worth printing.
+
+    `full` and `small` differ in nothing but width now: the board is a
+    container and its type is sized in `cqw`, so the proportions come out the
+    same at 140px and at 64px without either being restated. */
 export type CoverSize = 'full' | 'small' | 'thumb'
 
 interface BookCoverProps {
   title: string
   author: string
-  hue?: CoverHue
   /** Real covers to try in order — Open Library, then Google Books. */
   covers?: string[]
   width?: number
@@ -50,7 +42,6 @@ interface BookCoverProps {
 function BookCover({
   title,
   author,
-  hue = 'image',
   covers,
   width,
   rotate = 0,
@@ -72,15 +63,17 @@ function BookCover({
   }, [list])
   const src = covers?.[attempt]
 
+  const seed = seedFrom(title, author)
   const style = {
-    '--cover-hue': `var(--color-${hue})`,
+    // Never one of the two threads worked on it — see groundHue.
+    '--cover-h': groundHue(seed),
     '--cover-rotate': `${rotate}deg`,
     width: width ? `${width}px` : undefined,
   } as CSSProperties
 
   const className_ = [
     styles.cover,
-    size !== 'full' && styles[size],
+    size === 'thumb' && styles.thumb,
     loaded && styles.photographed,
     className,
   ]
@@ -91,21 +84,18 @@ function BookCover({
 
   return (
     <div className={className_} style={style}>
-      {/* The small board clamps to two lines, so the whole title has to stay
-          reachable somewhere other than the book's own page. */}
+      <CoverArt className={styles.art} seed={seed} bare={!typeset} />
       {typeset && (
-        <span className={styles.title} title={title}>
-          {title}
-        </span>
-      )}
-      <CoverArt className={styles.art} seed={seedFrom(title, author)} />
-      {typeset && (
-        <span className={styles.byline}>
-          <span className={styles.rule} />
+        <div className={styles.type}>
+          {/* The band clamps to three lines, so the whole title has to stay
+              reachable somewhere other than the book's own page. */}
+          <span className={styles.title} title={title}>
+            {title}
+          </span>
           <span className={styles.author} title={author}>
             {author}
           </span>
-        </span>
+        </div>
       )}
       {src && (
         // Keyed on the URL so each candidate gets a fresh element: a reused

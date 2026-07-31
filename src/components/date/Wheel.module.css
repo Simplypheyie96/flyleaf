@@ -1,0 +1,97 @@
+/* Kept in step with ROW in Wheel.tsx — the scroll maths needs the number, this
+   sheet needs the length. */
+.wrap {
+  --row: 40px;
+  /* Rows on screen. Overridden inline by the `rows` prop; the value here is
+     the fallback and the documentation of what it has to be — odd, or nothing
+     sits in the middle. */
+  --visible: 5;
+
+  position: relative;
+  display: flex;
+  gap: var(--space-2);
+  height: calc(var(--row) * var(--visible));
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--card-fill);
+  overflow: hidden;
+}
+
+/* ---- The band across the middle ---- */
+
+.band {
+  position: absolute;
+  inset-inline: var(--space-3);
+  /* Centred on the middle row: half the drum, less half a row. */
+  top: calc(var(--row) * (var(--visible) - 1) / 2);
+  height: var(--row);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.stitch {
+  width: 100%;
+  opacity: 0.65;
+}
+
+.stitch:first-child { color: var(--floss-a, var(--color-accent-text)); }
+.stitch:last-child { color: var(--floss-b, var(--color-accent)); }
+
+/* ---- The columns ---- */
+
+.column {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Month names are the long ones — "September" against "3" and "2026". */
+.wide { flex: 1.6; }
+
+.track {
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  /* The drum is scrolled, not dragged: without this the browser hands a
+     vertical flick to the sheet behind it. */
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.track::-webkit-scrollbar { display: none; }
+
+.track:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Half a drum of clear air at each end, so the first and last rows can reach
+   the middle. */
+.pad { height: calc(var(--row) * (var(--visible) - 1) / 2); }
+
+.row {
+  display: grid;
+  place-items: center;
+  height: var(--row);
+  scroll-snap-align: center;
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  color: var(--color-ink);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity var(--dur-quick) var(--ease-out),
+    transform var(--dur-quick) var(--ease-out);
+}
+
+/* The curvature. Rows away from the band sit back and shrink, which is what
+   makes a flat list read as a drum turning rather than a menu sliding. */
+.row[data-off='1'] { opacity: 0.55; transform: scale(0.9); }
+.row[data-off='2'] { opacity: 0.28; transform: scale(0.82); }
+.row[data-off='3'] { opacity: 0.14; transform: scale(0.76); }
+
+@media (prefers-reduced-motion: reduce) {
+  .row { transition: none; }
+}

@@ -1,0 +1,207 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ---- Month and arrows ---- */
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* The label is also the switch into the month-and-year drum, so it carries a
+   caret and reacts to a press. It stays borderless: a filled control here would
+   pull rank over the day grid, which is the thing being used. */
+.month {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  /* Centred between two arrows of known width, and month names are wildly
+     different lengths — "May" against "September". Letting it size to its
+     content would walk the arrows in and out as you page. */
+  flex: 1;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-2);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: background var(--dur-press) var(--ease-out);
+}
+
+.month:hover { background: var(--card-chip); }
+.month:active { transform: scale(0.97); }
+
+.month:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 1px;
+}
+
+.caret {
+  flex: none;
+  color: var(--color-ink-faint);
+  transition: transform var(--dur-quick) var(--ease-out);
+}
+
+/* Turned over while the drum is up: the caret points at the pane it would take
+   you to, which over the drum is the calendar again. */
+.month[aria-expanded='true'] .caret {
+  transform: rotate(180deg);
+  color: var(--color-ink-soft);
+}
+
+.turn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition: background var(--dur-press) var(--ease-out),
+    color var(--dur-press) var(--ease-out);
+}
+
+.turn:hover:not(:disabled) {
+  background: var(--card-chip);
+  color: var(--color-ink);
+}
+
+.turn:active:not(:disabled) { transform: scale(0.94); }
+
+.turn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ---- The grid ---- */
+
+/* One track definition shared by the column heads and the days, so a head is
+   never a pixel off the column it names. */
+.heads,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.heads {
+  gap: var(--space-1);
+  padding-block-end: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.grid {
+  gap: var(--space-1);
+}
+
+.blank { aspect-ratio: 1; }
+
+.day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* Square cells, sized by the column so the grid fits any sheet width. The
+     minimum keeps a thumb target on the narrowest phone this ships to. */
+  aspect-ratio: 1;
+  min-height: 38px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink-soft);
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
+  cursor: pointer;
+  transition: background var(--dur-press) var(--ease-out),
+    color var(--dur-press) var(--ease-out);
+}
+
+.day:hover:not(:disabled):not([data-selected]) {
+  background: var(--card-chip);
+  color: var(--color-ink);
+}
+
+.day:active:not(:disabled) { transform: scale(0.92); }
+
+.day:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.day:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 1px;
+}
+
+/* Today: one knot under the numeral. A ring here would read as a second
+   selection, and there can only be one of those. */
+.day[data-today]::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--color-accent-text);
+}
+
+.day[data-selected] {
+  color: var(--color-ink);
+}
+
+.day[data-selected][data-today]::after {
+  /* Under a bloom the accent dot disappears into a petal. */
+  background: var(--color-ink);
+  opacity: 0.5;
+}
+
+/* The bloom sits behind the numeral and larger than the cell — a wreath around
+   the date, not a badge in it. `inset` negative rather than a transform so it
+   stays centred at every cell size. */
+.bloom {
+  position: absolute;
+  inset: -4px;
+  pointer-events: none;
+  animation: settle var(--dur-base) var(--ease-out);
+}
+
+.numeral {
+  position: relative; /* above the bloom */
+}
+
+/* Stitched, not stamped: it comes in a touch small and turns the last few
+   degrees as it lands, the way a mark does when it is pressed by hand. */
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: scale(0.7) rotate(-16deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bloom { animation: none; }
+  .caret { transition: none; }
+  .month:active,
+  .day:active:not(:disabled),
+  .turn:active:not(:disabled) { transform: none; }
+}
