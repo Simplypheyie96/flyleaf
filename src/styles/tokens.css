@@ -140,6 +140,49 @@
 
   /* ---- Tap targets ---- */
   --tap-min: 44px;
+
+  /* ---- Motion ----
+     Paper has weight. Nothing here snaps, and nothing here bounces — a kept
+     archive should feel handled, not springy. Four durations only, so no
+     component invents its own timing.
+
+       press  the finger is still down; anything slower reads as lag
+       quick  a pill selects, a colour changes — state, not travel
+       base   a card settles into a new state
+       move   something crosses the screen and has to be followed
+
+     Two curves. `out` is the default: leaves quickly, lands softly. `move` is
+     the same shape with a longer tail, for things that travel far enough that
+     you watch them arrive. `in` is for exits only, which should be faster than
+     entrances so the screen never feels like it is waiting on itself. */
+  --dur-press: 120ms;
+  --dur-quick: 180ms;
+  --dur-base: 260ms;
+  --dur-move: 420ms;
+  --stagger: 45ms;
+
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-move: cubic-bezier(0.32, 0.72, 0.28, 1);
+  --ease-in: cubic-bezier(0.55, 0.06, 0.68, 0.19);
+
+  /* Distances, so a lift is the same height everywhere it happens. */
+  --lift: 3px;
+  --press: 1px;
+  --travel: 8px;
+}
+
+/* Reduced motion is a token swap, not a switch: distance goes to zero and the
+   long travel collapses to a short cross-fade, so a state change is still
+   traceable instead of snapping. Components that move rather than fade also
+   carry their own @media block — this only guarantees nothing travels. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-move: 140ms;
+    --stagger: 0ms;
+    --lift: 0px;
+    --press: 0px;
+    --travel: 0px;
+  }
 }
 
 [data-theme='dark'] {

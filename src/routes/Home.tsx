@@ -103,7 +103,7 @@ function MemoryCard({ memory, index }: { memory: SampleMemory; index: number }) 
   )
 }
 
-/* The warm landing: archive masthead → still reading → memory timeline.
+/* The warm landing: archive masthead → currently reading → memory timeline.
    Sample data until 03 (covers) and the entry store are wired.
    `?empty` previews the first-time reader state. */
 function Home() {
@@ -132,10 +132,10 @@ function Home() {
           </PaperSurface>
         ) : (
           <>
-            <section aria-labelledby="still-reading">
+            <section aria-labelledby="currently-reading">
               <div className={styles.sectionHead}>
-                <h2 id="still-reading" className={styles.sectionLabel}>
-                  Still reading
+                <h2 id="currently-reading" className={styles.sectionLabel}>
+                  Currently reading
                 </h2>
               </div>
               <PaperSurface rotate={-0.4} className={styles.heroCard}>
