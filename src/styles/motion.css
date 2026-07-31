@@ -29,6 +29,51 @@
   animation-timing-function: var(--ease-out);
 }
 
+/* ---- A book landing on the shelf ----
+   Switching views moves books around a page that is otherwise unchanged, which
+   is why the page itself is told to hold still above. Adding a book is the
+   other case: the sheet the cover is leaving has to go as the cover goes, so
+   here the page is allowed to dissolve after all — quickly, and under the
+   book, so what you watch is the arrival and not the sheet. */
+/* No space before the pseudo-element. The view-transition tree hangs off the
+   document element itself, so `:root ::view-transition-old(root)` — a
+   descendant — matches nothing at all, and does it silently. */
+:root[data-landing]::view-transition-old(root) {
+  animation: landingOut var(--dur-quick) var(--ease-in) forwards;
+}
+
+:root[data-landing]::view-transition-new(root) {
+  animation: landingIn var(--dur-quick) var(--ease-out) backwards;
+}
+
+/* The sheet itself. There is no new state for it — it has closed — so only the
+   old half plays: it dissolves in place while the cover leaves it.
+
+   Short, and eased out rather than in. An ease-in fade holds its opacity while
+   the book does most of its travelling and then drops at the end, which puts a
+   readable form and a landing book on screen together and makes you choose
+   what to look at. Front-loading it clears the sheet inside the first 180ms,
+   so the rest of the journey belongs to the book alone.
+
+   Its real ::backdrop cannot be captured and does cut. At 28% tint over a page
+   that is cross-fading anyway, that is a change in the wash rather than a
+   shape disappearing, and it costs less than the alternatives. */
+:root[data-landing]::view-transition-old(add-sheet) {
+  animation: landingOut var(--dur-quick) var(--ease-out) forwards;
+}
+
+@keyframes landingOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes landingIn {
+  from {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* Distance goes; a short dissolve stays so the change is still traceable.
      `--dur-move` is already collapsed by the token swap in tokens.css. */

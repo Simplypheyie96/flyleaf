@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { PointerEvent, RefObject } from 'react'
+import type { CSSProperties, PointerEvent, RefObject } from 'react'
 import BookCover from './BookCover'
 import GlassSurface from './GlassSurface'
 import LeafButton from './LeafButton'
@@ -20,6 +20,7 @@ import { useBookSearch } from '../books/useBookSearch'
 import type { BookResult } from '../books/sources'
 import { seedFrom } from '../books/seed'
 import db, { type BookFormat } from '../data/db'
+import { landOnShelf } from '../motion/shelfLanding'
 import styles from './AddBookSheet.module.css'
 
 interface AddBookSheetProps {
@@ -470,11 +471,15 @@ function ConfirmStage({
       onSubmit={async (event) => {
         event.preventDefault()
         setSaving(true)
-        // put, not add: the id is the book's identity, so adding a book that
-        // is already on the shelf updates it rather than failing on a
-        // constraint or standing it beside itself.
-        await db.books.put({ ...book, format, startedOn, addedAt: Date.now() })
-        onDone()
+        await landOnShelf(
+          book.id,
+          // put, not add: the id is the book's identity, so adding a book that
+          // is already on the shelf updates it rather than failing on a
+          // constraint or standing it beside itself.
+          () =>
+            db.books.put({ ...book, format, startedOn, addedAt: Date.now() }),
+          onDone,
+        )
       }}
     >
       <header className={styles.head}>
@@ -490,12 +495,22 @@ function ConfirmStage({
       </header>
 
       <div className={styles.chosen}>
-        <BookCover
-          width={92}
-          title={book.title}
-          author={book.author}
-          covers={book.covers}
-        />
+        {/* The same name the shelf gives this book, so the browser treats the
+            cover here and the book that appears there as one object and
+            tweens the gap. Safe to hold while the sheet is open: the book is
+            not on the shelf yet, so the name is unique until the moment it
+            needs to stop being. */}
+        <span
+          className={styles.chosenCover}
+          style={{ viewTransitionName: `book-${book.id}` } as CSSProperties}
+        >
+          <BookCover
+            width={92}
+            title={book.title}
+            author={book.author}
+            covers={book.covers}
+          />
+        </span>
         <div className={styles.chosenText}>
           <p className={styles.chosenTitle}>{book.title}</p>
           <p className={styles.resultMeta}>{book.author}</p>
