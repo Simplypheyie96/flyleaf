@@ -1,119 +1,215 @@
 /* The perch.
 
-   A strip immediately above whatever it is placed on, as tall as the part of
-   the creature that is meant to show. `overflow: hidden` is what does the
-   cropping — see the note in Mascot.tsx for why the card cannot do it — and
-   the strip's own bottom edge lands exactly on the card's top edge, so the
-   clipped silhouette reads as the creature going behind it. */
+   A strip as tall as the part of the creature that is meant to show, whose
+   bottom edge lands exactly on the top edge of the card below it.
+   `overflow: hidden` is what does the cropping — see the note in Mascot.tsx
+   for why the card cannot do it — so the clipped silhouette reads as the
+   creature going behind the card.
+
+   It is absolutely positioned and hangs out of its container by
+   `--mascot-drop`, which the container sets to whatever gap separates it from
+   the card. That is deliberate: it means the creature can live in a row that
+   already exists — the section heading — and cost that row no height at all,
+   so nothing on the page moves to make room for it. The container has to be
+   positioned, and it is the container's width that becomes the creature's
+   world. */
 .strip {
-  position: relative;
-  /* Of the 44-unit field, 22 show — kept in step with SHOWN in Mascot.tsx.
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(-1 * var(--mascot-drop, 0px));
+  /* Of the 44-unit field, 32 show — kept in step with SHOWN in Mascot.tsx.
      Expressed against the width because that is what the SVG is sized by. */
-  height: calc(var(--mascot-w) * 22 / 44);
+  height: calc(var(--mascot-w) * 32 / 44);
   overflow: hidden;
   pointer-events: none;
   /* One field unit in rendered pixels — 44 across. Every distance below is
      written in these rather than in px so the whole creature scales together
      at any --mascot-w. */
   --unit: calc(var(--mascot-w) / 44);
-  /* The strip's own bottom edge IS the crop, so it has to touch the card. */
-  margin-block-end: 0;
+
+  /* ---- Stations ----
+
+     The left wall is the thing this whole animation is about. The strip starts
+     where the heading's words stop, so a negative offset walks the drawing
+     back INTO the words — and because the strip crops its own overflow, the
+     creature genuinely cannot get past them. Ten units rather than thirteen:
+     the ears sit against the last letter at travelling depth without the head
+     losing its left edge when it rises. */
+  --wall: calc(var(--unit) * -10);
+  /* Knocked back by the collision, then a smaller second rebound. */
+  --bounce: calc(var(--unit) * 5);
+  --nudge: calc(var(--unit) * -7);
+  /* The far station. 100% of the strip is the world, so this is the creature
+     flush with its far end and never clipped. */
+  --far: calc(100% - var(--mascot-w));
 }
 
-/* ---- Travels the edge, and stops to look ----
+/* ---- Travels the edge, bumps into the words, and looks over ----
 
-   Two animations on two elements, on one clock. The track carries it sideways;
-   the drawing itself carries it up and down. Splitting them is what lets the
-   two read as one creature doing two things rather than as a sprite on a path:
-   the travel can hop while the head independently ducks and rises.
+   Three animations on three elements, on one clock. The track carries it
+   sideways, the drawing carries it up and down, one ear carries the flicks.
+   Splitting them is what lets them read as one creature doing several things
+   rather than as a sprite on a path: it can run home with its head down and
+   then be startled by something its feet already knew about.
 
-   Three stations across the card — near edge, middle, far edge — with a hold
-   at each. It crosses at a low depth where the ears and the crown of the skull
-   clear the card but the eyes do not, so you can watch it go without it ever
-   being fully out. At each station it comes up far enough for the eyes, looks,
-   and drops before setting off again.
+   Depths, in field units (44 across the drawing), as a downward offset:
+     +12  travelling — ears and nothing else; the eyes are well under
+      +2  looking    — eyes three units clear of the crop
+      -5  showing    — the whole face, nose and whiskers, ear tips just inside
+   Anything deeper than +2 lands the eyes ON the crop line, where they read as
+   half-drawn rather than as looking over it.
 
-   Depths, in field units (44 across the drawing):
-     -2  travelling — ears and about four units of skull; eyes still under
-     -9  looking    — eyes three units clear of the crop
-   Anything shallower than -9 lands the eyes ON the crop line, where they read
-   as half-drawn rather than as looking over it.
-
-   14s because the whole point is that it is peripheral. A shorter cycle turns
-   a thing you happen to notice into a thing that is waving at you. */
+   26s, and every leg is one eased glide rather than a run of hops. The old
+   14s version read as busy — a thing waving at you — and the point of this is
+   that it is peripheral: something caught out of the corner of the eye while
+   you are reading the card. */
 .track {
   display: block;
   width: 100%;
-  animation: cross 14s infinite;
+  animation: cross 26s infinite;
 }
 
 .art {
   display: block;
-  animation: peek 14s infinite;
+  animation: peek 26s infinite;
 }
 
-/* The far station is `100% - width`: 100% of the track is the card, so this is
-   the creature flush with the far edge and never clipped by the strip. The
-   odd intermediate percentages are the hops — three per leg, a few units up,
-   too brief for their exact x to matter. */
+/* Out slowly and settling (ease-move), home fast and unbraked (ease-in) —
+   which is what makes the collision land: nothing about the return says it is
+   expecting the words to be there. */
 @keyframes cross {
-  0%, 20% { transform: translate(0, 0); }
-  23% { transform: translate(14%, calc(var(--unit) * -3)); }
-  25% { transform: translate(21%, 0); }
-  27% { transform: translate(34%, calc(var(--unit) * -3)); }
-  30%, 48% { transform: translate(calc(50% - var(--mascot-w) / 2), 0); }
-  51% { transform: translate(62%, calc(var(--unit) * -3)); }
-  53% { transform: translate(70%, 0); }
-  55% { transform: translate(82%, calc(var(--unit) * -3)); }
-  58%, 76% { transform: translate(calc(100% - var(--mascot-w)), 0); }
-  /* Back in one longer run rather than three hops: a return trip that is as
-     eventful as the outward one reads as pacing. */
-  81% { transform: translate(56%, calc(var(--unit) * -3)); }
-  86% { transform: translate(24%, calc(var(--unit) * -3)); }
-  90%, 100% { transform: translate(0, 0); }
+  0%,
+  5% {
+    transform: translateX(var(--wall));
+    animation-timing-function: var(--ease-move);
+  }
+  26%,
+  48% {
+    transform: translateX(var(--far));
+    animation-timing-function: var(--ease-in);
+  }
+  /* Contact. */
+  64% {
+    transform: translateX(var(--wall));
+    animation-timing-function: var(--ease-out);
+  }
+  66% {
+    transform: translateX(var(--bounce));
+    animation-timing-function: var(--ease-in);
+  }
+  69.5% {
+    transform: translateX(var(--wall));
+    animation-timing-function: var(--ease-out);
+  }
+  71% {
+    transform: translateX(var(--nudge));
+    animation-timing-function: var(--ease-in);
+  }
+  73%,
+  100% {
+    transform: translateX(var(--wall));
+  }
 }
 
-/* Down through every travel window (20–30, 48–58, 76–90), up in the middle of
-   every hold. Up is quick and curious, down slower and a little reluctant. */
+/* Down through both travel windows (5–26 and 47–64), up at the far end, and up
+   again after the bump — the one look it takes at the thing that stopped it,
+   held for the rest of the loop. */
 @keyframes peek {
-  0%, 6% {
-    transform: translateY(calc(var(--unit) * -2));
-    animation-timing-function: var(--ease-out);
-  }
-  10%, 16% {
-    transform: translateY(calc(var(--unit) * -9));
+  0%,
+  3% {
+    transform: translateY(calc(var(--unit) * 2));
     animation-timing-function: var(--ease-in);
   }
-  20%, 34% {
-    transform: translateY(calc(var(--unit) * -2));
+  5%,
+  26% {
+    transform: translateY(calc(var(--unit) * 12));
     animation-timing-function: var(--ease-out);
   }
-  38%, 44% {
-    transform: translateY(calc(var(--unit) * -9));
-    animation-timing-function: var(--ease-in);
-  }
-  48%, 62% {
-    transform: translateY(calc(var(--unit) * -2));
+  /* The far end, where there is nothing to hide from: the only place in the
+     loop that shows the whole face. */
+  29% {
+    transform: translateY(calc(var(--unit) * 2));
     animation-timing-function: var(--ease-out);
   }
-  66%, 72% {
-    transform: translateY(calc(var(--unit) * -9));
+  32%,
+  41% {
+    transform: translateY(calc(var(--unit) * -5));
     animation-timing-function: var(--ease-in);
   }
-  76%, 100% { transform: translateY(calc(var(--unit) * -2)); }
+  44% {
+    transform: translateY(calc(var(--unit) * 2));
+    animation-timing-function: var(--ease-in);
+  }
+  47%,
+  64% {
+    transform: translateY(calc(var(--unit) * 12));
+    animation-timing-function: var(--ease-out);
+  }
+  /* Jolted up by the impact, then sunk a little lower than it was — the two
+     beats that turn a stop into a bump. */
+  65.5% {
+    transform: translateY(calc(var(--unit) * 6));
+    animation-timing-function: var(--ease-in);
+  }
+  68% {
+    transform: translateY(calc(var(--unit) * 14));
+    animation-timing-function: var(--ease-out);
+  }
+  71% {
+    transform: translateY(calc(var(--unit) * 12));
+    animation-timing-function: var(--ease-out);
+  }
+  76%,
+  100% {
+    transform: translateY(calc(var(--unit) * 2));
+  }
 }
 
-/* An ear flicks at the end of each look, on the way down — the beat that stops
-   three identical stops from reading as three identical stops. */
+/* One ear, three times: curious as the face comes up at the far end, hard on
+   the collision, and once more late in the long hold so the resting pose is
+   not a still. */
 .earR {
-  animation: flick 14s var(--ease-out) infinite;
+  animation: flick 26s var(--ease-out) infinite;
 }
 
 @keyframes flick {
-  0%, 16%, 26%, 44%, 54%, 72%, 82%, 100% { rotate: 0deg; }
-  20% { rotate: 13deg; }
-  48% { rotate: -9deg; }
-  76% { rotate: 11deg; }
+  0%,
+  27% {
+    rotate: 0deg;
+  }
+  29.5% {
+    rotate: 12deg;
+  }
+  32% {
+    rotate: -6deg;
+  }
+  34.5%,
+  64% {
+    rotate: 0deg;
+  }
+  65.5% {
+    rotate: 22deg;
+  }
+  68% {
+    rotate: -9deg;
+  }
+  70% {
+    rotate: 6deg;
+  }
+  72%,
+  85% {
+    rotate: 0deg;
+  }
+  87% {
+    rotate: 9deg;
+  }
+  89.5% {
+    rotate: -4deg;
+  }
+  92%,
+  100% {
+    rotate: 0deg;
+  }
 }
 
 /* Motion is the whole point of this thing, so reduced motion does not get a
@@ -125,14 +221,15 @@
     animation: none;
   }
 
-  /* Up and looking, a third of the way along — the station it would be at, not
-     the crossing it would be mid-way through. Parked at travelling depth it is
-     ears on a card, which out of context reads as a rendering fault. */
+  /* Against the words and looking over: the state the loop spends most of its
+     time in, and the one that explains itself without having moved. Parked at
+     travelling depth it is a pair of ears on a card, which out of context
+     reads as a rendering fault. */
   .track {
-    transform: translateX(28%);
+    transform: translateX(var(--wall));
   }
 
   .art {
-    transform: translateY(calc(var(--unit) * -9));
+    transform: translateY(calc(var(--unit) * 2));
   }
 }

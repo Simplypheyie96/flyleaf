@@ -10,13 +10,14 @@
    its own overflow, and the drawing runs well past the crop — which gives the
    same read with none of the bleed.
 
-   Drawn on a 44 × 44 field of which the top half shows. That ratio is the
-   whole effect: at a shallower cut it stands ON the card like a sticker, and
-   the thing being drawn is one that is BEHIND it. Nearly all the anatomy here
-   lives below y=22 and will never be seen, because a body that stops at the
-   crop line reads as cut out rather than as hidden. The field is square rather
-   than snug so it can rise a third of its own height without its ear tips
-   leaving the top of the strip.
+   Drawn on a 44 × 44 field, of which a 32-unit window shows. The window is
+   wider than the creature ever fills, because what is seen is set by how far
+   the drawing is pushed DOWN inside it: most of the loop it sits low enough
+   that only the ears clear the crop, and it rises out of that. At a shallower
+   window it would stand ON the card like a sticker, and the thing being drawn
+   is one that is BEHIND it. The whole body below y=37 is never seen at any
+   depth, because a body that stops at the crop line reads as cut out rather
+   than as hidden.
 
    Everything is a filled shape from the cover's vocabulary — teardrop petals,
    pointed leaves, cream knots. Strokes only for whiskers. */
@@ -26,9 +27,10 @@ import styles from './Mascot.module.css'
 
 const W = 44
 const H = 44
-/** Units of the field that clear the card. Kept in step with the strip's
-    height in the stylesheet, which is the same fraction of the width. */
-export const SHOWN = 22
+/** Units of the field the strip's window is tall. Kept in step with the
+    strip's height in the stylesheet, which is the same fraction of the
+    width. */
+export const SHOWN = 32
 
 const CREAM = 'var(--floss-cream)'
 const GREEN = 'oklch(var(--floss-green-l) var(--floss-green-c) 145)'
@@ -65,10 +67,11 @@ function Mascot({ size = 66, className }: Props) {
       aria-hidden="true"
       style={{ '--mascot-w': `${size}px` } as React.CSSProperties}
     >
-      {/* The track is the full width of the card, so the creature's travel can
-          be written as a share of it and stay right on any card. The SVG is its
-          own size and sits at the track's start; moving the track by
-          `100% - width` is what puts it flush with the far edge. */}
+      {/* The track is the full width of the strip, so the creature's travel can
+          be written as a share of it and stay right at any width. The SVG is
+          its own size and sits at the track's start; moving the track by
+          `100% - width` is what puts it flush with the far edge, and moving it
+          negative is what walks it into the wall on the near side. */}
       <span className={styles.track}>
         <svg
           className={styles.art}
