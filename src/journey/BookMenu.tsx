@@ -1,21 +1,24 @@
 /* The book itself.
 
-   How it is being read, when it was opened and closed, and — at the bottom,
-   set apart — taking it off the shelf. This is the one delete in the app with
-   no way back, because a book and every keep under it is too much to hold in
-   memory for an undo, so it is the one that asks first and says out loud what
-   is going. The count in that sentence is not decoration: "and 23 keeps" is
-   the whole difference between a reader confirming and a reader guessing. */
+   What is left here is what the journey's own head does not already own. The
+   head carries the formats and the two dates, because they are the book's
+   identity and a reader wants to see them without opening anything; this sheet
+   carries the two things that are decisions rather than facts — where the
+   bookmark is, and taking the book off the shelf.
 
-import { useState } from 'react'
+   That delete is the one in the app with no way back, because a book and every
+   keep under it is too much to hold in memory for an undo, so it is the one
+   that asks first and says out loud what is going. The count in that sentence
+   is not decoration: "and 23 keeps" is the whole difference between a reader
+   confirming and a reader guessing. */
+
+import { useEffect, useState } from 'react'
 import Sheet from '../components/Sheet'
-import FormatRow from '../components/FormatRow'
-import DateField from './DateField'
 import { CheckIcon, CloseIcon, TrashIcon } from '../components/TabIcons'
 import { todayISO } from '../components/date/dates'
-import { formatsOf, type Book, type Entry } from '../data/db'
+import type { Book, Entry } from '../data/db'
 import { count } from './lexicon'
-import { finish, removeBook, setDates, setFormats, setProgress } from './keeps'
+import { finish, removeBook, setProgress } from './keeps'
 import styles from './sheet.module.css'
 
 interface Props {
@@ -23,14 +26,25 @@ interface Props {
   onClose: () => void
   book: Book
   keeps: Entry[]
+  /** Open straight on the confirmation, for the head's own delete control.
+      The reader has already said what they want; asking them to find the same
+      words a second time inside the sheet would be theatre, not a safeguard. */
+  armed?: boolean
   /** Where to go once the book no longer exists. */
   onRemoved: () => void
 }
 
-function BookMenu({ open, onClose, book, keeps, onRemoved }: Props) {
-  const [sure, setSure] = useState(false)
+function BookMenu({ open, onClose, book, keeps, armed = false, onRemoved }: Props) {
+  const [sure, setSure] = useState(armed)
   const [at, setAt] = useState(String(book.pagesRead ?? ''))
   const done = Boolean(book.finishedOn)
+
+  /* The sheet stays mounted between openings, so the armed state has to be
+     applied on each open rather than at first render — otherwise the second
+     visit inherits whatever the first one left behind. */
+  useEffect(() => {
+    if (open) setSure(armed)
+  }, [open, armed])
 
   /* Held as a string while it is being typed. A number bound straight to the
      store turns an empty field into 0 the moment the reader clears it to type
@@ -52,14 +66,6 @@ function BookMenu({ open, onClose, book, keeps, onRemoved }: Props) {
       </header>
 
       <div className={styles.body}>
-        <fieldset className={styles.group}>
-          <legend className={styles.label}>How you’re reading it</legend>
-          <FormatRow
-            value={formatsOf(book)}
-            onChange={(next) => setFormats(book.id, next)}
-          />
-        </fieldset>
-
         {book.pages !== undefined && (
           <label className={styles.label}>
             <span className={styles.labelLine}>
@@ -78,22 +84,6 @@ function BookMenu({ open, onClose, book, keeps, onRemoved }: Props) {
               onBlur={saveProgress}
             />
           </label>
-        )}
-
-        <DateField
-          label="Opened"
-          value={book.startedOn ?? todayISO()}
-          onChange={(iso) => setDates(book.id, { startedOn: iso })}
-          seed={book.id}
-        />
-
-        {done && book.finishedOn && (
-          <DateField
-            label="Closed"
-            value={book.finishedOn}
-            onChange={(iso) => setDates(book.id, { finishedOn: iso })}
-            seed={book.id}
-          />
         )}
 
         <div className={styles.rows}>

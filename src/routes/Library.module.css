@@ -11,15 +11,20 @@
   container-type: inline-size;
 }
 
-/* Title and view control share one line: the switcher is chrome that belongs
-   to the shelf below it, so it sits with the shelf's name rather than floating
-   in the content as a row of buttons. Baseline-independent — the text block is
-   two lines and the control is one tall pill, so they centre on each other. */
+/* The switcher is chrome that belongs to the shelf below it, so it sits with
+   the shelf's name rather than floating in the content as a row of buttons.
+
+   It gets its own line on a phone. Four tap-minimum pills are 190px of the
+   ~358px a phone gives us; sharing a line with the title left the title about
+   150px, which is not enough for two words at the display size, so "Your
+   library" broke across two lines and the whole masthead read as a mistake.
+   The control drops under the text and aligns to the trailing edge, which is
+   the same shape the platform uses for a large title with a segmented control
+   beneath it — and the title gets the full column back. */
 .masthead {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+  flex-direction: column;
+  gap: var(--space-4);
   padding-inline: var(--space-2);
 }
 
@@ -28,6 +33,26 @@
   flex-direction: column;
   gap: var(--space-1);
   min-width: 0;
+}
+
+/* The same little star Home wears — the pages read as one book. Inline in
+   the heading so it rides the last word wherever the type breaks. */
+.spark {
+  vertical-align: super;
+  color: var(--color-voice);
+  opacity: 0.55;
+}
+
+/* Once the column is wide enough to hold the pills and the title without
+   squeezing either, they go back onto one line. Measured on the content box
+   rather than the viewport: this column is capped well below the window. */
+@container (min-width: 420px) {
+  .masthead {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
 }
 
 /* Matches Home: one display serif per screen, at the scale's page-title step
@@ -80,13 +105,13 @@
 }
 
 /* ---- View switcher: icons in a glass pill ----
-   Icon-only. Three words beside a two-line masthead would need ~172px of the
-   ~358px the phone gives us, which leaves the title nowhere to go; the icons
-   are literal enough (a pile, spines, a grid) to carry it, and the name is
-   still there for screen readers, on hover and on long-press. */
+   Icon-only. Four words would need ~230px of the ~358px the phone gives us,
+   and the icons are literal enough (a pile, spines, a grid, a feed) to carry
+   it; the name is still there for screen readers, on hover and on long-press. */
 .switcher {
   --glass-pad: 0;
   --glass-radius: var(--radius-pill);
+  align-self: flex-end;
   flex-shrink: 0;
 }
 

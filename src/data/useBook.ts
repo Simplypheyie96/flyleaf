@@ -1,6 +1,6 @@
 import Dexie from 'dexie'
 import { useLiveQuery } from 'dexie-react-hooks'
-import db, { type Book, type Entry, type Strand } from './db'
+import db, { type Book, type Entry } from './db'
 
 /** One book, by the id in the URL.
 
@@ -29,20 +29,6 @@ export function useEntries(id: number | undefined): Entry[] | undefined {
             .where('[bookId+createdAt]')
             .between([id, Dexie.minKey], [id, Dexie.maxKey])
             .toArray(),
-    [id],
-  )
-}
-
-/** Every strand opened in one book, oldest first. Small enough to sort here:
-    a reader follows two or three things through a book, not two hundred. */
-export function useStrands(id: number | undefined): Strand[] | undefined {
-  return useLiveQuery(
-    async () =>
-      id === undefined
-        ? []
-        : (await db.strands.where('bookId').equals(id).toArray()).sort(
-            (a, b) => a.openedAt - b.openedAt,
-          ),
     [id],
   )
 }

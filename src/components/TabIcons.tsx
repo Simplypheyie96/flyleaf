@@ -97,16 +97,29 @@ export function ImageIcon({ size = 22 }: IconProps) {
   )
 }
 
-/* The stripe, not the pen. A marker drawn nib-and-barrel reads as an editing
-   tool — a thing you do — and what is being labelled here is the mark left
-   behind: lines of text with the stroke laid across them. */
-export function HighlightIcon({ size = 22 }: IconProps) {
+/** A character: a person the reader is following. A head and shoulders, drawn
+    as far from a passport photo as a 24-box allows — this labels somebody you
+    are interested in, not a record of somebody. */
+export function CharacterIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <g {...strokeProps}>
-        <path d="M4.5 12 L 19.5 12" strokeWidth={5.5} opacity={0.32} />
-        <path d="M5 7.5 L 19 7.5" />
-        <path d="M5 16.5 L 14 16.5" />
+        <circle cx="12" cy="8.5" r="3.5" />
+        <path d="M5.5 19.5 C 5.5 15.9 8.4 13.5 12 13.5 C 15.6 13.5 18.5 15.9 18.5 19.5" />
+      </g>
+    </svg>
+  )
+}
+
+/** A place: the fold of a map, not a location pin. A pin is where *you* are,
+    and every one of these is somewhere you have never been. */
+export function PlaceIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M3.5 6.5 L 9 4.5 L 15 7 L 20.5 5 L 20.5 17.5 L 15 19.5 L 9 17 L 3.5 19 Z" />
+        <path d="M9 4.5 L 9 17" />
+        <path d="M15 7 L 15 19.5" />
       </g>
     </svg>
   )
@@ -399,14 +412,35 @@ export function SettingsIcon({ size = 22 }: IconProps) {
    Drawn in the same hand as the tabs above: one 24-box, round caps, 1.8
    stroke, and nothing an icon library would have given us. */
 
-/** A strand: a line that leaves the thread, runs alongside, and knots. */
-export function StrandIcon({ size = 22 }: IconProps) {
+/** A plot thread: a line that leaves the spine, loops out on a suspicion, and
+    comes back knotted. The knot is the point — a thread is a thought the
+    reader intends to close. */
+export function ThreadIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <g {...strokeProps}>
         <path d="M8 4 L 8 20" />
         <path d="M8 7 C 14 8 16 10 16 12 C 16 14 14 16 8 17" />
         <circle cx="16" cy="12" r="1.6" />
+      </g>
+    </svg>
+  )
+}
+
+/** The opening. One glyph on the whole page wears this, and nothing else ever
+    may: a pennant run up a staff, planted on the day the reader started. It is
+    drawn filled rather than hollow because it is the only mark on the thread
+    that is a claim rather than a note. */
+export function OpeningIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M7.5 3.5 L 7.5 20.5" />
+        <path
+          d="M7.5 5 L 18 7.6 C 18.6 7.75 18.6 8.6 18 8.8 L 7.5 12.2 Z"
+          fill="currentColor"
+          stroke="none"
+        />
       </g>
     </svg>
   )
@@ -490,6 +524,20 @@ export function FeedIcon({ size = 22 }: IconProps) {
         <rect x="4" y="13" width="5" height="6.5" rx="1" />
         <path d="M11.5 15 L 20 15" />
         <path d="M11.5 18 L 17.5 18" />
+      </g>
+    </svg>
+  )
+}
+
+/** Colophon: the small printed device at the end of a book. A leaf inside a
+    ruled square — the whole journey pressed onto one card. */
+export function ColophonIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <rect x="4.5" y="4.5" width="15" height="15" rx="2.5" />
+        <path d="M8.5 15.5 C 8.5 11 11 8.5 15.5 8.5 C 15.5 13 13 15.5 8.5 15.5 Z" />
+        <path d="M8.5 15.5 L 12 12" />
       </g>
     </svg>
   )

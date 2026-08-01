@@ -64,3 +64,11 @@
      already inside a 560px column. */
   text-wrap: pretty;
 }
+
+/* The same little star Home wears — the pages read as one book. Inline in
+   the heading so it rides the word wherever the type sits. */
+.spark {
+  vertical-align: super;
+  color: var(--color-voice);
+  opacity: 0.55;
+}
