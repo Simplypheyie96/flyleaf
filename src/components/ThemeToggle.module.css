@@ -1,18 +1,20 @@
 /* A segmented track, not three words floating on the card.
 
-   The bottom bar and the Library's view switcher both seat their pills inside
-   a container with a few pixels of padding and a hairline round it. This is
-   the same control at a different size, so it reuses those numbers rather
-   than introducing a third set, and takes its fill from --card-chip — the
-   token for a small surface nested inside a paper card. */
+   The bottom bar and the Library's view switcher are both a row of pills on a
+   pill of glass. This is that same control at a different size, so it is the
+   same material and the same numbers — GlassSurface with its padding zeroed,
+   the padding moved inside where the pills are. */
+.surface {
+  --glass-pad: 0;
+  --glass-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
 .group {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 3px;
-  background: var(--card-chip);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-pill);
+  padding: 4px;
 }
 
 .option {

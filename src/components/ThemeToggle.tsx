@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { getPref, setPref, type ThemePref } from '../theme'
+import GlassSurface from './GlassSurface'
 import { AutoThemeIcon, MoonIcon, SunIcon } from './TabIcons'
 import styles from './ThemeToggle.module.css'
 
@@ -34,33 +35,39 @@ function ThemeToggle({ labelledBy }: ThemeToggleProps) {
   }
 
   return (
-    <div
-      className={styles.group}
-      role="group"
-      /* One name or the other, never both — a group beside a visible heading
-         that also carries aria-label="Theme" is announced twice. */
-      aria-label={labelledBy ? undefined : 'Theme'}
-      aria-labelledby={labelledBy}
-    >
-      {OPTIONS.map(({ value, label, Icon }) => {
-        const selected = pref === value
-        return (
-          <button
-            key={value}
-            type="button"
-            className={styles.option}
-            aria-pressed={selected}
-            /* The word is only painted for the chosen option, so every button
-               states its own name regardless. */
-            aria-label={label}
-            onClick={() => choose(value)}
-          >
-            <Icon size={19} />
-            {selected && <span className={styles.optionLabel}>{label}</span>}
-          </button>
-        )
-      })}
-    </div>
+    /* The same glass the bottom bar and the shelf's view switcher are made of.
+       This used to be a card-chip capsule with a hairline, which was close
+       enough to read as a mistake rather than a variation — three segmented
+       controls doing the same job should be one material, not two. */
+    <GlassSurface className={styles.surface}>
+      <div
+        className={styles.group}
+        role="group"
+        /* One name or the other, never both — a group beside a visible heading
+           that also carries aria-label="Theme" is announced twice. */
+        aria-label={labelledBy ? undefined : 'Theme'}
+        aria-labelledby={labelledBy}
+      >
+        {OPTIONS.map(({ value, label, Icon }) => {
+          const selected = pref === value
+          return (
+            <button
+              key={value}
+              type="button"
+              className={styles.option}
+              aria-pressed={selected}
+              /* The word is only painted for the chosen option, so every button
+                 states its own name regardless. */
+              aria-label={label}
+              onClick={() => choose(value)}
+            >
+              <Icon size={19} />
+              {selected && <span className={styles.optionLabel}>{label}</span>}
+            </button>
+          )
+        })}
+      </div>
+    </GlassSurface>
   )
 }
 

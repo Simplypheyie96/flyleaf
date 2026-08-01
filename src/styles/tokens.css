@@ -50,12 +50,14 @@
   /* Selected pill on glass. This was 0.995 at near-zero chroma — white on
      white glass, so by day the selection had no edges at all.
 
-     It is now the page's own sky, exactly: the chrome is glass, and the chosen
-     tab is the hole in it where the page shows through. That keeps the pill in
-     the same blue family as the search field sitting a few pixels above it,
-     and the 0.036 lightness drop from the glass (which composites to about
-     0.966) is what gives the selection its edge back. */
-  --color-chip-active: oklch(0.93 0.032 232);
+     Hue 234 is the search field's, so the pill belongs to the same pale blue
+     the reader already sees at the top of the shelf. The lightness is picked
+     to sit a step under the glass rather than under the page: glass over the
+     sky composites to about 0.966 and glass over a paper card to about 0.99,
+     so 0.945 is a fifth of a step down from the first and half a step from
+     the second — enough to hold an edge in both places, and short of the
+     0.93 sky itself, which read as a hole punched through the bar. */
+  --color-chip-active: oklch(0.945 0.028 234);
 
   /* ---- Entry-type identities (muted, airy) ---- */
   --color-quote: oklch(0.55 0.06 140); /* sage */
