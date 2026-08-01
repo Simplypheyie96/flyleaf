@@ -1,0 +1,523 @@
+/* The print shared by the journey's five sheets — add a keep, the keep menu,
+   sift, fair copy, and the book itself.
+
+   The panel they all sit on is Sheet.module.css. This is only what goes on it,
+   and it is one file rather than five because they are five doors into the
+   same room: the same header, the same field material, the same row height,
+   the same distance from the edge. Five copies of that would be five drifts
+   waiting to happen. */
+
+/* ---- Header ---- */
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.title {
+  margin-inline-end: auto;
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+/* Close is not the point of any of these sheets, so it stops being a word: a
+   word in the header competes with the title beside it for the same reading,
+   a disc is read as an object and dismissed in a glance. Same frosted material
+   as the fields below, so everything touchable in the sheet is one family. */
+.iconButton {
+  flex: none;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  color: var(--color-ink);
+}
+
+/* One line under the title saying what this sheet is for, where the title
+   alone would not carry it. */
+.blurb {
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-ink-soft);
+}
+
+/* ---- The scrolling middle ----
+
+   Every sheet here is a header that stays, a body that scrolls and — where
+   there is one — the button that finishes the job pinned under it. A sheet
+   whose submit scrolls away is a sheet that looks like it has no way out. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ---- Rows: a list of things to do ---- */
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  /* Space, not rules. A menu of six actions separated by hairlines reads as a
+     table; the same six with air between them read as choices. */
+  gap: var(--space-1);
+  margin-inline: calc(-1 * var(--space-2));
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  text-align: start;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.row:hover,
+.row:focus-visible {
+  background: var(--field-fill);
+}
+
+.row svg {
+  flex: none;
+  color: var(--color-ink-soft);
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rowHint {
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+  text-wrap: pretty;
+}
+
+.rowValue {
+  margin-inline-start: auto;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+}
+
+/* The one row in the app that takes something away. Set apart by real space
+   above it rather than by shouting, and worded plainly — "Delete", never a
+   word from the lexicon. A reader about to lose something reads the sentence
+   in the language they would use to describe the loss. */
+.destructive {
+  margin-block-start: var(--space-3);
+  color: var(--color-danger);
+}
+
+.destructive svg {
+  color: inherit;
+}
+
+/* The one confirmation in the app. It replaces the row it came from rather
+   than opening a dialog over it, so the reader's eye never leaves the place
+   they tapped, and the sentence explaining what goes is right there in the
+   flow instead of in a box that has to be dismissed to read the screen again.
+   The two answers are the same size — a "keep it" the reader has to hunt for
+   is a confirmation that has already made the decision for them. */
+.warn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklch, var(--color-danger), transparent 70%);
+  background: color-mix(in oklch, var(--color-danger), var(--color-surface) 92%);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-ink);
+}
+
+.warnRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.warnRow > * {
+  flex: 1;
+  justify-content: center;
+  min-width: 10ch;
+}
+
+.reallyDelete {
+  border-color: transparent;
+  background: var(--color-danger);
+  color: var(--color-surface);
+}
+
+/* ---- Fields ---- */
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.labelLine {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.optional {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-ink-soft);
+}
+
+.input,
+.area {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  /* 16px flat: anything smaller and iOS zooms the whole sheet on focus. */
+  font-size: 16px;
+  line-height: var(--leading-body);
+}
+
+.input {
+  min-height: var(--tap-min);
+  padding-block: 0;
+}
+
+.area {
+  min-height: 7.5rem;
+  resize: vertical;
+}
+
+/* The fair copy, which is a piece of writing rather than a field. Given the
+   height of a real draft so the reader can read a paragraph of it without
+   scrolling a box inside a scrolling sheet. */
+.tall {
+  min-height: 16rem;
+  line-height: var(--leading-body);
+}
+
+.input:focus-visible,
+.area:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 1px;
+}
+
+/* Two fields on one line — page beside chapter, from beside to. */
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+/* A fieldset is the right element for a group of controls answering one
+   question, but the UA dresses it as a box: `margin-inline: 2px` and
+   `min-inline-size: min-content`. Reset to the plain stack it looks like. */
+.group {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* A legend renders outside its fieldset's flex flow, so the gap above never
+   reaches it. Restated here, where it can land. */
+.group > legend {
+  margin-block-end: var(--space-2);
+}
+
+/* ---- Chips: the app's one selectable pill ---- */
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  min-width: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  /* Transparent rather than absent, so taking the hairline on selection does
+     not move the pill or its neighbours by a pixel. */
+  border: 1px solid transparent;
+  background: var(--field-fill);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
+}
+
+.chip:hover {
+  color: var(--color-ink);
+}
+
+.chip[aria-pressed='true'],
+.chip[aria-checked='true'] {
+  background: var(--color-chip-active);
+  border-color: var(--border-hairline);
+  color: var(--color-ink);
+  box-shadow: var(--elevation-1);
+}
+
+/* A strand's chip wears the strand's own colour, so choosing one in a sheet
+   and finding its ribbon on the page is one recognition and not two. */
+.chip[data-strand][aria-checked='true'] {
+  background: color-mix(in oklch, var(--strand), transparent 84%);
+  border-color: color-mix(in oklch, var(--strand), transparent 50%);
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--strand);
+}
+
+/* ---- Capture: the microphone and the camera roll ----
+
+   Both kinds of keep that are not typed share one frame, so choosing a
+   picture and recording a note feel like the same act performed on different
+   material rather than two features bolted on at different times. */
+
+.recorder {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+}
+
+.recorder .rowHint {
+  flex: 1;
+  min-width: 12ch;
+}
+
+.capture {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding-inline: var(--space-5);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-hairline);
+  background: var(--color-surface);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+/* The one that starts the act, rather than the one that repeats it. */
+.capture[data-lead='true'] {
+  background: var(--color-accent-tint);
+  border-color: transparent;
+}
+
+.capture:disabled {
+  color: var(--color-on-action-disabled);
+  cursor: not-allowed;
+}
+
+/* Recording. A single slow pulse rather than a level meter: a meter that
+   moves with the room is a toy, and it is the only thing on the screen a
+   reader would then watch instead of thinking about what they are saying. */
+.recorder[data-live='true'] {
+  border-color: color-mix(in oklch, var(--color-voice), transparent 50%);
+}
+
+.pulse {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-voice);
+  animation: breathe 1.8s var(--ease-move) infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+  50% {
+    opacity: 0.45;
+    scale: 0.78;
+  }
+}
+
+/* Tabular, so a running clock does not shuffle the buttons beside it. */
+.elapsed {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+/* A file input styled by anybody is a file input styled by nobody. The real
+   control is the button above; this one only has to stay reachable. */
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* A field with its own commit button beside it — adding a motif. */
+.addRow {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+.addRow .input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- The date ---- */
+
+.dateBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  color: var(--color-ink-soft);
+  text-align: start;
+  cursor: pointer;
+}
+
+.dateValue {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dateBox[aria-expanded='true'] {
+  border-color: var(--color-accent-text);
+}
+
+.datePicker {
+  margin-block-start: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+}
+
+/* ---- The foot ---- */
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+}
+
+.submit {
+  align-self: stretch;
+}
+
+/* The count under the fair copy, and the note about what could not be written
+   out. Quiet, and never in the way of the text it is counting. */
+.tally {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-faint);
+}
+
+.tally em {
+  font-style: normal;
+  text-wrap: pretty;
+}
+
+.quiet {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-ink-soft);
+  padding-block: var(--space-4);
+}

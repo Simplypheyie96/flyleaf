@@ -826,3 +826,167 @@
 .grid .book {
   border-radius: 4px 10px 10px 4px;
 }
+
+/* ---- Feed: one book to a row, with the last thing kept from it ----------
+
+   The other three views are pictures of a collection. This one is a reading
+   log: the jacket is small and fixed, and the width goes to the words, because
+   what a reader is scanning for here is "which of these did I write something
+   in this week", and that question is answered by the text, not the board.
+
+   Grid rather than flex so the jacket column is one width down the whole feed
+   — a ragged left edge is exactly what makes a list of rows stop reading as a
+   list. The rows are `grid-template-columns: <jacket> 1fr`, and the jacket
+   width is a variable so the wide breakpoint can change it in one place. */
+
+.feed {
+  --jacket: 68px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+}
+
+.feedRow {
+  display: grid;
+  grid-template-columns: var(--jacket) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+  padding: var(--space-4);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--card-fill);
+}
+
+/* The jacket keeps its own 2:3 and the row grows around it, so a book with a
+   long title does not stretch its cover. */
+.feedJacket {
+  width: var(--jacket);
+}
+
+.feedBody {
+  display: flex;
+  flex-direction: column;
+  /* Tight between the three lines of the heading block, because they are one
+     thing; the keep below gets its own larger gap from `.feedKeep`. */
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.feedTitle {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-md);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+
+.feedAuthor {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-tight);
+  color: var(--color-ink-soft);
+}
+
+/* Where the bookmark is. Mono and small: it is a number the reader checks
+   rather than a sentence they read, and the same treatment the journey's
+   colophon gives the same fact. */
+.feedWhere {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  color: var(--color-ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.feedKeep {
+  --paper-pad: var(--space-3) var(--space-4);
+  margin-block-start: var(--space-3);
+}
+
+.feedKeepHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-ink-soft);
+}
+
+.feedKeepKind {
+  flex: 1 1 auto;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.feedKeepWhen {
+  flex: 0 0 auto;
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+}
+
+/* Three lines, then an ellipsis. The full text stays in the DOM — the journey
+   is one tap away and is where a keep is meant to be read in full. */
+.feedKeepText {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink);
+}
+
+.feedNothing {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-faint);
+  text-wrap: pretty;
+}
+
+/* Past this the row has room for a jacket you can actually see the art on, and
+   the measure of the excerpt is still inside the reading range. The threshold
+   is where the text column would otherwise run past ~70 characters, which is
+   content rather than a device. */
+@container (min-width: 480px) {
+  .feed {
+    --jacket: 92px;
+  }
+
+  .feedRow {
+    gap: var(--space-5);
+    padding: var(--space-5);
+  }
+
+  .feedTitle {
+    font-size: var(--text-lg);
+  }
+}
+
+/* One more step where the column has stopped growing (it caps at 760px). At
+   92px the jacket was reading as a stamp beside a 594px measure — the book is
+   the subject of the row and it was the smallest thing in it. 112px puts the
+   board at 168px tall, which is about the height of the heading block plus a
+   keep, so the row fills out instead of trailing off under the text. */
+@container (min-width: 640px) {
+  .feed {
+    --jacket: 112px;
+  }
+}
+
+/* The bloom follows the row, not the cover, because in this view the row is
+   the object being tapped. */
+.feed .book {
+  border-radius: var(--radius-md);
+}

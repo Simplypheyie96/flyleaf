@@ -60,6 +60,17 @@
   --color-accent: oklch(0.66 0.11 78); /* graphic uses: icons, fills */
   --color-accent-text: oklch(0.45 0.09 252); /* fountain-pen blue ink */
   --color-accent-tint: oklch(0.93 0.02 240);
+
+  /* The one colour that means "this takes something away". Deliberately the
+     only red in the app and never used decoratively, so that meeting it is
+     always the same warning — a delete row, and nothing else.
+
+     0.5 lightness against the 0.965 page measures 6.4:1, which clears AA for
+     the row's 16px label with room to spare. Kept off the pure-red hue: 25 is
+     a brick rather than a siren, which is the register the rest of Flyleaf is
+     written in. */
+  --color-danger: oklch(0.5 0.16 25);
+
   /* Selected pill on glass. This was 0.995 at near-zero chroma — white on
      white glass, so by day the selection had no edges at all.
 
@@ -89,6 +100,13 @@
   --color-voice: oklch(0.55 0.07 265); /* periwinkle — the orb's hue */
   --color-image: oklch(0.58 0.08 45); /* clay */
   --color-highlight: oklch(0.62 0.1 95); /* mustard */
+  --color-strand: oklch(0.53 0.07 320); /* mallow — a thread, not a keep */
+
+  /* A strand carries its own hue so two running at once can be told apart, but
+     only the hue: lightness and chroma belong to the room, which is what lets
+     every braid go to night without being restated anywhere. */
+  --strand-l: 0.56;
+  --strand-c: 0.12;
 
   /* ---- Books: spines, covers, and the board they stand on ----
      A book is a physical object, and it is the same object in both themes —
@@ -200,12 +218,18 @@
      every other sheet in this scrapbook is warm, and a cool one reads as a
      different material rather than a paler one. */
   --card-highlight: oklch(0.99 0.008 85 / 0.5);
+  /* A strand card is the odd sheet in the pile — it is not a piece of the book
+     but a note to yourself about it, so it is cool where every other card is
+     warm. That is the whole signal: a reader scrolling past knows before
+     reading a word that this one is theirs rather than the author's. */
+  --card-strand: oklch(0.975 0.026 320 / 0.52); /* mallow */
   /* Opaque twins, used where transparency is unavailable or unwanted */
   --card-quote-solid: oklch(0.955 0.022 70);
   --card-note-solid: oklch(0.968 0.042 100);
   --card-voice-solid: oklch(0.955 0.02 265);
   --card-image-solid: oklch(0.958 0.018 45);
   --card-highlight-solid: oklch(0.975 0.006 85);
+  --card-strand-solid: oklch(0.952 0.022 320);
   --card-edge-light: oklch(1 0 0 / 0.7); /* lit top edge on cards */
   --note-rule: oklch(0.6 0.08 100 / 0.25); /* ruled lines on notes */
   /* The marker itself. Translucent, because a highlighter lays ink over the
@@ -246,6 +270,7 @@
   --tint-voice: var(--color-voice);
   --tint-image: var(--color-image);
   --tint-highlight: var(--color-highlight);
+  --tint-strand: var(--color-strand);
 
   /* ---- The voice orb ----
 
@@ -334,6 +359,20 @@
 
   /* ---- Tap targets ---- */
   --tap-min: 44px;
+  /* The one round button in the shell, which is deliberately bigger than a bare
+     tap target because it is the only thing on the bar a reader reaches for
+     without looking. LeafButton draws it and --bar-clear measures against it,
+     so the number lives here rather than in either of them. */
+  --fab-size: 56px;
+
+  /* How much of the bottom of the screen the floating bar is standing on: its
+     own offset from the edge, plus its height. The bar is a row, and the tallest
+     thing in that row is the round button — the glass nav pill beside it is
+     shorter, so it is not what sets the height. Anything else that sticks to the
+     bottom of a scrolling column has to clear this or it lands on the bar.
+     Measured here once so a route never has to guess the shell's dimensions;
+     App.module.css offsets the bar from the same --space-4. */
+  --bar-clear: calc(var(--space-4) + var(--fab-size) + env(safe-area-inset-bottom, 0px));
 
   /* ---- Motion ----
      Paper has weight. Nothing here snaps, and nothing here bounces — a kept
@@ -363,6 +402,15 @@
   --lift: 3px;
   --press: 1px;
   --travel: 8px;
+}
+
+/* Above this the bar is gone and a side rail carries navigation instead, so
+   the bottom of the screen belongs to the page again. Same breakpoint the
+   shell hides the bar at, in App.module.css. */
+@media (min-width: 1024px) {
+  :root {
+    --bar-clear: env(safe-area-inset-bottom, 0px);
+  }
 }
 
 /* Reduced motion is a token swap, not a switch: distance goes to zero and the
@@ -435,11 +483,13 @@
      whose job was to be the quietest. */
   --card-image: oklch(0.885 0.022 45 / 0.96);
   --card-highlight: oklch(0.92 0.012 88 / 0.96);
+  --card-strand: oklch(0.875 0.038 320 / 0.96);
   --card-quote-solid: oklch(0.87 0.045 168);
   --card-note-solid: oklch(0.885 0.05 95);
   --card-voice-solid: oklch(0.87 0.042 285);
   --card-image-solid: oklch(0.885 0.022 45);
   --card-highlight-solid: oklch(0.92 0.012 88);
+  --card-strand-solid: oklch(0.875 0.038 320);
   --card-edge-light: oklch(0.95 0.015 250 / 0.16); /* moonlit top edge */
   --note-rule: oklch(0.75 0.06 100 / 0.16);
   /* Deeper after dark. The card underneath it is a pale sheet either way, so
@@ -480,6 +530,7 @@
   --tint-voice: oklch(0.5 0.08 265);
   --tint-image: oklch(0.5 0.09 45);
   --tint-highlight: oklch(0.52 0.11 95);
+  --tint-strand: oklch(0.48 0.09 320);
   --tape-fill: oklch(0.6 0.02 260 / 0.3);
   --tape-edge: oklch(0.8 0.02 255 / 0.22);
 
@@ -505,6 +556,11 @@
   --color-accent: oklch(0.78 0.1 80); /* moon-honey */
   --color-accent-text: oklch(0.78 0.06 262); /* moonlit periwinkle ink */
   --color-accent-tint: oklch(0.34 0.03 265);
+  /* Lifted and desaturated for the dark page: the day value at 0.5 against a
+     0.22 background is 2.4:1 and unreadable. 0.72 measures 6.8:1, and pulling
+     the chroma back keeps it from glowing the way a saturated red does on a
+     dark surface. */
+  --color-danger: oklch(0.72 0.13 25);
   --color-chip-active: oklch(0.37 0.03 265);
   /* After dark the pill is already the lightest thing in the row, so the
      outline only has to keep the edge crisp rather than create it. */
@@ -517,6 +573,12 @@
   --color-voice: oklch(0.72 0.07 268);
   --color-image: oklch(0.72 0.08 45);
   --color-highlight: oklch(0.77 0.1 95);
+  --color-strand: oklch(0.72 0.07 320);
+
+  /* Braided over a dark page rather than a pale one, so the ribbon comes up
+     to meet it — same hues, more light. */
+  --strand-l: 0.74;
+  --strand-c: 0.11;
 
   /* Books at night — lit, not dimmed.
 
