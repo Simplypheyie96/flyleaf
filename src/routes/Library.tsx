@@ -256,62 +256,70 @@ function StackDeck({ books }: { books: Book[] }) {
 
   return (
     <div className={styles.deck}>
-      <div
-        className={styles.stack}
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
-        onPointerCancel={() => {
-          from.current = null
-        }}
-      >
-        {books.map((book, i) => {
-          const slot = (i - active + n) % n
-          const buried = slot > DECK_DEPTH
-          return (
-            <div
-              key={book.id}
-              className={`${styles.stackItem} ${styles.book}`}
-              data-slot={Math.min(slot, DECK_DEPTH)}
-              data-buried={buried || undefined}
-              data-dealing={book.id === dealing || undefined}
-              style={
-                {
-                  zIndex: n - slot,
-                  viewTransitionName: `book-${book.id}`,
-                  '--enter-delay': `calc(${i} * var(--stagger))`,
-                } as CSSProperties
-              }
-            >
-              {/* The arc lives on its own element. The book outside it is
-                  already carrying `translate`/`rotate`/`scale` for its slot
-                  and `transform` for the press, and there is no fourth
-                  channel left to put a swing in. */}
-              <span className={styles.dealt}>
-                <BookCover
-                  title={book.title}
-                  author={book.author}
-                  covers={book.covers}
-                />
-              </span>
+      {/* A frame the deck cannot reach out of. The books are absolutely
+          positioned and the dealt one swings wider still, so between them they
+          claim more room than the page column has — see `.stackFrame`. The
+          frame is a plain block and never a containing block, so the stack
+          inside it keeps the exact box it had, and the books keep theirs. */}
+      <div className={styles.stackFrame}>
+        <div
+          className={styles.stack}
+          data-single={n === 1 || undefined}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+          onPointerCancel={() => {
+            from.current = null
+          }}
+        >
+          {books.map((book, i) => {
+            const slot = (i - active + n) % n
+            const buried = slot > DECK_DEPTH
+            return (
+              <div
+                key={book.id}
+                className={`${styles.stackItem} ${styles.book}`}
+                data-slot={Math.min(slot, DECK_DEPTH)}
+                data-buried={buried || undefined}
+                data-dealing={book.id === dealing || undefined}
+                style={
+                  {
+                    zIndex: n - slot,
+                    viewTransitionName: `book-${book.id}`,
+                    '--enter-delay': `calc(${i} * var(--stagger))`,
+                  } as CSSProperties
+                }
+              >
+                {/* The arc lives on its own element. The book outside it is
+                    already carrying `translate`/`rotate`/`scale` for its slot
+                    and `transform` for the press, and there is no fourth
+                    channel left to put a swing in. */}
+                <span className={styles.dealt}>
+                  <BookCover
+                    title={book.title}
+                    author={book.author}
+                    covers={book.covers}
+                  />
+                </span>
 
-              {/* Only what is showing can be reached. The front book has no
-                  button over it: it is the one you are already looking at,
-                  and a control that does nothing is worse than none. */}
-              {slot > 0 && !buried && (
-                <button
-                  type="button"
-                  className={styles.reach}
-                  onClick={() => {
-                    setActive(i)
-                    setDealing(null)
-                  }}
-                >
-                  Bring {book.title} to the front
-                </button>
-              )}
-            </div>
-          )
-        })}
+                {/* Only what is showing can be reached. The front book has no
+                    button over it: it is the one you are already looking at,
+                    and a control that does nothing is worse than none. */}
+                {slot > 0 && !buried && (
+                  <button
+                    type="button"
+                    className={styles.reach}
+                    onClick={() => {
+                      setActive(i)
+                      setDealing(null)
+                    }}
+                  >
+                    Bring {book.title} to the front
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       {n > 1 && (
@@ -444,6 +452,8 @@ function Library() {
   // wrapper is mid-fade. Morph leaves it alone and moves the books instead.
   const phaseClass = phase !== 'idle' ? styles[phase] : ''
 
+  const hasBooks = libraryBooks.length > 0
+
   return (
     <main className={pageStyles.page}>
       <div className={`${pageStyles.column} ${styles.shelfColumn}`}>
@@ -453,42 +463,51 @@ function Library() {
             <p className={styles.subtitle}>every book you keep</p>
           </div>
 
-          <GlassSurface className={styles.switcher}>
-            <div
-              className={styles.switcherInner}
-              role="group"
-              aria-label="Shelf view"
-            >
-              {VIEWS.map(({ id, Icon, hint }) => (
-                <button
-                  key={id}
-                  type="button"
-                  className={styles.viewPill}
-                  aria-pressed={view === id}
-                  aria-label={`${id} view — ${hint}`}
-                  title={`${id} — ${hint}`}
-                  onClick={() => choose(id)}
-                >
-                  <Icon size={20} />
-                </button>
-              ))}
-            </div>
-          </GlassSurface>
+          {/* Three ways to look at nothing is not a choice, and a search field
+              over an empty shelf is a promise the screen cannot keep. Both
+              arrive with the first book, on the same condition as the count at
+              the foot — including while Dexie is still answering, so a reader
+              who does have books never sees the controls appear twice. */}
+          {hasBooks && (
+            <GlassSurface className={styles.switcher}>
+              <div
+                className={styles.switcherInner}
+                role="group"
+                aria-label="Shelf view"
+              >
+                {VIEWS.map(({ id, Icon, hint }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={styles.viewPill}
+                    aria-pressed={view === id}
+                    aria-label={`${id} view — ${hint}`}
+                    title={`${id} — ${hint}`}
+                    onClick={() => choose(id)}
+                  >
+                    <Icon size={20} />
+                  </button>
+                ))}
+              </div>
+            </GlassSurface>
+          )}
         </header>
 
-        <GlassSurface className={styles.search}>
-          <div className={styles.searchInner}>
-            <SearchIcon size={18} />
-            <input
-              type="search"
-              className={styles.searchInput}
-              placeholder="Search books and memories"
-              aria-label="Search your books and memories"
-              autoComplete="off"
-              spellCheck={false}
-            />
-          </div>
-        </GlassSurface>
+        {hasBooks && (
+          <GlassSurface className={styles.search}>
+            <div className={styles.searchInner}>
+              <SearchIcon size={18} />
+              <input
+                type="search"
+                className={styles.searchInput}
+                placeholder="Search books and memories"
+                aria-label="Search your books and memories"
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
+          </GlassSurface>
+        )}
 
         {/* `data-shelf` is how the add sheet knows there is somewhere for a
             book to land. Added here rather than checked by route so it stays
@@ -504,11 +523,11 @@ function Library() {
             </p>
           )}
 
-          {libraryBooks.length > 0 && view === 'Stack' && (
+          {hasBooks && view === 'Stack' && (
             <StackDeck books={libraryBooks} />
           )}
 
-          {libraryBooks.length > 0 && view === 'Shelf' && (
+          {hasBooks && view === 'Shelf' && (
             <div className={styles.shelf}>
               <div className={styles.shelfRow}>
                 {libraryBooks.map((book, i) => {
@@ -565,7 +584,7 @@ function Library() {
             </div>
           )}
 
-          {libraryBooks.length > 0 && view === 'Grid' && (
+          {hasBooks && view === 'Grid' && (
             <div className={styles.grid}>
               {libraryBooks.map((book, i) => (
                 <div
@@ -590,7 +609,7 @@ function Library() {
           )}
         </div>
 
-        {libraryBooks.length > 0 && (
+        {hasBooks && (
           <p className={styles.count}>
             {libraryBooks.length} {libraryBooks.length === 1 ? 'book' : 'books'}
           </p>

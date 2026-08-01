@@ -64,15 +64,32 @@
   flex: 1;
 }
 
-/* Denser glass at night, and only here. By day the sheet sits over a pale page
-   and 55% is a pane you can see the library through. At night it sits over the
-   one bright thing on the screen — the deck — and the covers come through the
-   panel and land behind the search results, so a row's thumbnail has somebody
-   else's flowers in it. The panel keeps its own fill rather than moving the
-   global token, because the nav bar and the view switcher float over empty sky
-   and are right as they are. */
+/* Denser glass than the rest of the app, in both themes, and only here.
+
+   A nav bar and a view switcher float over empty sky, and being able to see
+   through them is the whole reason they are glass. A sheet is not that. It is
+   a surface you read a list of book titles on and type a title into, and
+   everything behind it — the shelf, the covers, the masthead — is competition
+   for the one thing being asked of you. At the global 60% by day the library
+   reads straight through the panel and lands behind the search results. 88 was
+   tried first and was not enough: individual covers still resolved as shapes
+   under the heading. 96 leaves only the tint and the blur — enough that the
+   page still shifts behind the edges as the sheet slides, not enough for
+   anything back there to be identifiable.
+
+   Own fill rather than moving the global token, for exactly the reason above:
+   the chrome that floats over sky is right as it is. */
+.panel {
+  --glass-fill: oklch(0.99 0.005 240 / 0.96);
+  --glass-fallback: oklch(0.975 0.008 235);
+}
+
+/* At night it sits over the one bright thing on the screen — the deck — so the
+   covers came through and a row's thumbnail had somebody else's flowers in it.
+   A point denser than day, because a lit cover under a dark panel shows through
+   at an alpha a dark cover under a light one would not. */
 [data-theme='dark'] .panel {
-  --glass-fill: oklch(0.28 0.03 265 / 0.82);
+  --glass-fill: oklch(0.28 0.03 265 / 0.97);
   --glass-fallback: oklch(0.25 0.028 265);
 }
 

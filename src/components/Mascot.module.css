@@ -1,0 +1,235 @@
+/* The perch.
+
+   A strip as tall as the part of the creature that is meant to show, whose
+   bottom edge lands exactly on the top edge of the card below it.
+   `overflow: hidden` is what does the cropping — see the note in Mascot.tsx
+   for why the card cannot do it — so the clipped silhouette reads as the
+   creature going behind the card.
+
+   It is absolutely positioned and hangs out of its container by
+   `--mascot-drop`, which the container sets to whatever gap separates it from
+   the card. That is deliberate: it means the creature can live in a row that
+   already exists — the section heading — and cost that row no height at all,
+   so nothing on the page moves to make room for it. The container has to be
+   positioned, and it is the container's width that becomes the creature's
+   world. */
+.strip {
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(-1 * var(--mascot-drop, 0px));
+  /* Of the 44-unit field, 32 show — kept in step with SHOWN in Mascot.tsx.
+     Expressed against the width because that is what the SVG is sized by. */
+  height: calc(var(--mascot-w) * 32 / 44);
+  overflow: hidden;
+  pointer-events: none;
+  /* One field unit in rendered pixels — 44 across. Every distance below is
+     written in these rather than in px so the whole creature scales together
+     at any --mascot-w. */
+  --unit: calc(var(--mascot-w) / 44);
+
+  /* ---- Stations ----
+
+     The left wall is the thing this whole animation is about. The strip starts
+     where the heading's words stop, so a negative offset walks the drawing
+     back INTO the words — and because the strip crops its own overflow, the
+     creature genuinely cannot get past them. Ten units rather than thirteen:
+     the ears sit against the last letter at travelling depth without the head
+     losing its left edge when it rises. */
+  --wall: calc(var(--unit) * -10);
+  /* Knocked back by the collision, then a smaller second rebound. */
+  --bounce: calc(var(--unit) * 5);
+  --nudge: calc(var(--unit) * -7);
+  /* The far station. 100% of the strip is the world, so this is the creature
+     flush with its far end and never clipped. */
+  --far: calc(100% - var(--mascot-w));
+}
+
+/* ---- Travels the edge, bumps into the words, and looks over ----
+
+   Three animations on three elements, on one clock. The track carries it
+   sideways, the drawing carries it up and down, one ear carries the flicks.
+   Splitting them is what lets them read as one creature doing several things
+   rather than as a sprite on a path: it can run home with its head down and
+   then be startled by something its feet already knew about.
+
+   Depths, in field units (44 across the drawing), as a downward offset:
+     +12  travelling — ears and nothing else; the eyes are well under
+      +2  looking    — eyes three units clear of the crop
+      -5  showing    — the whole face, nose and whiskers, ear tips just inside
+   Anything deeper than +2 lands the eyes ON the crop line, where they read as
+   half-drawn rather than as looking over it.
+
+   26s, and every leg is one eased glide rather than a run of hops. The old
+   14s version read as busy — a thing waving at you — and the point of this is
+   that it is peripheral: something caught out of the corner of the eye while
+   you are reading the card. */
+.track {
+  display: block;
+  width: 100%;
+  animation: cross 26s infinite;
+}
+
+.art {
+  display: block;
+  animation: peek 26s infinite;
+}
+
+/* Out slowly and settling (ease-move), home fast and unbraked (ease-in) —
+   which is what makes the collision land: nothing about the return says it is
+   expecting the words to be there. */
+@keyframes cross {
+  0%,
+  5% {
+    transform: translateX(var(--wall));
+    animation-timing-function: var(--ease-move);
+  }
+  26%,
+  48% {
+    transform: translateX(var(--far));
+    animation-timing-function: var(--ease-in);
+  }
+  /* Contact. */
+  64% {
+    transform: translateX(var(--wall));
+    animation-timing-function: var(--ease-out);
+  }
+  66% {
+    transform: translateX(var(--bounce));
+    animation-timing-function: var(--ease-in);
+  }
+  69.5% {
+    transform: translateX(var(--wall));
+    animation-timing-function: var(--ease-out);
+  }
+  71% {
+    transform: translateX(var(--nudge));
+    animation-timing-function: var(--ease-in);
+  }
+  73%,
+  100% {
+    transform: translateX(var(--wall));
+  }
+}
+
+/* Down through both travel windows (5–26 and 47–64), up at the far end, and up
+   again after the bump — the one look it takes at the thing that stopped it,
+   held for the rest of the loop. */
+@keyframes peek {
+  0%,
+  3% {
+    transform: translateY(calc(var(--unit) * 2));
+    animation-timing-function: var(--ease-in);
+  }
+  5%,
+  26% {
+    transform: translateY(calc(var(--unit) * 12));
+    animation-timing-function: var(--ease-out);
+  }
+  /* The far end, where there is nothing to hide from: the only place in the
+     loop that shows the whole face. */
+  29% {
+    transform: translateY(calc(var(--unit) * 2));
+    animation-timing-function: var(--ease-out);
+  }
+  32%,
+  41% {
+    transform: translateY(calc(var(--unit) * -5));
+    animation-timing-function: var(--ease-in);
+  }
+  44% {
+    transform: translateY(calc(var(--unit) * 2));
+    animation-timing-function: var(--ease-in);
+  }
+  47%,
+  64% {
+    transform: translateY(calc(var(--unit) * 12));
+    animation-timing-function: var(--ease-out);
+  }
+  /* Jolted up by the impact, then sunk a little lower than it was — the two
+     beats that turn a stop into a bump. */
+  65.5% {
+    transform: translateY(calc(var(--unit) * 6));
+    animation-timing-function: var(--ease-in);
+  }
+  68% {
+    transform: translateY(calc(var(--unit) * 14));
+    animation-timing-function: var(--ease-out);
+  }
+  71% {
+    transform: translateY(calc(var(--unit) * 12));
+    animation-timing-function: var(--ease-out);
+  }
+  76%,
+  100% {
+    transform: translateY(calc(var(--unit) * 2));
+  }
+}
+
+/* One ear, three times: curious as the face comes up at the far end, hard on
+   the collision, and once more late in the long hold so the resting pose is
+   not a still. */
+.earR {
+  animation: flick 26s var(--ease-out) infinite;
+}
+
+@keyframes flick {
+  0%,
+  27% {
+    rotate: 0deg;
+  }
+  29.5% {
+    rotate: 12deg;
+  }
+  32% {
+    rotate: -6deg;
+  }
+  34.5%,
+  64% {
+    rotate: 0deg;
+  }
+  65.5% {
+    rotate: 22deg;
+  }
+  68% {
+    rotate: -9deg;
+  }
+  70% {
+    rotate: 6deg;
+  }
+  72%,
+  85% {
+    rotate: 0deg;
+  }
+  87% {
+    rotate: 9deg;
+  }
+  89.5% {
+    rotate: -4deg;
+  }
+  92%,
+  100% {
+    rotate: 0deg;
+  }
+}
+
+/* Motion is the whole point of this thing, so reduced motion does not get a
+   faster version of it — it gets the pose. */
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .art,
+  .earR {
+    animation: none;
+  }
+
+  /* Against the words and looking over: the state the loop spends most of its
+     time in, and the one that explains itself without having moved. Parked at
+     travelling depth it is a pair of ears on a card, which out of context
+     reads as a rendering fault. */
+  .track {
+    transform: translateX(var(--wall));
+  }
+
+  .art {
+    transform: translateY(calc(var(--unit) * 2));
+  }
+}

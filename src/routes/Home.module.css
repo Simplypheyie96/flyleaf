@@ -50,6 +50,26 @@
   margin-bottom: var(--space-4);
 }
 
+/* The mascot's world: everything from the end of the section's heading to the
+   right edge of the row. Because the lane is a flex child that takes the
+   remainder, its start edge IS the end of the words — so the creature bumping
+   into "reading" is geometry rather than a measured number that would go stale
+   the moment the heading changed.
+
+   It has no height of its own and its content is absolutely positioned, so
+   adding the creature to this row costs the layout nothing: the card stays
+   where it was, right under its label. The strip hangs below the row by the
+   row's own bottom margin, which lands its cropped edge exactly on the card. */
+.mascotLane {
+  position: relative;
+  flex: 1;
+  align-self: stretch;
+  /* Cancels the flex gap: the lane starts where the words stop, not a step
+     after, so the creature can make contact with them. */
+  margin-inline-start: calc(-1 * var(--space-3));
+  --mascot-drop: var(--space-4);
+}
+
 /* Italic serif, a clear step below the masthead so the two don't compete. */
 .sectionLabel {
   font-family: var(--font-serif);

@@ -265,6 +265,36 @@
   --deck-fade-3: 0.8;
 }
 
+/* The pile fans wider than the column it sits in, and the book being dealt
+   swings wider again. On a phone that put the rearmost book roughly thirty
+   pixels past the right edge of the screen and about sixty past the bottom for
+   the length of one turn — briefly enough that it read as a flicker rather than
+   as a book, but long enough for the browser to answer it the way it answers
+   any overflow: by growing the page and putting scrollbars on it. Where
+   scrollbars take up room, as they do on a desktop browser, that stole width
+   from the viewport, reflowed the whole page sideways, and pushed the fixed
+   bottom bar under the new horizontal bar. Then the turn finished, the overflow
+   went away, and everything snapped back. One tap, two full-page relayouts.
+
+   So the deck gets a frame it cannot reach out of. Bleeding to the page edge
+   and clipping there costs nothing to look at, because past the page edge is
+   off the screen. `clip` rather than `hidden` on purpose: `hidden` would make
+   this a scroll container, and a focused book could then scroll inside it and
+   leave the pile sitting crooked in its own frame.
+
+   The frame is deliberately a plain block — no `position`, no `transform` —
+   so it never becomes the containing block for the books. `.stack` keeps the
+   box it always had, and every percentage the books are laid out with still
+   resolves against the same number it did before. */
+.stackFrame {
+  margin-inline: calc(var(--space-5) * -1);
+  padding-inline: var(--space-5);
+  /* Vertical room for the swing, which lifts the dealt book above the pile. */
+  margin-block: calc(var(--space-5) * -1);
+  padding-block: var(--space-5);
+  overflow: clip;
+}
+
 .stack {
   position: relative;
   height: clamp(300px, 88vw, 380px);
@@ -314,6 +344,18 @@
 .stackItem[data-slot='0'] {
   translate: -88% -50%;
   rotate: -3deg;
+}
+
+/* Except when there is nothing to fan. The offset above centres the shape the
+   deck makes, and one book makes no shape — so the correction that centres a
+   pile of four leaves a single cover sitting two thirds of the way to the left
+   of an otherwise empty board. That is the first thing a reader sees after
+   adding their first book, and it looks like a mistake rather than a pile.
+
+   The tilt stays. Square in the middle of the board reads as a product shot;
+   three degrees off reads as a book someone put down. */
+.stack[data-single] .stackItem[data-slot='0'] {
+  translate: -50% -50%;
 }
 
 /* The gaps are set by the thumb, not by the eye. Each card behind the front
