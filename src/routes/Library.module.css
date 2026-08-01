@@ -548,20 +548,35 @@
      pip cannot absorb whatever room is left over in the row. */
   flex: 0 0 auto;
   border-radius: var(--radius-pill);
-  background: var(--color-ink-faint);
-  opacity: 0.35;
-  /* Colour only. Short enough that the fastest swipe a thumb can manage still
-     finds the row settled. */
-  transition:
-    opacity var(--dur-press) var(--ease-out),
-    background-color var(--dur-press) var(--ease-out);
+  /* Alpha in the colour, never the `opacity` property, and no transition on
+     anything — the two halves of one decision.
+
+     A pip used to do all three kinds of rendering work at once: `opacity` is
+     composited, `background-color` is painted, and the 6px-to-20px swap is
+     laid out. The first of those is the expensive one, because setting
+     `opacity` hands the element its own compositing layer, and a transition
+     on it means five dots are handed layers and then have them taken away
+     again on every turn of the deck. Under a thumb that is several times a
+     second, right beside translucent chrome that is already costing the
+     compositor something. On a desktop engine it is free. On a phone it is
+     how you end up looking at tiles iOS has already finished with — the row
+     stops reading as one bar moving along a line of dots and starts reading
+     as bars piling up, because the old ones are still on screen.
+
+     None of that work was buying anything. This is six pixels of flat colour
+     that has to be in the right place the instant a finger leaves the glass;
+     an indicator that lags the gesture it reports is worse than one that does
+     not move at all, and 120ms of fade was never the difference between the
+     two. So the dot is pure paint now, on no layer, with nothing in flight to
+     be caught halfway. It cannot smear because there is no longer any state
+     between off and on for the compositor to hold on to. */
+  background: var(--pip-off);
 }
 
 .pip[data-on] {
   inline-size: 20px;
   width: 20px;
   background: var(--color-accent-text);
-  opacity: 1;
 }
 
 .tally {
