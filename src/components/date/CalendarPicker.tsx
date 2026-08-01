@@ -38,7 +38,7 @@ import {
   weekdayHeads,
 } from './dates'
 import Bloom from './Bloom'
-import { CaretIcon } from '../TabIcons'
+import { CaretIcon, ChevronIcon } from '../TabIcons'
 import { Column, Drum } from './Wheel'
 import styles from './CalendarPicker.module.css'
 
@@ -161,7 +161,7 @@ function CalendarPicker({ value, onChange, max, seed }: Props) {
           disabled={!prevOk}
           aria-label="Previous month"
         >
-          <Chevron dir="left" />
+          <ChevronIcon size={20} dir="left" />
         </button>
         {/* The label doubles as the way into the drum. Announced politely so
             paging is audible without interrupting whatever a screen reader is
@@ -183,7 +183,7 @@ function CalendarPicker({ value, onChange, max, seed }: Props) {
           disabled={!nextOk}
           aria-label="Next month"
         >
-          <Chevron dir="right" />
+          <ChevronIcon size={20} dir="right" />
         </button>
       </div>
 
@@ -251,23 +251,6 @@ function CalendarPicker({ value, onChange, max, seed }: Props) {
         </div>
       )}
     </div>
-  )
-}
-
-/* Stroked to match the tab icons rather than filled, so the two arrows sit at
-   the same weight as everything else in the sheet. */
-function Chevron({ dir }: { dir: 'left' | 'right' }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d={dir === 'left' ? 'M 14.5 5 L 8.5 12 L 14.5 19' : 'M 9.5 5 L 15.5 12 L 9.5 19'}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   )
 }
 
