@@ -61,9 +61,13 @@ export async function searchBooks(
   const q = query.trim()
   if (q.length < 2) return { results: [], answered: 0 }
 
+  // Decided once, here, so both catalogues are asked the same question in
+  // whichever dialect each one speaks.
+  const isbn = asIsbn(q)
+
   const [open, google] = await Promise.all([
-    orNothing(searchOpenLibrary(q, signal)),
-    orNothing(searchGoogleBooks(q, signal)),
+    orNothing(searchOpenLibrary(q, isbn, signal)),
+    orNothing(searchGoogleBooks(q, isbn, signal)),
   ])
 
   const answered = [open, google].filter((list) => list !== null).length
@@ -71,13 +75,56 @@ export async function searchBooks(
   return { results, answered }
 }
 
+/* ---- ISBN ----
+
+   Someone holding the book can read the number off the back of it, which is
+   the one search term that is never misspelled and never ambiguous between two
+   books with the same title.
+
+   A bare ISBN typed into a plain keyword search does already find the book in
+   Open Library, by coincidence rather than by design: the number appears in
+   the indexed text. Asking the ISBN field directly is the same request and one
+   round trip either way, and it cannot drift into matching a page number or a
+   year in some unrelated record.
+
+   Detection is on shape, not on the check digit. A mistyped digit should come
+   back as "no such book" from the catalogue rather than be quietly re-run as a
+   title search, because a thirteen-digit string is not a title and searching
+   for it as one only produces confident nonsense. Requiring the 978/979 prefix
+   on the long form is what keeps an arbitrary run of thirteen digits from
+   being treated as a book number at all. */
+function asIsbn(query: string) {
+  // Hyphens are how ISBNs are printed; spaces are how they get typed.
+  const bare = query.replace(/[\s-‐-―]/g, '').toUpperCase()
+  if (/^\d{9}[\dX]$/.test(bare)) return bare
+  if (/^97[89]\d{10}$/.test(bare)) return bare
+  return undefined
+}
+
+/* Only the number the reader typed is searched, and deliberately so.
+
+   The obvious next move is to convert between the ten- and thirteen-digit
+   forms and search both, since they name the same book. It was written, tried,
+   and taken back out. It bought nothing: every book tested already resolves
+   under either form, because Open Library files a work's editions together and
+   the record therefore carries whichever numbers those editions were printed
+   with. And it cost something real — converting a mistyped 9781111111111 lands
+   on 1111111111, which is a placeholder number that genuinely sits on several
+   junk records, so a search that should have said "nothing came back" returned
+   four unrelated books instead. A wrong answer is worse than no answer here,
+   because the reader has no way to tell it is wrong. */
+
 /* ---- Open Library ---- */
 
-async function searchOpenLibrary(q: string, signal?: AbortSignal) {
+async function searchOpenLibrary(q: string, isbn: string | undefined, signal?: AbortSignal) {
   // `fields` matters: the default response carries every edition of every
   // work and runs to megabytes on a common query.
   const url = new URL('https://openlibrary.org/search.json')
-  url.searchParams.set('q', q)
+  /* `isbn:` is a field query, which is the point: a book number that matches
+     nothing returns nothing rather than falling back to a loose text match on
+     the digits, so a mistyped number is answered honestly instead of with
+     whatever record happens to contain that string. */
+  url.searchParams.set('q', isbn ? `isbn:${isbn}` : q)
   /* cover_edition_key and isbn are asked for because `cover_i` alone leaves a
      lot of books bare. `cover_i` is the cover of the *work*, and plenty of
      works have none while the specific edition Open Library considers primary
@@ -151,9 +198,19 @@ function coverUrl(kind: 'id' | 'olid' | 'isbn', key: string | number) {
 
 /* ---- Google Books ---- */
 
-async function searchGoogleBooks(q: string, signal?: AbortSignal) {
+async function searchGoogleBooks(q: string, isbn: string | undefined, signal?: AbortSignal) {
   const url = new URL('https://www.googleapis.com/books/v1/volumes')
-  url.searchParams.set('q', q)
+  /* Google documents `isbn:` as the way to search by book number, and unlike
+     Open Library a bare number here is not reliably the same query. Sent as
+     the reader typed it, normalised: Google resolves the two forms to one
+     volume itself, so there is nothing to pair up.
+
+     Not verified against the live service. Keyless Google answered 429 to
+     every call while this was written, as it usually does — see the note at
+     the top of the file. Written to the documented syntax and left to prove
+     itself on a day the quota is open, which is the same footing the rest of
+     this source is on. */
+  url.searchParams.set('q', isbn ? `isbn:${isbn}` : q)
   url.searchParams.set('maxResults', String(PER_SOURCE))
   url.searchParams.set('printType', 'books')
   url.searchParams.set('fields', 'items(volumeInfo(title,authors,publishedDate,pageCount,imageLinks))')
