@@ -10,8 +10,8 @@
   align-items: center;
   gap: 2px;
   padding: 3px;
-  background: var(--card-chip);
-  border: 1px solid var(--border-hairline);
+  background: var(--track-well);
+  border: 1px solid var(--track-well-border);
   border-radius: var(--radius-pill);
 }
 
