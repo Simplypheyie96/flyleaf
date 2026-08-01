@@ -273,6 +273,57 @@ export function CaretIcon({ size = 22, className }: IconProps & { className?: st
   )
 }
 
+/* Theme trio. Drawn a shade smaller than the tab glyphs — these sit in a
+   control, not a shell, and a full-bleed sun beside a 15px word overpowers
+   it. */
+export function SunIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 3.5 L 12 5.5" />
+        <path d="M12 18.5 L 12 20.5" />
+        <path d="M3.5 12 L 5.5 12" />
+        <path d="M18.5 12 L 20.5 12" />
+        <path d="M6 6 L 7.4 7.4" />
+        <path d="M16.6 16.6 L 18 18" />
+        <path d="M18 6 L 16.6 7.4" />
+        <path d="M7.4 16.6 L 6 18" />
+      </g>
+    </svg>
+  )
+}
+
+export function MoonIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        {/* One arc, not a disc with a bite taken out of it — a crescent drawn
+            as a closed two-curve shape keeps an even stroke all the way round
+            where a subtracted circle pinches at the horns. */}
+        <path d="M19 14.5 C 17.9 15 16.7 15.3 15.4 15.3 C 10.9 15.3 7.3 11.7 7.3 7.2 C 7.3 6.4 7.4 5.6 7.6 4.9 C 5.5 6.4 4.2 8.9 4.2 11.7 C 4.2 16.4 8 20.2 12.7 20.2 C 15.3 20.2 17.7 19 19 17 Z" />
+      </g>
+    </svg>
+  )
+}
+
+/* Auto — the contrast glyph: one disc, half of it filled. Reads as "both,
+   decided for you" at 20px, where a clock or an "A" does not. */
+export function AutoThemeIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 5 A 7 7 0 0 1 12 19 Z"
+        fill="currentColor"
+        stroke="none"
+      />
+      <g {...strokeProps}>
+        <circle cx="12" cy="12" r="7" />
+      </g>
+    </svg>
+  )
+}
+
 export function SettingsIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
