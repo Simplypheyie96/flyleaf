@@ -9,7 +9,10 @@
   backdrop-filter: blur(var(--card-blur)) saturate(140%);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-md);
-  padding: var(--space-5) var(--space-5);
+  /* --space-5 is right for a keepsake, which is mostly the thing it holds. A
+     card that is mostly controls wants less air around them, so the step is
+     overridable — but from the outside, per card, and never below --space-4. */
+  padding: var(--paper-pad, var(--space-5));
   /* Fully flat: hairline + lit top edge only. No drop shadows on paper. */
   box-shadow: inset 0 1px 0 var(--card-edge-light);
   rotate: var(--paper-rotate, 0deg);
