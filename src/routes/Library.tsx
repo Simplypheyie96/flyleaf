@@ -256,62 +256,69 @@ function StackDeck({ books }: { books: Book[] }) {
 
   return (
     <div className={styles.deck}>
-      <div
-        className={styles.stack}
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
-        onPointerCancel={() => {
-          from.current = null
-        }}
-      >
-        {books.map((book, i) => {
-          const slot = (i - active + n) % n
-          const buried = slot > DECK_DEPTH
-          return (
-            <div
-              key={book.id}
-              className={`${styles.stackItem} ${styles.book}`}
-              data-slot={Math.min(slot, DECK_DEPTH)}
-              data-buried={buried || undefined}
-              data-dealing={book.id === dealing || undefined}
-              style={
-                {
-                  zIndex: n - slot,
-                  viewTransitionName: `book-${book.id}`,
-                  '--enter-delay': `calc(${i} * var(--stagger))`,
-                } as CSSProperties
-              }
-            >
-              {/* The arc lives on its own element. The book outside it is
-                  already carrying `translate`/`rotate`/`scale` for its slot
-                  and `transform` for the press, and there is no fourth
-                  channel left to put a swing in. */}
-              <span className={styles.dealt}>
-                <BookCover
-                  title={book.title}
-                  author={book.author}
-                  covers={book.covers}
-                />
-              </span>
+      {/* A frame the deck cannot reach out of. The books are absolutely
+          positioned and the dealt one swings wider still, so between them they
+          claim more room than the page column has — see `.stackFrame`. The
+          frame is a plain block and never a containing block, so the stack
+          inside it keeps the exact box it had, and the books keep theirs. */}
+      <div className={styles.stackFrame}>
+        <div
+          className={styles.stack}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+          onPointerCancel={() => {
+            from.current = null
+          }}
+        >
+          {books.map((book, i) => {
+            const slot = (i - active + n) % n
+            const buried = slot > DECK_DEPTH
+            return (
+              <div
+                key={book.id}
+                className={`${styles.stackItem} ${styles.book}`}
+                data-slot={Math.min(slot, DECK_DEPTH)}
+                data-buried={buried || undefined}
+                data-dealing={book.id === dealing || undefined}
+                style={
+                  {
+                    zIndex: n - slot,
+                    viewTransitionName: `book-${book.id}`,
+                    '--enter-delay': `calc(${i} * var(--stagger))`,
+                  } as CSSProperties
+                }
+              >
+                {/* The arc lives on its own element. The book outside it is
+                    already carrying `translate`/`rotate`/`scale` for its slot
+                    and `transform` for the press, and there is no fourth
+                    channel left to put a swing in. */}
+                <span className={styles.dealt}>
+                  <BookCover
+                    title={book.title}
+                    author={book.author}
+                    covers={book.covers}
+                  />
+                </span>
 
-              {/* Only what is showing can be reached. The front book has no
-                  button over it: it is the one you are already looking at,
-                  and a control that does nothing is worse than none. */}
-              {slot > 0 && !buried && (
-                <button
-                  type="button"
-                  className={styles.reach}
-                  onClick={() => {
-                    setActive(i)
-                    setDealing(null)
-                  }}
-                >
-                  Bring {book.title} to the front
-                </button>
-              )}
-            </div>
-          )
-        })}
+                {/* Only what is showing can be reached. The front book has no
+                    button over it: it is the one you are already looking at,
+                    and a control that does nothing is worse than none. */}
+                {slot > 0 && !buried && (
+                  <button
+                    type="button"
+                    className={styles.reach}
+                    onClick={() => {
+                      setActive(i)
+                      setDealing(null)
+                    }}
+                  >
+                    Bring {book.title} to the front
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       {n > 1 && (
