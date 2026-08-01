@@ -1,4 +1,10 @@
-/* The journey — the inside cover of one book, then everything kept from it. */
+/* The journey — the inside cover of one book, then everything kept from it.
+
+   This file owns the page: the jacket, the epigraph, the tool bar, the
+   colophon, the dock, and the geometry the thread hangs on. The keeps
+   themselves — every card, every stitch, and all three readings of them — are
+   in journey/Keep.module.css, which is where their class names live and so the
+   only place that can style them. */
 
 .journeyColumn {
   /* Wider than the home feed would be, narrower than the shelf. What sets it
@@ -6,17 +12,7 @@
      comfortable measure, which at this type size lands near 60 characters
      rather than the shelf's 760px of board. */
   --column-max: clamp(420px, 72vw, 600px);
-  /* How much room the thread and its knots own on a phone. Everything below
-     measures from this one number, so the rail moves and the stitch, the knots
-     and the cards all move with it. */
-  --rail: var(--space-6);
-  /* Where the thread runs, relative to a card's own leading edge. On a phone
-     that is out in the rail; past 760px each side of a centre spine overrides
-     it. The 4px is the thread's offset inside its own 8-wide box, the 5px is
-     half a knot — stated here so the two can never drift apart. */
-  --tie-line: calc(-1 * var(--rail) + 4px);
-  --tie-knot: calc(-1 * var(--rail) + 4px);
-  gap: var(--space-5);
+  gap: var(--space-6);
 }
 
 /* ---- Back to the shelf ---- */
@@ -28,13 +24,8 @@
   align-items: center;
   gap: var(--space-2);
   align-self: start;
-  /* The link is the text, but the target is the 44px around it — negative
-     margin gives the tap area back the space the padding took, so the row
-     below does not get pushed down by an invisible box. */
-  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-2);
-  margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-3))
-    calc(-1 * var(--space-3)) calc(-1 * var(--space-2));
   min-height: var(--tap-min);
+  padding-inline-end: var(--space-3);
   color: var(--color-ink-soft);
   font-size: var(--text-sm);
   text-decoration: none;
@@ -44,381 +35,481 @@
   color: var(--color-ink);
 }
 
-/* ---- The inside cover ---- */
+/* ---- The inside cover --------------------------------------------------- */
 
 .insideCover {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-5);
-  padding-inline: var(--space-2);
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-5) var(--space-6);
+}
+
+.jacket {
+  position: relative;
+  flex: 0 0 auto;
 }
 
 .identity {
+  /* Wraps under the jacket on a phone and sits beside it from about 560px,
+     which is the width at which 200px of jacket and a readable line of title
+     can both be on the same row without either being squeezed. */
+  flex: 1 1 15rem;
+  min-width: min(100%, 15rem);
   display: flex;
   flex-direction: column;
-  /* Title and author are one unit; the facts below are a second. The gap
-     inside the unit is set on the pair, the gap to the facts is set on the
-     facts, and it is twice as large — that difference is the grouping. */
-  gap: var(--space-1);
-  /* Without this a long unbroken title makes the flex item refuse to shrink
-     and pushes the cover off the leading edge. */
-  min-width: 0;
+  align-items: flex-start;
+  gap: var(--space-2);
 }
 
 .title {
+  margin: 0;
   font-family: var(--font-serif);
-  font-size: var(--text-lg);
-  line-height: 1.15;
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  line-height: var(--leading-tight);
   letter-spacing: -0.01em;
   text-wrap: balance;
-  overflow-wrap: break-word;
   color: var(--color-ink);
 }
 
 .author {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  margin: 0;
+  font-size: var(--text-md);
   color: var(--color-ink-soft);
 }
 
-/* Read down, not across. Beside a 112px cover the identity column is about
-   190px wide on a phone, which is not enough for three label-over-value
-   columns — they wrap two-and-one and the row breaks into a ragged block. As
-   stacked rows they fit, they fill the height the cover already takes, and
-   every value lines up on one edge, which is what a title page does. */
-.facts {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: baseline;
-  gap: var(--space-2) var(--space-4);
-  margin-block-start: var(--space-4);
-}
-
-/* The wrapper keeps the list valid markup; the grid wants the dt and the dd
-   themselves as its items. */
-.fact {
-  display: contents;
-}
-
-.fact dt {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-ink-faint);
-}
-
-.fact dd {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  /* A `dd` carries a 40px indent from the browser's own stylesheet. Left in,
-     every value sits 40px right of the label it belongs to and the row is
-     wide enough to wrap where it should not. */
-  margin: 0;
-  font-size: var(--text-sm);
-  /* The progress figure climbs as the reader reads; proportional digits would
-     shuffle the row it sits in every time it did. */
-  font-variant-numeric: tabular-nums;
+/* The line the journey is introduced by. Assembled from what the reader
+   actually did — see lexicon.ts — so it is set in the book's own voice
+   rather than as a statistic. */
+.epigraph {
+  margin: var(--space-2) 0 0;
+  max-width: var(--measure);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
   color: var(--color-ink);
 }
 
-/* ---- The thread ---- */
-
-.journey {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  /* Two-thirds of a card's own padding between one memory and the next. Wide
-     enough that they read as separate keepsakes, tight enough that they still
-     read as one strand. */
-  gap: var(--space-6);
-  padding-inline-start: var(--rail);
-  padding-block: var(--space-2);
+.hint {
+  margin: 0;
+  max-width: 46ch;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-ink-faint);
 }
 
-/* ---- One kept memory ---- */
-
-.entry {
-  position: relative;
+.reading {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  color: var(--color-ink-faint);
 }
 
-/* Each memory carries its own length of thread, running past its own bottom
-   edge to meet the next one — so the strand is continuous but is measured, and
-   stitched, one keepsake at a time. */
-.thread {
+.depth {
+  font-variant-numeric: tabular-nums;
+}
+
+.aboutBook {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  background: var(--card-fill);
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition:
+    color var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out);
+}
+
+.aboutBook:hover {
+  color: var(--color-ink);
+  border-color: var(--color-chip-active-border);
+}
+
+/* The bookmark. Progress as a thing in the book rather than a figure about it:
+   a ribbon slipped over the top board, sitting as far across as the reader has
+   read. `--depth` is 0–1 and comes from the route; everything else here is
+   fixed, so a book at 3% and a book at 97% differ only in where the ribbon
+   sits — which is the whole point of drawing it. */
+.bookmark {
   position: absolute;
-  inset-block-start: 0;
-  /* The stitch is 8 units wide in its own box and runs down the middle, hence
-     the 4px already folded into --tie-line. */
-  inset-inline-start: var(--tie-line);
-  width: 8px;
-  height: calc(100% + var(--space-6));
-  fill: none;
-  stroke: var(--thread-ink, color-mix(in oklch, var(--color-ink), transparent 68%));
-  stroke-width: 2;
-  stroke-linecap: round;
-  /* A running stitch: the length of thread showing, then the length buried in
-     the cloth. Held constant while the path stretches — see Thread(). */
-  stroke-dasharray: 7 5;
-  vector-effect: non-scaling-stroke;
+  inset-block-start: calc(-1 * var(--space-3));
+  inset-inline-start: calc(var(--space-4) + var(--depth) * (100% - var(--space-4) * 2 - 18px));
+  width: 18px;
+  height: 92px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--color-accent), white 12%),
+    var(--color-accent)
+  );
+  box-shadow: var(--elevation-1);
+  /* The swallowtail cut at the foot — the one detail that stops it reading as
+     a coloured rectangle stuck to the cover. */
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 9px), 0 100%);
+  transition: inset-inline-start var(--dur-move) var(--ease-move);
 }
 
-/* The strand ends at the last knot rather than running off the end of the
-   page — thread is tied off, not cut. */
-.entry[data-last] .thread {
-  height: calc(var(--space-5) + 5px);
-}
+/* ---- The tool bar ------------------------------------------------------- */
 
-.knot {
-  position: absolute;
-  /* Centred on the thread: --tie-knot is the thread's own centre line, then
-     back out half the knot. */
-  inset-inline-start: calc(var(--tie-knot) - 5px);
-  inset-block-start: var(--space-5);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--color-ink-soft);
-  /* A ring in the page's own colour, so the stitch reads as passing behind
-     the knot rather than stopping dead at it. */
-  box-shadow: 0 0 0 3px var(--color-bg);
-}
-
-.card {
-  /* Cards are mostly the thing they hold, so PaperSurface's own generous step
-     is right here and is left alone. */
+.tools {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
 }
 
-.cardHead {
+.switcher {
+  --glass-pad: var(--space-1);
+  --glass-radius: var(--radius-pill);
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding-inline: var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
+}
+
+.tab[aria-checked='true'] {
+  background: var(--color-chip-active);
+  border-color: var(--color-chip-active-border);
+  color: var(--color-ink);
+}
+
+.tabLabel {
+  white-space: nowrap;
+}
+
+.actions {
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-.chip {
+.action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  flex: 0 0 auto;
-  border-radius: var(--radius-sm);
-  background: var(--card-chip);
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  background: var(--card-fill);
   color: var(--color-ink-soft);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
 }
 
-.kind {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
+.action:hover {
+  color: var(--color-ink);
+}
+
+/* On when the journey is not being read the way it was written. Without this
+   a reader can filter to one motif, scroll away, and spend a while wondering
+   where the rest of their journey went. */
+.action[data-on] {
+  background: var(--color-accent-tint);
+  border-color: var(--color-chip-active-border);
+  color: var(--color-accent-text);
+}
+
+/* ---- What is still being followed --------------------------------------- */
+
+.following {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.followingLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.strandTab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 34px;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid color-mix(in oklch, var(--strand), transparent 60%);
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklch, var(--strand), var(--color-surface) 88%);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-pill);
+  background: var(--strand);
+}
+
+.tieOff {
+  padding-inline-start: var(--space-2);
+  border-inline-start: 1px solid color-mix(in oklch, var(--strand), transparent 65%);
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+}
+
+/* ---- The sift notice ---------------------------------------------------- */
+
+.sifted {
+  margin: 0;
+  font-size: var(--text-sm);
   color: var(--color-ink-soft);
 }
 
-.when {
-  /* Pushed to the trailing edge: the date is the one thing on this row a
-     reader scans down a column for. */
-  margin-inline-start: auto;
-  font-size: var(--text-xs);
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink-faint);
+.clear {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent-text);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
 }
 
-.text {
-  font-family: var(--font-serif);
-  font-size: var(--text-md);
-  line-height: 1.5;
-  /* Kept text is the reason this screen exists, so it gets the reading face
-     and never a widow on its last line. */
-  text-wrap: pretty;
-  overflow-wrap: break-word;
-  color: var(--color-ink);
-}
+/* ---- The thread --------------------------------------------------------- */
 
-.where {
-  font-size: var(--text-xs);
-  color: var(--color-ink-faint);
-}
+.journey {
+  /* How much room the thread and the braid own on a phone. Everything on a
+     keep measures from this one number, so moving the rail moves the stitch,
+     the knots, the ribbons and the cards together. */
+  --rail: var(--space-6);
+  /* The gap between two keeps, told to the thread so it can bridge it —
+     `.thread` is `100% + var(--keep-gap)` tall for exactly this reason. It has
+     to be the same number as the flex gap below or the stitch breaks. */
+  --keep-gap: var(--space-6);
+  /* The thread's centre, and its leading edge 4px back from it, both relative
+     to a card's own leading edge. Stated as one derived from the other so the
+     two can never drift apart. */
+  --tie-knot: calc(-1 * var(--rail) + 8px);
+  --tie-line: calc(var(--tie-knot) - 4px);
+  /* Where down a card the knot lands: the paper's own top padding plus half a
+     header row, so it ties on level with the kind label. */
+  --tie-y: calc(var(--space-5) + 13px);
+  /* Which way the braid's lanes run out from the spine. On a phone the thread
+     is against the leading edge, so the ribbons can only go further that way. */
+  --lane-dir: -1;
+  /* The Card Index's left margin, past 640px. */
+  --stamp: 7.5rem;
 
-/* ---- A note: ruled paper ----
-
-   The rules are painted on the paragraph rather than the card, so they run
-   under the writing and stop where the writing stops — which is what a torn
-   half-sheet looks like, and which means a two-line note is not a full page of
-   empty lines with two lines of ink at the top.
-
-   The period is the line-height exactly, so the two can never drift; the
-   quarter-step of negative offset lifts each rule off the bottom of its line
-   box and puts it just under the baseline, where a printed rule sits. */
-.ruled {
-  --line: 1.6em;
-  line-height: 1.6;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent calc(var(--line) - 1px),
-    var(--note-rule) calc(var(--line) - 1px),
-    var(--note-rule) var(--line)
-  );
-  background-position: 0 -0.2em;
-}
-
-/* ---- A highlight: the marker ----
-
-   The stripe is what names this type, which is why the card under it is the
-   palest of the five (see --card-highlight). It goes on the inline span and
-   not the paragraph: a marker follows the words to the end of each line and
-   stops there, and a background on the block would run the full width of the
-   card and read as a coloured panel instead.
-
-   `box-decoration-break: clone` is what makes a wrapped highlight look drawn
-   rather than filled — without it the stripe is one box spanning every line,
-   and the ends only appear at the very start and the very end. */
-.marked {
-  font-family: var(--font-serif);
-  font-size: var(--text-md);
-  /* Looser than the quote's 1.5: two stripes on consecutive lines want a gap
-     between them, or the marking reads as one solid block. */
-  line-height: 1.75;
-  text-wrap: pretty;
-  overflow-wrap: break-word;
-  color: var(--color-ink);
-}
-
-.marked span {
-  /* Seven degrees off level, so the ends of the stroke are slanted the way a
-     chisel tip leaves them and the stripe drifts very slightly as it crosses
-     the words.
-
-     The ends are lengths and not percentages. `box-decoration-break: clone`
-     gives every wrapped line its own gradient box, so a percentage inset is
-     measured against that line's width — on a full line it swallowed the
-     first two letters, and on a three-word last line it swallowed nothing.
-     Four pixels is four pixels on both. */
-  background-image: linear-gradient(
-    97deg,
-    transparent 0 1px,
-    var(--highlighter) 5px calc(100% - 5px),
-    transparent calc(100% - 1px)
-  );
-  background-repeat: no-repeat;
-  /* Slightly taller than the type and lifted to sit over it: ink laid on the
-     words, not a band behind them. */
-  background-size: 100% 1.1em;
-  background-position: 0 0.28em;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  padding-inline: 0.18em;
-}
-
-/* ---- An image: mounted, not embedded ---- */
-
-.mount {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--keep-gap);
+  padding-inline-start: var(--rail);
+}
+
+/* The Card Index sets a shallower top padding on its cards, so the knot has to
+   come up to meet the header it is tying on level with. */
+.journey[data-variant='index'] {
+  --tie-y: calc(var(--space-4) + 13px);
+}
+
+.divider {
+  margin: var(--space-3) 0 calc(-1 * var(--space-2));
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* ---- Nothing yet, or nothing matching ----------------------------------- */
+
+.absent,
+.missing {
   margin: 0;
-}
-
-.print {
-  position: relative;
-  border-radius: var(--radius-sm);
-  /* Something behind the picture while it decodes, so the card does not jump
-     from nothing to a photograph. */
-  background: var(--card-chip);
-}
-
-.print img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: var(--radius-sm);
-}
-
-/* Photo corners. Four, because three is a mount that has come loose. */
-.corner {
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  background: var(--photo-corner);
-}
-
-.corner[data-at='tl'] {
-  top: 0;
-  left: 0;
-  clip-path: polygon(0 0, 100% 0, 0 100%);
-  border-start-start-radius: var(--radius-sm);
-}
-
-.corner[data-at='tr'] {
-  top: 0;
-  right: 0;
-  clip-path: polygon(100% 0, 100% 100%, 0 0);
-  border-start-end-radius: var(--radius-sm);
-}
-
-.corner[data-at='bl'] {
-  bottom: 0;
-  left: 0;
-  clip-path: polygon(0 0, 0 100%, 100% 100%);
-  border-end-start-radius: var(--radius-sm);
-}
-
-.corner[data-at='br'] {
-  bottom: 0;
-  right: 0;
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  border-end-end-radius: var(--radius-sm);
-}
-
-.absent {
-  padding: var(--space-6) var(--space-4);
-  text-align: center;
-  font-size: var(--text-sm);
+  max-width: 44ch;
+  padding: var(--space-6) 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
   text-wrap: pretty;
   color: var(--color-ink-faint);
 }
 
-/* What the reader wrote beside the picture or the recording. Smaller than kept
-   text and in the interface face, because it is theirs about the thing rather
-   than the thing itself. */
-.caption {
+/* ---- The colophon ------------------------------------------------------- */
+
+.colophon {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+  padding-block-start: var(--space-5);
+  border-block-start: 1px solid var(--border-hairline);
+}
+
+.colophonLine {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: var(--space-3);
+  align-items: baseline;
   font-size: var(--text-sm);
-  line-height: 1.5;
-  text-wrap: pretty;
-  color: var(--color-ink-soft);
 }
 
-/* ---- Nothing to show ---- */
-
-.missing {
-  padding: var(--space-6) var(--space-2);
-  font-family: var(--font-serif);
-  font-size: var(--text-md);
-  line-height: 1.5;
-  text-wrap: pretty;
-  color: var(--color-ink-soft);
+.colophonLine dt {
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
 }
 
-/* ===========================================================================
-   MOTION
+.colophonLine dd {
+  /* The UA stylesheet gives every dd a 40px inline start margin, which would
+     put the details a third of the way across the page. */
+  margin: 0;
+  color: var(--color-ink);
+}
 
-   Three moments, and nothing else: the book opens, the thread stitches itself
-   as you go down, and each keepsake settles onto the page as it arrives. All
-   three are transform, opacity or a clip on an eight-pixel column — no layout,
-   no paint on a large surface.
+/* ---- The dock ----------------------------------------------------------- */
 
-   The scroll-driven pair is progressive enhancement in the strict sense: the
-   animations exist only inside @supports, so a browser without scroll
-   timelines gets the finished page rather than a broken one, and no scroll
-   listener is ever attached to approximate it.
-   =========================================================================== */
+/* Both floating things ride in one bottom-anchored stack. The undo used to
+   stick on its own at the dock's height plus the dock's padding plus the gap,
+   added up by hand — which was wrong the moment either of them changed, and was
+   wrong already, because the dock is as tall as its buttons rather than as tall
+   as a bare tap target. Stacking them means only this element clears the bar and
+   the undo simply sits above its sibling. */
+.dock {
+  position: sticky;
+  /* Above the floating bottom bar, not on it: --bar-clear is what the shell's
+     bar actually occupies, and the gap is the breathing room between them. */
+  inset-block-end: calc(var(--bar-clear) + var(--space-3));
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+  pointer-events: none;
+}
+
+.dockInner {
+  --glass-pad: var(--space-3);
+  pointer-events: auto;
+}
+
+.dockRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.keepIt {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.startStrand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  min-width: var(--tap-min);
+  flex: 0 0 auto;
+  padding-inline: var(--space-4);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  background: var(--card-fill);
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.startStrand:hover {
+  color: var(--color-ink);
+}
+
+/* Two full labels do not fit beside each other in a phone-width column, and
+   the one that has to survive is the primary — "Keep something" breaking
+   across two lines inside its own pill is the worse of the two failures. So
+   below this the second button is its mark alone; the name is still on the
+   button for anything reading it aloud. */
+@media (max-width: 479px) {
+  .startStrandLabel {
+    display: none;
+  }
+
+  .startStrand {
+    padding-inline: 0;
+    width: var(--tap-min);
+  }
+}
+
+/* ---- Undo --------------------------------------------------------------- */
+
+/* First in the stack, so it rides directly above the dock without either of
+   them knowing the other's height. */
+.undo {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  background: var(--color-ink);
+  color: var(--color-bg);
+  font-size: var(--text-sm);
+  box-shadow: var(--elevation-1);
+}
+
+.undoAction {
+  min-height: 36px;
+  padding-inline: var(--space-4);
+  border: 1px solid color-mix(in oklch, var(--color-bg), transparent 70%);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-bg);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ---- Motion -------------------------------------------------------------
+
+   The page's own arrival only. The keeps bring their own — the stitch down the
+   thread and the settle of each card are scroll-driven and live beside the
+   classes they move, in Keep.module.css. */
 
 @keyframes coverOpen {
   from {
@@ -442,36 +533,11 @@
   }
 }
 
-/* The stitch, pulled through the cloth from the top down. */
-@keyframes stitch {
-  from {
-    clip-path: inset(0 0 100% 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
-
-/* Laid down, not flown in. It arrives a little lower and a little more
-   crooked than it ends up, and comes to rest at the tilt PaperSurface gave
-   it — which is why the final keyframe reads --paper-rotate rather than
-   zero. */
-@keyframes settle {
-  from {
-    opacity: 0;
-    translate: 0 12px;
-    rotate: calc(var(--paper-rotate, 0deg) - 1.4deg);
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
-    rotate: var(--paper-rotate, 0deg);
-  }
-}
-
 @media (prefers-reduced-motion: no-preference) {
-  /* The cover swings open on its spine. One beat, on arrival, and the only
-     3D on the screen — it is the thing the page is about. */
+  /* The jacket swings open on its hinge, and the title follows it in. It is
+     the one theatrical moment on the screen and it is over in under half a
+     second — the cover opening is what the reader has just asked for by
+     tapping the book. */
   .opening {
     transform-origin: left center;
     animation: coverOpen var(--dur-move) var(--ease-move) both;
@@ -481,89 +547,62 @@
     animation: rise var(--dur-base) var(--ease-out) both;
     animation-delay: calc(var(--dur-move) * 0.4);
   }
-
-  @supports (animation-timeline: view()) {
-    .thread {
-      animation: stitch linear both;
-      animation-timeline: view();
-      /* Drawn while the memory is coming up the screen, finished a little
-         before it is fully in view — so the thread always reaches the knot
-         ahead of the card the reader is about to read. */
-      animation-range: entry 0% entry 80%;
-    }
-
-    .card {
-      animation: settle linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 90%;
-    }
-  }
 }
 
-/* Tier 1 and 2, tiered rather than switched off. The cover's 3D swing is a
-   large rotation with depth and is removed outright; the settle and the rise
-   lose their travel and their tilt and keep the fade, so nothing teleports.
-   The stitch is left to the @supports block above, which reduced motion never
-   enters — the thread simply arrives drawn. */
 @media (prefers-reduced-motion: reduce) {
+  /* Not nothing: a short fade, so the page still assembles rather than
+     appearing whole, without the rotation that is the part which actually
+     causes trouble. */
   .opening,
   .identity {
     animation: rise 160ms var(--ease-out) both;
     transform: none;
   }
+
+  .bookmark {
+    transition: none;
+  }
 }
 
-/* ===========================================================================
-   WIDER THAN A PHONE
-
-   Past 760px the column can pay for a centre spine, so the thread moves to the
-   middle and the keepsakes hang off it either side in reading order. Below it
-   they cannot: at 390px a card either side of a centre line keeps about 117px
-   of text, which is twelve characters a line, and a quote comes apart.
-   =========================================================================== */
+/* ---- The centre spine --------------------------------------------------- */
 
 @media (min-width: 760px) {
   .journeyColumn {
     --column-max: min(94vw, 900px);
-    /* The spine is the middle of the section now, not a rail beside it. */
-    --rail: 0px;
-  }
-
-  .insideCover {
-    gap: var(--space-6);
-  }
-
-  .title {
-    font-size: var(--text-xl);
   }
 
   .journey {
+    /* The thread comes in off the rail and runs down the middle, with keeps
+       alternating either side of it. There is finally room for a card to be
+       half the column wide and still hold a quote. */
+    --rail: 0px;
+    --keep-gap: var(--space-7);
     padding-inline-start: 0;
-    /* More air, because the eye now travels side to side as well as down. */
-    gap: var(--space-7);
   }
 
-  /* Half the section, less the clearance the spine needs on either side. */
-  .entry {
+  /* Tag selectors, deliberately: a keep's class name is hashed inside
+     Keep.module.css and cannot be named from here, but every keep is an
+     `<article>` and this file owns the element that contains them. */
+  .journey > article {
     width: calc(50% - var(--space-6));
   }
 
-  .entry:nth-child(odd) {
+  .journey > article:nth-of-type(odd) {
     align-self: flex-start;
-    /* Thread and knot hang off the trailing edge, out at the centre line. */
     --tie-line: calc(100% + var(--space-6) - 4px);
     --tie-knot: calc(100% + var(--space-6));
+    --lane-dir: 1;
   }
 
-  .entry:nth-child(even) {
+  .journey > article:nth-of-type(even) {
     align-self: flex-end;
     --tie-line: calc(-1 * var(--space-6) - 4px);
     --tie-knot: calc(-1 * var(--space-6));
+    --lane-dir: -1;
   }
 
-  /* The last stitch stops at its own knot as before, but the knot is now at
-     the top of a card that may be on either side. */
-  .entry[data-last] .thread {
-    height: calc(var(--space-5) + 5px);
+  .divider {
+    align-self: center;
+    margin-block: var(--space-4);
   }
 }

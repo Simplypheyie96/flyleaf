@@ -20,8 +20,12 @@ import App from './App.tsx'
 applyTheme(getPref())
 
 /* Not awaited: the shelf is a live query, so the books appear the moment they
-   land rather than holding the first paint for a database write. */
-void seedLibrary()
+   land rather than holding the first paint for a database write. Reported
+   though — a seed that fails silently looks exactly like a seed that decided
+   not to run, and the difference is worth a line in the console. */
+seedLibrary().catch((error) => {
+  console.error('The preview shelf could not be laid down.', error)
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

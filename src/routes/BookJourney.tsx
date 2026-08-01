@@ -1,348 +1,174 @@
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import BookCover from '../components/BookCover'
-import PaperSurface from '../components/PaperSurface'
-import VoiceOrb from '../components/VoiceOrb'
-import {
-  BackIcon,
-  BookIcon,
-  HeadphonesIcon,
-  HighlightIcon,
-  ImageIcon,
-  NoteIcon,
-  QuoteIcon,
-  ScreenIcon,
-  VoiceIcon,
-} from '../components/TabIcons'
-import { fromISO } from '../components/date/dates'
-import type { BookFormat, Entry, EntryType } from '../data/db'
-import { useBook } from '../data/useBook'
-import pageStyles from './page.module.css'
-import styles from './BookJourney.module.css'
-
-const FORMAT: Record<BookFormat, { label: string; Icon: typeof BookIcon }> = {
-  physical: { label: 'Physical', Icon: BookIcon },
-  digital: { label: 'Digital', Icon: ScreenIcon },
-  audio: { label: 'Audio', Icon: HeadphonesIcon },
-}
-
-type Tone = 'quote' | 'note' | 'voice' | 'image' | 'highlight'
-
-const KIND: Record<
-  EntryType,
-  { label: string; tone: Tone; Icon: typeof BookIcon }
-> = {
-  quote: { label: 'Quote', tone: 'quote', Icon: QuoteIcon },
-  note: { label: 'Note', tone: 'note', Icon: NoteIcon },
-  voice: { label: 'Voice memo', tone: 'voice', Icon: VoiceIcon },
-  image: { label: 'Image', tone: 'image', Icon: ImageIcon },
-  highlight: { label: 'Highlight', tone: 'highlight', Icon: HighlightIcon },
-}
-
-/* ---------------------------------------------------------------------------
-   PLACEHOLDERS — one of each of the five types, so the styling of all five can
-   be looked at before there is any way to make one. Not fixtures, not seed
-   data: they live here, they are never written to the database, and they are
-   deleted the moment step 05 can keep a real memory.
-
-   The two media blobs are made here rather than shipped as files, for the same
-   reason. The recording is silent — what it is for is watching the orb breathe
-   and the trace fill, and six seconds of a synthesised tone on a page about
-   someone's reading would be worse than nothing.
---------------------------------------------------------------------------- */
-
-function silentWav(seconds: number) {
-  const rate = 8000
-  const frames = rate * seconds
-  const buf = new ArrayBuffer(44 + frames)
-  const view = new DataView(buf)
-  const tag = (at: number, s: string) => {
-    for (let i = 0; i < s.length; i += 1) view.setUint8(at + i, s.charCodeAt(i))
-  }
-  tag(0, 'RIFF')
-  view.setUint32(4, 36 + frames, true)
-  tag(8, 'WAVE')
-  tag(12, 'fmt ')
-  view.setUint32(16, 16, true)
-  view.setUint16(20, 1, true) // PCM
-  view.setUint16(22, 1, true) // mono
-  view.setUint32(24, rate, true)
-  view.setUint32(28, rate, true)
-  view.setUint16(32, 1, true)
-  view.setUint16(34, 8, true)
-  tag(36, 'data')
-  view.setUint32(40, frames, true)
-  // Silence in 8-bit PCM is the middle of the range, not zero.
-  new Uint8Array(buf, 44).fill(128)
-  return new Blob([buf], { type: 'audio/wav' })
-}
-
-/* A photographed page: warm paper, a block of type too small to read, and the
-   shadow of the gutter down one side. Abstract on purpose — a real photograph
-   would be someone's, and an invented scene would be a picture this app is
-   pretending a reader took. */
-const PLACEHOLDER_PHOTO = `data:image/svg+xml,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450">
-     <defs>
-       <linearGradient id="p" x1="0" y1="0" x2="1" y2="1">
-         <stop offset="0" stop-color="#f6efe3"/><stop offset="1" stop-color="#e8dcc8"/>
-       </linearGradient>
-       <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
-         <stop offset="0" stop-color="#000" stop-opacity="0.22"/>
-         <stop offset="1" stop-color="#000" stop-opacity="0"/>
-       </linearGradient>
-     </defs>
-     <rect width="600" height="450" fill="url(#p)"/>
-     <rect width="46" height="450" fill="url(#g)"/>
-     ${Array.from(
-       { length: 14 },
-       (_, i) =>
-         `<rect x="92" y="${70 + i * 24}" width="${i % 5 === 4 ? 250 : 430}" height="6" rx="3" fill="#3b3229" opacity="0.5"/>`,
-     ).join('')}
-   </svg>`,
-)}`
-
-async function placeholderPhoto() {
-  return (await fetch(PLACEHOLDER_PHOTO)).blob()
-}
-
-const PLACEHOLDERS: Entry[] = [
-  {
-    id: -1,
-    bookId: 0,
-    type: 'quote',
-    text: 'She had the odd habit of reading the last page first, so that she would know, all the way through, exactly what she was losing.',
-    page: 34,
-    keptOn: '2026-06-02',
-    createdAt: 1,
-  },
-  {
-    id: -2,
-    bookId: 0,
-    type: 'note',
-    text: 'Come back to this one. Something about the way she keeps the worst of it in the margins.',
-    chapter: 'Chapter 4',
-    keptOn: '2026-06-09',
-    createdAt: 2,
-  },
-  {
-    id: -3,
-    bookId: 0,
-    type: 'highlight',
-    text: 'the sea did the same thing every day and it was never once the same',
-    page: 96,
-    keptOn: '2026-06-14',
-    createdAt: 3,
-  },
-  {
-    id: -4,
-    bookId: 0,
-    type: 'voice',
-    text: 'Read this bit out to J. on the phone',
-    duration: 6,
-    page: 118,
-    keptOn: '2026-06-21',
-    createdAt: 4,
-  },
-  {
-    id: -5,
-    bookId: 0,
-    type: 'image',
-    text: 'The page I kept turning back to.',
-    page: 164,
-    keptOn: '2026-07-02',
-    createdAt: 5,
-  },
-  {
-    id: -6,
-    bookId: 0,
-    type: 'quote',
-    text: 'Nothing was different, and everything was.',
-    page: 203,
-    keptOn: '2026-07-14',
-    createdAt: 6,
-  },
-]
-
-/** "2 June" — the day, without the year, because a journey is read as one
-    stretch of time and the year is the same on nearly every row of it. */
-function keptLabel(iso: string) {
-  return fromISO(iso).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'long',
-  })
-}
-
-/* The thread — one stitched segment, drawn beside the memory it ties on.
-   Segments rather than a single line down the section, for two reasons: each
-   one stretches its own wander differently, so no two stretches of thread are
-   identical the way a repeating border would be; and a short element is a
-   subject a scroll-driven timeline can actually measure, which is what lets
-   the stitch draw itself as the reader arrives at it.
-
-   `preserveAspectRatio="none"` lets the 100-unit-tall box stretch to any real
-   height, which would normally drag the stroke and the dashes out of shape
-   with it — `vector-effect: non-scaling-stroke` is what keeps a stitch the
-   same length on a long card and a short one. */
-function Thread({ className }: { className: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 8 100"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <path d="M4 0 C 3.2 12, 4.8 24, 4 36 C 3.3 48, 4.7 60, 4 72 C 3.4 84, 4.6 92, 4 100" />
-    </svg>
-  )
-}
-
-/** A blob, as something an `img` or an `audio` can be pointed at. The handle is
-    released on the way out; a journey scrolled end to end would otherwise leak
-    one per picture it passed. */
-function useObjectUrl(blob: Blob | undefined) {
-  const [url, setUrl] = useState<string>()
-  useEffect(() => {
-    if (!blob) return
-    const made = URL.createObjectURL(blob)
-    setUrl(made)
-    return () => {
-      URL.revokeObjectURL(made)
-      setUrl(undefined)
-    }
-  }, [blob])
-  return url
-}
-
-function KeptImage({ entry }: { entry: Entry }) {
-  const url = useObjectUrl(entry.media)
-  return (
-    <figure className={styles.mount}>
-      <div className={styles.print}>
-        {url ? (
-          /* The caption is the alt text when there is one. A reader writing
-             "the page I kept turning back to" has described their own picture
-             better than any generated string would. */
-          <img src={url} alt={entry.text ?? 'A picture kept from this book'} />
-        ) : (
-          <p className={styles.absent}>This picture isn’t on this device.</p>
-        )}
-        {/* Photo corners. Four, because three is a mount that has come loose. */}
-        <span className={styles.corner} data-at="tl" aria-hidden="true" />
-        <span className={styles.corner} data-at="tr" aria-hidden="true" />
-        <span className={styles.corner} data-at="bl" aria-hidden="true" />
-        <span className={styles.corner} data-at="br" aria-hidden="true" />
-      </div>
-      {entry.text && (
-        <figcaption className={styles.caption}>{entry.text}</figcaption>
-      )}
-    </figure>
-  )
-}
-
-function EntryBody({ entry }: { entry: Entry }) {
-  switch (entry.type) {
-    case 'voice':
-      return (
-        <>
-          <VoiceOrb
-            media={entry.media}
-            duration={entry.duration}
-            seed={entry.id}
-            label={`the memo kept on ${keptLabel(entry.keptOn)}`}
-          />
-          {entry.text && <p className={styles.caption}>{entry.text}</p>}
-        </>
-      )
-    case 'image':
-      return <KeptImage entry={entry} />
-    case 'highlight':
-      /* The stripe goes on the inline span, not the paragraph: a marker
-         follows the words to the end of each line and stops, and a background
-         on the block would run the full width of the card and read as a
-         coloured panel. */
-      return (
-        <p className={styles.marked}>
-          <span>{entry.text}</span>
-        </p>
-      )
-    case 'note':
-      return <p className={`${styles.text} ${styles.ruled}`}>{entry.text}</p>
-    default:
-      return <p className={styles.text}>{entry.text}</p>
-  }
-}
-
-function JourneyEntry({ entry, last }: { entry: Entry; last: boolean }) {
-  const kind = KIND[entry.type]
-  /* Alternating, and small. The tilt is what makes a card look laid down
-     rather than placed; past a degree or so it stops reading as handmade and
-     starts reading as broken. Driven off the row's own order so a card does
-     not change its lean when something is kept before it. */
-  const rotate = entry.createdAt % 2 === 0 ? 0.5 : -0.5
-
-  const where =
-    entry.chapter ?? (entry.page !== undefined ? `Page ${entry.page}` : null)
-
-  return (
-    <article className={styles.entry} data-last={last || undefined}>
-      <Thread className={styles.thread} />
-      {/* The knot this memory is tied on by. Over the thread, in the page's
-          own colour, so the stitch appears to pass behind it. */}
-      <span className={styles.knot} aria-hidden="true" />
-
-      {/* Not every card is taped. An identical strip at the identical spot on
-          every sheet is the machine tell — the thing that turns a scrapbook
-          back into a feed with decoration on it. */}
-      <PaperSurface
-        tone={kind.tone}
-        rotate={rotate}
-        taped={entry.createdAt % 2 === 1}
-        className={styles.card}
-      >
-        <header className={styles.cardHead}>
-          <span className={styles.chip} aria-hidden="true">
-            <kind.Icon size={15} />
-          </span>
-          <span className={styles.kind}>{kind.label}</span>
-          <span className={styles.when}>{keptLabel(entry.keptOn)}</span>
-        </header>
-
-        <EntryBody entry={entry} />
-
-        {where && <p className={styles.where}>{where}</p>}
-      </PaperSurface>
-    </article>
-  )
-}
-
-/* The journey: the inside cover of a book, then everything kept from it,
+/* The journey — the inside cover of a book, then everything kept from it,
    hanging off one thread in the order it was kept.
 
+   Three ways to read it, and one set of markup behind all three. The switch
+   in the tool bar sets `data-variant` on the journey section and nothing else;
+   every difference between the Bound Journal, the Scrapbook and the Card Index
+   is a presentation of the same DOM, written in Keep.module.css. A variation
+   that needed its own JSX would drift from the other two within a week, and
+   the reader would be choosing between three half-finished screens instead of
+   three views of one finished one.
+
    On a phone the thread runs down the leading edge rather than the middle. The
-   plan drawn for this screen had entries alternating either side of a centre
+   plan drawn for this screen had keeps alternating either side of a centre
    spine on the phone too, and the arithmetic does not survive it: the column is
    about 342px at 390px wide, so a card either side of a centre line gets
    ~165px, and after its own padding that is roughly 117px of text — twelve
    characters a line. A quote would come apart. Against the leading edge each
    card keeps ~310px and, just as usefully, there is only one place the next
-   memory can be, so the order is never ambiguous. The centre spine and the
+   keep can be, so the order is never ambiguous. The centre spine and the
    alternation arrive at the width that can pay for them, near 760px. */
+
+import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import BookCover from '../components/BookCover'
+import GlassSurface from '../components/GlassSurface'
+import LeafButton from '../components/LeafButton'
+import {
+  BackIcon,
+  BookIcon,
+  FairCopyIcon,
+  GridIcon,
+  MoreIcon,
+  SortIcon,
+  StackIcon,
+  StrandIcon,
+} from '../components/TabIcons'
+import type { Entry } from '../data/db'
+import { useBook, useEntries, useStrands } from '../data/useBook'
+import Keep from '../journey/Keep'
+import KeepSheet, { type Compose } from '../journey/KeepSheet'
+import KeepMenu from '../journey/KeepMenu'
+import SiftSheet from '../journey/SiftSheet'
+import FairCopySheet from '../journey/FairCopySheet'
+import BookMenu from '../journey/BookMenu'
+import { colophon, count, epigraph, formatPhrase } from '../journey/lexicon'
+import { ALL, arrange, sifting, strandColor, type Sift } from '../journey/order'
+import { removeKeep } from '../journey/keeps'
+import pageStyles from './page.module.css'
+import styles from './BookJourney.module.css'
+
+/* ── The three readings ──────────────────────────────────────────────────── */
+
+type Variant = 'bound' | 'scrap' | 'index'
+
+const VARIANTS: { value: Variant; label: string; Icon: typeof BookIcon }[] = [
+  { value: 'bound', label: 'Bound', Icon: BookIcon },
+  { value: 'scrap', label: 'Scrapbook', Icon: StackIcon },
+  { value: 'index', label: 'Index', Icon: GridIcon },
+]
+
+const VIEW_KEY = 'flyleaf-journey-view'
+
+function storedVariant(): Variant {
+  try {
+    const saved = localStorage.getItem(VIEW_KEY)
+    if (saved === 'bound' || saved === 'scrap' || saved === 'index') return saved
+  } catch {
+    /* Private mode, or storage the browser will not hand over. The default
+       reading is a fine answer and is not worth an error for. */
+  }
+  return 'bound'
+}
+
+/** How long a deleted keep stays undoable. Long enough to read the sentence
+    and change your mind, short enough that it is gone by the time the reader
+    has scrolled somewhere else and forgotten what it was about. */
+const UNDO_MS = 9000
+
+interface Undo {
+  what: string
+  restore: () => Promise<void>
+}
+
 function BookJourney() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const parsed = Number(id)
-  const book = useBook(Number.isFinite(parsed) ? parsed : undefined)
-  const entries = usePlaceholders()
+  const bookId = Number.isFinite(parsed) ? parsed : undefined
+
+  const book = useBook(bookId)
+  const keeps = useEntries(bookId)
+  const strands = useStrands(bookId)
+
+  const [variant, setVariant] = useState<Variant>(storedVariant)
+  const [sift, setSift] = useState<Sift>(ALL)
+  const [compose, setCompose] = useState<Compose | null>(null)
+  const [menuKeep, setMenuKeep] = useState<Entry | null>(null)
+  const [siftOpen, setSiftOpen] = useState(false)
+  const [fairOpen, setFairOpen] = useState(false)
+  const [bookOpen, setBookOpen] = useState(false)
+  const [undo, setUndo] = useState<Undo | null>(null)
+
+  const rows = useMemo(
+    () => arrange(keeps ?? [], strands ?? [], sift),
+    [keeps, strands, sift],
+  )
+
+  function choose(next: Variant) {
+    setVariant(next)
+    try {
+      localStorage.setItem(VIEW_KEY, next)
+    } catch {
+      /* See above: the reading still changes, it just will not be remembered. */
+    }
+  }
+
+  /* The undo clears itself. Kept in an effect rather than a timeout set at the
+     call site, so that deleting a second keep before the first bar expires
+     restarts the clock instead of leaving a stale one to fire early. */
+  useEffect(() => {
+    if (!undo) return
+    const t = setTimeout(() => setUndo(null), UNDO_MS)
+    return () => clearTimeout(t)
+  }, [undo])
+
+  async function deleteKeep(keep: Entry) {
+    const restore = await removeKeep(keep)
+    setMenuKeep(null)
+    setUndo({
+      what:
+        keep.strandMark === 'open'
+          ? 'That keep and the strand it opened are gone.'
+          : 'That one is gone.',
+      restore,
+    })
+  }
 
   // Dexie has not answered yet. Nothing, rather than a skeleton: the answer is
   // local and arrives within a frame or two, and a shape that flashes is worse
   // than a page that appears.
   if (book === undefined) return <main className={pageStyles.page} />
 
-  const format = book?.format ? FORMAT[book.format] : null
-  const pct =
-    book?.pages && book.pagesRead
-      ? Math.round((book.pagesRead / book.pages) * 100)
+  if (book === null) {
+    return (
+      <main className={pageStyles.page}>
+        <div className={`${pageStyles.column} ${styles.journeyColumn}`}>
+          <Link to="/library" className={styles.back}>
+            <BackIcon size={18} />
+            <span>Library</span>
+          </Link>
+          <p className={styles.missing}>
+            That book isn’t on your shelf. It may have been removed from this
+            device.
+          </p>
+        </div>
+      </main>
+    )
+  }
+
+  const kept = keeps ?? []
+  const threads = strands ?? []
+  const running = threads.filter((s) => !s.closedAt)
+  const said = epigraph(book, kept, threads)
+  const foot = colophon(book, kept, threads)
+  const showing = new Set(rows.map((r) => r.keep.id)).size
+
+  /* How far the bookmark sits into the block, 0–1. Only drawn when both
+     numbers exist: a ribbon at an invented depth is worse than no ribbon. */
+  const depth =
+    book.pages && book.pagesRead !== undefined
+      ? Math.min(1, Math.max(0, book.pagesRead / book.pages))
       : null
 
   return (
@@ -353,95 +179,305 @@ function BookJourney() {
           <span>Library</span>
         </Link>
 
-        {book === null ? (
-          <p className={styles.missing}>
-            That book isn’t on your shelf. It may have been removed from this
-            device.
-          </p>
-        ) : (
-          <>
-            {/* The inside cover. On the sky rather than on a card, because a
-                card here would make the book one more keepsake among the
-                keepsakes below instead of the thing they all belong to. */}
-            <header className={styles.insideCover}>
-              <div className={styles.opening}>
-                <BookCover
-                  title={book.title}
-                  author={book.author}
-                  covers={book.covers}
-                  width={112}
-                  rotate={-2}
-                />
-              </div>
-              <div className={styles.identity}>
-                <h1 className={styles.title}>{book.title}</h1>
-                <p className={styles.author}>{book.author}</p>
+        {/* The inside cover. On the sky rather than on a card, because a card
+            here would make the book one more keepsake among the keepsakes
+            below instead of the thing they all belong to. */}
+        <header className={styles.insideCover}>
+          <div className={styles.jacket}>
+            <div className={styles.opening}>
+              <BookCover
+                title={book.title}
+                author={book.author}
+                covers={book.covers}
+                width={200}
+                rotate={-1.5}
+              />
+            </div>
+            {/* Progress as a thing in the book rather than a number about it.
+                The ribbon sits where the reader's own bookmark would sit —
+                that far into the block of pages — so how far in is read from
+                the shape, at a glance, before any figure is. */}
+            {depth !== null && (
+              <span
+                className={styles.bookmark}
+                style={{ '--depth': depth } as React.CSSProperties}
+                aria-hidden="true"
+              />
+            )}
+          </div>
 
-                <dl className={styles.facts}>
-                  {format && (
-                    <div className={styles.fact}>
-                      <dt>Format</dt>
-                      <dd>
-                        <format.Icon size={14} />
-                        {format.label}
-                      </dd>
-                    </div>
-                  )}
-                  {book.startedOn && (
-                    <div className={styles.fact}>
-                      <dt>Started</dt>
-                      <dd>{keptLabel(book.startedOn)}</dd>
-                    </div>
-                  )}
-                  {pct !== null && (
-                    <div className={styles.fact}>
-                      <dt>Progress</dt>
-                      <dd>{pct}%</dd>
-                    </div>
-                  )}
-                </dl>
-              </div>
-            </header>
+          <div className={styles.identity}>
+            <h1 className={styles.title}>{book.title}</h1>
+            <p className={styles.author}>{book.author}</p>
 
-            <section className={styles.journey} aria-label="Kept memories">
-              {entries.map((entry, i) => (
-                <JourneyEntry
-                  key={entry.id}
-                  entry={entry}
-                  last={i === entries.length - 1}
-                />
+            <p className={styles.epigraph}>{said.line}</p>
+            {said.hint && <p className={styles.hint}>{said.hint}</p>}
+
+            <p className={styles.reading}>
+              {formatPhrase(book) || 'Not marked yet'}
+              {depth !== null && (
+                <>
+                  <span aria-hidden="true"> · </span>
+                  <span className={styles.depth}>
+                    page {book.pagesRead} of {book.pages}
+                  </span>
+                </>
+              )}
+            </p>
+
+            <button
+              type="button"
+              className={styles.aboutBook}
+              onClick={() => setBookOpen(true)}
+            >
+              <MoreIcon size={16} />
+              About this book
+            </button>
+          </div>
+        </header>
+
+        {/* The tool bar. The three readings on the leading side, the two things
+            you can do to the whole journey on the trailing side — the same
+            arrangement the library uses for its own views. */}
+        <div className={styles.tools}>
+          <GlassSurface className={styles.switcher}>
+            <div
+              role="radiogroup"
+              aria-label="How to lay the journey out"
+              className={styles.tabs}
+            >
+              {VARIANTS.map(({ value, label, Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={variant === value}
+                  aria-label={label}
+                  className={styles.tab}
+                  onClick={() => choose(value)}
+                >
+                  <Icon size={17} />
+                  {/* The word only for the reading you are in — the same rule
+                      the library and the settings tabs already follow, and the
+                      reason three tabs fit beside two actions on a phone. */}
+                  {variant === value && (
+                    <span className={styles.tabLabel} aria-hidden="true">
+                      {label}
+                    </span>
+                  )}
+                </button>
               ))}
-            </section>
-          </>
+            </div>
+          </GlassSurface>
+
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.action}
+              data-on={sifting(sift) || sift.order !== 'kept' || undefined}
+              onClick={() => setSiftOpen(true)}
+              aria-label="How to read this journey"
+            >
+              <SortIcon size={19} />
+            </button>
+            <button
+              type="button"
+              className={styles.action}
+              onClick={() => setFairOpen(true)}
+              aria-label="Fair copy"
+            >
+              <FairCopyIcon size={19} />
+            </button>
+          </div>
+        </div>
+
+        {/* What is still being followed, and the one place to tie it off. A
+            strand nobody can close quietly becomes clutter. */}
+        {running.length > 0 && (
+          <div className={styles.following}>
+            <span className={styles.followingLabel}>
+              <StrandIcon size={14} />
+              Following
+            </span>
+            {running.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className={styles.strandTab}
+                style={{ '--strand': strandColor(s.hue) } as React.CSSProperties}
+                onClick={() => setCompose({ as: 'tie', strand: s })}
+              >
+                <span className={styles.swatch} aria-hidden="true" />
+                {s.name}
+                <span className={styles.tieOff}>tie off</span>
+              </button>
+            ))}
+          </div>
         )}
+
+        {sifting(sift) && (
+          <p className={styles.sifted}>
+            Showing {count(showing, { one: 'keep', many: 'keeps' })} of {kept.length}.{' '}
+            <button
+              type="button"
+              className={styles.clear}
+              onClick={() => setSift({ ...ALL, order: sift.order })}
+            >
+              Show everything
+            </button>
+          </p>
+        )}
+
+        {rows.length > 0 ? (
+          <section
+            className={styles.journey}
+            data-variant={variant}
+            aria-label="Everything kept from this book"
+          >
+            {/* Fragments, not wrappers. The Scrapbook lays each sheet over the
+                one above it with `.keep + .keep`, and a div around every row
+                would break that adjacency and quietly flatten the variation
+                back into a list. */}
+            {rows.map((row, i) => (
+              <Fragment key={`${row.keep.id}-${row.divider ?? ''}`}>
+                {row.divider && <h2 className={styles.divider}>{row.divider}</h2>}
+                <Keep
+                  row={row}
+                  strands={threads}
+                  last={i === rows.length - 1}
+                  onMenu={setMenuKeep}
+                  onMotif={(motif) =>
+                    setSift((s) => ({ ...s, motif: s.motif === motif ? null : motif }))
+                  }
+                />
+              </Fragment>
+            ))}
+          </section>
+        ) : (
+          <p className={styles.absent}>
+            {kept.length
+              ? 'Nothing here matches that. Change what you are looking for, or show everything again.'
+              : 'The thread starts with the first thing you keep.'}
+          </p>
+        )}
+
+        {/* The colophon: the book's own end matter, set the way a printer would
+            set it — terms and details, no charts, no streaks. */}
+        {foot.length > 0 && (
+          <dl className={styles.colophon}>
+            {foot.map(({ term, detail }) => (
+              <div key={term} className={styles.colophonLine}>
+                <dt>{term}</dt>
+                <dd>{detail}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        {/* Sticky rather than fixed: it rides above the journey but stays
+            inside the reading column, so it never sits over the bottom bar and
+            never floats out over a card's trailing edge on a wide screen. The
+            undo is inside it so the two are spaced by a flex gap rather than by
+            one of them being told how tall the other is. */}
+        <div className={styles.dock}>
+          {undo && (
+            <div className={styles.undo} role="status">
+              <span>{undo.what}</span>
+              <button
+                type="button"
+                className={styles.undoAction}
+                onClick={async () => {
+                  await undo.restore()
+                  setUndo(null)
+                }}
+              >
+                Undo
+              </button>
+            </div>
+          )}
+
+          <GlassSurface className={styles.dockInner}>
+            {/* The row is its own element because GlassSurface puts the class
+                on its outer shell and lays the children out inside a scrim one
+                level down — laying out from the shell leaves the two buttons
+                stacked. */}
+            <div className={styles.dockRow}>
+              <LeafButton className={styles.keepIt} onClick={() => setCompose({ as: 'keep' })}>
+                Keep something
+              </LeafButton>
+              {/* Labelled either way: the words are dropped on a narrow phone
+                  so the primary button keeps its own on one line, and the name
+                  is on the button itself rather than in the span, so nothing
+                  is lost when the span goes. */}
+              <button
+                type="button"
+                className={styles.startStrand}
+                aria-label="Start a strand"
+                onClick={() => setCompose({ as: 'strand' })}
+              >
+                <StrandIcon size={17} />
+                <span className={styles.startStrandLabel}>Start a strand</span>
+              </button>
+            </div>
+          </GlassSurface>
+        </div>
       </div>
+
+      <KeepSheet
+        open={compose !== null}
+        onClose={() => setCompose(null)}
+        book={book}
+        strands={threads}
+        mode={compose ?? { as: 'keep' }}
+      />
+
+      <KeepMenu
+        open={menuKeep !== null}
+        onClose={() => setMenuKeep(null)}
+        keep={menuKeep}
+        book={book}
+        strands={threads}
+        onEdit={() => {
+          if (!menuKeep) return
+          const editing = menuKeep
+          setMenuKeep(null)
+          setCompose({ as: 'keep', editing })
+        }}
+        onDelete={() => {
+          if (menuKeep) void deleteKeep(menuKeep)
+        }}
+      />
+
+      <SiftSheet
+        open={siftOpen}
+        onClose={() => setSiftOpen(false)}
+        sift={sift}
+        onChange={setSift}
+        keeps={kept}
+        strands={threads}
+        showing={showing}
+      />
+
+      <FairCopySheet
+        open={fairOpen}
+        onClose={() => setFairOpen(false)}
+        book={book}
+        keeps={kept}
+        strands={threads}
+      />
+
+      <BookMenu
+        open={bookOpen}
+        onClose={() => setBookOpen(false)}
+        book={book}
+        keeps={kept}
+        onRemoved={() => {
+          setBookOpen(false)
+          navigate('/library')
+        }}
+      />
     </main>
   )
-}
-
-/* Placeholder media, attached after the first paint. Both blobs are built in
-   the browser, and neither is worth holding up the page for. Goes with the
-   placeholders themselves at step 05. */
-function usePlaceholders() {
-  const [entries, setEntries] = useState(PLACEHOLDERS)
-  useEffect(() => {
-    let live = true
-    void placeholderPhoto().then((photo) => {
-      if (!live) return
-      setEntries((current) =>
-        current.map((entry) => {
-          if (entry.type === 'image') return { ...entry, media: photo }
-          if (entry.type === 'voice')
-            return { ...entry, media: silentWav(entry.duration ?? 6) }
-          return entry
-        }),
-      )
-    })
-    return () => {
-      live = false
-    }
-  }, [])
-  return entries
 }
 
 export default BookJourney

@@ -394,3 +394,153 @@ export function SettingsIcon({ size = 22 }: IconProps) {
     </svg>
   )
 }
+
+/* ── The journey's own verbs ──────────────────────────────────────────────
+   Drawn in the same hand as the tabs above: one 24-box, round caps, 1.8
+   stroke, and nothing an icon library would have given us. */
+
+/** A strand: a line that leaves the thread, runs alongside, and knots. */
+export function StrandIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M8 4 L 8 20" />
+        <path d="M8 7 C 14 8 16 10 16 12 C 16 14 14 16 8 17" />
+        <circle cx="16" cy="12" r="1.6" />
+      </g>
+    </svg>
+  )
+}
+
+/** A motif: what a keep is about. A luggage tag, not a hash. */
+export function MotifIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M11.5 4.5 L 19 4.5 L 19 12 L 11.5 19.5 L 4.5 12.5 Z" />
+        <circle cx="15.5" cy="8" r="1.4" />
+      </g>
+    </svg>
+  )
+}
+
+/** More, on a keep. Three dots is the one place a convention beats a drawing:
+    a reader looking for "everything else" looks here first. */
+export function MoreIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g fill="currentColor">
+        <circle cx="6" cy="12" r="1.7" />
+        <circle cx="12" cy="12" r="1.7" />
+        <circle cx="18" cy="12" r="1.7" />
+      </g>
+    </svg>
+  )
+}
+
+export function ShareIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M12 15.5 L 12 4.5" />
+        <path d="M8.5 8 L 12 4.5 L 15.5 8" />
+        <path d="M7 11 L 5.5 11 C 5 11 4.5 11.5 4.5 12 L 4.5 19 C 4.5 19.5 5 20 5.5 20 L 18.5 20 C 19 20 19.5 19.5 19.5 19 L 19.5 12 C 19.5 11.5 19 11 18.5 11 L 17 11" />
+      </g>
+    </svg>
+  )
+}
+
+export function TrashIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M4.5 7 L 19.5 7" />
+        <path d="M9.5 7 L 9.5 5 C 9.5 4.5 10 4 10.5 4 L 13.5 4 C 14 4 14.5 4.5 14.5 5 L 14.5 7" />
+        <path d="M6.5 7 L 7.4 19 C 7.45 19.6 7.9 20 8.5 20 L 15.5 20 C 16.1 20 16.55 19.6 16.6 19 L 17.5 7" />
+        <path d="M10.5 10.5 L 10.8 16.5" />
+        <path d="M13.5 10.5 L 13.2 16.5" />
+      </g>
+    </svg>
+  )
+}
+
+/** Sort: three rules, longest first, with the arrow that reorders them. */
+export function SortIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M4 7 L 14 7" />
+        <path d="M4 12 L 11 12" />
+        <path d="M4 17 L 8 17" />
+        <path d="M17.5 6 L 17.5 18" />
+        <path d="M15 15.5 L 17.5 18 L 20 15.5" />
+      </g>
+    </svg>
+  )
+}
+
+/** The Feed shelf view: one book to a row, with its last keep under it. */
+export function FeedIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <rect x="4" y="4.5" width="5" height="6.5" rx="1" />
+        <path d="M11.5 6.5 L 20 6.5" />
+        <path d="M11.5 9.5 L 17.5 9.5" />
+        <rect x="4" y="13" width="5" height="6.5" rx="1" />
+        <path d="M11.5 15 L 20 15" />
+        <path d="M11.5 18 L 17.5 18" />
+      </g>
+    </svg>
+  )
+}
+
+/** Fair Copy: a clean sheet drawn off a marked-up one. */
+export function FairCopyIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M8 4.5 L 15 4.5 L 18.5 8 L 18.5 19.5 L 8 19.5 Z" />
+        <path d="M14.5 4.5 L 14.5 8.5 L 18.5 8.5" />
+        <path d="M10.8 12 L 15.7 12" />
+        <path d="M10.8 15.5 L 14 15.5" />
+        <path d="M5.5 7 L 5.5 17" />
+      </g>
+    </svg>
+  )
+}
+
+/** Plus, for adding a keep. */
+export function PlusIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M12 5.5 L 12 18.5" />
+        <path d="M5.5 12 L 18.5 12" />
+      </g>
+    </svg>
+  )
+}
+
+/** A pencil, for editing what is already kept. */
+export function EditIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M15.5 4.8 L 19.2 8.5 L 8.7 19 L 4.5 19.5 L 5 15.3 Z" />
+        <path d="M13.5 6.8 L 17.2 10.5" />
+      </g>
+    </svg>
+  )
+}
+
+/** A tick, for marking a book finished and for confirming in menus. */
+export function CheckIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M5 12.5 L 10 17.5 L 19 6.5" />
+      </g>
+    </svg>
+  )
+}

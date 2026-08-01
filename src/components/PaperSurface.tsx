@@ -1,5 +1,14 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
 import styles from './PaperSurface.module.css'
+
+export type PaperTone =
+  | 'default'
+  | 'quote'
+  | 'note'
+  | 'voice'
+  | 'image'
+  | 'highlight'
+  | 'strand'
 
 interface PaperSurfaceProps {
   children: ReactNode
@@ -7,8 +16,12 @@ interface PaperSurfaceProps {
   rotate?: number
   taped?: boolean
   /** Entry-type surface tint. */
-  tone?: 'default' | 'quote' | 'note' | 'voice' | 'image' | 'highlight'
+  tone?: PaperTone
+  /** The element to print on. A keep is an `article`, a pile of them is a
+      `li` — the surface is a material, not a semantic. */
+  as?: ElementType
   className?: string
+  style?: CSSProperties
 }
 
 const TONE_CLASS = {
@@ -18,6 +31,7 @@ const TONE_CLASS = {
   voice: styles.toneVoice,
   image: styles.toneImage,
   highlight: styles.toneHighlight,
+  strand: styles.toneStrand,
 }
 
 /** Aged-paper content surface — entries, cards, keepsakes. */
@@ -26,16 +40,20 @@ function PaperSurface({
   rotate = 0,
   taped = false,
   tone = 'default',
+  as: Tag = 'div',
   className,
+  style,
 }: PaperSurfaceProps) {
   const classes = [styles.paper, taped && styles.taped, TONE_CLASS[tone], className]
     .filter(Boolean)
     .join(' ')
-  const style = { '--paper-rotate': `${rotate}deg` } as CSSProperties
   return (
-    <div className={classes} style={style}>
+    <Tag
+      className={classes}
+      style={{ '--paper-rotate': `${rotate}deg`, ...style } as CSSProperties}
+    >
       {children}
-    </div>
+    </Tag>
   )
 }
 

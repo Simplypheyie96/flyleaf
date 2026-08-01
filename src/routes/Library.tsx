@@ -7,28 +7,33 @@ import SpineArt from '../books/SpineArt'
 import SpineMark from '../books/SpineMark'
 import { seedFrom } from '../books/seed'
 import GlassSurface from '../components/GlassSurface'
+import PaperSurface from '../components/PaperSurface'
 import {
   ChevronIcon,
+  FeedIcon,
   GridIcon,
   SearchIcon,
   ShelfIcon,
   StackIcon,
 } from '../components/TabIcons'
-import type { Book } from '../data/db'
-import { useLibrary } from '../data/useLibrary'
+import type { Book, Entry } from '../data/db'
+import { KIND } from '../journey/Keep'
+import { KEEP, keptLabel } from '../journey/lexicon'
+import { useLatestKeeps, useLibrary } from '../data/useLibrary'
 import { shelved } from '../motion/shelfLanding'
 import { runSwitch } from '../motion/viewSwitch'
 import type { FadePhase } from '../motion/viewSwitch'
 import pageStyles from './page.module.css'
 import styles from './Library.module.css'
 
-type ShelfView = 'Stack' | 'Shelf' | 'Grid'
+type ShelfView = 'Stack' | 'Shelf' | 'Grid' | 'Feed'
 const VIEW_KEY = 'flyleaf-shelf-view'
 
 const VIEWS: { id: ShelfView; Icon: typeof StackIcon; hint: string }[] = [
   { id: 'Stack', Icon: StackIcon, hint: 'piled, one on top of another' },
   { id: 'Shelf', Icon: ShelfIcon, hint: 'standing, spines out' },
   { id: 'Grid', Icon: GridIcon, hint: 'covers in a grid' },
+  { id: 'Feed', Icon: FeedIcon, hint: 'one to a row, with the last thing kept' },
 ]
 
 /** The way into a book's journey, laid over the book itself.
@@ -187,7 +192,7 @@ function fitSpine(title: string, author: string, spineHeight: number) {
 
 function getStoredView(): ShelfView {
   const stored = localStorage.getItem(VIEW_KEY)
-  return stored === 'Shelf' || stored === 'Grid' ? stored : 'Stack'
+  return VIEWS.some((v) => v.id === stored) ? (stored as ShelfView) : 'Stack'
 }
 
 /* ---- Stack: a deck you deal through ----
@@ -422,11 +427,108 @@ function StackDeck({ books }: { books: Book[] }) {
   )
 }
 
-/* The full bookshelf: Stack (emotional default) · Shelf · Grid.
+/* ---- Feed: the shelf as a reading log ----
+
+   The other three views all answer "which books do I have". This one answers
+   "what have I been doing in them", which is a different question and the one
+   a reader actually opens the app holding. So the row leads with the book but
+   is mostly the last thing kept from it, printed on that keep's own tint — the
+   same surface the journey prints it on, so a reader recognises a quote as a
+   quote before reading a word of it.
+
+   A book with nothing kept yet is not hidden and not apologised for. It gets a
+   line saying so, because an empty row is the most useful thing on the screen:
+   it is the book you meant to write something about. */
+
+/** What the excerpt says when the keep has no words of its own. A voice note
+    and a picture are not text, and printing an empty string under a title
+    would read as a bug rather than as a recording. */
+function excerpt(keep: Entry) {
+  if (keep.text?.trim()) return keep.text.trim()
+  if (keep.type === 'voice') {
+    const secs = Math.round(keep.duration ?? 0)
+    return secs > 0 ? `${secs} seconds, in your own voice.` : 'A recording.'
+  }
+  if (keep.type === 'image') return 'A picture from the page.'
+  return `A ${KEEP[keep.type].one}.`
+}
+
+/** Where the reader is in the book, said the way the shelf can say it without
+    the journey's whole colophon: a page if there is one, otherwise nothing.
+    Deliberately not a percentage — see `Book.pagesRead`. */
+function bookmark(book: Book) {
+  if (book.finishedOn) return 'Finished'
+  if (!book.pagesRead) return null
+  return book.pages
+    ? `page ${book.pagesRead} of ${book.pages}`
+    : `page ${book.pagesRead}`
+}
+
+function FeedRow({
+  book,
+  keep,
+  style,
+}: {
+  book: Book
+  keep: Entry | undefined
+  style?: CSSProperties
+}) {
+  const where = bookmark(book)
+  const kind = keep ? KIND[keep.type] : null
+
+  return (
+    <li className={`${styles.feedRow} ${styles.book}`} style={style}>
+      {/* Thumb, so the drawn board carries its motif and nothing else. At a
+          68px jacket the typeset title is a grey smudge, and the row sets the
+          same title beside it in type you can actually read — printing it on
+          both made the board look like a mistake, and made a screen reader say
+          every book's name twice before reaching what was kept from it. */}
+      <div className={styles.feedJacket}>
+        <BookCover
+          title={book.title}
+          author={book.author}
+          covers={book.covers}
+          size="thumb"
+        />
+      </div>
+
+      <div className={styles.feedBody}>
+        <h2 className={styles.feedTitle}>{book.title}</h2>
+        <p className={styles.feedAuthor}>{book.author}</p>
+        {where && <p className={styles.feedWhere}>{where}</p>}
+
+        {keep && kind ? (
+          <PaperSurface tone={kind.tone} className={styles.feedKeep}>
+            <span className={styles.feedKeepHead}>
+              <kind.Icon size={15} />
+              <span className={styles.feedKeepKind}>{kind.label}</span>
+              <span className={styles.feedKeepWhen}>{keptLabel(keep.keptOn)}</span>
+            </span>
+            {/* Clamped rather than cut in the string, so the whole keep is
+                still on the page for anything that reads it rather than
+                looks at it — and so the clamp follows the column width
+                instead of guessing at it. */}
+            <p className={styles.feedKeepText}>{excerpt(keep)}</p>
+          </PaperSurface>
+        ) : (
+          <p className={styles.feedNothing}>Nothing kept from this one yet.</p>
+        )}
+      </div>
+
+      <OpenJourney book={book} />
+    </li>
+  )
+}
+
+/* The full bookshelf: Stack (emotional default) · Shelf · Grid · Feed.
    Search here is the entry point to the archive search surface (06). */
 function Library() {
   const books = useLibrary()
   const libraryBooks = books ?? []
+  /* Asked for unconditionally rather than only in the Feed view: it is one
+     indexed row per book, and running it here means switching into the Feed
+     shows the keeps in the same frame as the covers instead of a beat later. */
+  const latest = useLatestKeeps(libraryBooks.map((book) => book.id))
 
   /* Tell the add sheet the moment a book it is waiting for is on screen, so
      the cover it is holding can finish travelling here. Before paint, because
@@ -628,6 +730,27 @@ function Library() {
               </div>
               <div className={styles.ledge} aria-hidden="true" />
             </div>
+          )}
+
+          {hasBooks && view === 'Feed' && (
+            <ol className={styles.feed}>
+              {libraryBooks.map((book, i) => (
+                <FeedRow
+                  key={book.id}
+                  book={book}
+                  keep={latest?.[book.id]}
+                  /* The stagger and the shared name are on the row rather
+                     than inside it, so the cover that flies here from the
+                     add sheet lands in the same place it does in the Grid. */
+                  style={
+                    {
+                      viewTransitionName: `book-${book.id}`,
+                      '--enter-delay': `calc(${i} * var(--stagger))`,
+                    } as CSSProperties
+                  }
+                />
+              ))}
+            </ol>
           )}
 
           {hasBooks && view === 'Grid' && (

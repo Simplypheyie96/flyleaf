@@ -32,7 +32,8 @@
 .toneNote,
 .toneVoice,
 .toneImage,
-.toneHighlight {
+.toneHighlight,
+.toneStrand {
   --color-ink: var(--tint-ink);
   --color-ink-soft: var(--tint-ink-soft);
   --color-ink-faint: var(--tint-ink-faint);
@@ -74,6 +75,15 @@
   --paper-tone: var(--card-highlight);
   --paper-tone-solid: var(--card-highlight-solid);
   --color-highlight: var(--tint-highlight);
+}
+
+/* The one cool sheet in a warm pile. A strand card is the reader talking about
+   the book rather than the book talking, and the material says so before a
+   word is read. */
+.toneStrand {
+  --paper-tone: var(--card-strand);
+  --paper-tone-solid: var(--card-strand-solid);
+  --color-strand: var(--tint-strand);
 }
 
 /* Aged paper grain. */
