@@ -57,7 +57,18 @@
      so 0.945 is a fifth of a step down from the first and half a step from
      the second — enough to hold an edge in both places, and short of the
      0.93 sky itself, which read as a hole punched through the bar. */
-  --color-chip-active: oklch(0.945 0.028 234);
+  --color-chip-active: oklch(0.968 0.018 240);
+  /* And the pill is drawn, not filled. Fill alone has to go dark enough to
+     beat the glass, which is what kept reading as heavy; an outline separates
+     at any lightness, so the fill can stay a whisper bluer than the track and
+     this line does the work. */
+  --color-chip-active-border: oklch(0.9 0.03 245);
+  /* The same glass, filled for a white card instead of the sky. GlassSurface
+     takes its colour from what is behind it, so the three controls floating
+     over the page read pale blue and the one seated on a paper card came out
+     white. This is what the others composite to (~0.966 over the sky), stated
+     outright so Appearance matches them wherever it sits. */
+  --chip-track-on-paper: oklch(0.962 0.014 240);
 
   /* ---- Entry-type identities (muted, airy) ---- */
   --color-quote: oklch(0.55 0.06 140); /* sage */
@@ -377,6 +388,11 @@
   --color-accent-text: oklch(0.78 0.06 262); /* moonlit periwinkle ink */
   --color-accent-tint: oklch(0.34 0.03 265);
   --color-chip-active: oklch(0.37 0.03 265);
+  /* After dark the pill is already the lightest thing in the row, so the
+     outline only has to keep the edge crisp rather than create it. */
+  --color-chip-active-border: oklch(0.95 0.015 250 / 0.2);
+  /* What the floating glass composites to over the night page. */
+  --chip-track-on-paper: oklch(0.3 0.028 265);
 
   --color-quote: oklch(0.7 0.06 140);
   --color-note: oklch(0.75 0.09 85);

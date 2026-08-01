@@ -138,7 +138,7 @@
      knockout has to follow the capsule it's sitting in. */
   --icon-knockout: var(--color-chip-active);
   background: var(--color-chip-active);
-  border-color: var(--border-hairline);
+  border-color: var(--color-chip-active-border);
   box-shadow: var(--elevation-1);
   color: var(--color-ink);
 }
