@@ -28,6 +28,19 @@
   --color-ink-soft: oklch(0.44 0.02 250);
   --color-ink-faint: oklch(0.54 0.02 245); /* large/decorative only */
 
+  /* ---- An unlit pager dot ----
+
+     The faint ink above with its softening carried in the colour rather than
+     applied over it. Identical on screen to `--color-ink-faint` at 35%, and
+     deliberately not written that way: the `opacity` property makes an
+     element its own compositing layer, and alpha inside a paint colour does
+     not. A pager dot changes several times a second under a thumb, and five
+     of them promoting and demoting layers that fast, beside translucent
+     chrome, is how iOS ends up showing tiles it has already finished with.
+     The dot has no business being on the compositor at all — it is six
+     pixels of flat colour. */
+  --pip-off: oklch(0.54 0.02 245 / 0.35);
+
   /* ---- Primary action (ink pill, Craft-style) ---- */
   --color-action: oklch(0.25 0.02 255);
   --color-action-hover: oklch(0.32 0.025 255);
@@ -409,6 +422,10 @@
   --color-ink: oklch(0.92 0.012 250);
   --color-ink-soft: oklch(0.74 0.018 255);
   --color-ink-faint: oklch(0.62 0.02 258);
+
+  /* The unlit dot after dark — see the light block for why the softening
+     lives in the colour instead of in an `opacity`. */
+  --pip-off: oklch(0.62 0.02 258 / 0.35);
 
   /* Action inverts at night: light pill, dark label (Apple-style) */
   --color-action: oklch(0.92 0.015 250);
