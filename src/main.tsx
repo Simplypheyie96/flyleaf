@@ -12,9 +12,16 @@ import './styles/tokens.css'
 import './styles/motion.css'
 import './index.css'
 import { applyTheme, getPref } from './theme'
+/* TEMPORARY — delete this import, the call below, and src/data/seed.ts when
+   previews no longer need a shelf to look at. */
+import { seedLibrary } from './data/seed'
 import App from './App.tsx'
 
 applyTheme(getPref())
+
+/* Not awaited: the shelf is a live query, so the books appear the moment they
+   land rather than holding the first paint for a database write. */
+void seedLibrary()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

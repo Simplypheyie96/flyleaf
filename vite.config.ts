@@ -4,6 +4,15 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  /* TEMPORARY, with src/data/seed.ts — a preview link is no use if it opens on
+     an empty library, but a real reader must never be handed somebody else's
+     books. Vercel sets VERCEL_ENV on every build it runs ('production',
+     'preview' or 'development'), so the production deployment is the one build
+     that comes out with the seed compiled away. Locally the variable is unset,
+     which reads as not-production, and `npm run dev` seeds too. */
+  define: {
+    __PREVIEW_SEED__: JSON.stringify(process.env.VERCEL_ENV !== 'production'),
+  },
   plugins: [
     react(),
     VitePWA({
