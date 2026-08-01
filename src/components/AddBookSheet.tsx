@@ -1,0 +1,610 @@
+import { useEffect, useRef, useState } from 'react'
+import type { CSSProperties, PointerEvent, RefObject } from 'react'
+import BookCover from './BookCover'
+import GlassSurface from './GlassSurface'
+import LeafButton from './LeafButton'
+import {
+  BackIcon,
+  BookIcon,
+  CalendarIcon,
+  CaretIcon,
+  CloseIcon,
+  HeadphonesIcon,
+  NoteIcon,
+  ScreenIcon,
+  SearchIcon,
+} from './TabIcons'
+import CalendarPicker from './date/CalendarPicker'
+import { longDate, todayISO } from './date/dates'
+import { useBookSearch } from '../books/useBookSearch'
+import type { BookResult } from '../books/sources'
+import { seedFrom } from '../books/seed'
+import db, { type BookFormat } from '../data/db'
+import { landOnShelf } from '../motion/shelfLanding'
+import styles from './AddBookSheet.module.css'
+
+interface AddBookSheetProps {
+  open: boolean
+  onClose: () => void
+}
+
+/* Three stages, one sheet. Search is where nearly everyone starts and ends;
+   manual entry is the floor beneath it, so that no book — out of print, self
+   published, in a language neither catalogue indexes well, or simply not
+   there — can be refused by this app. Confirm is where the reader says how
+   they are reading it, which is the only thing the catalogues cannot know. */
+type Stage =
+  | { kind: 'search' }
+  | { kind: 'manual' }
+  | { kind: 'confirm'; book: BookResult }
+
+/* Tabs, the same object as the nav and the shelf switcher: the icon is always
+   there and only the chosen one says its name. Three words side by side all
+   look equally chosen, which is the problem with a row of plain pills — the
+   one that is wearing its label is unmistakably the answer. */
+const FORMATS: { value: BookFormat; label: string; Icon: typeof BookIcon }[] = [
+  { value: 'physical', label: 'Physical', Icon: BookIcon },
+  { value: 'digital', label: 'Digital', Icon: ScreenIcon },
+  { value: 'audio', label: 'Audio', Icon: HeadphonesIcon },
+]
+
+/* How far down the sheet has to be dragged before letting go puts it away,
+   and how fast a short drag has to be moving to count instead.
+
+   Two tests rather than one, because there are two gestures here and they
+   feel nothing alike: a deliberate push down the screen, and a quick flick
+   off the bottom. Distance alone would ignore the flick; speed alone would
+   dismiss a slow, careful drag that stopped short — which reads as the sheet
+   ignoring you. */
+const DISMISS_AT = 96
+const FLICK = 0.5 // px per ms
+
+function AddBookSheet({ open, onClose }: AddBookSheetProps) {
+  const dialog = useRef<HTMLDialogElement>(null)
+  const field = useRef<HTMLInputElement>(null)
+  const { panel, grabProps } = useDragToDismiss(onClose)
+  const [query, setQuery] = useState('')
+  const [stage, setStage] = useState<Stage>({ kind: 'search' })
+  const search = useBookSearch(stage.kind === 'search' ? query : '')
+
+  /* A native dialog rather than a div with a high z-index: it takes the top
+     layer, traps focus, makes the page behind it inert and closes on Escape,
+     none of which is worth reimplementing by hand and all of which is worth
+     having. */
+  useEffect(() => {
+    const el = dialog.current
+    if (!el) return
+    if (open && !el.open) el.showModal()
+    if (!open && el.open) el.close()
+  }, [open])
+
+  // Every visit starts at the beginning: an add flow left half-finished is
+  // not a draft, and reopening to someone else's half-typed search is a bug.
+  useEffect(() => {
+    if (open) {
+      setQuery('')
+      setStage({ kind: 'search' })
+    }
+  }, [open])
+
+  /* The reader opened a sheet whose only purpose is this field, so the field
+     is where the caret belongs — and on a phone, that is what raises the
+     keyboard.
+
+     `autoFocus` cannot do it: React applies it when the input mounts, which
+     is while the dialog is still closed and nothing inside it is focusable,
+     and `showModal()` afterwards hands focus to the first focusable element
+     instead — Close. Keying on the stage as well as on `open` covers the
+     render where the sheet has opened but the stage has not been reset yet,
+     and gives the field back to the reader when they come back from confirm. */
+  useEffect(() => {
+    if (open && stage.kind === 'search') field.current?.focus()
+  }, [open, stage.kind])
+
+  return (
+    <dialog
+      ref={dialog}
+      className={styles.dialog}
+      aria-label="Add a book"
+      onClose={onClose}
+      // Clicking the backdrop is a click on the dialog element itself, since
+      // the panel inside it is what actually fills the sheet.
+      onClick={(event) => event.target === dialog.current && onClose()}
+    >
+      <GlassSurface ref={panel} className={styles.panel}>
+        {/* The grab handle. A sheet that can be pushed away has to say so —
+            without it the only way out is a button in the corner, and every
+            reader who has used a phone tries the drag first and concludes the
+            sheet is stuck.
+
+            Decorative, and deliberately not focusable: it is a second route
+            out for a thumb, never the only one. Close and Escape are the
+            routes for everyone else, which is what keeps a drag-only dismissal
+            from locking out a keyboard or a screen reader. */}
+        <div className={styles.grab} {...grabProps}>
+          <span className={styles.grabber} aria-hidden="true" />
+        </div>
+
+        <div className={styles.inner}>
+          {stage.kind === 'search' && (
+            <SearchStage
+              field={field}
+              query={query}
+              onQuery={setQuery}
+              state={search}
+              onPick={(book) => setStage({ kind: 'confirm', book })}
+              onManual={() => setStage({ kind: 'manual' })}
+              onClose={onClose}
+            />
+          )}
+
+          {stage.kind === 'manual' && (
+            <ManualStage
+              onBack={() => setStage({ kind: 'search' })}
+              onReady={(book) => setStage({ kind: 'confirm', book })}
+            />
+          )}
+
+          {stage.kind === 'confirm' && (
+            <ConfirmStage
+              book={stage.book}
+              onBack={() => setStage({ kind: 'search' })}
+              onDone={onClose}
+            />
+          )}
+        </div>
+      </GlassSurface>
+    </dialog>
+  )
+}
+
+/* Dragging the sheet down to put it away.
+
+   Written against pointer events rather than touch events so it is one code
+   path for a thumb, a trackpad and a mouse, and so `setPointerCapture` keeps
+   the gesture attached to the handle even when the finger slides off it —
+   which it always does, because the handle is 32px tall and the drag is
+   hundreds.
+
+   The transform is written straight to the node rather than held in state.
+   A drag produces a pointermove per frame, and re-rendering a sheet with a
+   twelve-row search list inside it at that rate is how a gesture that should
+   be free starts dropping frames. Nothing else on screen depends on the
+   offset, so nothing else needs to know about it. */
+function useDragToDismiss(onClose: () => void) {
+  const panel = useRef<HTMLDivElement>(null)
+  const drag = useRef<{ from: number; at: number; by: number } | null>(null)
+
+  function offset(by: number, settle: boolean) {
+    const el = panel.current
+    if (!el) return
+    el.style.transition = settle
+      ? 'transform var(--dur-base) var(--ease-out)'
+      : 'none'
+    el.style.transform = by ? `translateY(${by}px)` : ''
+  }
+
+  function release(settle: boolean) {
+    drag.current = null
+    offset(0, settle)
+  }
+
+  return {
+    panel,
+    grabProps: {
+      onPointerDown(event: PointerEvent<HTMLDivElement>) {
+        event.currentTarget.setPointerCapture(event.pointerId)
+        drag.current = { from: event.clientY, at: event.timeStamp, by: 0 }
+      },
+      onPointerMove(event: PointerEvent<HTMLDivElement>) {
+        const d = drag.current
+        if (!d) return
+        // Downward only. A bottom sheet dragged up has nowhere to go, and
+        // letting it lift off the bottom edge exposes the gap behind it.
+        d.by = Math.max(0, event.clientY - d.from)
+        offset(d.by, false)
+      },
+      onPointerUp(event: PointerEvent<HTMLDivElement>) {
+        const d = drag.current
+        if (!d) return
+        const speed = d.by / Math.max(1, event.timeStamp - d.at)
+        if (d.by > DISMISS_AT || speed > FLICK) {
+          /* Cleared without a transition and then closed in the same tick, so
+             the reset is never painted — the sheet simply goes. Leaving the
+             offset on the node would reopen it that far down the screen. */
+          release(false)
+          onClose()
+          return
+        }
+        release(true)
+      },
+      // The gesture was taken away from us mid-drag — a system swipe, a call
+      // arriving. The sheet was never dismissed, so it goes back.
+      onPointerCancel() {
+        if (drag.current) release(true)
+      },
+    },
+  }
+}
+
+/* ---- Stage one: search ---- */
+
+interface SearchStageProps {
+  field: RefObject<HTMLInputElement | null>
+  query: string
+  onQuery: (q: string) => void
+  state: ReturnType<typeof useBookSearch>
+  onPick: (book: BookResult) => void
+  onManual: () => void
+  onClose: () => void
+}
+
+function SearchStage({
+  field,
+  query,
+  onQuery,
+  state,
+  onPick,
+  onManual,
+  onClose,
+}: SearchStageProps) {
+  return (
+    <>
+      <header className={styles.head}>
+        <h2 className={styles.title}>Add a book</h2>
+        <button
+          type="button"
+          className={styles.iconButton}
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <CloseIcon size={20} />
+        </button>
+      </header>
+
+      <div className={styles.field}>
+        <SearchIcon size={18} />
+        <input
+          ref={field}
+          className={styles.input}
+          type="search"
+          value={query}
+          onChange={(event) => onQuery(event.target.value)}
+          placeholder="Title or author"
+          aria-label="Search for a book by title or author"
+        />
+      </div>
+
+      <div className={styles.results}>
+        {state.status === 'idle' && (
+          <p className={styles.quiet}>
+            Search by title or author, and the cover comes with it.
+          </p>
+        )}
+
+        {state.status === 'searching' && (
+          <p className={styles.quiet}>Looking through the shelves…</p>
+        )}
+
+        {state.status === 'done' &&
+          state.results.map((book) => (
+            <button
+              key={book.id}
+              type="button"
+              className={styles.result}
+              onClick={() => onPick(book)}
+            >
+              <BookCover
+                size="thumb"
+                width={44}
+                title={book.title}
+                author={book.author}
+                covers={book.covers}
+                className={styles.resultCover}
+              />
+              <span className={styles.resultText}>
+                <span className={styles.resultTitle}>{book.title}</span>
+                <span className={styles.resultMeta}>
+                  {[book.author, book.year, book.pages && `${book.pages} pages`]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
+              </span>
+            </button>
+          ))}
+
+        {state.status === 'done' && state.results.length === 0 && (
+          <p className={styles.quiet}>
+            Nothing came back for “{query.trim()}”. It may be out of print, or
+            spelled differently — you can put it on the shelf yourself.
+          </p>
+        )}
+
+        {/* Said differently from a miss on purpose. A reader with no signal is
+            not looking at a spelling mistake, and sending them off to check one
+            wastes their time on a search that never left the phone. */}
+        {state.status === 'unreachable' && (
+          <p className={styles.quiet}>
+            The catalogues didn’t answer — you may be offline. Try again in a
+            moment, or put the book on the shelf yourself.
+          </p>
+        )}
+      </div>
+
+      {/* Always offered, not only after a miss: the catalogues are a
+          convenience, and a reader who knows the book should never have to
+          fail a search first to be allowed to add it.
+
+          Which is exactly why it stopped being a text link. A link under a
+          list of results reads as a footnote to the search, and this is the
+          other half of the choice, not a consolation for the search failing.
+          Dashed rather than filled because it is still the second route: an
+          outline of a thing you have to fill in yourself. */}
+      <button type="button" className={styles.manualButton} onClick={onManual}>
+        <NoteIcon size={19} />
+        Shelve it yourself
+      </button>
+    </>
+  )
+}
+
+/* ---- Stage two: by hand ---- */
+
+function ManualStage({
+  onBack,
+  onReady,
+}: {
+  onBack: () => void
+  onReady: (book: BookResult) => void
+}) {
+  const [title, setTitle] = useState('')
+  const [author, setAuthor] = useState('')
+  const [pages, setPages] = useState('')
+  const ready = title.trim().length > 0 && author.trim().length > 0
+
+  return (
+    <form
+      className={styles.form}
+      onSubmit={(event) => {
+        event.preventDefault()
+        if (!ready) return
+        const clean = { title: title.trim(), author: author.trim() }
+        onReady({
+          id: seedFrom(clean.title, clean.author),
+          ...clean,
+          pages: Number(pages) || undefined,
+          // No catalogue record means no photograph, which is exactly the
+          // case the drawn covers exist for. Nothing to look up, nothing to
+          // wait for, and the same cover every time it is drawn.
+          covers: [],
+        })
+      }}
+    >
+      <header className={styles.head}>
+        <button
+          type="button"
+          className={styles.iconButton}
+          onClick={onBack}
+          aria-label="Back to search"
+        >
+          <BackIcon size={20} />
+        </button>
+        <h2 className={styles.title}>Shelve it yourself</h2>
+      </header>
+
+      <div className={styles.formBody}>
+        <label className={styles.label}>
+          Title
+          <input
+            className={styles.textInput}
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            required
+          />
+        </label>
+
+        <label className={styles.label}>
+          Author
+          <input
+            className={styles.textInput}
+            value={author}
+            onChange={(event) => setAuthor(event.target.value)}
+            required
+          />
+        </label>
+
+        <label className={styles.label}>
+          {/* Both words in one flex item. Loose in the label they are two, and
+              the label is a column, so “optional” dropped onto a line of its
+              own and read as an instruction rather than as an aside. */}
+          <span className={styles.labelLine}>
+            Pages <span className={styles.optional}>optional</span>
+          </span>
+          <input
+            className={styles.textInput}
+            type="number"
+            inputMode="numeric"
+            min="1"
+            value={pages}
+            onChange={(event) => setPages(event.target.value)}
+          />
+        </label>
+      </div>
+
+      <LeafButton type="submit" disabled={!ready} className={styles.submit}>
+        Continue
+      </LeafButton>
+    </form>
+  )
+}
+
+/* ---- Stage three: how you are reading it ---- */
+
+function ConfirmStage({
+  book,
+  onBack,
+  onDone,
+}: {
+  book: BookResult
+  onBack: () => void
+  onDone: () => void
+}) {
+  const [format, setFormat] = useState<BookFormat>('physical')
+  const [startedOn, setStartedOn] = useState(todayISO)
+  /* The calendar is folded away to begin with. Almost every book is added the
+     day it is started, so the answer is already right on the row and opening
+     it is the exception, not the step. */
+  const [picking, setPicking] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const scroller = useRef<HTMLDivElement>(null)
+  const picker = useRef<HTMLDivElement>(null)
+
+  /* Follow the calendar down when it unfolds. The form's body is the sheet's
+     scroller and the panel is the better part of 300px, so on a short phone
+     opening it otherwise leaves the entire grid below the fold with nothing to
+     say it is there.
+
+     Measured and nudged by hand rather than `scrollIntoView`: that call walks
+     every scrollable ancestor, and it is what scrolled the whole page out from
+     under an earlier version of this control. */
+  useEffect(() => {
+    const panel = picker.current
+    const box = scroller.current
+    if (!picking || !panel || !box) return
+    const over = panel.getBoundingClientRect().bottom - box.getBoundingClientRect().bottom
+    if (over > 0) box.scrollTo({ top: box.scrollTop + over + 12, behavior: 'smooth' })
+  }, [picking])
+
+  return (
+    <form
+      className={styles.form}
+      onSubmit={async (event) => {
+        event.preventDefault()
+        setSaving(true)
+        await landOnShelf(
+          book.id,
+          // put, not add: the id is the book's identity, so adding a book that
+          // is already on the shelf updates it rather than failing on a
+          // constraint or standing it beside itself.
+          () =>
+            db.books.put({ ...book, format, startedOn, addedAt: Date.now() }),
+          onDone,
+        )
+      }}
+    >
+      <header className={styles.head}>
+        <button
+          type="button"
+          className={styles.iconButton}
+          onClick={onBack}
+          aria-label="Back to search"
+        >
+          <BackIcon size={20} />
+        </button>
+        <h2 className={styles.title}>Onto the shelf</h2>
+      </header>
+
+      <div ref={scroller} className={styles.formBody}>
+        <div className={styles.chosen}>
+          {/* The same name the shelf gives this book, so the browser treats
+              the cover here and the book that appears there as one object and
+              tweens the gap. Safe to hold while the sheet is open: the book is
+              not on the shelf yet, so the name is unique until the moment it
+              needs to stop being. */}
+          <span
+            className={styles.chosenCover}
+            style={{ viewTransitionName: `book-${book.id}` } as CSSProperties}
+          >
+            <BookCover
+              width={92}
+              title={book.title}
+              author={book.author}
+              covers={book.covers}
+            />
+          </span>
+          <div className={styles.chosenText}>
+            <p className={styles.chosenTitle}>{book.title}</p>
+            <p className={styles.resultMeta}>{book.author}</p>
+          </div>
+        </div>
+
+        <fieldset className={styles.group}>
+          <legend className={styles.label}>How are you reading it?</legend>
+          <div className={styles.chipRow}>
+            {FORMATS.map(({ value, label, Icon }) => (
+              <button
+                key={value}
+                type="button"
+                className={styles.chip}
+                aria-pressed={format === value}
+                // The label is only painted on the chosen one, so the other
+                // two need their name somewhere a screen reader and a hover
+                // can still reach it.
+                aria-label={label}
+                title={label}
+                onClick={() => setFormat(value)}
+              >
+                <Icon size={20} />
+                {format === value && <span>{label}</span>}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        {/* The date, in our own control.
+
+            This was a `<input type="date">` laid over the row at zero opacity,
+            on the theory that a tap anywhere would land on the real input and
+            open the platform's own picker. On a phone it does. On desktop
+            Chrome it does not: clicking the body of a date input only focuses
+            a segment, and the one thing that opens the calendar is the little
+            indicator at its end — which at zero opacity is invisible. The row
+            was unclickable for anyone on a laptop, and a control that works by
+            accident of platform is not a control.
+
+            So it is ours now, on every device: the row is a button, and the
+            calendar unfolds underneath it. See CalendarPicker. */}
+        <div className={styles.dateField}>
+          <span className={styles.label} id="started-label">
+            When did you start it?
+          </span>
+          <button
+            type="button"
+            className={styles.dateBox}
+            onClick={() => setPicking((on) => !on)}
+            aria-expanded={picking}
+            aria-labelledby="started-label started-value"
+          >
+            <CalendarIcon size={20} />
+            <span className={styles.dateValue} id="started-value">
+              {longDate(startedOn)}
+            </span>
+            <CaretIcon size={18} className={styles.dateCaret} />
+          </button>
+
+          {picking && (
+            <div ref={picker} className={styles.datePicker}>
+              <CalendarPicker
+                value={startedOn}
+                onChange={setStartedOn}
+                // Nobody starts a book after today, and a stray year in the
+                // future would sort the shelf wrong forever.
+                max={todayISO()}
+                // The book's own threads, so the bloom on the chosen day is
+                // the one already on its cover.
+                seed={seedFrom(book.title, book.author)}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <LeafButton type="submit" disabled={saving} className={styles.submit}>
+        {saving ? 'Adding…' : 'Add to library'}
+      </LeafButton>
+    </form>
+  )
+}
+
+export default AddBookSheet
