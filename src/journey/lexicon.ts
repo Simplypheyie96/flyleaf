@@ -1,34 +1,36 @@
 /* Flyleaf's own words.
 
-   Six of them, and they are all borrowed from bookbinding and printing rather
+   Five of them, and they are all borrowed from bookbinding and printing rather
    than from software, because this app is about books and "entries", "tags"
    and "AI summary" are about databases. A reader who has never seen the words
    before should be able to work out every one of them from where it sits on
    the screen — that is the test each one had to pass:
 
      Keep       one thing taken out of a book and held on to
-     Epigraph   the line at the top of a journey, written from what you did
-     Strand     something you are following through the book
+     Epigraph   the inscription at the head of the journey, written the day
+                the book was opened
      Motif      what a keep is about, in the reader's own words
-     Fair Copy  a clean draft assembled from everything you wrote
-     Colophon   the closing facts of the reading, at the foot of the journey
+     Colophon   the closing facts of the reading, set as a keepsake
+     Fair Copy  a clean draft of a review, assembled from what you wrote
 
    The rule that stops this being cute: destructive and legal wording stays
    plain. "Delete" is never "unbind". A reader about to lose something must
-   read the sentence in the language they would use to describe the loss. */
+   read the sentence in the language they would use to describe the loss.
 
-import type { Book, Entry, EntryType, Strand } from '../data/db'
+   The second rule, which matters more: nothing in this file may say anything
+   about what is *inside* a book. Every clause below is assembled from a date,
+   a count, a format or the reader's own text. Flyleaf does not know what
+   happens in the story and must never sound as though it does. */
+
+import type { Book, Entry, EntryType } from '../data/db'
 import { formatsOf } from '../data/db'
 import { fromISO, longDate, todayISO } from '../components/date/dates'
+import { KIND, KINDS } from './kinds'
 
-export const KEEP: Record<EntryType, { one: string; many: string }> = {
-  quote: { one: 'quote', many: 'quotes' },
-  note: { one: 'note', many: 'notes' },
-  voice: { one: 'voice note', many: 'voice notes' },
-  image: { one: 'picture', many: 'pictures' },
-  highlight: { one: 'highlight', many: 'highlights' },
-  strand: { one: 'strand', many: 'strands' },
-}
+/** The words for a kind. One source of truth, in `kinds.ts`; this alias is
+    kept because "KEEP.quote.many" reads better in a sentence than the config
+    object does. */
+export const KEEP = KIND
 
 /* Small numbers read better spelled out in a sentence and worse in a chip, so
    this is only ever used in the epigraph and the colophon prose. */
@@ -106,101 +108,137 @@ export function formatPhrase(book: Book) {
 
 /* ── The epigraph ─────────────────────────────────────────────────────────
 
-   The line at the top of the journey, written from what the reader actually
-   did. Nothing here is invented and nothing is a model call: every clause is
-   assembled from a date, a count or a type tally, so it costs nothing, works
-   with no network, and can never say something about the book that the reader
-   did not say first. */
+   The first notch on the thread, and the only one Flyleaf writes itself: a
+   short inscription about the day the book was opened.
+
+   Two things make it feel like a person wrote it. It knows *how* the reader is
+   reading — a cracked spine, a screen at one bar, a narrator in your ears are
+   three different mornings — and it is different from book to book, because a
+   line you have read four times is wallpaper. Both come cheap: the format is
+   already on the shelf, and the variation is a number derived from the book's
+   own id, which means the same book keeps the same opening for ever instead of
+   reshuffling itself every render.
+
+   Every clause is about the reader's own act of opening a book. None of them
+   is about the story, and none of them can be, because Flyleaf has not read
+   it and would only be guessing in a confident voice. */
+
+const OPENED_ON: Record<string, string[]> = {
+  physical: [
+    'Cracked the spine on',
+    'Opened the paper copy on',
+    'Turned the first page on',
+    'Broke it open on',
+  ],
+  digital: [
+    'Opened it on the screen on',
+    'Loaded it up on',
+    'Woke the screen for it on',
+    'Started it, backlit, on',
+  ],
+  audio: [
+    'Pressed play on',
+    'Put it in your ears on',
+    'Started listening on',
+    'Let the narrator begin on',
+  ],
+  none: ['Began on', 'Started this one on', 'Opened it on', 'Set out on'],
+}
+
+const THE_MOMENT: Record<string, string[]> = {
+  physical: [
+    'The paper smells like somebody else’s house.',
+    'It refuses to lie flat, and that is half the pleasure.',
+    'Somebody has been here before you — there is a pencil mark in the margin.',
+    'Deckled edges. Absolutely unnecessary. Absolutely correct.',
+  ],
+  digital: [
+    'Brightness down to one bar, like a proper night reader.',
+    'The screen says four hours left. The screen is an optimist.',
+    'No dust, no bookmark, no excuse.',
+    'Weightless, which feels like cheating.',
+  ],
+  audio: [
+    'Headphones in, world out.',
+    'The narrator has a voice you could fall asleep in. That is the risk.',
+    'Started it walking, so the first chapter belongs to a particular street.',
+    'Playing at a speed you will not admit to.',
+  ],
+  both: [
+    'Paper at home, voice on the way there — the same book, twice over.',
+    'Two ways in at once, which is greedy and entirely allowed.',
+  ],
+  none: [
+    'No ceremony. Just the first sentence.',
+    'A clean first page and no idea what is coming.',
+    'Nothing marked yet. Everything still possible.',
+  ],
+}
+
+/* Deterministic, not random: the same book must open the same way every time
+   the page is drawn. Mixing the id with the pool length only — no clock, no
+   counter — is what guarantees it. */
+function pick(pool: string[], seed: number, salt: number) {
+  const n = Math.abs(Math.round(seed) * 31 + salt * 7)
+  return pool[n % pool.length]
+}
 
 export interface Epigraph {
+  /** The inscription itself, two short sentences. */
   line: string
-  /** Only when there is nothing yet — the nudge under the empty spine. */
+  /** The day it is dated — the start date if the reader gave one, otherwise
+      the day of their earliest keep. Absent means the book has no beginning
+      recorded yet, and the journey asks for one. */
+  on?: string
+  /** Only when there is nothing kept yet: the nudge under the empty thread. */
   hint?: string
 }
 
-export function epigraph(
-  book: Book,
-  keeps: Entry[],
-  strands: Strand[],
-): Epigraph {
-  const started = book.startedOn
-  const finished = book.finishedOn
+export function epigraph(book: Book, keeps: Entry[]): Epigraph {
+  const formats = formatsOf(book)
+  /* Two formats is its own mood, so it gets its own pool rather than one of
+     the single-format pools chosen arbitrarily. */
+  const voice = formats.length > 1 ? 'both' : (formats[0] ?? 'none')
+  const opener = OPENED_ON[voice === 'both' ? 'physical' : voice] ?? OPENED_ON.none
+  const moment = THE_MOMENT[voice] ?? THE_MOMENT.none
 
-  if (!keeps.length) {
-    return {
-      line: started
-        ? `Opened on ${dayPhrase(started)}. Nothing kept yet.`
-        : 'Nothing kept from this one yet.',
-      hint: 'A line worth copying out, a thought, thirty seconds of your own voice — whatever you would want back.',
-    }
+  const earliest = keeps.length
+    ? keeps.reduce((a, e) => (e.keptOn < a ? e.keptOn : a), keeps[0].keptOn)
+    : undefined
+  const on = book.startedOn ?? earliest
+
+  const first = on
+    ? `${pick(opener, book.id, 1)} ${dayPhrase(on)}.`
+    : 'The beginning of this one is not written down yet.'
+
+  const line = `${first} ${pick(moment, book.id, 2)}`
+
+  return {
+    line,
+    on,
+    ...(keeps.length
+      ? {}
+      : {
+          hint: 'A line worth copying out, a thought, thirty seconds of your own voice — whatever you would want back.',
+        }),
   }
-
-  /* When it happened. Finished books get a span, live ones get an anchor. */
-  let when: string
-  if (started && finished) {
-    const days = Math.max(1, daysBetween(started, finished))
-    when =
-      days > 1
-        ? `Read across ${spell(days)} days, and finished on ${dayPhrase(finished)}.`
-        : `Read in a day, on ${dayPhrase(finished)}.`
-  } else if (finished) {
-    when = `Finished on ${dayPhrase(finished)}.`
-  } else if (started) {
-    const days = Math.max(1, daysBetween(started, todayISO()))
-    when = `Opened on ${dayPhrase(started)}, ${spell(days)} days ago.`
-  } else {
-    const first = keeps.reduce((a, e) => (e.keptOn < a ? e.keptOn : a), keeps[0].keptOn)
-    when = `First kept on ${dayPhrase(first)}.`
-  }
-
-  /* What was kept. The commonest type is named, because "twelve keeps" tells
-     a reader less about their own reading than "mostly quotes" does. */
-  const marks = keeps.filter((e) => e.type !== 'strand')
-  const tally = new Map<EntryType, number>()
-  for (const e of marks) tally.set(e.type, (tally.get(e.type) ?? 0) + 1)
-  const top = [...tally.entries()].sort((a, b) => b[1] - a[1])[0]
-
-  let what = ''
-  if (marks.length) {
-    /* Capitalised on its own before the space is put back in front of it.
-       Uppercasing character 0 of a string that starts with a space raises the
-       space and eats the letter after it — "seven keeps" became "even keeps". */
-    let phrase = count(marks.length, { one: 'keep', many: 'keeps' })
-    phrase = phrase.charAt(0).toUpperCase() + phrase.slice(1)
-    if (top && tally.size > 1 && top[1] / marks.length > 0.4) {
-      phrase += `, mostly ${KEEP[top[0]].many}`
-    }
-    what = ` ${phrase}.`
-  }
-
-  const live = strands.filter((s) => !s.closedAt).length
-  const tied = strands.length - live
-  /* Its own sentence, whatever ran before it, so it starts with a capital
-     the same way the one above does. */
-  const sentence = (s: string) => ` ${s.charAt(0).toUpperCase()}${s.slice(1)}`
-  let threads = ''
-  if (live) threads = sentence(`${count(live, KEEP.strand)} still running.`)
-  else if (tied) threads = sentence(`${count(tied, KEEP.strand)}, tied off.`)
-
-  return { line: `${when} ${what}${threads}`.replace(/\s+/g, ' ').trim() }
 }
 
 /* ── The colophon ─────────────────────────────────────────────────────────
 
-   The block at the foot of a journey: the plain facts of the reading, set the
-   way a printer sets them at the end of a book. Deliberately not a dashboard —
-   no charts, no streaks, no percentages the reader never asked for. */
+   The block at the foot of a journey, and the thing the reader shares: the
+   plain facts of one reading, set the way a printer sets them at the end of a
+   book. Small enough to be a card, complete enough to stand alone.
+
+   Deliberately not a dashboard — no charts, no streaks, no percentages the
+   reader never asked for. */
 
 export interface ColophonLine {
   term: string
   detail: string
 }
 
-export function colophon(
-  book: Book,
-  keeps: Entry[],
-  strands: Strand[],
-): ColophonLine[] {
+export function colophon(book: Book, keeps: Entry[]): ColophonLine[] {
   const lines: ColophonLine[] = []
 
   if (book.startedOn) lines.push({ term: 'Opened', detail: fullDate(book.startedOn) })
@@ -220,25 +258,33 @@ export function colophon(
     })
   }
 
-  const marks = keeps.filter((e) => e.type !== 'strand')
-  if (marks.length) {
+  if (keeps.length) {
     const tally = new Map<EntryType, number>()
-    for (const e of marks) tally.set(e.type, (tally.get(e.type) ?? 0) + 1)
+    for (const e of keeps) tally.set(e.type, (tally.get(e.type) ?? 0) + 1)
     lines.push({
       term: 'Kept',
-      detail: [...tally.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .map(([t, n]) => `${n} ${n === 1 ? KEEP[t].one : KEEP[t].many}`)
+      /* In the registry's order rather than by size, so two books' colophons
+         list the same kinds in the same places and can be read side by side. */
+      detail: KINDS.filter((t) => tally.has(t))
+        .map((t) => {
+          const n = tally.get(t)!
+          return `${n} ${n === 1 ? KIND[t].one : KIND[t].many}`
+        })
         .join(', '),
     })
   }
 
-  if (strands.length) {
-    lines.push({
-      term: 'Followed',
-      detail: strands.map((s) => s.name).join(', '),
-    })
-  }
+  const named = (type: EntryType) =>
+    [...new Set(keeps.filter((e) => e.type === type && e.name).map((e) => e.name!))]
+
+  const people = named('character')
+  if (people.length) lines.push({ term: 'Followed', detail: people.join(', ') })
+
+  const places = named('place')
+  if (places.length) lines.push({ term: 'Been to', detail: places.join(', ') })
+
+  const threads = named('thread')
+  if (threads.length) lines.push({ term: 'Wondered about', detail: threads.join(', ') })
 
   const motifs = [...new Set(keeps.flatMap((e) => e.motifs ?? []))]
   if (motifs.length) lines.push({ term: 'On', detail: motifs.join(', ') })
@@ -265,9 +311,9 @@ export function colophon(
 export interface FairCopy {
   text: string
   words: number
-  /** Keeps that cannot be written out — recordings and pictures. Surfaced in
-      the sheet so the omission is the reader's to know about, not a silent
-      hole in their draft. */
+  /** Keeps that cannot be written out — recordings, and pictures with no
+      caption. Surfaced in the sheet so the omission is the reader's to know
+      about, not a silent hole in their draft. */
   omitted: number
 }
 
@@ -281,17 +327,20 @@ function place(e: Entry) {
   return ''
 }
 
-export function fairCopy(
-  book: Book,
-  keeps: Entry[],
-  strands: Strand[],
-): FairCopy {
+/** A keep's own words, with its title in front where it has one. */
+function said(e: Entry) {
+  const body = e.text?.trim() ?? ''
+  if (e.name && body) return `${e.name.trim()} — ${body}`
+  return e.name?.trim() || body
+}
+
+export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
   const parts: string[] = []
+  const byTime = (a: Entry, b: Entry) => a.createdAt - b.createdAt
 
   /* Opening: only the facts on the shelf. */
-  const verb = formatsOf(book).includes('audio') && formatsOf(book).length === 1
-    ? 'listened to'
-    : 'read'
+  const formats = formatsOf(book)
+  const verb = formats.length === 1 && formats[0] === 'audio' ? 'listened to' : 'read'
   let opening = `I ${verb} ${book.title} by ${book.author}`
   if (book.startedOn && book.finishedOn) {
     const days = Math.max(1, daysBetween(book.startedOn, book.finishedOn))
@@ -304,22 +353,20 @@ export function fairCopy(
   }
   parts.push(`${opening}.`)
 
-  /* The reader's own prose, in the order it was written. Notes and strand
-     reflections are already sentences, so they go in untouched. */
-  const said = keeps
-    .filter((e) => (e.type === 'note' || e.type === 'strand') && e.text?.trim())
-    .sort((a, b) => a.createdAt - b.createdAt)
+  /* The reader's own prose, in the order it was written. Notes are already
+     sentences, so they go in untouched. */
+  const prose = keeps
+    .filter((e) => e.type === 'note' && e.text?.trim())
+    .sort(byTime)
     .map((e) => e.text!.trim())
-  if (said.length) parts.push(said.join('\n\n'))
+  if (prose.length) parts.push(prose.join('\n\n'))
 
   /* Then what they marked in the book, in book order where a page says so. */
   const lifted = keeps
-    .filter((e) => (e.type === 'quote' || e.type === 'highlight') && e.text?.trim())
+    .filter((e) => e.type === 'quote' && e.text?.trim())
     .sort((a, b) => (a.page ?? 1e9) - (b.page ?? 1e9) || a.createdAt - b.createdAt)
   if (lifted.length) {
-    parts.push(
-      lifted.length === 1 ? 'A line I kept:' : 'Some lines I kept:',
-    )
+    parts.push(lifted.length === 1 ? 'A line I kept:' : 'Some lines I kept:')
     parts.push(
       lifted
         .map((e) => `${QUOTE_OPEN}${e.text!.trim()}${QUOTE_CLOSE}${place(e)}`)
@@ -327,15 +374,22 @@ export function fairCopy(
     )
   }
 
-  /* Strands, named — the shape of the reader's attention, in their words. */
-  const closed = strands.filter((s) => s.closedAt)
-  if (closed.length) {
-    parts.push(
-      `I spent the book following ${closed.map((s) => s.name).join(', ')}.`,
-    )
+  /* The people, the places and the suspicions — the shape of the reader's
+     attention, again in their words and never in ours. A heading only when
+     there is something under it. */
+  const section = (type: EntryType, heading: string) => {
+    const rows = keeps.filter((e) => e.type === type && (e.name || e.text?.trim()))
+    if (!rows.length) return
+    parts.push(heading)
+    parts.push(rows.sort(byTime).map(said).join('\n\n'))
   }
+  section('character', 'The people I stayed with:')
+  section('place', 'Where it took me:')
+  section('thread', 'What I kept turning over:')
 
-  const omitted = keeps.filter((e) => e.type === 'voice' || e.type === 'image').length
+  const omitted = keeps.filter(
+    (e) => e.type === 'voice' || (e.type === 'image' && !e.text?.trim()),
+  ).length
   const text = parts.join('\n\n')
   return { text, words: countWords(text), omitted }
 }

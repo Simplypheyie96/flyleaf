@@ -1,227 +1,549 @@
-/* The journey — the page that hosts the three readings.
+/* The journey page.
 
-   This file owns only what all three share: the column and its type scale, the
-   toolbar, the colophon, the dock and the undo. Each reading's own masthead and
-   arrangement live beside it — Ledger.module.css, Deck.module.css,
-   Weave.module.css — and the cards are in journey/Keep.module.css.
+   Two zones, and only the second one moves:
 
-   Everything the old file drew that is not here is gone on purpose: the thread
-   rail, the knots, the ribbons, the alternating two-lane spine, the ragged
-   scrapbook widths and the cover-opening rotation. They were the answer to
-   "what is going on the sides", and the answer was: not enough to earn the
-   room they took. */
+     1. The pinned head — back and delete, the book, its formats and dates,
+        and the sift rail. It is the room the journey happens in, and a room
+        does not scroll away.
+     2. The scroll — the thread alone, passing underneath the head and fading
+        out as it goes under the rail.
 
-/* ---- The page ----------------------------------------------------------- */
+   Four type sizes on the whole route, declared on `.page` and used by name:
+   display for the book, read for kept words, chrome for controls, micro for
+   the labels that sit under things. Any fifth size would be an accident. */
 
 .page {
-  /* The back bar is the top of this screen, so nothing sits above it. The base
-     page pads 3rem down from the viewport, which would leave the sticky bar
-     landing three quarters of an inch into the page. */
-  padding-block-start: 0;
-  padding-block-end: calc(var(--space-7) + env(safe-area-inset-bottom, 0px));
-}
-
-.column {
-  --column-max: clamp(420px, 72vw, 600px);
-
-  /* The four sizes, and there are four rather than eight.
-
-     Everything on this screen is one of four things: the book's name, the
-     reader's own words, the interface talking, or a fact. Each reading and
-     every card measures from these, so a change here moves all three at once
-     and none of them can drift into a fifth size. They inherit down through
-     the CSS-module boundary into Keep.module.css, which is how the cards get
-     them without this file being able to name their classes. */
-  --t-display: 2.125rem;
+  --t-display: 1.75rem;
   --t-read: 1.0625rem;
   --t-chrome: 0.9375rem;
   --t-micro: 0.6875rem;
 
-  --journey-gap: var(--space-5);
-  gap: var(--journey-gap);
+  --journey-gap: var(--space-6);
+  --gutter: 32px;
+  --knot-size: 26px;
+  /* Nudges the knot down onto the cap height of the card's first line, so the
+     circle reads as level with the text rather than with its line box. */
+  --knot-top: 3px;
+
+  /* The page is the viewport: the head stands in it and the thread scrolls
+     inside it. dvh, not svh — when a phone's browser bar retracts the pinned
+     zones should follow the real edge. */
+  block-size: 100dvh;
+  min-block-size: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-/* The back bar's sentinel. Each reading drops an empty marker at the foot of
-   its masthead for the observer to watch; as a flex child it is 0 tall but
-   still costs a full gap on each side. Half a gap back at each end cancels
-   exactly the one it added, without hiding it — a `display: none` sentinel is
-   never intersected and the bar would never take the title over. */
-.column > div[aria-hidden='true']:empty {
-  margin-block: calc(-0.5 * var(--journey-gap));
+/* ── The pinned head ────────────────────────────────────────────────────── */
+
+.pinned {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  gap: var(--space-4);
+  padding-block-start: calc(env(safe-area-inset-top, 0px) + var(--space-3));
+  padding-inline: var(--space-5);
 }
 
-/* The one thing you can do to the whole book, at the bar's trailing edge. */
-.barAction {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--tap-min);
-  height: var(--tap-min);
-  margin-inline-end: -10px;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-accent-text);
-  cursor: pointer;
-}
-
-.barAction:active {
-  opacity: 0.5;
-}
-
-/* ---- The toolbar --------------------------------------------------------
-
-   Assembled once by the route and handed to whichever reading is on, so the
-   switch reads as a switch rather than as three pages that happen to link to
-   each other. */
-
-.chrome {
+.chromeRow {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.tools {
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
 }
 
-.switcher {
-  --glass-pad: var(--space-1);
+.capsule {
+  --glass-pad: 0;
   --glass-radius: var(--radius-pill);
+  flex-shrink: 0;
+  box-shadow: var(--elevation-1);
 }
 
-.tabs {
+/* Two circles, one verb each. No labels: a chevron pointing back and a bin
+   are the two glyphs every phone has already taught. */
+.back,
+.chromeAction {
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+.chromeAction {
+  color: var(--color-ink-soft);
+}
+
+.chromeAction:hover {
+  color: var(--color-danger);
+}
+
+.back:active,
+.chromeAction:active {
+  transform: scale(0.94);
+}
+
+.headTop {
   display: flex;
-  align-items: center;
-  gap: var(--space-1);
+  align-items: flex-start;
+  gap: var(--space-4);
 }
 
-.tab {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: var(--tap-min);
-  padding-inline: var(--space-3);
-  border: 1px solid transparent;
-  border-radius: var(--radius-pill);
-  background: transparent;
+.cover {
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--elevation-2);
+}
+
+.about {
+  position: relative;
+  min-inline-size: 0;
+  padding-block-start: var(--space-1);
+}
+
+/* The same little star Home wears, so the pages read as one book. Inline in
+   the heading so it rides the last word of the title wherever it wraps. */
+.spark {
+  vertical-align: super;
+  color: var(--color-voice);
+  opacity: 0.55;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-serif);
+  /* Instrument Serif has no bold — stated so a fallback face cannot synthesise
+     one and change the voice of the whole page. */
+  font-weight: 400;
+  font-size: var(--t-display);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  color: var(--color-ink);
+}
+
+.author {
+  margin: var(--space-1) 0 0;
   font-family: var(--font-sans);
   font-size: var(--t-chrome);
   color: var(--color-ink-soft);
-  cursor: pointer;
-  transition:
-    background-color var(--dur-quick) var(--ease-out),
-    color var(--dur-quick) var(--ease-out);
 }
 
-.tab[aria-checked='true'] {
-  background: var(--color-chip-active);
-  border-color: var(--color-chip-active-border);
-  color: var(--color-ink);
+.facts {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-faint);
 }
 
-.tabLabel {
-  white-space: nowrap;
-}
-
-.actions {
+.meta {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: var(--space-2);
 }
 
-.action {
-  display: inline-flex;
+/* The reading span: opened → closed, and the bookmark, on one quiet line.
+   Dotted underlines are the "this is yours to change" cue — the same promise
+   a field makes, at a fraction of the weight, which is what lets the head
+   hold five facts without turning into a bank of grey boxes. */
+.span {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: var(--tap-min);
-  height: var(--tap-min);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-pill);
-  background: var(--card-fill);
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+}
+
+.day {
+  min-block-size: var(--tap-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
   color: var(--color-ink-soft);
   cursor: pointer;
-  transition:
-    background-color var(--dur-quick) var(--ease-out),
-    color var(--dur-quick) var(--ease-out);
+  transition: color var(--dur-quick) var(--ease-out);
 }
 
-.action:hover {
+.day strong {
+  font-weight: 600;
   color: var(--color-ink);
+  text-decoration: underline dotted color-mix(in oklab, var(--color-ink) 35%, transparent);
+  text-underline-offset: 4px;
 }
 
-/* On when the journey is not being read the way it was written. Without this a
-   reader can sift to one motif, scroll away, and spend a while wondering where
-   the rest of their journey went. */
-.action[data-on] {
+.day em {
+  font-style: italic;
+  color: var(--color-accent-text);
+  text-decoration: underline dotted color-mix(in oklab, var(--color-ink) 35%, transparent);
+  text-underline-offset: 4px;
+}
+
+.day:hover strong,
+.day:hover em {
+  text-decoration-style: solid;
+}
+
+.spanArrow {
+  color: var(--color-ink-faint);
+  font-size: var(--text-sm);
+}
+
+.bookmark {
+  margin-inline-start: auto;
+  min-block-size: var(--tap-min);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent-text);
+  cursor: pointer;
+  transition: background-color var(--dur-quick) var(--ease-out);
+}
+
+.bookmark:hover {
   background: var(--color-accent-tint);
-  border-color: var(--color-chip-active-border);
+}
+
+/* ── The rail ───────────────────────────────────────────────────────────── */
+
+.railGlass {
+  --glass-pad: 0;
+  --glass-radius: var(--radius-pill);
+  box-shadow: var(--elevation-1);
+}
+
+.railRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-2);
+}
+
+.sift {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 44px;
+  padding-inline: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: color var(--dur-quick) var(--ease-out);
+}
+
+.sift[data-on] {
   color: var(--color-accent-text);
 }
 
-/* ---- What is still being followed --------------------------------------- */
-
-.following {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
+.siftWhat {
+  min-inline-size: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.followingLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-family: var(--font-mono);
-  font-size: var(--t-micro);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-faint);
-}
-
-.strandTab {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: 34px;
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid color-mix(in oklch, var(--strand), transparent 60%);
-  border-radius: var(--radius-pill);
-  background: color-mix(in oklch, var(--strand), var(--color-paper) 88%);
-  font-family: var(--font-sans);
-  font-size: var(--t-chrome);
-  color: var(--color-ink);
-  cursor: pointer;
-}
-
-.swatch {
-  width: 9px;
-  height: 9px;
-  border-radius: var(--radius-pill);
-  background: var(--strand);
-}
-
-.tieOff {
-  padding-inline-start: var(--space-2);
-  border-inline-start: 1px solid color-mix(in oklch, var(--strand), transparent 65%);
-  font-family: var(--font-mono);
+/* The order is the second half of one sentence, so it is set quieter rather
+   than given its own control — two buttons here would read as two decisions. */
+.siftHow {
+  flex-shrink: 0;
   font-size: var(--t-micro);
   letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--color-ink-faint);
+}
+
+.count {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--color-ink-soft);
+}
+
+.of {
+  color: var(--color-ink-faint);
+}
+
+.shareBtn {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition: color var(--dur-quick) var(--ease-out);
+}
+
+.shareBtn:hover {
+  color: var(--color-accent-text);
+}
+
+/* ── The scroll ─────────────────────────────────────────────────────────── */
+
+.scroller {
+  flex: 1;
+  min-block-size: 0;
+  inline-size: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-inline: var(--space-5);
+  /* The thread does not stop at the head — it slips underneath it. The mask
+     is what sells the pinned zone as a surface the journey passes under. */
+  mask-image: linear-gradient(to bottom, transparent 0, black 24px, black 100%);
+}
+
+.column {
+  padding-block: var(--space-4) calc(env(safe-area-inset-bottom, 0px) + var(--space-5));
+  gap: var(--space-6);
+}
+
+/* ── The thread ─────────────────────────────────────────────────────────── */
+
+.thread {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notch {
+  --kind: var(--color-accent);
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr);
+  column-gap: var(--space-4);
+  /* Spacing lives in the item's own padding rather than a list gap, so the
+     drawn line can run through it and the thread has no holes. */
+  padding-block-end: var(--journey-gap);
+}
+
+.notch[data-divider] {
+  padding-block-end: var(--space-4);
+}
+
+.gutter {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+/* Two segments rather than one line, so a tie can thicken the run above a
+   knot without touching the run below it. */
+.gutter::before,
+.gutter::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 50%;
+  inline-size: 0;
+  /* Mixed off the ink rather than borrowing --card-border: that token is tuned
+     to sit at the edge of a filled card, and a bare 1px dash of it on open
+     paper all but disappears. The thread is the page's spine — it has to read
+     as a continuous line from across the room. */
+  border-inline-start: 1px dashed color-mix(in oklab, var(--color-ink) 26%, transparent);
+  transform: translateX(-50%);
+  transition: border-color var(--dur-base) var(--ease-out);
+}
+
+.gutter::before {
+  inset-block-start: 0;
+  block-size: var(--knot-top);
+}
+
+.gutter::after {
+  inset-block-start: calc(var(--knot-top) + var(--knot-size));
+  /* Reaches down through the item's own padding to the next knot. */
+  inset-block-end: calc(-1 * var(--journey-gap));
+}
+
+/* A divider carries no knot, so its gutter is one unbroken run. */
+.notch[data-divider] .gutter::before {
+  block-size: 100%;
+}
+
+.notch[data-divider] .gutter::after {
+  inset-block-start: 100%;
+  inset-block-end: calc(-1 * var(--space-4));
+}
+
+/* The thread has two ends and neither should dangle past them. */
+.thread > .notch:first-child .gutter::before,
+.thread > .notch:last-child .gutter::after {
+  display: none;
+}
+
+.knot {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  inline-size: var(--knot-size);
+  block-size: var(--knot-size);
+  margin-block-start: var(--knot-top);
+  border: 1px solid color-mix(in oklab, var(--kind) 45%, transparent);
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--kind) 16%, var(--color-paper));
+  color: var(--kind);
+}
+
+.notch[data-opening] .knot {
+  /* The origin of the thread is filled rather than tinted: it is the one point
+     that is not an entry, and it should read as what everything hangs on. */
+  border-color: transparent;
+  background: var(--color-accent);
+  color: var(--color-on-action);
+}
+
+/* A tie draws certainty. Only plot threads are ever tied, and only when they
+   are filtered alone — the gutter run goes solid and thickens as the reader
+   moves from a hunch to something they are sure of… */
+.notch[data-tie][data-up] .gutter::before,
+.notch[data-tie][data-down] .gutter::after {
+  border-inline-start-style: solid;
+  border-inline-start-width: calc(1px + var(--weight, 1) * 0.75px);
+  border-inline-start-color: color-mix(
+    in oklab,
+    var(--kind) calc(30% + var(--weight, 1) * 18%),
+    transparent
+  );
+}
+
+/* …and the cards themselves are strung together: a second line, in the
+   thread's own colour, runs card to card through the gap between them. This
+   is the one the eye reads as "these belong to each other" — the gutter alone
+   was too far from the cards to say it. */
+.notch[data-tie] .hang {
+  position: relative;
+}
+
+.notch[data-tie][data-down] .hang::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 100%;
+  block-size: var(--journey-gap);
+  inset-inline-start: var(--space-5);
+  inline-size: 0;
+  border-inline-start: calc(1px + var(--weight, 1) * 1px) solid
+    color-mix(in oklab, var(--kind) 55%, transparent);
+}
+
+/* A bead where the string meets each card, so the run reads as knotted on
+   rather than drawn over. */
+.notch[data-tie][data-down] .hang::before {
+  content: '';
+  position: absolute;
+  inset-block-start: calc(100% - 3px);
+  inset-inline-start: calc(var(--space-5) - 3px);
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: 50%;
+  background: var(--kind);
+}
+
+.hang {
+  min-inline-size: 0;
+}
+
+/* ── The opening ────────────────────────────────────────────────────────── */
+
+/* Not a card. The opening is an inscription written on the page itself — a
+   heading in the book's serif and a line or two under it, the way an epigraph
+   sits on paper. The knot beside it is what makes it part of the thread. */
+
+.when {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-ink-faint);
 }
 
-/* ---- The sift notice ---------------------------------------------------- */
+.whenDay {
+  color: var(--color-ink-soft);
+}
 
-.sifted {
+.whenKind {
+  color: color-mix(in oklab, var(--color-accent) 72%, var(--color-ink-faint));
+}
+
+.openTitle {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+.openLine {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: var(--t-chrome);
+  font-size: var(--t-read);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+.openHint {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-ink-faint);
+  max-inline-size: var(--measure);
+}
+
+.divider {
+  align-self: center;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-md);
+  line-height: var(--leading-tight);
+  color: var(--color-ink-soft);
+}
+
+/* ── Nothing matched ────────────────────────────────────────────────────── */
+
+.nothing {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--t-read);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
   color: var(--color-ink-soft);
 }
 
@@ -229,209 +551,156 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--color-accent-text);
   font: inherit;
+  color: var(--color-accent-text);
   text-decoration: underline;
+  text-decoration-thickness: from-font;
   text-underline-offset: 3px;
   cursor: pointer;
 }
 
-/* ---- Nothing there ------------------------------------------------------ */
+/* ── The calendar sheet ─────────────────────────────────────────────────── */
+
+.unfinish {
+  align-self: center;
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-4);
+  border: 0;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome);
+  color: var(--color-accent-text);
+  cursor: pointer;
+}
+
+/* ── The end of the thread ──────────────────────────────────────────────── */
+
+.ending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+/* The thread's last inch, drawn loose: it stops rather than being cut off. */
+.tail {
+  inline-size: 1px;
+  block-size: var(--space-6);
+  /* Sits on the gutter's own centre line rather than the column's, so the
+     thread ends where it ran. */
+  align-self: flex-start;
+  margin-inline-start: calc(var(--gutter) / 2);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-ink) 26%, transparent),
+    transparent
+  );
+}
+
+.endLine {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
+  color: var(--color-ink-faint);
+}
+
+/* ── The dock ───────────────────────────────────────────────────────────── */
+
+.dock {
+  position: sticky;
+  inset-block-end: calc(env(safe-area-inset-bottom, 0px) + var(--space-4));
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-4);
+  /* The column between the two docked objects is dead space, and the thread
+     above it has to stay reachable through it. */
+  pointer-events: none;
+}
+
+.dock > * {
+  pointer-events: auto;
+}
+
+.keepIt {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-shadow: var(--elevation-3);
+}
+
+.undo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  background: var(--glass-fallback);
+  box-shadow: var(--elevation-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+}
+
+.undoAction {
+  min-block-size: 36px;
+  padding-inline: var(--space-4);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-chip-active);
+  font: inherit;
+  color: var(--color-accent-text);
+  cursor: pointer;
+}
+
+/* ── Missing book ───────────────────────────────────────────────────────── */
 
 .plainBack {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  align-self: start;
-  min-height: var(--tap-min);
-  margin-block-start: var(--space-5);
+  gap: var(--space-1);
+  min-block-size: var(--tap-min);
   font-family: var(--font-sans);
-  font-size: 1.0625rem;
-  color: var(--color-accent-text);
+  font-size: var(--t-chrome);
+  color: var(--color-ink-soft);
   text-decoration: none;
 }
 
 .missing {
   margin: 0;
-  max-width: 44ch;
-  padding: var(--space-6) 0;
   font-family: var(--font-serif);
-  font-size: var(--t-read);
+  font-size: var(--text-md);
   line-height: var(--leading-body);
   text-wrap: pretty;
-  color: var(--color-ink-faint);
-}
-
-/* ---- The colophon -------------------------------------------------------
-
-   The book's own end matter, set the way a printer sets it: terms and details,
-   no charts and no streaks. */
-
-.colophon {
-  display: grid;
-  gap: var(--space-3);
-  margin: var(--space-2) 0 0;
-  padding-block-start: var(--space-5);
-  border-block-start: 1px solid var(--border-hairline);
-}
-
-.colophonLine {
-  display: grid;
-  grid-template-columns: 7rem 1fr;
-  gap: var(--space-3);
-  align-items: baseline;
-  font-family: var(--font-sans);
-  font-size: var(--t-chrome);
-}
-
-.colophonLine dt {
-  font-family: var(--font-mono);
-  font-size: var(--t-micro);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-faint);
-}
-
-.colophonLine dd {
-  /* The UA stylesheet gives every dd a 40px inline start margin, which would
-     put the details a third of the way across the page. */
-  margin: 0;
-  color: var(--color-ink);
-}
-
-/* ---- The dock ----------------------------------------------------------- */
-
-/* Both floating things ride in one bottom-anchored stack, so the undo simply
-   sits above its sibling instead of being told how tall the dock is.
-
-   It clears the safe area and nothing else. The app's bottom bar and its "+"
-   are not painted on this route at all, so the old `--bar-clear` reservation
-   would now be an inch of empty air under a dock that is the only floating
-   thing on the screen. */
-.dock {
-  position: sticky;
-  inset-block-end: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin-block-start: var(--space-4);
-  pointer-events: none;
-}
-
-.dockInner {
-  --glass-pad: var(--space-3);
-  pointer-events: auto;
-}
-
-.dockRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.keepIt {
-  flex: 1 1 auto;
-  justify-content: center;
-}
-
-.startStrand {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  min-height: var(--tap-min);
-  min-width: var(--tap-min);
-  flex: 0 0 auto;
-  padding-inline: var(--space-4);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-pill);
-  background: var(--card-fill);
-  font-family: var(--font-sans);
-  font-size: var(--t-chrome);
   color: var(--color-ink-soft);
-  white-space: nowrap;
-  cursor: pointer;
 }
 
-.startStrand:hover {
-  color: var(--color-ink);
-}
-
-/* Two full labels do not fit beside each other in a phone-width column, and
-   the one that has to survive is the primary — "Keep something" breaking
-   across two lines inside its own pill is the worse of the two failures. So
-   below this the second button is its mark alone; the name is still on the
-   button for anything reading it aloud. */
-@media (max-width: 479px) {
-  .startStrandLabel {
-    display: none;
-  }
-
-  .startStrand {
-    padding-inline: 0;
-    width: var(--tap-min);
-  }
-}
-
-/* ---- Undo --------------------------------------------------------------- */
-
-.undo {
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
-  border-radius: var(--radius-pill);
-  background: var(--color-ink);
-  font-family: var(--font-sans);
-  font-size: var(--t-chrome);
-  color: var(--color-bg);
-  box-shadow: var(--elevation-1);
-}
-
-.undoAction {
-  min-height: 36px;
-  padding-inline: var(--space-4);
-  border: 1px solid color-mix(in oklch, var(--color-bg), transparent 70%);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-bg);
-  font: inherit;
-  cursor: pointer;
-}
-
-/* ---- Wider ---------------------------------------------------------------
-
-   One number changes, and it is the column. The three readings each answer the
-   extra room in their own file — the Ledger grows its masthead, the Deck shows
-   two cards at a time — because what to do with width is a question about the
-   arrangement, and the arrangement is theirs. */
+/* ── Wider ──────────────────────────────────────────────────────────────── */
 
 @media (min-width: 760px) {
-  .column {
-    --column-max: min(94vw, 720px);
+  .page {
+    --t-display: 2.25rem;
+    --gutter: 40px;
+    --journey-gap: var(--space-7);
   }
 
-  /* The dock still spans the column, but the button inside it stops growing.
-     `flex: 1 1 auto` is right on a phone, where filling the width is what makes
-     it the obvious thing to reach for; at 720px it makes the primary action a
-     slab that reads as a banner rather than as a button. */
-  .dockRow {
-    justify-content: center;
+  .pinned {
+    gap: var(--space-5);
   }
 
-  .keepIt {
-    flex: 0 1 20rem;
+  .headTop {
+    gap: var(--space-5);
   }
 }
 
-@media (min-width: 1024px) {
-  /* The side rail is not painted on this route, so the room the base page
-     reserves for it is just a shove to the trailing edge. */
-  .page {
-    padding-inline-start: var(--space-5);
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .back:active,
+  .chromeAction:active {
+    transform: none;
   }
 }

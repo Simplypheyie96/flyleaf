@@ -7,6 +7,7 @@ import SpineArt from '../books/SpineArt'
 import SpineMark from '../books/SpineMark'
 import { seedFrom } from '../books/seed'
 import GlassSurface from '../components/GlassSurface'
+import Sparkle from '../components/Sparkle'
 import PaperSurface from '../components/PaperSurface'
 import {
   ChevronIcon,
@@ -17,7 +18,7 @@ import {
   StackIcon,
 } from '../components/TabIcons'
 import type { Book, Entry } from '../data/db'
-import { KIND } from '../journey/Keep'
+import { KIND } from '../journey/kinds'
 import { KEEP, keptLabel } from '../journey/lexicon'
 import { useLatestKeeps, useLibrary } from '../data/useLibrary'
 import { shelved } from '../motion/shelfLanding'
@@ -501,7 +502,7 @@ function FeedRow({
           <PaperSurface tone={kind.tone} className={styles.feedKeep}>
             <span className={styles.feedKeepHead}>
               <kind.Icon size={15} />
-              <span className={styles.feedKeepKind}>{kind.label}</span>
+              <span className={styles.feedKeepKind}>{kind.one}</span>
               <span className={styles.feedKeepWhen}>{keptLabel(keep.keptOn)}</span>
             </span>
             {/* Clamped rather than cut in the string, so the whole keep is
@@ -606,7 +607,9 @@ function Library() {
       <div className={`${pageStyles.column} ${styles.shelfColumn}`}>
         <header className={styles.masthead}>
           <div className={styles.mastheadText}>
-            <h1 className={styles.title}>The Library</h1>
+            <h1 className={styles.title}>
+              The Library <Sparkle size={15} className={styles.spark} />
+            </h1>
             <p className={styles.subtitle}>every book you keep</p>
           </div>
 

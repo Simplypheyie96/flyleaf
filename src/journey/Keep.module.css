@@ -1,260 +1,583 @@
-/* One keep — the card, and nothing beside it.
+/* The seven cards.
 
-   What used to be in this file: a stitched thread, a knot, a lane of coloured
-   ribbons, three `data-variant` blocks re-skinning the same markup, a tilt, a
-   strip of tape and a photo-corner mount. All of it drew in the margin of
-   every keep in every view, whether or not that view meant anything by it —
-   which is what the sides of the journey were. Ornament that does not organise
-   anything is noise. Where the strands genuinely are the structure, the Weave
-   draws them itself, around its cards rather than beside them.
+   Read this file with the colour turned off. A quote is a hung mark and a line
+   of italic serif. A note is ruled paper with a margin. A voice memo is the one
+   reversed object on the page. A picture is a print in a mount with corners. A
+   character is a medallion and an annotated line. A place is a plate with the
+   map across the top. A plot thread is a tag and a bound edge. Seven
+   silhouettes, no tint required — which is the whole point, because a reader
+   scrolling fast is reading shapes, not hues.
 
-   What is left is the keep. Two type sizes on it and no more: the mono micro
-   label for the facts *about* a keep, and the reading size for the keep
-   itself. Both come from the journey's own four-size scale, stated once in
-   BookJourney.module.css — the fallbacks here are only so a card rendered
-   outside that page still sets. The face changes with the kind and only with
-   the kind: the book's words are serif, the reader's handwriting is the hand,
-   and everything that is interface is sans. */
+   Everything directional is logical (inline-start / inline-end), so the whole
+   set mirrors correctly without a second stylesheet. */
 
-.keep {
+/* ── Shared: the rail and the foot ────────────────────────────────────────
+   The only two pieces every card has in common. Both are deliberately quiet:
+   they are the frame, and the frame is not the picture. */
+
+.rail {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  /* Steps down from PaperSurface's own --space-5 only where the card is mostly
-     chrome; a keep is mostly the thing it holds, so it keeps the full step. */
-  padding: var(--space-5);
-  border-radius: var(--radius-md);
-}
-
-/* ---- The head: what this is, and when it was kept ---- */
-
-.head {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: 20px;
-}
-
-.kind,
-.when,
-.where {
-  font-family: var(--font-mono);
-  font-size: var(--t-micro, 0.6875rem);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--tint-ink-faint, var(--color-ink-faint));
-  white-space: nowrap;
-}
-
-.kind {
-  display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--tint-ink-soft, var(--color-ink-soft));
+  /* Clears the head of the card without pushing the body down a whole step —
+     the rail is a caption, not a section. */
+  margin-block-end: var(--space-3);
 }
 
-.when {
-  /* Trailing edge: the date is the one thing on this row a reader scans a
-     whole column for, so it wants a shared right margin to scan down. */
-  margin-inline-start: auto;
+/* Every fact in the app wears the same clothes: mono, caps, tracked out. */
+.lead {
+  margin-inline-end: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-ink-faint);
   font-variant-numeric: tabular-nums;
 }
-
-/* The way into everything a keep can have done to it. A 28px disc, with the
-   remaining 16px of the 44px target taken as content-box padding and given
-   straight back as negative margin — so the target is full size and the head
-   is still 20px tall. */
-.more {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: content-box;
-  width: 28px;
-  height: 28px;
-  padding: 8px;
-  margin: -8px;
-  margin-inline-end: calc(-8px - var(--space-1));
-  border: none;
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--tint-ink-faint, var(--color-ink-faint));
-  cursor: pointer;
-  transition: color var(--dur-quick) var(--ease-out);
-}
-
-.more:hover,
-.more:focus-visible {
-  color: var(--tint-ink, var(--color-ink));
-}
-
-/* ---- Which strand this is on ----
-
-   A dot in the strand's own colour and the strand's own name. Colour is the
-   only thing a strand owns; its lightness and chroma come from the theme, so
-   the same strand reads at midday and at night without knowing there are two
-   rooms. */
-
-.strandName {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: var(--t-chrome, var(--text-sm));
-  color: var(--tint-ink-soft, var(--color-ink-soft));
-}
-
-.swatch {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--strand);
-}
-
-/* ---- The keep itself ---- */
-
-.said,
-.marked,
-.reflection {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: var(--t-read, var(--text-md));
-  line-height: var(--leading-body);
-  /* Kept text is the reason this screen exists: the reading face, and never a
-     widow on the last line. */
-  text-wrap: pretty;
-  overflow-wrap: break-word;
-  color: var(--tint-ink, var(--color-ink));
-}
-
-/* The one place the hand survives. A note is the reader talking to themselves
-   and it is worth one typeface to say so — but only here, and never on
-   anything the app itself says. Set larger than the serif because Patrick Hand
-   carries a smaller x-height at the same nominal size. */
-.hand {
-  margin: 0;
-  font-family: var(--font-hand);
-  font-size: calc(var(--t-read, var(--text-md)) * 1.18);
-  line-height: 1.5;
-  text-wrap: pretty;
-  overflow-wrap: break-word;
-  color: var(--tint-ink, var(--color-ink));
-}
-
-/* A strand keep is the reader thinking about the book rather than quoting it. */
-.reflection {
-  font-style: italic;
-}
-
-/* Looser than the rest: two marker stripes on consecutive lines need a gap
-   between them or the marking reads as one solid panel. */
-.marked {
-  line-height: 1.75;
-}
-
-.marked span {
-  /* The stripe goes on the inline span so it follows the words to the end of
-     each line and stops. Seven degrees off level, so the ends of the stroke
-     are slanted the way a chisel tip leaves them.
-
-     The insets are lengths and not percentages: `box-decoration-break: clone`
-     gives every wrapped line its own gradient box, so a percentage is measured
-     against that line's width — on a full line it swallowed two letters, on a
-     three-word last line it swallowed nothing. */
-  background-image: linear-gradient(
-    97deg,
-    transparent 0 1px,
-    var(--highlighter) 5px calc(100% - 5px),
-    transparent calc(100% - 1px)
-  );
-  background-repeat: no-repeat;
-  background-size: 100% 1.1em;
-  background-position: 0 0.28em;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  padding-inline: 0.18em;
-}
-
-/* ---- A picture ---- */
-
-.mount {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin: 0;
-}
-
-.print {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: var(--radius-sm);
-  /* Something behind the picture while it decodes, so the card does not jump
-     from nothing to a photograph. */
-  background: var(--tint-chip, var(--card-chip));
-}
-
-.gone {
-  margin: 0;
-  padding: var(--space-6) var(--space-4);
-  border-radius: var(--radius-sm);
-  background: var(--tint-chip, var(--card-chip));
-  text-align: center;
-  font-family: var(--font-sans);
-  font-size: var(--t-chrome, var(--text-sm));
-  text-wrap: pretty;
-  color: var(--tint-ink-faint, var(--color-ink-faint));
-}
-
-/* What the reader wrote beside the picture or the recording. Interface face
-   and interface size: it is theirs *about* the thing, not the thing. */
-.caption {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: var(--t-chrome, var(--text-sm));
-  line-height: 1.5;
-  text-wrap: pretty;
-  color: var(--tint-ink-soft, var(--color-ink-soft));
-}
-
-/* ---- The foot: where it was, and what it was about ---- */
 
 .foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
+  margin-block-start: var(--space-4);
 }
 
 .where {
-  margin-inline-end: var(--space-1);
+  margin-inline-end: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+  /* Page numbers change from card to card; proportional digits would make a
+     column of them look drunk. */
   font-variant-numeric: tabular-nums;
 }
 
-/* A motif is the reader's own word for what a keep is about, and tapping it
-   sifts the journey down to everything else they said it about — so it is a
-   button and has to look like one. */
 .motif {
-  min-height: 26px;
-  padding: 0 var(--space-3);
-  border: 1px solid var(--tint-border, var(--border-hairline));
+  padding: var(--space-1) var(--space-3);
+  border: 0;
   border-radius: var(--radius-pill);
-  background: none;
+  background: var(--card-chip);
+  color: var(--color-ink-soft);
   font-family: var(--font-sans);
-  font-size: var(--t-chrome, var(--text-sm));
-  letter-spacing: 0;
-  color: var(--tint-ink-soft, var(--color-ink-soft));
+  font-size: var(--text-xs);
   cursor: pointer;
   transition:
-    border-color var(--dur-quick) var(--ease-out),
-    color var(--dur-quick) var(--ease-out);
+    color var(--dur-press) var(--ease-out),
+    background-color var(--dur-press) var(--ease-out);
 }
 
-.motif:hover,
-.motif:focus-visible {
-  border-color: var(--tint-ink-faint, var(--color-ink-faint));
-  color: var(--tint-ink, var(--color-ink));
+.motif:hover {
+  background: var(--color-accent-tint);
+  color: var(--color-accent-text);
+}
+
+/* The three verbs, on the card itself. No menu: a menu was a fourth tap in
+   front of three. Trailing in the foot, quiet until wanted — and each target
+   is the full 44px even though the drawn circle is smaller, with the excess
+   pulled back out of the layout so the row costs the card no extra air. */
+.acts {
+  display: flex;
+  align-items: center;
+  margin-inline-start: auto;
+  margin-block: calc((var(--tap-min) - 24px) / -2);
+  margin-inline-end: calc(var(--space-2) * -1);
+}
+
+.act {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink-faint);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    color var(--dur-press) var(--ease-out),
+    background-color var(--dur-press) var(--ease-out);
+}
+
+.act:hover {
+  color: var(--color-ink);
+  background: var(--card-chip);
+}
+
+.act:active {
+  translate: 0 var(--press);
+}
+
+/* Three cards name something. One face, one size, one weight — the serif has
+   no bold, and asking for one would summon a synthesised smear. */
+.name {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+/* ── 1. Quote ─────────────────────────────────────────────────────────────
+   The book talking. Serif, italic, large, and the opening mark hung out into
+   the card's own padding so the first letter still lands on the text edge. */
+
+/* Stated rather than inherited: the hung mark below reaches --space-4 back into
+   the card's padding, and it can only do that if the padding is known to be
+   bigger than that. */
+.quote {
+  --paper-pad: var(--space-5);
+}
+
+.line {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--color-ink);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+}
+
+.line::before {
+  content: '\201C';
+  position: absolute;
+  inset-inline-start: calc(var(--space-4) * -1);
+  inset-block-start: -0.12em;
+  font-size: var(--text-2xl);
+  line-height: 1;
+  font-style: normal;
+  color: var(--color-quote);
+  opacity: 0.55;
+}
+
+.sparkle {
+  flex: none;
+  color: var(--color-quote);
+}
+
+/* ── 2. Note ──────────────────────────────────────────────────────────────
+   The reader talking, in their own hand, on a leaf torn off a spiral pad:
+   punched holes along the head, rules under the writing, and a folded corner
+   at the foot where the page was turned back. */
+
+.note {
+  --rule-pitch: 1.75rem;
+  --paper-pad: var(--space-5);
+  /* So the folded corner is clipped to the card's own rounded corner instead
+     of poking a square past it. */
+  overflow: hidden;
+}
+
+/* The spine. A row of punched holes drawn straight across the head of the
+   sheet — each hole is the page's own background showing through, ringed the
+   way a punch bruises paper, so the note reads as torn off something spiral
+   bound. Perfectly ordinary CSS: one repeating radial gradient. */
+.spine {
+  display: block;
+  block-size: 16px;
+  margin-block: calc(-1 * var(--space-3)) var(--space-3);
+  margin-inline: calc(-1 * var(--space-2));
+  background-image: radial-gradient(
+    circle 4px at 11px 8px,
+    var(--color-bg) 0 2.5px,
+    color-mix(in oklch, var(--color-note), transparent 45%) 2.5px 3.5px,
+    transparent 4px
+  );
+  background-size: 22px 16px;
+  background-repeat: repeat-x;
+  background-position: center;
+}
+
+/* The flip: a folded-back corner, bottom trailing. Two gradients on one
+   element — the lower half is the page showing through the cut, the upper
+   half is the flap, a shade lighter than the sheet the way a fold catches
+   the light. */
+.fold {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  inline-size: 26px;
+  block-size: 26px;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to top left,
+      transparent 48%,
+      color-mix(in oklch, var(--color-note), var(--color-paper) 68%) 50%
+    ),
+    linear-gradient(to top left, var(--color-bg) 48%, transparent 50%);
+  filter: drop-shadow(-1px 1px 1px var(--shadow-tint));
+  border-start-start-radius: 3px;
+}
+
+/* The margin rule down the leading edge — the one line on a sheet of paper
+   that is not for writing on. */
+.note::after {
+  content: '';
+  position: absolute;
+  inset-block: var(--space-3);
+  inset-inline-start: var(--space-4);
+  inline-size: 1px;
+  background: color-mix(in oklch, var(--color-note), transparent 45%);
+}
+
+.ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--rule-pitch) - 1px),
+    var(--note-rule) calc(var(--rule-pitch) - 1px),
+    var(--note-rule) var(--rule-pitch)
+  );
+}
+
+.hand {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: var(--text-md);
+  /* A length, not the usual unitless ratio, and on purpose: the hand has to sit
+     on the rules, so the line box and the rule pitch must be the same number. */
+  line-height: var(--rule-pitch);
+  color: var(--color-ink);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+}
+
+/* ── 3. Voice memo ────────────────────────────────────────────────────────
+   The only object on the page printed in reverse: a dark bar by day, a pale bar
+   after dark, inverted against the page either way. A recording is a device,
+   not a piece of paper, and this one stops pretending otherwise. */
+
+.voice {
+  position: relative;
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  /* The orb, reversed to match: a lit face on a dark body, with a dark glyph
+     cut out of it. */
+  --orb-body: var(--color-voice);
+  --orb-core: color-mix(in oklch, var(--color-voice), white 26%);
+  --orb-rim: color-mix(in oklch, var(--color-voice), black 24%);
+  --orb-glow: color-mix(in oklch, var(--color-voice), transparent 62%);
+  --orb-wave: var(--color-paper);
+  --color-bg: var(--color-ink);
+  --color-ink-soft: color-mix(in oklch, var(--color-paper), transparent 22%);
+}
+
+/* The reversal is declared on the children rather than on the slab itself: the
+   slab needs the page's real ink for its own fill, and one token cannot be both
+   that fill and its own opposite in a single block. */
+.voice > * {
+  --color-ink: var(--color-paper);
+  --color-ink-soft: color-mix(in oklch, var(--color-paper), transparent 22%);
+  --color-ink-faint: color-mix(in oklch, var(--color-paper), transparent 40%);
+  --card-chip: color-mix(in oklch, var(--color-paper), transparent 86%);
+  --color-accent-tint: color-mix(in oklch, var(--color-accent), transparent 68%);
+  --color-accent-text: var(--color-paper);
+}
+
+.slabCaption {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: color-mix(in oklch, var(--color-paper), transparent 14%);
+  max-inline-size: var(--measure);
+}
+
+/* ── 4. Picture ───────────────────────────────────────────────────────────
+   A print in a mount, held down by four corners. The tinted card is the mount
+   board; the paper-white inner is the print itself. */
+
+.print {
+  --paper-pad: var(--space-4);
+  margin: 0;
+}
+
+.mount {
+  position: relative;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper);
+  box-shadow: inset 0 0 0 1px var(--card-border);
+}
+
+.mount::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-repeat: no-repeat;
+  background-size: 18px 18px;
+  background-position:
+    left bottom,
+    left top,
+    right top,
+    right bottom;
+  background-image:
+    linear-gradient(45deg, var(--photo-corner) 13px, transparent 13px),
+    linear-gradient(135deg, var(--photo-corner) 13px, transparent 13px),
+    linear-gradient(225deg, var(--photo-corner) 13px, transparent 13px),
+    linear-gradient(315deg, var(--photo-corner) 13px, transparent 13px);
+}
+
+.photo {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: 2px;
+}
+
+.gone {
+  margin: 0;
+  padding-block: var(--space-6);
+  text-align: center;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-ink-faint);
+}
+
+/* Mono, so the caption reads as something written on the back of the print
+   rather than as more of the book. */
+.caption {
+  margin-block-start: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+/* ── 5. Character ─────────────────────────────────────────────────────────
+   A medallion and a dossier. The drawn person is chosen by appearance and
+   nothing else — there is no gender on this card, in the data or on screen. */
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.medallion {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: 50%;
+  background: var(--color-paper);
+  box-shadow: inset 0 0 0 1px var(--card-border);
+  color: var(--color-character);
+}
+
+/* The hairline is the whole idea: a line of dossier annotated against the name
+   above it, not a second paragraph. */
+.dossier {
+  margin: var(--space-3) 0 0;
+  padding-inline-start: var(--space-3);
+  border-inline-start: 1px solid var(--card-border);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+/* ── 6. Place & lore ──────────────────────────────────────────────────────
+   The plate runs edge to edge across the top, which is why this is the one
+   card with its padding turned off and moved inside. */
+
+.place {
+  overflow: hidden;
+}
+
+.plate {
+  position: relative;
+  block-size: 132px;
+  overflow: hidden;
+  border-block-end: 1px solid var(--card-border);
+  background-color: color-mix(in oklch, var(--color-place), transparent 88%);
+  /* A survey grid, drawn rather than photographed. It sits under a pinned map
+     as well, so an image with transparency still lands on something. */
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      color-mix(in oklch, var(--color-place), transparent 78%) 0 1px,
+      transparent 1px 22px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--color-place), transparent 78%) 0 1px,
+      transparent 1px 22px
+    );
+}
+
+.survey {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  color: var(--color-place);
+}
+
+.map {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.placeBody {
+  padding: var(--space-5);
+}
+
+.lore {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+/* ── 7. Plot thread ───────────────────────────────────────────────────────
+   The case card. Pinned at its head, a dashed evidence frame drawn just
+   inside its edge, and a typewritten heading — nothing else on the page is
+   pinned, framed or typewritten, so a thread cannot be read as a quote even
+   at a squint. Tag, pin and frame all get heavier as the reader gets surer. */
+
+.thread {
+  --knot: 1px;
+  /* A case card is pinned up, not laid flat: half a degree of lean is enough
+     to say so without unsettling the column. */
+  rotate: -0.5deg;
+}
+
+/* The evidence frame: a dashed rule just inside the card's edge, the way an
+   index card is printed. Dashed is the point — it rhymes with the dashed
+   journey thread these cards tie into when they are filtered out alone. */
+.thread::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  border: 1px dashed color-mix(in oklch, var(--color-thread), transparent 55%);
+  border-radius: calc(var(--radius-md) - 5px);
+}
+
+.thread::after {
+  content: '';
+  position: absolute;
+  inset-block: var(--space-4);
+  inset-inline-start: 0;
+  inline-size: var(--knot);
+  border-radius: var(--radius-pill);
+  background: var(--color-thread);
+}
+
+/* The pushpin, dead centre at the head, poking through the frame. A drawn
+   sphere in the thread's own colour with the app's usual top-left light. */
+.pin {
+  position: absolute;
+  inset-block-start: -5px;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  inline-size: 14px;
+  block-size: 14px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, oklch(1 0 0 / 0.55) 0 18%, transparent 45%),
+    var(--color-thread);
+  box-shadow:
+    0 2px 3px var(--shadow-tint),
+    inset 0 -2px 3px oklch(0 0 0 / 0.18);
+}
+
+/* The heading is the one typewritten thing on the page: mono, caps, tracked.
+   A serif heading here read as one more quote, which is exactly the mistake
+   this card exists not to make. */
+.case {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--text-base);
+  line-height: var(--leading-tight);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+.stance {
+  margin-inline-end: auto;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-thread);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-thread);
+}
+
+.thread[data-stance='suspicion'] {
+  --knot: 2px;
+}
+
+.thread[data-stance='suspicion'] .stance {
+  border-width: 2px;
+}
+
+.thread[data-stance='suspicion']::before {
+  border-color: color-mix(in oklch, var(--color-thread), transparent 35%);
+}
+
+/* A certainty's frame stops being provisional: the dashes close up. */
+.thread[data-stance='certain']::before {
+  border-style: solid;
+  border-color: color-mix(in oklch, var(--color-thread), transparent 40%);
+}
+
+/* Certain is the only filled tag in the set. There is nothing above it to
+   escalate to, which is exactly why it is allowed to be loud. */
+.thread[data-stance='certain'] {
+  --knot: 3px;
+}
+
+.thread[data-stance='certain'] .stance {
+  border-color: transparent;
+  background: var(--color-thread);
+  color: var(--color-paper);
+}
+
+.said {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink);
+  max-inline-size: var(--measure);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .act,
+  .motif {
+    transition-duration: 0.01ms;
+  }
+
+  .act:active {
+    translate: none;
+  }
 }

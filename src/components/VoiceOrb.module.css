@@ -133,13 +133,30 @@
   }
 }
 
-/* ---- The trace ---- */
+/* ---- The bubble ----
+
+   The trace and the clock ride together in a soft pill, the shape every chat
+   app has taught a thumb to read as "a voice message lives here". The clock
+   is a flex sibling with its own reserved room, so it can never land on top
+   of the bars — the overlap that used to happen when the two were loose in
+   the row. */
+
+.bubble {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklch, var(--color-voice), transparent 80%);
+}
 
 .trace {
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
-  height: 34px;
+  height: 30px;
 }
 
 .bars,
@@ -174,6 +191,7 @@
 
 .elapsed {
   flex: 0 0 auto;
+  margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   /* The figure counts up a second at a time while playing; proportional

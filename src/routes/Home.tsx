@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom'
 import BookCover from '../components/BookCover'
 import LeafButton from '../components/LeafButton'
 import Mascot from '../components/Mascot'
+import Sparkle from '../components/Sparkle'
 import PaperSurface from '../components/PaperSurface'
 import { QuoteIcon, VoiceIcon } from '../components/TabIcons'
 import { currentlyReading, recentMemories } from '../data/sample'
@@ -10,23 +11,6 @@ import pageStyles from './page.module.css'
 import styles from './Home.module.css'
 
 const WAVE_HEIGHTS = [10, 18, 26, 14, 30, 22, 12, 24, 16, 28, 18, 10, 20, 14]
-
-function Sparkle({ className }: { className: string }) {
-  return (
-    <svg
-      className={className}
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <path
-        fill="currentColor"
-        d="M12 2 C 13 8 16 11 22 12 C 16 13 13 16 12 22 C 11 16 8 13 2 12 C 8 11 11 8 12 2 Z"
-      />
-    </svg>
-  )
-}
 
 /* Each entry type is its own object: a quotation, a sticky note, a player. */
 function MemoryCard({ memory, index }: { memory: SampleMemory; index: number }) {

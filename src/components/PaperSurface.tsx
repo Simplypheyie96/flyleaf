@@ -7,8 +7,9 @@ export type PaperTone =
   | 'note'
   | 'voice'
   | 'image'
-  | 'highlight'
-  | 'strand'
+  | 'place'
+  | 'thread'
+  | 'character'
 
 interface PaperSurfaceProps {
   children: ReactNode
@@ -28,14 +29,15 @@ interface PaperSurfaceProps {
   [data: `data-${string}`]: string | undefined
 }
 
-const TONE_CLASS = {
+const TONE_CLASS: Record<PaperTone, string | undefined> = {
   default: undefined,
   quote: styles.toneQuote,
   note: styles.toneNote,
   voice: styles.toneVoice,
   image: styles.toneImage,
-  highlight: styles.toneHighlight,
-  strand: styles.toneStrand,
+  place: styles.tonePlace,
+  thread: styles.toneThread,
+  character: styles.toneCharacter,
 }
 
 /** Aged-paper content surface — entries, cards, keepsakes. */

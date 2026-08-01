@@ -25,7 +25,7 @@
    or delete this file and the one `seedLibrary()` call in main.tsx. The
    define in vite.config.ts goes with it. */
 
-import db, { type Book, type Entry, type Strand } from './db'
+import db, { type Book, type Entry } from './db'
 
 declare const __PREVIEW_SEED__: boolean
 
@@ -44,7 +44,7 @@ const PREVIEW_SHELF: Book[] = [
        the rest of this file. */
     pagesRead: 203,
     covers: [],
-    format: 'physical',
+    formats: ['physical'],
     startedOn: '2019-03-14',
     addedAt: 1785519409830,
   },
@@ -69,7 +69,10 @@ const PREVIEW_SHELF: Book[] = [
     author: 'R. Okonkwo',
     pages: 318,
     covers: [],
-    format: 'audio',
+    /* Two at once — the paperback at home and the narrator on the way there.
+       One book on the shelf has to carry a pair, or the multi-select in the
+       journey header is only ever reviewed with a single answer in it. */
+    formats: ['audio', 'physical'],
     startedOn: '2026-06-11',
     addedAt: 1785494029136,
   },
@@ -79,7 +82,7 @@ const PREVIEW_SHELF: Book[] = [
     author: 'T. Fairweather',
     pages: 190,
     covers: [],
-    format: 'digital',
+    formats: ['digital'],
     startedOn: '2026-05-20',
     addedAt: 1785494024136,
   },
@@ -92,7 +95,7 @@ const PREVIEW_SHELF: Book[] = [
     /* `L` rather than the `M` this was originally saved with — see
        books/sources.ts for why the board wants the larger plate. */
     covers: ['https://covers.openlibrary.org/b/id/7079753-L.jpg?default=false'],
-    format: 'digital',
+    formats: ['digital'],
     startedOn: '2026-07-31',
     addedAt: 1785493794416,
   },
@@ -102,21 +105,16 @@ const PREVIEW_SHELF: Book[] = [
 
    The shelf above is only half of what a review needs: a book detail page with
    nothing kept from it shows an empty thread, and none of the sorting,
-   filtering, tagging, braiding or gathering can be seen at all. So one of the
-   invented books arrives with a journey already on it — every keep type, two
-   strands (one tied off, one still running), motifs that overlap, and pages
-   that run in a different order from the days they were kept, so "Book order"
-   and "As kept" visibly differ.
+   filtering, tagging or gathering can be seen at all. So one of the invented
+   books arrives with a journey already on it — all seven kinds of keep, three
+   plot threads at the three stances so the tie between them can be seen
+   hardening, a place with a map and a place without one, motifs that overlap,
+   and pages that run in a different order from the days they were kept, so
+   "Book order" and "As kept" visibly differ.
 
-   These are real rows in the real tables. They can be edited, retagged,
+   These are real rows in the real table. They can be edited, retagged,
    re-dated and deleted like anything else, which is the point: a placeholder
-   that cannot be deleted is not a preview of the app.
-
-   The two strands are written first and their real ids read back, because
-   `strands` hands out its own keys: a reader who has already braided something
-   on another book owns ids 1 and 2, and hard-coding them here would collide
-   and take the whole journey down with it. So the keeps below name a strand by
-   a local key and are remapped on the way in. */
+   that cannot be deleted is not a preview of the app. */
 
 const JOURNEY_BOOK = 111111
 
@@ -127,41 +125,22 @@ function at(day: string, minute: number) {
   return Date.parse(`${day}T08:00:00Z`) + minute * 60_000
 }
 
-const HOUSE = 'house'
-const NARRATOR = 'narrator'
-
-/** A strand under its local key, with no id: the store assigns that. */
-const PREVIEW_STRANDS: Record<string, Omit<Strand, 'id'>> = {
-  [HOUSE]: {
-    bookId: JOURNEY_BOOK,
-    name: 'The house that keeps changing',
-    hue: 340,
-    openedAt: at('2026-07-04', 12),
-    closedAt: at('2026-07-24', 40),
-  },
-  [NARRATOR]: {
-    bookId: JOURNEY_BOOK,
-    name: 'Whether she is telling the truth',
-    hue: 200,
-    openedAt: at('2026-07-11', 20),
-  },
-}
-
-/** A keep before it has a home: `strand` is the local key above, swapped for a
-    real `strandId` in `seedLibrary`, and `id` is left to the store for the same
-    reason the strands leave theirs. Media is attached there too, because both
-    blobs are made in the browser and cannot be written into a `const` here. */
-type Fixture = Omit<Entry, 'id' | 'strandId'> & { strand?: string }
+/** A keep before it has a home. `id` is left to the store, and media is
+    attached in `seedLibrary` because both blobs are made in the browser and
+    cannot be written into a `const` here. */
+type Fixture = Omit<Entry, 'id'>
 
 const PREVIEW_JOURNEY: Fixture[] = [
   {
     bookId: JOURNEY_BOOK,
-    type: 'strand',
+    type: 'thread',
+    name: 'The house that keeps changing',
     text: 'The rooms are described twice and they are not the same rooms. I am going to watch this.',
+    stance: 'hunch',
+    page: 12,
     keptOn: '2026-07-04',
     createdAt: at('2026-07-04', 12),
-    strand: HOUSE,
-    strandMark: 'open',
+    motifs: ['the house'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -172,7 +151,18 @@ const PREVIEW_JOURNEY: Fixture[] = [
     keptOn: '2026-07-05',
     createdAt: at('2026-07-05', 30),
     motifs: ['weather', 'the house'],
-    strand: HOUSE,
+  },
+  {
+    bookId: JOURNEY_BOOK,
+    type: 'character',
+    name: 'Aunt Bel',
+    avatar: 'bun',
+    text: 'Runs the house and the conversation. Answers questions nobody asked and lets the asked ones sit. I do not trust a word of it and I like her enormously.',
+    page: 24,
+    chapter: 'Two',
+    keptOn: '2026-07-06',
+    createdAt: at('2026-07-06', 18),
+    motifs: ['the house'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -183,12 +173,14 @@ const PREVIEW_JOURNEY: Fixture[] = [
     keptOn: '2026-07-07',
     createdAt: at('2026-07-07', 55),
     motifs: ['the house'],
-    strand: HOUSE,
   },
   {
     bookId: JOURNEY_BOOK,
-    type: 'highlight',
-    text: 'nobody in this village has ever agreed about the year the water came up',
+    /* A place with a map pinned to it. Its pair further down has none, so both
+       halves of the place card can be seen on one page. */
+    type: 'place',
+    name: 'Ardvane',
+    text: 'The village the water came up in. Everyone dates their own life from it and nobody dates it the same year.',
     page: 47,
     keptOn: '2026-07-09',
     createdAt: at('2026-07-09', 15),
@@ -196,22 +188,34 @@ const PREVIEW_JOURNEY: Fixture[] = [
   },
   {
     bookId: JOURNEY_BOOK,
-    type: 'strand',
+    type: 'thread',
+    name: 'Whether she is telling the truth',
     text: 'She keeps correcting herself and then not correcting the correction.',
+    stance: 'suspicion',
+    page: 58,
     keptOn: '2026-07-11',
     createdAt: at('2026-07-11', 20),
-    strand: NARRATOR,
-    strandMark: 'open',
   },
   {
     bookId: JOURNEY_BOOK,
     type: 'voice',
     duration: 22,
     text: 'Walking back from the shop, thinking about the flood chapter.',
+    page: 63,
     keptOn: '2026-07-14',
     createdAt: at('2026-07-14', 5),
     motifs: ['weather'],
-    strand: NARRATOR,
+  },
+  {
+    bookId: JOURNEY_BOOK,
+    type: 'place',
+    name: 'The long field behind the chapel',
+    text: 'Where she goes to not be in the house. Described four times and never once in daylight.',
+    page: 96,
+    chapter: 'Six',
+    keptOn: '2026-07-16',
+    createdAt: at('2026-07-16', 30),
+    motifs: ['the house'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -231,17 +235,27 @@ const PREVIEW_JOURNEY: Fixture[] = [
     keptOn: '2026-07-21',
     createdAt: at('2026-07-21', 10),
     motifs: ['grief', 'the house'],
-    strand: NARRATOR,
   },
   {
     bookId: JOURNEY_BOOK,
-    type: 'strand',
-    text: 'It was one house all along and she was describing it from two different years. Tied off.',
+    type: 'thread',
+    name: 'It was one house all along',
+    text: 'She was describing it from two different years. Everything that did not fit was a decade, not a lie.',
+    stance: 'certain',
     page: 155,
     keptOn: '2026-07-24',
     createdAt: at('2026-07-24', 40),
-    strand: HOUSE,
-    strandMark: 'close',
+    motifs: ['the house'],
+  },
+  {
+    bookId: JOURNEY_BOOK,
+    type: 'character',
+    name: 'The boy from the ferry',
+    avatar: 'crop',
+    text: 'Six pages and he has not come back. I have a feeling about him and no evidence at all.',
+    page: 161,
+    keptOn: '2026-07-26',
+    createdAt: at('2026-07-26', 20),
   },
   {
     bookId: JOURNEY_BOOK,
@@ -309,18 +323,42 @@ function previewPhoto() {
   return new Blob([svg], { type: 'image/svg+xml' })
 }
 
+/** A drawn map for the place that has one, so the plate across the top of a
+    place card can be reviewed with real cartography in it and not only with
+    the fallback contours the card draws for itself. Invented ground: a coast,
+    a river and a road, with no names on it. */
+function previewMap() {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420">
+    <rect width="900" height="420" fill="#efe7d6"/>
+    <path d="M0 300 C 150 268, 250 320, 400 296 S 700 250, 900 276 L900 420 L0 420 Z" fill="#dfe6de"/>
+    ${Array.from({ length: 5 }, (_, i) => {
+      const y = 96 + i * 34
+      return `<path d="M60 ${y} C 240 ${y - 30}, 430 ${y + 34}, 640 ${y - 8} S 830 ${y - 26}, 880 ${y + 6}" fill="none" stroke="#c9bda6" stroke-width="2"/>`
+    }).join('')}
+    <path d="M180 0 C 210 120, 150 200, 214 300" fill="none" stroke="#9fb6c4" stroke-width="7" stroke-linecap="round"/>
+    <path d="M0 232 C 220 214, 470 258, 900 206" fill="none" stroke="#b9a98c" stroke-width="3" stroke-dasharray="14 10"/>
+  </svg>`
+  return new Blob([svg], { type: 'image/svg+xml' })
+}
+
 export async function seedLibrary() {
   if (!__PREVIEW_SEED__) return
 
-  /* Both blobs before the transaction opens. A Dexie transaction that awaits a
-     promise which is not one of its own is closed by the time it resumes. */
-  const withMedia = PREVIEW_JOURNEY.map((keep) =>
-    keep.type === 'voice'
-      ? { ...keep, media: silentWav(keep.duration ?? 6) }
-      : keep.type === 'image'
-        ? { ...keep, media: previewPhoto() }
-        : keep,
-  )
+  /* Every blob before the transaction opens. A Dexie transaction that awaits a
+     promise which is not one of its own is closed by the time it resumes.
+
+     The map goes on the first place only — the second is there precisely to
+     show a place without one. */
+  let mapped = false
+  const withMedia = PREVIEW_JOURNEY.map((keep) => {
+    if (keep.type === 'voice') return { ...keep, media: silentWav(keep.duration ?? 6) }
+    if (keep.type === 'image') return { ...keep, media: previewPhoto() }
+    if (keep.type === 'place' && !mapped) {
+      mapped = true
+      return { ...keep, media: previewMap() }
+    }
+    return keep
+  })
 
   /* Two guards, not one, and they are deliberately independent.
 
@@ -342,22 +380,9 @@ export async function seedLibrary() {
     await db.books.bulkAdd(PREVIEW_SHELF)
   })
 
-  await db.transaction('rw', db.books, db.entries, db.strands, async () => {
+  await db.transaction('rw', db.books, db.entries, async () => {
     if (!(await db.books.get(JOURNEY_BOOK))) return
     if ((await db.entries.where('bookId').equals(JOURNEY_BOOK).count()) > 0) return
-
-    const keys = Object.keys(PREVIEW_STRANDS)
-    const ids = (await db.strands.bulkAdd(
-      keys.map((key) => PREVIEW_STRANDS[key] as Strand),
-      { allKeys: true },
-    )) as number[]
-    const assigned = new Map(keys.map((key, i) => [key, ids[i]]))
-
-    await db.entries.bulkAdd(
-      withMedia.map(({ strand, ...keep }) => ({
-        ...keep,
-        ...(strand ? { strandId: assigned.get(strand) } : {}),
-      })) as Entry[],
-    )
+    await db.entries.bulkAdd(withMedia as Entry[])
   })
 }

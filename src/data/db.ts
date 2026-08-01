@@ -53,29 +53,39 @@ export function formatsOf(book: Pick<Book, 'format' | 'formats'>): BookFormat[] 
   return book.format ? [book.format] : []
 }
 
-/** The six things a reader keeps. Quote and highlight are deliberately not
-    one type: a quote is chosen and copied out, a highlight is a stripe left
-    while reading, and they are remembered differently.
+/** The seven things a reader keeps.
 
-    `strand` is the odd one. The other five are things you took out of the
-    book; a strand is something you are watching for in it — a character, a
-    question, a motif you think is going somewhere. It is kept in the same
-    table because it hangs on the same thread on the same day, and because a
-    reader wants to see "I started wondering about the father here" in its
-    place in the journey, not in a sidebar. */
+    Four of them are things taken out of the book — a line, a thought, thirty
+    seconds of your own voice, a picture. Three are things you build *about*
+    the book while you read it: a person you are following, a place you want
+    to remember, and a suspicion you are testing. All seven live in one table
+    because they all hang on the same thread on the same day, and because the
+    journey's only real question — everything kept from this book, in order —
+    should stay one query.
+
+    `highlight` is gone: a highlight was a quote with a weaker claim on the
+    page, and two ways to keep a line is one too many. `strand` is gone too,
+    replaced by `thread`, which is an ordinary keep with a stance rather than
+    a second table with a lifespan. */
 export type EntryType =
   | 'quote'
   | 'note'
   | 'voice'
   | 'image'
-  | 'highlight'
-  | 'strand'
+  | 'character'
+  | 'place'
+  | 'thread'
+
+/** How sure the reader is, on a plot thread. The whole point of the type: a
+    hunch that hardens into a certainty is the shape of reading a novel, and
+    the journey draws that hardening as the link between the notches. */
+export type Stance = 'hunch' | 'suspicion' | 'certain'
 
 /** One kept memory, hanging off one book's thread.
 
     Nearly every field is optional because the types share this row rather than
     each having a table of their own: a voice memo has a blob and a duration
-    and no text, a quote is the other way around. The alternative — five
+    and no text, a quote is the other way around. The alternative — seven
     tables, or a `data` bag typed per variant — buys strictness the app never
     spends, and costs the one thing the journey screen actually needs, which is
     reading every memory for a book in one ordered query. */
@@ -84,15 +94,24 @@ export interface Entry {
   /** The book this hangs off — `Book.id`, the cover seed. */
   bookId: number
   type: EntryType
-  /** The quotation, the note, the highlighted passage. */
+  /** The words: the quotation, the note, the caption under a picture, what
+      the reader has to say about a person, a place or a suspicion. Every type
+      except voice can carry text, and voice can too once it is transcribed. */
   text?: string
   /** Where in the book it happened. Both are optional and both can be set: a
       reader who knows the page usually knows the chapter too, and one who is
-      listening knows neither. */
+      listening knows neither.
+
+      Per entry, never per book: the page a line is on is a fact about that
+      line. A book-level "what page are you on" is `Book.pagesRead`, and the
+      two are not the same number. */
   page?: number
   chapter?: string
   /** Recording or picture, held on the device. Never a URL: an entry that
-      needed the network to be looked at would not be a kept thing. */
+      needed the network to be looked at would not be a kept thing.
+
+      Voice and image both use it, and so does a place the reader has pinned
+      a map to. */
   media?: Blob
   /** Seconds. Voice only, and read off the recording rather than typed. */
   duration?: number
@@ -105,40 +124,21 @@ export interface Entry {
       "things the father won't say". Free text on purpose: a fixed list would
       be somebody else's reading of the book. */
   motifs?: string[]
-  /** The strand this hangs on, if the reader tied it to one. */
-  strandId?: number
-  /** Only on `type: 'strand'` — whether this keep is the strand opening or
-      the strand being tied off. Stored rather than derived from position,
-      because position changes with sort order and this does not. */
-  strandMark?: 'open' | 'close'
-}
-
-/** A thread of attention through one book.
-
-    Not a tag and not a folder: a strand has a beginning ("I've started
-    watching this"), a middle (every keep tied to it), and usually an end
-    ("here is where it landed"). The journey draws it as a second line braided
-    alongside the main thread for exactly the stretch it was live, which is
-    the whole reason it is a row of its own rather than a string on an entry —
-    a tag has no span. */
-export interface Strand {
-  id: number
-  bookId: number
-  name: string
-  /** 0–360. The braid's own colour, so two strands can run at once and still
-      be told apart. Chroma and lightness are the theme's, not the strand's. */
-  hue: number
-  /** `Entry.createdAt` of the keep that opened it, so the braid knows where
-      to start without a second query. */
-  openedAt: number
-  /** Absent while the strand is still live. */
-  closedAt?: number
+  /** What it is called — a character's name, a place's name. The heading of
+      the card, kept apart from `text` so the two can be styled and searched
+      as the different things they are. */
+  name?: string
+  /** Which drawn figure stands for this character. An id into the avatar set,
+      not a description of a person: the reader picks a likeness they like,
+      and the app never asks or records who anybody is. */
+  avatar?: string
+  /** `thread` only — how sure the reader currently is. */
+  stance?: Stance
 }
 
 const db = new Dexie('flyleaf') as Dexie & {
   books: EntityTable<Book, 'id'>
   entries: EntityTable<Entry, 'id'>
-  strands: EntityTable<Strand, 'id'>
 }
 
 // Only the fields we actually query on: newest-first on the shelf, and title
@@ -172,5 +172,45 @@ db.version(3).stores({
   entries: '++id, bookId, [bookId+createdAt], strandId, *motifs',
   strands: '++id, bookId',
 })
+
+/* The one non-additive version, and the note at the top of this file is worth
+   re-reading before adding another: strands were a second table with a
+   lifespan, and they did not survive contact with a reader. `strands: null`
+   tells Dexie to drop the table outright, and the `strandId` index goes with
+   it.
+
+   Nothing is thrown away. A strand keep was always an entry, so it stays an
+   entry — it becomes a plot thread, which is the same idea without the
+   bookkeeping. A highlight becomes a quote, because it always was one.
+   Rows written before this version are rewritten in place here rather than
+   translated on every read, so nothing downstream has to know the old shape
+   existed.
+
+   `upgrade` runs inside Dexie's own transaction, once, on a device that has
+   the old schema. A device installing the app today jumps straight to 4 and
+   never enters it. */
+db.version(4)
+  .stores({
+    books: 'id, addedAt, title',
+    entries: '++id, bookId, [bookId+createdAt], *motifs',
+    strands: null,
+  })
+  .upgrade((tx) =>
+    tx
+      .table<Entry & { strandId?: number; strandMark?: string }>('entries')
+      .toCollection()
+      .modify((entry) => {
+        const was = entry.type as EntryType | 'highlight' | 'strand'
+        if (was === 'highlight') entry.type = 'quote'
+        if (was === 'strand') {
+          entry.type = 'thread'
+          // The weakest stance, because a strand recorded no confidence at
+          // all and claiming certainty on the reader's behalf would be a lie.
+          entry.stance = 'hunch'
+        }
+        delete entry.strandId
+        delete entry.strandMark
+      }),
+  )
 
 export default db

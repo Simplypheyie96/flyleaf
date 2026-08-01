@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react'
 import Sheet from '../components/Sheet'
 import LeafButton from '../components/LeafButton'
 import { CheckIcon, CloseIcon, ShareIcon } from '../components/TabIcons'
-import type { Book, Entry, Strand } from '../data/db'
+import type { Book, Entry } from '../data/db'
 import { countWords, fairCopy } from './lexicon'
 import styles from './sheet.module.css'
 
@@ -24,10 +24,9 @@ interface Props {
   onClose: () => void
   book: Book
   keeps: Entry[]
-  strands: Strand[]
 }
 
-function FairCopySheet({ open, onClose, book, keeps, strands }: Props) {
+function FairCopySheet({ open, onClose, book, keeps }: Props) {
   const [draft, setDraft] = useState('')
   const [omitted, setOmitted] = useState(0)
   const [copied, setCopied] = useState(false)
@@ -37,11 +36,11 @@ function FairCopySheet({ open, onClose, book, keeps, strands }: Props) {
      than no draft at all. */
   useEffect(() => {
     if (!open) return
-    const made = fairCopy(book, keeps, strands)
+    const made = fairCopy(book, keeps)
     setDraft(made.text)
     setOmitted(made.omitted)
     setCopied(false)
-  }, [open, book, keeps, strands])
+  }, [open, book, keeps])
 
   async function copy() {
     try {
@@ -63,9 +62,9 @@ function FairCopySheet({ open, onClose, book, keeps, strands }: Props) {
   }
 
   return (
-    <Sheet open={open} onClose={onClose} label="Fair copy" name="fair-copy">
+    <Sheet open={open} onClose={onClose} label="Draft my review" name="fair-copy">
       <header className={styles.head}>
-        <h2 className={styles.title}>Fair copy</h2>
+        <h2 className={styles.title}>Draft my review</h2>
         <button type="button" className={styles.iconButton} onClick={onClose} aria-label="Close">
           <CloseIcon size={20} />
         </button>

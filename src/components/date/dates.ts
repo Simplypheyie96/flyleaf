@@ -100,6 +100,17 @@ export function longDate(iso: string) {
   })
 }
 
+/** "2 Jul 2026" in London, "Jul 2, 2026" in New York. For places where the
+    date shares a line with something else: `longDate` runs to three lines in a
+    half-width cell on a phone, and a wrapped date stops looking like a date. */
+export function shortDate(iso: string) {
+  return fromISO(iso).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
 /** What a screen reader should hear on a day cell — the full date, never the
     bare numeral, because "17" out of context tells you nothing. */
 export function dayLabel(d: Date) {

@@ -1,4 +1,5 @@
 import PaperSurface from '../components/PaperSurface'
+import Sparkle from '../components/Sparkle'
 import ThemeToggle from '../components/ThemeToggle'
 import pageStyles from './page.module.css'
 import styles from './Settings.module.css'
@@ -13,7 +14,9 @@ function Settings() {
     <main className={pageStyles.page}>
       <div className={pageStyles.column}>
         <header className={styles.masthead}>
-          <h1 className={styles.title}>Settings</h1>
+          <h1 className={styles.title}>
+            Settings <Sparkle size={15} className={styles.spark} />
+          </h1>
           <p className={styles.subtitle}>how Flyleaf behaves</p>
         </header>
 
