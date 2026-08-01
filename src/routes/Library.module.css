@@ -188,6 +188,11 @@
    set both of those individual properties for their layout, and the two
    compose *before* transform. This has to leave them alone. */
 .book {
+  /* The anchor for the overlay that opens a book's journey. `.stackItem` is
+     declared below at the same specificity and re-states `position` for the
+     pile, so this only ever governs the Grid; the Shelf's `.spine` is already
+     relative for its own reasons. */
+  position: relative;
   border-radius: 14px;
   transition:
     transform var(--dur-base) var(--ease-out),
@@ -454,6 +459,10 @@
    exposed sliver is entirely a target, with the front card's higher stacking
    taking back whatever it covers. The label is for screen readers; sighted
    readers have the cover itself. */
+/* An invisible cover-sized target. Used twice: as a button that brings a
+   buried book forward, and as a link that opens the front one's journey.
+   The label inside is real text — collapsed to nothing on screen, still read
+   aloud — so neither is an unnamed control. */
 .reach {
   position: absolute;
   inset: 0;
@@ -463,6 +472,7 @@
   border-radius: inherit;
   color: transparent;
   font-size: 0;
+  text-decoration: none;
   cursor: pointer;
 }
 

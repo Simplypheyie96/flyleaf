@@ -7,6 +7,7 @@ import LeafButton from "./components/LeafButton";
 import SplashScreen from "./components/SplashScreen";
 import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
 import UpdateToast from "./components/UpdateToast";
+import BookJourney from "./routes/BookJourney";
 import Home from "./routes/Home";
 import Library from "./routes/Library";
 import Settings from "./routes/Settings";
@@ -55,6 +56,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/library" element={<Library />} />
+        <Route path="/book/:id" element={<BookJourney />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/styleguide" element={<Styleguide />} />
       </Routes>

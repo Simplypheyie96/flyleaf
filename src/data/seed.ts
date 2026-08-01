@@ -39,6 +39,10 @@ const PREVIEW_SHELF: Book[] = [
     title: 'The Salt Path',
     author: 'Raynor Winn',
     pages: 288,
+    /* Somewhere in, so the journey header has a progress figure to show and
+       is not reviewed with one of its three facts missing. Scaffolding, like
+       the rest of this file. */
+    pagesRead: 203,
     covers: [],
     format: 'physical',
     startedOn: '2019-03-14',
