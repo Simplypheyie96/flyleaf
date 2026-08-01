@@ -142,6 +142,35 @@
   --card-fallback: oklch(0.985 0.006 238); /* opaque stand-in */
   --card-chip: oklch(0.99 0.004 240 / 0.85); /* small nested badges */
 
+  /* ---- Field material: what a control is made of INSIDE a sheet ----
+
+     Not the card material, though it used to be. A card is a translucent
+     near-white laid on the blue sky, and the sky is what makes it read: 0.995
+     at 55% over a 0.93 page composites to about 0.964, so the card is plainly
+     a card. The same two values inside the add sheet, where the surface behind
+     them is near-white paper rather than sky, composite to 0.991 on a 0.988
+     panel — four thousandths of a step. The border was worse: pure white, so
+     on a white sheet it was drawing a lighter line on an already-light
+     surface, which is a line that cannot exist.
+
+     Night got this right by accident of direction. There the field is 0.34 on
+     a 0.28 panel and the hairline is near-white at 15% — the control steps
+     AWAY from its sheet, toward the light, and lands about 0.035 clear with a
+     border 0.095 clear. By day the same instinct has to point the other way:
+     away from the sheet means down. These are that mirror, at the same
+     separations night already has, so a field is as findable at noon as it is
+     at midnight.
+
+     Opaque, unlike the card, and that is deliberate: a field's job is to look
+     the same wherever it is put down, and a translucent one takes its contrast
+     from whatever happens to be behind it — which is the entire reason this
+     token had to exist. */
+  --field-fill: oklch(0.948 0.016 238);
+  /* The blue hairline the selected pills already use, a shade deeper. The
+     outline is what actually separates a control from its surface; the fill
+     only has to keep it from looking like a hole. */
+  --field-border: oklch(0.885 0.03 243);
+
   /* ---- Entry-card tints (each type owns a surface, per refs) ---- */
   /* Tints are whispers over the sky, not opaque paper — enough hue to tell
      a quote from a note, never enough to go muddy against the blue. */
@@ -315,6 +344,14 @@
   --card-fallback: oklch(0.305 0.024 263);
   --card-chip: oklch(0.36 0.026 264 / 0.85);
   --color-paper-raised: var(--card-fill);
+
+  /* Night fields are what the card material already was here, kept verbatim,
+     because after dark it was never the thing that was broken — see the light
+     block for why the same two numbers fell apart by day. Opaque now rather
+     than 58%, so a field on the sheet and a field on a card are the same
+     colour instead of two. */
+  --field-fill: oklch(0.325 0.026 264);
+  --field-border: oklch(0.95 0.015 250 / 0.15);
 
   /* ---- Entry-card tints: moonlit ----
 

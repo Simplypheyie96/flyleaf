@@ -12,8 +12,8 @@
   gap: var(--space-2);
   height: calc(var(--row) * var(--visible));
   border-radius: var(--radius-md);
-  border: 1px solid var(--card-border);
-  background: var(--card-fill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
   overflow: hidden;
 }
 

@@ -78,10 +78,20 @@
    anything back there to be identifiable.
 
    Own fill rather than moving the global token, for exactly the reason above:
-   the chrome that floats over sky is right as it is. */
+   the chrome that floats over sky is right as it is.
+
+   Denser is not the same as whiter, and this used to be both. At 0.99 and
+   almost no chroma it composited to a near-white wash filling the whole
+   screen, brighter than any card in the app and a world away from the 0.93
+   blue it covered — the sheet did not read as Flyleaf's own paper, it read as
+   a page from somewhere else pasted over it. Down a step and given back some
+   of the page's blue, it is the same paper the rest of the app is made of,
+   turned up to hide what is behind it. It also leaves somewhere for a field to
+   sit: a control has to be a step off its sheet, and at 0.99 there was no step
+   left above white to take. */
 .panel {
-  --glass-fill: oklch(0.99 0.005 240 / 0.96);
-  --glass-fallback: oklch(0.975 0.008 235);
+  --glass-fill: oklch(0.978 0.014 236 / 0.96);
+  --glass-fallback: oklch(0.976 0.014 236);
 }
 
 /* At night it sits over the one bright thing on the screen — the deck — so the
@@ -214,8 +224,8 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--card-border);
-  background: var(--card-fill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
   color: var(--color-ink-soft);
   cursor: pointer;
 }
@@ -233,8 +243,8 @@
   gap: var(--space-3);
   padding-inline: var(--space-4);
   border-radius: var(--radius-pill);
-  background: var(--card-fill);
-  border: 1px solid var(--card-border);
+  background: var(--field-fill);
+  border: 1px solid var(--field-border);
   color: var(--color-ink-soft);
 }
 
@@ -313,7 +323,7 @@
 
 .result:hover,
 .result:focus-visible {
-  background: var(--card-fill);
+  background: var(--field-fill);
 }
 
 .resultCover {
@@ -371,7 +381,7 @@
      follows the ink when the ink flips at night. */
   border: 1.5px dashed color-mix(in oklch, var(--color-accent-text), transparent 62%);
   border-radius: var(--radius-pill);
-  background: var(--card-fill);
+  background: var(--field-fill);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   color: var(--color-accent-text);
@@ -453,8 +463,8 @@
   min-height: var(--tap-min);
   padding-inline: var(--space-4);
   border-radius: var(--radius-md);
-  border: 1px solid var(--card-border);
-  background: var(--card-fill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
   color: var(--color-ink);
   /* Serif: what the reader types here is the book's own title and author, and
      it is typeset in this face on the cover a moment later. */
@@ -488,8 +498,8 @@
   padding-block: 0;
   padding-inline: var(--space-4);
   border-radius: var(--radius-md);
-  border: 1px solid var(--card-border);
-  background: var(--card-fill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
   color: var(--color-ink-soft);
   text-align: start;
   cursor: pointer;
@@ -539,8 +549,8 @@
 .datePicker {
   padding: var(--space-4);
   border-radius: var(--radius-md);
-  border: 1px solid var(--card-border);
-  background: var(--card-fill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
   animation: unfold var(--dur-base) var(--ease-out);
 }
 
@@ -635,7 +645,7 @@
   /* Transparent rather than absent, so taking the hairline on selection does
      not move the pill or its neighbours by a pixel. */
   border: 1px solid transparent;
-  background: var(--card-fill);
+  background: var(--field-fill);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: 620;
