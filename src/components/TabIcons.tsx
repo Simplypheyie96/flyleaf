@@ -80,6 +80,64 @@ export function VoiceIcon({ size = 22 }: IconProps) {
   )
 }
 
+/* A photograph, not a landscape. Every stock picture glyph is a mountain and
+   a sun in a frame, which at 15px is three shapes fighting inside a square —
+   this is the print itself, cornered on its mount, which is also exactly what
+   the card underneath does with the real one. */
+export function ImageIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <rect x="4.5" y="5.5" width="15" height="13" rx="1.5" />
+        <path d="M4.5 14.5 L 9 10.5 L 13.5 14.5" />
+        <path d="M13.5 14.5 L 15.5 12.5 L 19.5 16" />
+        <circle cx="15" cy="9" r="1.2" />
+      </g>
+    </svg>
+  )
+}
+
+/* The stripe, not the pen. A marker drawn nib-and-barrel reads as an editing
+   tool — a thing you do — and what is being labelled here is the mark left
+   behind: lines of text with the stroke laid across them. */
+export function HighlightIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M4.5 12 L 19.5 12" strokeWidth={5.5} opacity={0.32} />
+        <path d="M5 7.5 L 19 7.5" />
+        <path d="M5 16.5 L 14 16.5" />
+      </g>
+    </svg>
+  )
+}
+
+/* ---- Playback ----
+   Solid, unlike every other glyph in this file. These two are reversed out of
+   a filled disc, where a hairline outline would disappear, and they are the
+   only icons in the set that are a button rather than a label. */
+export function PlayIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M9 6.9 C 9 6.2 9.7 5.8 10.3 6.2 L 17.3 11.3 C 17.8 11.7 17.8 12.3 17.3 12.7 L 10.3 17.8 C 9.7 18.2 9 17.8 9 17.1 Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+export function PauseIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g fill="currentColor">
+        <rect x="8.4" y="6" width="2.9" height="12" rx="1.2" />
+        <rect x="12.7" y="6" width="2.9" height="12" rx="1.2" />
+      </g>
+    </svg>
+  )
+}
+
 /* ---- How a book is being read ----
    Paired with BookIcon, which serves the physical copy. Three objects the
    reader actually holds, not three abstractions — and deliberately far enough

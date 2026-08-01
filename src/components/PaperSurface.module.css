@@ -30,7 +30,9 @@
    know there are two lamps in the room. */
 .toneQuote,
 .toneNote,
-.toneVoice {
+.toneVoice,
+.toneImage,
+.toneHighlight {
   --color-ink: var(--tint-ink);
   --color-ink-soft: var(--tint-ink-soft);
   --color-ink-faint: var(--tint-ink-faint);
@@ -39,6 +41,8 @@
   --card-edge-light: var(--tint-edge);
   --card-chip: var(--tint-chip);
   --note-rule: var(--tint-rule);
+  --tape-fill: var(--tint-tape);
+  --tape-edge: var(--tint-tape-edge);
   color: var(--color-ink);
 }
 
@@ -58,6 +62,18 @@
   --paper-tone: var(--card-voice);
   --paper-tone-solid: var(--card-voice-solid);
   --color-voice: var(--tint-voice);
+}
+
+.toneImage {
+  --paper-tone: var(--card-image);
+  --paper-tone-solid: var(--card-image-solid);
+  --color-image: var(--tint-image);
+}
+
+.toneHighlight {
+  --paper-tone: var(--card-highlight);
+  --paper-tone-solid: var(--card-highlight-solid);
+  --color-highlight: var(--tint-highlight);
 }
 
 /* Aged paper grain. */
