@@ -1,18 +1,25 @@
 /* A segmented track, not three words floating on the card.
 
-   The bottom bar and the Library's view switcher both seat their pills inside
-   a container with a few pixels of padding and a hairline round it. This is
-   the same control at a different size, so it reuses those numbers rather
-   than introducing a third set, and takes its fill from --card-chip — the
-   token for a small surface nested inside a paper card. */
+   The bottom bar and the Library's view switcher are both a row of pills on a
+   pill of glass. This is that same control at a different size, so it is the
+   same material and the same numbers — GlassSurface with its padding zeroed,
+   the padding moved inside where the pills are. */
+.surface {
+  --glass-pad: 0;
+  --glass-radius: var(--radius-pill);
+  /* The other three float over the page and take their blue from it. This one
+     is seated on a white paper card, so it is filled with what they composite
+     to instead of coming out white. */
+  --glass-fill: var(--chip-track-on-paper);
+  --glass-fallback: var(--chip-track-on-paper);
+  flex-shrink: 0;
+}
+
 .group {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 3px;
-  background: var(--track-well);
-  border: 1px solid var(--track-well-border);
-  border-radius: var(--radius-pill);
+  padding: 4px;
 }
 
 .option {
@@ -62,7 +69,7 @@
      word as well as a glyph. */
   padding-inline: var(--space-3);
   background: var(--color-chip-active);
-  border-color: var(--border-hairline);
+  border-color: var(--color-chip-active-border);
   box-shadow: var(--elevation-1);
   color: var(--color-ink);
 }

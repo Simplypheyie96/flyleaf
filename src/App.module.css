@@ -19,12 +19,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  /* The same groove the shelf switcher and the theme control sit in — see
-     --track-well. The lit pill is the lightest thing in the row, so it needs
-     something darker than the glass to be lit against. */
-  padding: 4px;
-  background: var(--track-well);
-  border-radius: var(--radius-pill);
 }
 
 /* Modern tabs: icon-only at rest; the active tab grows into an
@@ -55,7 +49,7 @@
   padding-inline: var(--space-4);
   background: var(--color-chip-active);
   color: var(--color-ink);
-  border: 1px solid var(--border-hairline);
+  border: 1px solid var(--color-chip-active-border);
   box-shadow: var(--elevation-1);
 }
 
@@ -85,10 +79,6 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-1);
-  /* Same groove as the bottom bar, stood on its end. */
-  padding: 4px;
-  background: var(--track-well);
-  border-radius: var(--radius-pill);
 }
 
 /* In the rail, the active tab does not grow a label.
