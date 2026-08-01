@@ -270,15 +270,16 @@ function SearchStage({
           type="search"
           value={query}
           onChange={(event) => onQuery(event.target.value)}
-          placeholder="Title or author"
-          aria-label="Search for a book by title or author"
+          placeholder="Title, author, or ISBN"
+          aria-label="Search for a book by title, author, or ISBN"
         />
       </div>
 
       <div className={styles.results}>
         {state.status === 'idle' && (
           <p className={styles.quiet}>
-            Search by title or author, and the cover comes with it.
+            Search by title, author, or the ISBN printed on the back — the
+            cover comes with it.
           </p>
         )}
 

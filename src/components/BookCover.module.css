@@ -24,7 +24,7 @@
   );
   /* Type is printed ink, not a tint of the board. Deriving it from the cover
      hue put the title in taupe on any warm board — the last of the browns. */
-  color: var(--color-ink);
+  color: var(--cover-ink);
   box-shadow:
     inset 2px 0 3px -2px oklch(from var(--book-shade) l c h / 0.14),
     inset 0 0 0 1px oklch(from var(--book-shade) l c h / 0.05),
@@ -100,11 +100,12 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: oklch(from var(--color-ink) 0.5 0.02 h);
-}
-
-[data-theme='dark'] .author {
-  color: oklch(from var(--color-ink) 0.78 0.02 h);
+  /* Softer than the title, off the cover's own ink rather than the page's. No
+     dark-mode override here any more: the board is lit in both themes now, so
+     the byline that was lightened to survive a charcoal board would disappear.
+     The theme difference it does still need lives in the token, which holds
+     the contrast rather than the lightness — see tokens.css. */
+  color: var(--cover-ink-soft);
 }
 
 /* A real cover is someone else's finished design. It gets the board and its
