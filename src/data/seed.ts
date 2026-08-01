@@ -1,26 +1,29 @@
-/* ---- TEMPORARY: a shelf for previews ----
+/* ---- TEMPORARY: a shelf to look at ----
 
    A deployed Flyleaf opens on an empty library, which is correct for a reader
-   and useless for looking at. Every preview link so far has needed someone to
-   add books by hand before there was anything to review, and the reviewer's
-   shelf then differed from the last reviewer's.
+   and useless for looking at. Every link so far has needed someone to add
+   books by hand before there was anything to review, and the reviewer's shelf
+   then differed from the last reviewer's.
 
-   So a preview build lays down a shelf if — and only if — there is not one
+   So a build lays down a shelf if — and only if — there is not one
    already. Three of these are invented, and two are books that were added
    through the real search, so between them they exercise both cover paths: a
    photographed jacket from Open Library, and the drawn one for a book with no
    jacket to find.
 
-   THIS IS SCAFFOLDING. Two guards keep it off a real reader's device:
+   THIS IS SCAFFOLDING, and as of now it runs everywhere — production too, so
+   the live app has something on its shelf while it is being reviewed. Only
+   one guard is left standing:
 
-   1. `__PREVIEW_SEED__` is false on a production build — see vite.config.ts,
-      which reads Vercel's own VERCEL_ENV. Preview and local dev seed; the
-      production deployment never does.
-   2. It writes nothing into a table that already has a row in it, so it can
-      never touch a shelf someone has started.
+   - It writes nothing into a table that already has a row in it, so it can
+     never touch a shelf someone has started. A reader who adds a book before
+     this is removed keeps their own library; a reader who arrives to an empty
+     one inherits these five.
 
-   To remove: delete this file and the one `seedLibrary()` call in main.tsx.
-   The define in vite.config.ts goes with it. */
+   That second case is the reason this cannot ship. Before Flyleaf is put in
+   front of anyone real, either restore the production guard in vite.config.ts
+   or delete this file and the one `seedLibrary()` call in main.tsx. The
+   define in vite.config.ts goes with it. */
 
 import db, { type Book } from './db'
 
