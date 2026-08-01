@@ -121,6 +121,25 @@
   --card-fallback: oklch(0.985 0.006 238); /* opaque stand-in */
   --card-chip: oklch(0.99 0.004 240 / 0.85); /* small nested badges */
 
+  /* ---- Segmented-control well ----
+     The groove a row of tabs sits in: the bottom bar, the shelf's view
+     switcher, the theme control in Settings. All three are the same object at
+     different sizes, so the groove is stated once here rather than three
+     times in three files.
+
+     A wash of whatever ink the surrounding surface is printed with, never a
+     fixed fill. The lit pill is the lightest thing in the control, so the
+     groove has to be darker than the surface behind it, and "darker" means
+     the opposite value by day and by night. Substitution is lazy, so this one
+     declaration resolves against the local --color-ink — including inside a
+     tinted card, which carries its own.
+
+     10%, not the 5% the reading gauge uses, because two of the three grooves
+     are cut into glass: backdrop-filter's saturate(150%) lifts a 5% wash back
+     out again, and it vanished. On paper 10% is still quiet. */
+  --track-well: color-mix(in oklch, var(--color-ink), transparent 90%);
+  --track-well-border: color-mix(in oklch, var(--color-ink), transparent 84%);
+
   /* ---- Entry-card tints (each type owns a surface, per refs) ---- */
   /* Tints are whispers over the sky, not opaque paper — enough hue to tell
      a quote from a note, never enough to go muddy against the blue. */
