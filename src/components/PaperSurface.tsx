@@ -22,6 +22,10 @@ interface PaperSurfaceProps {
   as?: ElementType
   className?: string
   style?: CSSProperties
+  /* `data-*` for the callers that style a surface by what is printed on it.
+     Deliberately not `[k: string]: unknown` — the point is to let a keep say
+     it is a quote, not to let anything at all through onto the element. */
+  [data: `data-${string}`]: string | undefined
 }
 
 const TONE_CLASS = {
@@ -43,6 +47,7 @@ function PaperSurface({
   as: Tag = 'div',
   className,
   style,
+  ...data
 }: PaperSurfaceProps) {
   const classes = [styles.paper, taped && styles.taped, TONE_CLASS[tone], className]
     .filter(Boolean)
@@ -51,6 +56,7 @@ function PaperSurface({
     <Tag
       className={classes}
       style={{ '--paper-rotate': `${rotate}deg`, ...style } as CSSProperties}
+      {...data}
     >
       {children}
     </Tag>

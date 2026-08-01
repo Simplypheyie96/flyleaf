@@ -1,330 +1,169 @@
-/* One keep, and the thread it hangs on.
+/* One keep — the card, and nothing beside it.
 
-   Everything above the `---- THE THREE VARIATIONS ----` bar is what a keep is
-   in every view: a stitched thread, a knot, however many coloured ribbons were
-   running at the time, and a sheet of paper. Everything below it is the three
-   ways of laying those out, hung off a `data-variant` on the section — no
-   variant gets its own markup, so all three always hold the same content.
+   What used to be in this file: a stitched thread, a knot, a lane of coloured
+   ribbons, three `data-variant` blocks re-skinning the same markup, a tilt, a
+   strip of tape and a photo-corner mount. All of it drew in the margin of
+   every keep in every view, whether or not that view meant anything by it —
+   which is what the sides of the journey were. Ornament that does not organise
+   anything is noise. Where the strands genuinely are the structure, the Weave
+   draws them itself, around its cards rather than beside them.
 
-   Geometry is stated once, at the top of the journey column, and everything
-   here measures from it:
-
-     --rail     how much room the thread and the braid own beside a card
-     --tie-line the thread's centre, relative to a card's leading edge
-     --tie-knot the same line, for anything that has to sit centred on it
-     --tie-y    how far down a card the knot lands — the header's own middle
-     --lane-dir which way the braid's lanes run out from the spine */
+   What is left is the keep. Two type sizes on it and no more: the mono micro
+   label for the facts *about* a keep, and the reading size for the keep
+   itself. Both come from the journey's own four-size scale, stated once in
+   BookJourney.module.css — the fallbacks here are only so a card rendered
+   outside that page still sets. The face changes with the kind and only with
+   the kind: the book's words are serif, the reader's handwriting is the hand,
+   and everything that is interface is sans. */
 
 .keep {
-  position: relative;
-}
-
-/* ---- The thread ----
-
-   Each keep carries its own length, running past its own bottom edge to meet
-   the next — so the strand is continuous but is measured, and stitched, one
-   keepsake at a time. */
-
-.thread {
-  position: absolute;
-  inset-block-start: 0;
-  /* The stitch is 8 units wide in its own box and runs down the middle, hence
-     the 4px already folded into --tie-line. */
-  inset-inline-start: var(--tie-line);
-  width: 8px;
-  height: calc(100% + var(--keep-gap));
-  fill: none;
-  stroke: var(--thread-ink, color-mix(in oklch, var(--color-ink), transparent 68%));
-  stroke-width: 2;
-  stroke-linecap: round;
-  /* A running stitch: the length of thread showing, then the length buried in
-     the cloth. Held constant while the path stretches — see Thread(). */
-  stroke-dasharray: 7 5;
-  vector-effect: non-scaling-stroke;
-}
-
-/* Thread is tied off, not cut: the last one stops at its own knot rather than
-   running off the bottom of the page. */
-.keep[data-last] .thread {
-  height: calc(var(--tie-y) + 2px);
-}
-
-.knot {
-  position: absolute;
-  /* Centred on the thread: --tie-knot is the thread's own centre line, then
-     back out half the knot. */
-  inset-inline-start: calc(var(--tie-knot) - 5px);
-  inset-block-start: calc(var(--tie-y) - 5px);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--color-ink-soft);
-  /* A ring in the page's own colour, so the stitch reads as passing behind the
-     knot rather than stopping dead at it. */
-  box-shadow: 0 0 0 3px var(--color-bg);
-}
-
-/* ---- The braid ----
-
-   One ribbon per strand that was live when this keep was made, each on the
-   lane `lanes()` gave it for the strand's whole life. It runs the full height
-   of the row so consecutive rows join into an unbroken line, is cut short at
-   the row where the strand opens or is tied off, and knots wherever the keep
-   is actually tied to that strand.
-
-   Colour is the only thing a strand owns — see strandColor(). Lightness and
-   chroma come from the theme, so a braid that reads at midday still reads at
-   night without the strand knowing there are two rooms. */
-
-.ribbon {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: calc(
-    var(--tie-knot) - 1px + var(--lane-dir) * (var(--lane) + 1) * 7px
-  );
-  width: 2px;
-  height: calc(100% + var(--keep-gap));
-  border-radius: var(--radius-pill);
-  background: var(--strand);
-  opacity: 0.7;
-}
-
-/* Opens here: the ribbon starts at the knot rather than above it. */
-.ribbon[data-first] {
-  inset-block-start: var(--tie-y);
-  height: calc(100% + var(--keep-gap) - var(--tie-y));
-}
-
-/* Tied off here. Both at once is a strand that opened and closed on the same
-   keep, which leaves the tie mark and no run at all. */
-.ribbon[data-last] {
-  height: var(--tie-y);
-}
-
-.ribbon[data-first][data-last] {
-  height: 0;
-}
-
-/* The tie: where this keep is actually on this strand. */
-.ribbon[data-knot]::after {
-  content: '';
-  position: absolute;
-  inset-inline-start: -3px;
-  inset-block-start: calc(var(--tie-y) - 4px);
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--strand);
-  box-shadow: 0 0 0 2px var(--color-bg);
-}
-
-.ribbon[data-first]::after,
-.ribbon[data-last]::after {
-  inset-block-start: -4px;
-}
-
-.ribbon[data-first][data-last]::after {
-  inset-block-start: -4px;
-}
-
-/* ---- The sheet ---- */
-
-.card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
+  /* Steps down from PaperSurface's own --space-5 only where the card is mostly
+     chrome; a keep is mostly the thing it holds, so it keeps the full step. */
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
 }
+
+/* ---- The head: what this is, and when it was kept ---- */
 
 .head {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  /* The header's own line, so the knot outside the card can be told where the
-     middle of it is without either side guessing. */
-  min-height: 26px;
+  gap: var(--space-3);
+  min-height: 20px;
 }
 
-.chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  flex: 0 0 auto;
-  border-radius: var(--radius-sm);
-  background: var(--card-chip);
-  color: var(--color-ink-soft);
+.kind,
+.when,
+.where {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro, 0.6875rem);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tint-ink-faint, var(--color-ink-faint));
+  white-space: nowrap;
 }
 
 .kind {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-ink-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--tint-ink-soft, var(--color-ink-soft));
 }
 
 .when {
-  /* Pushed to the trailing edge: the date is the one thing on this row a
-     reader scans down a column for. */
+  /* Trailing edge: the date is the one thing on this row a reader scans a
+     whole column for, so it wants a shared right margin to scan down. */
   margin-inline-start: auto;
-  font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;
-  color: var(--color-ink-faint);
 }
 
-/* The way into everything a keep can have done to it. A disc rather than a
-   word, and pulled out of the card's own padding so the 44px target does not
-   push the header taller than the knot beside it expects. */
+/* The way into everything a keep can have done to it. A 28px disc, with the
+   remaining 16px of the 44px target taken as content-box padding and given
+   straight back as negative margin — so the target is full size and the head
+   is still 20px tall. */
 .more {
   flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--tap-min);
-  height: var(--tap-min);
-  margin: calc((26px - var(--tap-min)) / 2);
-  margin-inline-end: calc((26px - var(--tap-min)) / 2 - var(--space-2));
+  box-sizing: content-box;
+  width: 28px;
+  height: 28px;
+  padding: 8px;
+  margin: -8px;
+  margin-inline-end: calc(-8px - var(--space-1));
   border: none;
   border-radius: var(--radius-pill);
   background: none;
-  color: var(--color-ink-faint);
+  color: var(--tint-ink-faint, var(--color-ink-faint));
   cursor: pointer;
   transition: color var(--dur-quick) var(--ease-out);
 }
 
 .more:hover,
 .more:focus-visible {
-  color: var(--color-ink);
+  color: var(--tint-ink, var(--color-ink));
 }
 
-/* Which strand this is on, in that strand's own colour — the same line the
-   braid outside the card is drawing, said in words for anyone who cannot see
-   a 2px ribbon or is not looking at one. */
+/* ---- Which strand this is on ----
+
+   A dot in the strand's own colour and the strand's own name. Colour is the
+   only thing a strand owns; its lightness and chroma come from the theme, so
+   the same strand reads at midday and at night without knowing there are two
+   rooms. */
+
 .strandName {
   display: inline-flex;
   align-items: center;
-  align-self: flex-start;
   gap: var(--space-2);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-  border: 1px solid color-mix(in oklch, var(--strand), transparent 62%);
-  background: color-mix(in oklch, var(--strand), transparent 88%);
+  margin: 0;
   font-family: var(--font-sans);
-  font-size: var(--text-xs);
-  letter-spacing: 0.02em;
-  color: var(--color-ink);
+  font-size: var(--t-chrome, var(--text-sm));
+  color: var(--tint-ink-soft, var(--color-ink-soft));
 }
 
-.strandName svg {
-  color: var(--strand);
+.swatch {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--strand);
 }
 
-.text {
-  font-family: var(--font-serif);
-  font-size: var(--text-md);
-  line-height: 1.5;
-  /* Kept text is the reason this screen exists, so it gets the reading face
-     and never a widow on its last line. */
-  text-wrap: pretty;
-  overflow-wrap: break-word;
-  color: var(--color-ink);
-}
+/* ---- The keep itself ---- */
 
-/* A strand keep is the reader thinking aloud rather than the book speaking,
-   so it is set in their handwriting face and not the book's. */
+.said,
+.marked,
 .reflection {
-  font-family: var(--font-hand);
-  font-size: var(--text-lg);
-  line-height: 1.45;
-  text-wrap: pretty;
-  overflow-wrap: break-word;
-  color: var(--color-ink);
-}
-
-/* ---- The foot: where it was, and what it was about ---- */
-
-.foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  margin-block-start: var(--space-1);
-}
-
-.where {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink-faint);
-  margin-inline-end: var(--space-1);
-}
-
-/* A motif is the reader's own word for what a keep is about, and tapping it
-   sifts the journey down to everything else they said it about — so it is a
-   button, and has to look like one. */
-.motif {
-  min-height: 28px;
-  padding: 0 var(--space-3);
-  border: 1px dashed color-mix(in oklch, var(--color-ink), transparent 74%);
-  border-radius: var(--radius-pill);
-  background: none;
-  font-family: var(--font-sans);
-  font-size: var(--text-xs);
-  letter-spacing: 0.02em;
-  color: var(--color-ink-soft);
-  cursor: pointer;
-  transition:
-    border-color var(--dur-quick) var(--ease-out),
-    color var(--dur-quick) var(--ease-out);
-}
-
-.motif:hover,
-.motif:focus-visible {
-  border-color: var(--color-ink-soft);
-  color: var(--color-ink);
-}
-
-/* ---- A note: ruled paper ----
-
-   The rules are painted on the paragraph rather than the card, so they run
-   under the writing and stop where the writing stops — which is what a torn
-   half-sheet looks like, and which means a two-line note is not a full page of
-   empty lines with two lines of ink at the top. */
-.ruled {
-  --line: 1.6em;
-  line-height: 1.6;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent calc(var(--line) - 1px),
-    var(--note-rule) calc(var(--line) - 1px),
-    var(--note-rule) var(--line)
-  );
-  background-position: 0 -0.2em;
-}
-
-/* ---- A highlight: the marker ---- */
-
-.marked {
+  margin: 0;
   font-family: var(--font-serif);
-  font-size: var(--text-md);
-  /* Looser than the quote's 1.5: two stripes on consecutive lines want a gap
-     between them, or the marking reads as one solid block. */
-  line-height: 1.75;
+  font-size: var(--t-read, var(--text-md));
+  line-height: var(--leading-body);
+  /* Kept text is the reason this screen exists: the reading face, and never a
+     widow on the last line. */
   text-wrap: pretty;
   overflow-wrap: break-word;
-  color: var(--color-ink);
+  color: var(--tint-ink, var(--color-ink));
+}
+
+/* The one place the hand survives. A note is the reader talking to themselves
+   and it is worth one typeface to say so — but only here, and never on
+   anything the app itself says. Set larger than the serif because Patrick Hand
+   carries a smaller x-height at the same nominal size. */
+.hand {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: calc(var(--t-read, var(--text-md)) * 1.18);
+  line-height: 1.5;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+  color: var(--tint-ink, var(--color-ink));
+}
+
+/* A strand keep is the reader thinking about the book rather than quoting it. */
+.reflection {
+  font-style: italic;
+}
+
+/* Looser than the rest: two marker stripes on consecutive lines need a gap
+   between them or the marking reads as one solid panel. */
+.marked {
+  line-height: 1.75;
 }
 
 .marked span {
-  /* Seven degrees off level, so the ends of the stroke are slanted the way a
-     chisel tip leaves them.
+  /* The stripe goes on the inline span so it follows the words to the end of
+     each line and stops. Seven degrees off level, so the ends of the stroke
+     are slanted the way a chisel tip leaves them.
 
-     The ends are lengths and not percentages. `box-decoration-break: clone`
-     gives every wrapped line its own gradient box, so a percentage inset is
-     measured against that line's width — on a full line it swallowed the first
-     two letters, and on a three-word last line it swallowed nothing. */
+     The insets are lengths and not percentages: `box-decoration-break: clone`
+     gives every wrapped line its own gradient box, so a percentage is measured
+     against that line's width — on a full line it swallowed two letters, on a
+     three-word last line it swallowed nothing. */
   background-image: linear-gradient(
     97deg,
     transparent 0 1px,
@@ -339,7 +178,7 @@
   padding-inline: 0.18em;
 }
 
-/* ---- A picture: mounted, not embedded ---- */
+/* ---- A picture ---- */
 
 .mount {
   display: flex;
@@ -349,318 +188,73 @@
 }
 
 .print {
-  position: relative;
-  border-radius: var(--radius-sm);
-  /* Something behind the picture while it decodes, so the card does not jump
-     from nothing to a photograph. */
-  background: var(--card-chip);
-}
-
-.print img {
   display: block;
   width: 100%;
   height: auto;
   border-radius: var(--radius-sm);
+  /* Something behind the picture while it decodes, so the card does not jump
+     from nothing to a photograph. */
+  background: var(--tint-chip, var(--card-chip));
 }
 
-.corner {
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  background: var(--photo-corner);
-}
-
-.corner[data-at='tl'] {
-  top: 0;
-  left: 0;
-  clip-path: polygon(0 0, 100% 0, 0 100%);
-  border-start-start-radius: var(--radius-sm);
-}
-
-.corner[data-at='tr'] {
-  top: 0;
-  right: 0;
-  clip-path: polygon(100% 0, 100% 100%, 0 0);
-  border-start-end-radius: var(--radius-sm);
-}
-
-.corner[data-at='bl'] {
-  bottom: 0;
-  left: 0;
-  clip-path: polygon(0 0, 0 100%, 100% 100%);
-  border-end-start-radius: var(--radius-sm);
-}
-
-.corner[data-at='br'] {
-  bottom: 0;
-  right: 0;
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  border-end-end-radius: var(--radius-sm);
-}
-
-.absent {
+.gone {
+  margin: 0;
   padding: var(--space-6) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--tint-chip, var(--card-chip));
   text-align: center;
-  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome, var(--text-sm));
   text-wrap: pretty;
-  color: var(--color-ink-faint);
+  color: var(--tint-ink-faint, var(--color-ink-faint));
 }
 
-/* What the reader wrote beside the picture or the recording. Smaller than kept
-   text and in the interface face, because it is theirs about the thing rather
-   than the thing itself. */
+/* What the reader wrote beside the picture or the recording. Interface face
+   and interface size: it is theirs *about* the thing, not the thing. */
 .caption {
-  font-size: var(--text-sm);
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome, var(--text-sm));
   line-height: 1.5;
   text-wrap: pretty;
-  color: var(--color-ink-soft);
+  color: var(--tint-ink-soft, var(--color-ink-soft));
 }
 
-/* ===========================================================================
-   THE THREE VARIATIONS
+/* ---- The foot: where it was, and what it was about ---- */
 
-   One set of keeps, three ways of laying them on the page. They differ in how
-   much of the hand shows: the Bound Journal shows none of it, the Card Index
-   shows the filing rather than the hand, and the Scrapbook is nothing but.
-
-   Nothing below changes what a keep contains, only how it sits — which is what
-   makes them a real choice rather than three different screens.
-   =========================================================================== */
-
-/* ---- A · The Bound Journal ----
-   Full-width sheets down one stitched thread, no tilt, no tape. The calmest of
-   the three and the default, because a reader opening a book they have kept
-   forty things from should meet those forty things, not the stationery. */
-
-[data-variant='bound'] .card {
-  rotate: 0deg;
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
 }
 
-[data-variant='bound'] .card::after {
-  display: none; /* the tape */
+.where {
+  margin-inline-end: var(--space-1);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Stamped along the bottom like the date slip in a library book: a hairline,
-   then the where and the motifs in one mono row. */
-[data-variant='bound'] .foot {
-  margin-block-start: var(--space-3);
-  padding-block-start: var(--space-3);
-  border-block-start: 1px solid var(--card-border);
-}
-
-[data-variant='bound'] .motif {
-  border-style: solid;
-  border-color: transparent;
-  padding-inline: var(--space-2);
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-[data-variant='bound'] .motif:hover,
-[data-variant='bound'] .motif:focus-visible {
-  border-color: var(--color-ink-faint);
-}
-
-/* ---- B · The Scrapbook Spread ----
-   Varied widths, real tilt, tape, and each sheet laid over the one above it.
-   The busiest and the most tactile: this is the view for a reader who wants
-   the page to look like something they made rather than something they filed.
-
-   The widths run on a four-row cycle so the ragged edge never repeats on a
-   two-beat, and every one of them keeps at least 84% of the lane, which at
-   390px is ~290px of card and ~250px of text. Below that a quote comes apart.
-
-   Fractions, not widths: the lane is BookJourney.module.css's to size, and past
-   760px it stops being the column and becomes half of it. Saying 88% here meant
-   88% of the column in both layouts, which put most of the spread across the
-   centre thread. `--ragged-push` goes with it, because the auto margin that
-   ragged-rights a sheet in one column would beat `align-self` in two. */
-
-[data-variant='scrap'] .keep:nth-child(4n + 2) {
-  --ragged: 0.88;
-  --ragged-push: auto;
-}
-
-[data-variant='scrap'] .keep:nth-child(4n + 3) {
-  --ragged: 0.94;
-}
-
-[data-variant='scrap'] .keep:nth-child(4n + 4) {
-  --ragged: 0.84;
-  --ragged-push: auto;
-}
-
-/* Laid over, not stacked: each sheet overlaps the one above by a third of the
-   gap. Later siblings paint on top without a z-index, which is the right
-   order — the newest thing you put down is the thing on top of the pile. */
-[data-variant='scrap'] .keep + .keep {
-  margin-block-start: calc(-1 * var(--space-3));
-}
-
-/* Two and a half times the resting lean. The base ±0.5deg is what a card gets
-   when it is meant to look placed; this is what it gets when it is meant to
-   look dropped. */
-[data-variant='scrap'] .card {
-  rotate: calc(var(--paper-rotate, 0deg) * 2.6);
-  box-shadow:
-    inset 0 1px 0 var(--card-edge-light),
-    0 6px 16px -8px oklch(from var(--shadow-tint) l c h / 0.28);
-}
-
-/* The motif written on a strip of tape rather than on a chip. */
-[data-variant='scrap'] .motif {
-  border: none;
-  border-radius: 2px;
-  background: var(--tape-fill);
-  box-shadow: inset 0 0 0 1px var(--tape-edge);
-  font-family: var(--font-hand);
-  font-size: var(--text-sm);
+/* A motif is the reader's own word for what a keep is about, and tapping it
+   sifts the journey down to everything else they said it about — so it is a
+   button and has to look like one. */
+.motif {
+  min-height: 26px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--tint-border, var(--border-hairline));
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome, var(--text-sm));
   letter-spacing: 0;
-  rotate: -1.4deg;
-  color: var(--color-ink);
+  color: var(--tint-ink-soft, var(--color-ink-soft));
+  cursor: pointer;
+  transition:
+    border-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
 }
 
-[data-variant='scrap'] .keep:nth-child(even) .motif {
-  rotate: 1.1deg;
-}
-
-/* ---- C · The Card Index ----
-   One width, square-ish corners, a hard rule under the head, and the date and
-   the page stamped where a filing card stamps them. Nothing tilts and nothing
-   overlaps: this is the view for finding one thing among two hundred.
-
-   The stamp stays inside the card on a phone — a real left gutter would want
-   ~70px, and at 390px that is a fifth of the screen spent on two dates. Past
-   640px there is room, and it moves out into the margin where it belongs. */
-
-[data-variant='index'] .card {
-  rotate: 0deg;
-  border-radius: var(--radius-sm);
-  --paper-pad: var(--space-4) var(--space-5);
-}
-
-[data-variant='index'] .card::after {
-  display: none; /* the tape */
-}
-
-[data-variant='index'] .head {
-  padding-block-end: var(--space-3);
-  border-block-end: 1px solid var(--note-rule);
-}
-
-[data-variant='index'] .foot {
-  margin-block-start: var(--space-2);
-}
-
-[data-variant='index'] .motif {
-  border-radius: 2px;
-  border-style: solid;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-}
-
-/* Bounded at the top as well as the bottom, because past 760px the route
-   splits the column into two lanes about a centre thread — and "back past the
-   card's leading edge" is the margin only for the lane on the left. For the
-   lane on the right that offset lands the stamp on the thread: measured at
-   1180px the card starts at 674 and the stamp runs 554–670 with the spine at
-   642, so the date is printed straight through it.
-
-   There is no margin to move it to. The column is already at its 900px cap
-   with about 90px of air either side, and the stamp wants 120 — so the honest
-   answer is that this treatment belongs to the single-column window, and the
-   two-lane layout puts the date back in the card head where the head still has
-   the room for it. Both lanes then read the same, which a symmetric layout
-   ought to. */
-@media (min-width: 640px) and (max-width: 759.98px) {
-  /* Out into the margin. Absolute against the card, offset back past its own
-     leading edge — the card is the containing block, so the gutter is measured
-     from the one edge that is guaranteed to be where the reader sees it. */
-  [data-variant='index'] .when {
-    position: absolute;
-    inset-inline-start: calc(-1 * var(--stamp));
-    inset-block-start: var(--space-4);
-    width: calc(var(--stamp) - var(--space-4));
-    margin-inline-start: 0;
-    text-align: end;
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.04em;
-  }
-
-  [data-variant='index'] .where {
-    position: absolute;
-    inset-inline-start: calc(-1 * var(--stamp));
-    inset-block-start: calc(var(--space-4) + 1.4rem);
-    width: calc(var(--stamp) - var(--space-4));
-    margin: 0;
-    text-align: end;
-  }
-
-  /* The head's trailing space was the date's; with it gone the menu would
-     drift back to the kind label. */
-  [data-variant='index'] .more {
-    margin-inline-start: auto;
-  }
-}
-
-/* ---- Motion --------------------------------------------------------------
-
-   The keep's own arrival, and it lives here rather than on the route because
-   the elements it moves — the thread, the card — are declared in this file and
-   a CSS module cannot reach another module's class names.
-
-   Both are scroll-driven rather than timed. A timed entrance on a list this
-   long either fires all at once for keeps the reader has not scrolled to yet,
-   or needs an observer per card; `view()` costs neither, runs off the main
-   thread, and — the thing that matters on a page shaped like this — it makes
-   the thread appear to be *stitched* as the reader travels down it, rather
-   than being drawn once and sitting there.
-
-   Written as an opt-in: no motion is the default, and the whole block is
-   inside a `no-preference` query, so a reader who has asked for less gets the
-   finished page with nothing moving and nothing missing. */
-
-@keyframes stitch {
-  from {
-    clip-path: inset(0 0 100% 0);
-  }
-  to {
-    clip-path: inset(0);
-  }
-}
-
-@keyframes settle {
-  from {
-    opacity: 0;
-    translate: 0 12px;
-    /* Lands into its own lean rather than out of nothing, so the tilt reads as
-       the card coming to rest and not as a second, separate animation. */
-    rotate: calc(var(--paper-rotate, 0deg) - 1.4deg);
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
-    rotate: var(--paper-rotate, 0deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .thread,
-    .ribbon {
-      animation: stitch linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 80%;
-    }
-
-    .card {
-      animation: settle linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 90%;
-    }
-  }
+.motif:hover,
+.motif:focus-visible {
+  border-color: var(--tint-ink-faint, var(--color-ink-faint));
+  color: var(--tint-ink, var(--color-ink));
 }

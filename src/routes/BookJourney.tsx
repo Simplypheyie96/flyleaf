@@ -1,48 +1,49 @@
-/* The journey — the inside cover of a book, then everything kept from it,
-   hanging off one thread in the order it was kept.
+/* The journey — everything one reader kept from one book.
 
-   Three ways to read it, and one set of markup behind all three. The switch
-   in the tool bar sets `data-variant` on the journey section and nothing else;
-   every difference between the Bound Journal, the Scrapbook and the Card Index
-   is a presentation of the same DOM, written in Keep.module.css. A variation
-   that needed its own JSX would drift from the other two within a week, and
-   the reader would be choosing between three half-finished screens instead of
-   three views of one finished one.
+   Three readings of it, and they are three screens rather than three skins.
+   The old version put one set of markup on the page and re-dressed it with a
+   `data-variant`, which meant the only things the "variations" could disagree
+   about were paddings and borders: the cover was always in the same place, the
+   entries were always one column in one order, and the choice the reader was
+   being offered was between three densities of the same idea.
 
-   On a phone the thread runs down the leading edge rather than the middle. The
-   plan drawn for this screen had keeps alternating either side of a centre
-   spine on the phone too, and the arithmetic does not survive it: the column is
-   about 342px at 390px wide, so a card either side of a centre line gets
-   ~165px, and after its own padding that is roughly 117px of text — twelve
-   characters a line. A quote would come apart. Against the leading edge each
-   card keeps ~310px and, just as usefully, there is only one place the next
-   keep can be, so the order is never ambiguous. The centre spine and the
-   alternation arrive at the width that can pay for them, near 760px. */
+   Each reading now owns its own masthead and its own arrangement, and this
+   file owns only what all three share — the data, the back bar, the switch,
+   the sift, the fair copy, the dock, and every sheet. See journey/layout.ts
+   for the whole of what a reading is handed.
 
-import { Fragment, useEffect, useMemo, useState } from 'react'
+   The tab bar and the app's own "+" do not paint over this route at all; App
+   hides them, because a book is a room you go into and come back out of. It
+   has a back bar to leave by and a dock of its own to add with, and a second
+   differently-shaped add button three inches from the first was the app asking
+   the reader to work out which "+" they meant. */
+
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import BookCover from '../components/BookCover'
+import BackBar, { useCollapse } from '../components/BackBar'
 import GlassSurface from '../components/GlassSurface'
 import LeafButton from '../components/LeafButton'
 import {
   BackIcon,
   BookIcon,
   FairCopyIcon,
-  GridIcon,
   MoreIcon,
   SortIcon,
   StackIcon,
   StrandIcon,
 } from '../components/TabIcons'
-import type { Entry } from '../data/db'
+import type { Entry, Strand } from '../data/db'
 import { useBook, useEntries, useStrands } from '../data/useBook'
-import Keep from '../journey/Keep'
+import Ledger from '../journey/Ledger'
+import Deck from '../journey/Deck'
+import Weave from '../journey/Weave'
+import type { Reading } from '../journey/layout'
 import KeepSheet, { type Compose } from '../journey/KeepSheet'
 import KeepMenu from '../journey/KeepMenu'
 import SiftSheet from '../journey/SiftSheet'
 import FairCopySheet from '../journey/FairCopySheet'
 import BookMenu from '../journey/BookMenu'
-import { colophon, count, epigraph, formatPhrase } from '../journey/lexicon'
+import { colophon, count } from '../journey/lexicon'
 import { ALL, arrange, sifting, strandColor, type Sift } from '../journey/order'
 import { removeKeep } from '../journey/keeps'
 import pageStyles from './page.module.css'
@@ -50,25 +51,30 @@ import styles from './BookJourney.module.css'
 
 /* ── The three readings ──────────────────────────────────────────────────── */
 
-type Variant = 'bound' | 'scrap' | 'index'
+type View = 'ledger' | 'deck' | 'weave'
 
-const VARIANTS: { value: Variant; label: string; Icon: typeof BookIcon }[] = [
-  { value: 'bound', label: 'Bound', Icon: BookIcon },
-  { value: 'scrap', label: 'Scrapbook', Icon: StackIcon },
-  { value: 'index', label: 'Index', Icon: GridIcon },
+const READINGS: {
+  value: View
+  label: string
+  Icon: typeof BookIcon
+  Screen: (props: Reading) => React.ReactNode
+}[] = [
+  { value: 'ledger', label: 'Ledger', Icon: BookIcon, Screen: Ledger },
+  { value: 'deck', label: 'Deck', Icon: StackIcon, Screen: Deck },
+  { value: 'weave', label: 'Weave', Icon: StrandIcon, Screen: Weave },
 ]
 
 const VIEW_KEY = 'flyleaf-journey-view'
 
-function storedVariant(): Variant {
+function storedView(): View {
   try {
     const saved = localStorage.getItem(VIEW_KEY)
-    if (saved === 'bound' || saved === 'scrap' || saved === 'index') return saved
+    if (saved === 'ledger' || saved === 'deck' || saved === 'weave') return saved
   } catch {
     /* Private mode, or storage the browser will not hand over. The default
        reading is a fine answer and is not worth an error for. */
   }
-  return 'bound'
+  return 'ledger'
 }
 
 /** How long a deleted keep stays undoable. Long enough to read the sentence
@@ -91,7 +97,8 @@ function BookJourney() {
   const keeps = useEntries(bookId)
   const strands = useStrands(bookId)
 
-  const [variant, setVariant] = useState<Variant>(storedVariant)
+  const { sentinel, collapsed } = useCollapse()
+  const [view, setView] = useState<View>(storedView)
   const [sift, setSift] = useState<Sift>(ALL)
   const [compose, setCompose] = useState<Compose | null>(null)
   const [menuKeep, setMenuKeep] = useState<Entry | null>(null)
@@ -105,8 +112,8 @@ function BookJourney() {
     [keeps, strands, sift],
   )
 
-  function choose(next: Variant) {
-    setVariant(next)
+  function choose(next: View) {
+    setView(next)
     try {
       localStorage.setItem(VIEW_KEY, next)
     } catch {
@@ -142,9 +149,9 @@ function BookJourney() {
 
   if (book === null) {
     return (
-      <main className={pageStyles.page}>
-        <div className={`${pageStyles.column} ${styles.journeyColumn}`}>
-          <Link to="/library" className={styles.back}>
+      <main className={`${pageStyles.page} ${styles.page}`}>
+        <div className={`${pageStyles.column} ${styles.column}`}>
+          <Link to="/library" className={styles.plainBack}>
             <BackIcon size={18} />
             <span>Library</span>
           </Link>
@@ -160,206 +167,145 @@ function BookJourney() {
   const kept = keeps ?? []
   const threads = strands ?? []
   const running = threads.filter((s) => !s.closedAt)
-  const said = epigraph(book, kept, threads)
   const foot = colophon(book, kept, threads)
   const showing = new Set(rows.map((r) => r.keep.id)).size
+  const reading = READINGS.find((r) => r.value === view) ?? READINGS[0]
 
-  /* How far the bookmark sits into the block, 0–1. Only drawn when both
-     numbers exist: a ribbon at an invented depth is worse than no ribbon. */
-  const depth =
-    book.pages && book.pagesRead !== undefined
-      ? Math.min(1, Math.max(0, book.pagesRead / book.pages))
-      : null
+  function tie(strand: Strand) {
+    setCompose({ as: 'tie', strand })
+  }
 
-  return (
-    <main className={pageStyles.page}>
-      <div className={`${pageStyles.column} ${styles.journeyColumn}`}>
-        <Link to="/library" className={styles.back}>
-          <BackIcon size={18} />
-          <span>Library</span>
-        </Link>
-
-        {/* The inside cover. On the sky rather than on a card, because a card
-            here would make the book one more keepsake among the keepsakes
-            below instead of the thing they all belong to. */}
-        <header className={styles.insideCover}>
-          <div className={styles.jacket}>
-            <div className={styles.opening}>
-              <BookCover
-                title={book.title}
-                author={book.author}
-                covers={book.covers}
-                width={200}
-                rotate={-1.5}
-              />
-            </div>
-            {/* Progress as a thing in the book rather than a number about it.
-                The ribbon sits where the reader's own bookmark would sit —
-                that far into the block of pages — so how far in is read from
-                the shape, at a glance, before any figure is. */}
-            {depth !== null && (
-              <span
-                className={styles.bookmark}
-                style={{ '--depth': depth } as React.CSSProperties}
-                aria-hidden="true"
-              />
-            )}
-          </div>
-
-          <div className={styles.identity}>
-            <h1 className={styles.title}>{book.title}</h1>
-            <p className={styles.author}>{book.author}</p>
-
-            <p className={styles.epigraph}>{said.line}</p>
-            {said.hint && <p className={styles.hint}>{said.hint}</p>}
-
-            <p className={styles.reading}>
-              {formatPhrase(book) || 'Not marked yet'}
-              {depth !== null && (
-                <>
-                  <span aria-hidden="true"> · </span>
-                  <span className={styles.depth}>
-                    page {book.pagesRead} of {book.pages}
-                  </span>
-                </>
-              )}
-            </p>
-
-            <button
-              type="button"
-              className={styles.aboutBook}
-              onClick={() => setBookOpen(true)}
-            >
-              <MoreIcon size={16} />
-              About this book
-            </button>
-          </div>
-        </header>
-
-        {/* The tool bar. The three readings on the leading side, the two things
-            you can do to the whole journey on the trailing side — the same
-            arrangement the library uses for its own views. */}
-        <div className={styles.tools}>
-          <GlassSurface className={styles.switcher}>
-            <div
-              role="radiogroup"
-              aria-label="How to lay the journey out"
-              className={styles.tabs}
-            >
-              {VARIANTS.map(({ value, label, Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  role="radio"
-                  aria-checked={variant === value}
-                  aria-label={label}
-                  className={styles.tab}
-                  onClick={() => choose(value)}
-                >
-                  <Icon size={17} />
-                  {/* The word only for the reading you are in — the same rule
-                      the library and the settings tabs already follow, and the
-                      reason three tabs fit beside two actions on a phone. */}
-                  {variant === value && (
-                    <span className={styles.tabLabel} aria-hidden="true">
-                      {label}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </GlassSurface>
-
-          <div className={styles.actions}>
-            <button
-              type="button"
-              className={styles.action}
-              data-on={sifting(sift) || sift.order !== 'kept' || undefined}
-              onClick={() => setSiftOpen(true)}
-              aria-label="How to read this journey"
-            >
-              <SortIcon size={19} />
-            </button>
-            <button
-              type="button"
-              className={styles.action}
-              onClick={() => setFairOpen(true)}
-              aria-label="Fair copy"
-            >
-              <FairCopyIcon size={19} />
-            </button>
-          </div>
-        </div>
-
-        {/* What is still being followed, and the one place to tie it off. A
-            strand nobody can close quietly becomes clutter. */}
-        {running.length > 0 && (
-          <div className={styles.following}>
-            <span className={styles.followingLabel}>
-              <StrandIcon size={14} />
-              Following
-            </span>
-            {running.map((s) => (
+  /* The chrome that is the same in all three, handed to whichever reading is
+     on so it can decide where it sits. In the Ledger it is a toolbar under a
+     quiet header; in the Deck it lands under a masthead. It is the same
+     element either way, which is what makes the switch feel like a switch and
+     not like three different pages that happen to be linked. */
+  const tools = (
+    <div className={styles.chrome}>
+      <div className={styles.tools}>
+        <GlassSurface className={styles.switcher}>
+          <div role="radiogroup" aria-label="How to read this journey" className={styles.tabs}>
+            {READINGS.map(({ value, label, Icon }) => (
               <button
-                key={s.id}
+                key={value}
                 type="button"
-                className={styles.strandTab}
-                style={{ '--strand': strandColor(s.hue) } as React.CSSProperties}
-                onClick={() => setCompose({ as: 'tie', strand: s })}
+                role="radio"
+                aria-checked={view === value}
+                aria-label={label}
+                className={styles.tab}
+                onClick={() => choose(value)}
               >
-                <span className={styles.swatch} aria-hidden="true" />
-                {s.name}
-                <span className={styles.tieOff}>tie off</span>
+                <Icon size={17} />
+                {/* The word only for the reading you are in — the same rule the
+                    library and the settings tabs already follow, and the reason
+                    three tabs fit beside two actions on a phone. */}
+                {view === value && (
+                  <span className={styles.tabLabel} aria-hidden="true">
+                    {label}
+                  </span>
+                )}
               </button>
             ))}
           </div>
-        )}
+        </GlassSurface>
 
-        {sifting(sift) && (
-          <p className={styles.sifted}>
-            Showing {count(showing, { one: 'keep', many: 'keeps' })} of {kept.length}.{' '}
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.action}
+            data-on={sifting(sift) || sift.order !== 'kept' || undefined}
+            onClick={() => setSiftOpen(true)}
+            aria-label="What to show, and in what order"
+          >
+            <SortIcon size={19} />
+          </button>
+          <button
+            type="button"
+            className={styles.action}
+            onClick={() => setFairOpen(true)}
+            aria-label="Fair copy"
+          >
+            <FairCopyIcon size={19} />
+          </button>
+        </div>
+      </div>
+
+      {/* What is still being followed, and the one place to tie it off — except
+          in the Weave, which is a page of strands and puts the tie-off at the
+          foot of the strand it closes. A second copy of it up here would be
+          two controls for one thing on one screen. */}
+      {view !== 'weave' && running.length > 0 && (
+        <div className={styles.following}>
+          <span className={styles.followingLabel}>
+            <StrandIcon size={14} />
+            Following
+          </span>
+          {running.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              className={styles.strandTab}
+              style={{ '--strand': strandColor(s.hue) } as React.CSSProperties}
+              onClick={() => tie(s)}
+            >
+              <span className={styles.swatch} aria-hidden="true" />
+              {s.name}
+              <span className={styles.tieOff}>tie off</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {sifting(sift) && (
+        <p className={styles.sifted}>
+          Showing {count(showing, { one: 'keep', many: 'keeps' })} of {kept.length}.{' '}
+          <button
+            type="button"
+            className={styles.clear}
+            onClick={() => setSift({ ...ALL, order: sift.order })}
+          >
+            Show everything
+          </button>
+        </p>
+      )}
+    </div>
+  )
+
+  return (
+    <main className={`${pageStyles.page} ${styles.page}`}>
+      <div className={`${pageStyles.column} ${styles.column}`}>
+        <BackBar
+          to="/library"
+          from="Library"
+          title={book.title}
+          collapsed={collapsed}
+          action={
             <button
               type="button"
-              className={styles.clear}
-              onClick={() => setSift({ ...ALL, order: sift.order })}
+              className={styles.barAction}
+              onClick={() => setBookOpen(true)}
+              aria-label="About this book"
             >
-              Show everything
+              <MoreIcon size={20} />
             </button>
-          </p>
-        )}
+          }
+        />
 
-        {rows.length > 0 ? (
-          <section
-            className={styles.journey}
-            data-variant={variant}
-            aria-label="Everything kept from this book"
-          >
-            {/* Fragments, not wrappers. The Scrapbook lays each sheet over the
-                one above it with `.keep + .keep`, and a div around every row
-                would break that adjacency and quietly flatten the variation
-                back into a list. */}
-            {rows.map((row, i) => (
-              <Fragment key={`${row.keep.id}-${row.divider ?? ''}`}>
-                {row.divider && <h2 className={styles.divider}>{row.divider}</h2>}
-                <Keep
-                  row={row}
-                  strands={threads}
-                  last={i === rows.length - 1}
-                  onMenu={setMenuKeep}
-                  onMotif={(motif) =>
-                    setSift((s) => ({ ...s, motif: s.motif === motif ? null : motif }))
-                  }
-                />
-              </Fragment>
-            ))}
-          </section>
-        ) : (
-          <p className={styles.absent}>
-            {kept.length
-              ? 'Nothing here matches that. Change what you are looking for, or show everything again.'
-              : 'The thread starts with the first thing you keep.'}
-          </p>
-        )}
+        <reading.Screen
+          book={book}
+          keeps={kept}
+          strands={threads}
+          rows={rows}
+          sift={sift}
+          tools={tools}
+          sentinel={sentinel}
+          onMenu={setMenuKeep}
+          onMotif={(motif) =>
+            setSift((s) => ({ ...s, motif: s.motif === motif ? null : motif }))
+          }
+          onAbout={() => setBookOpen(true)}
+          onTie={tie}
+        />
 
         {/* The colophon: the book's own end matter, set the way a printer would
             set it — terms and details, no charts, no streaks. */}
@@ -375,10 +321,10 @@ function BookJourney() {
         )}
 
         {/* Sticky rather than fixed: it rides above the journey but stays
-            inside the reading column, so it never sits over the bottom bar and
-            never floats out over a card's trailing edge on a wide screen. The
-            undo is inside it so the two are spaced by a flex gap rather than by
-            one of them being told how tall the other is. */}
+            inside the reading column, so it never floats out over a card's
+            trailing edge on a wide screen. The undo is inside it so the two are
+            spaced by a flex gap rather than by one being told how tall the
+            other is. */}
         <div className={styles.dock}>
           {undo && (
             <div className={styles.undo} role="status">
@@ -407,8 +353,8 @@ function BookJourney() {
               </LeafButton>
               {/* Labelled either way: the words are dropped on a narrow phone
                   so the primary button keeps its own on one line, and the name
-                  is on the button itself rather than in the span, so nothing
-                  is lost when the span goes. */}
+                  is on the button itself rather than in the span, so nothing is
+                  lost when the span goes. */}
               <button
                 type="button"
                 className={styles.startStrand}
