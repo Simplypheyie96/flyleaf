@@ -8,8 +8,13 @@ const OPTIONS: { value: ThemePref; label: string }[] = [
   { value: 'dark', label: 'Night' },
 ]
 
+interface ThemeToggleProps {
+  /** Id of the visible label naming this control, where the screen has one. */
+  labelledBy?: string
+}
+
 /** Follows system by default; Day/Night are the manual override. */
-function ThemeToggle() {
+function ThemeToggle({ labelledBy }: ThemeToggleProps) {
   const [pref, setPrefState] = useState<ThemePref>(getPref)
 
   function choose(value: ThemePref) {
@@ -18,7 +23,14 @@ function ThemeToggle() {
   }
 
   return (
-    <div className={styles.group} role="group" aria-label="Theme">
+    <div
+      className={styles.group}
+      role="group"
+      /* One name or the other, never both — a group beside a visible "Theme"
+         label that also carries aria-label="Theme" is announced twice. */
+      aria-label={labelledBy ? undefined : 'Theme'}
+      aria-labelledby={labelledBy}
+    >
       {OPTIONS.map(({ value, label }) => (
         <button
           key={value}
