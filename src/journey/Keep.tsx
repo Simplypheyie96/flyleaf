@@ -1,12 +1,18 @@
-/* One keep, tied on the thread.
+/* One keep — a card, and only a card.
 
-   The same markup in all three variations. What changes between the Bound
-   Journal, the Scrapbook and the Card Index is entirely CSS hanging off a
-   `data-variant` on the section above — which is the only way three layouts
-   can stay honestly the same content. A variation that needed its own JSX
-   would drift from the other two within a week, and the reader would be
-   choosing between three half-finished screens instead of three views of one
-   finished one. */
+   It used to draw its own thread, its own knot and a lane of coloured ribbons
+   out into the margin, which is what the sides of the journey were: three
+   decorations with no structural job, running past every card in every layout
+   whether or not that layout meant anything by them. Ornament that does not
+   organise anything is noise, so it is gone. Where the strands genuinely are
+   the structure — the Weave — that layout draws them itself, around the cards
+   rather than beside them.
+
+   What is left is the thing the reader came for, set once and used by all
+   three layouts. Two sizes on it: the mono micro-label for the facts about the
+   keep, and the reading size for the keep itself. The face changes with the
+   kind, and only with the kind — the book's own words are serif, the reader's
+   own handwriting is the hand, and everything that is interface is sans. */
 
 import { useEffect, useState } from 'react'
 import PaperSurface from '../components/PaperSurface'
@@ -23,7 +29,7 @@ import {
 import type { PaperTone } from '../components/PaperSurface'
 import type { Entry, EntryType, Strand } from '../data/db'
 import { KEEP, keptLabel } from './lexicon'
-import { strandColor, type Row } from './order'
+import { strandColor } from './order'
 import styles from './Keep.module.css'
 
 export const KIND: Record<
@@ -36,26 +42,6 @@ export const KIND: Record<
   image: { label: 'Picture', tone: 'image', Icon: ImageIcon },
   highlight: { label: 'Highlight', tone: 'highlight', Icon: HighlightIcon },
   strand: { label: 'Strand', tone: 'strand', Icon: StrandIcon },
-}
-
-/* The thread — one stitched segment, drawn beside the keep it ties on.
-
-   Segments rather than one line down the section, for two reasons: each
-   stretches its own wander differently, so no two lengths of thread are
-   identical the way a repeating border would be; and a short element is a
-   subject a scroll-driven timeline can actually measure, which is what lets
-   the stitch draw itself as the reader arrives at it.
-
-   `preserveAspectRatio="none"` lets the 100-unit box stretch to any real
-   height, which would normally drag the stroke and the dashes out of shape
-   with it — `vector-effect: non-scaling-stroke` keeps a stitch the same
-   length on a long card and a short one. */
-function Thread({ className }: { className: string }) {
-  return (
-    <svg className={className} viewBox="0 0 8 100" preserveAspectRatio="none" aria-hidden="true">
-      <path d="M4 0 C 3.2 12, 4.8 24, 4 36 C 3.3 48, 4.7 60, 4 72 C 3.4 84, 4.6 92, 4 100" />
-    </svg>
-  )
 }
 
 /** A blob, as something an `img` or an `audio` can be pointed at. The handle is
@@ -79,21 +65,14 @@ function KeptImage({ keep }: { keep: Entry }) {
   const url = useObjectUrl(keep.media)
   return (
     <figure className={styles.mount}>
-      <div className={styles.print}>
-        {url ? (
-          /* The caption is the alt text when there is one. A reader writing
-             "the page I kept turning back to" has described their own picture
-             better than any generated string would. */
-          <img src={url} alt={keep.text ?? 'A picture kept from this book'} />
-        ) : (
-          <p className={styles.absent}>This picture isn’t on this device.</p>
-        )}
-        {/* Photo corners. Four, because three is a mount that has come loose. */}
-        <span className={styles.corner} data-at="tl" aria-hidden="true" />
-        <span className={styles.corner} data-at="tr" aria-hidden="true" />
-        <span className={styles.corner} data-at="bl" aria-hidden="true" />
-        <span className={styles.corner} data-at="br" aria-hidden="true" />
-      </div>
+      {url ? (
+        /* The caption is the alt text when there is one. A reader writing
+           "the page I kept turning back to" has described their own picture
+           better than any generated string would. */
+        <img className={styles.print} src={url} alt={keep.text ?? 'A picture kept from this book'} />
+      ) : (
+        <p className={styles.gone}>This picture isn’t on this device.</p>
+      )}
       {keep.text && <figcaption className={styles.caption}>{keep.text}</figcaption>}
     </figure>
   )
@@ -126,32 +105,31 @@ function Body({ keep }: { keep: Entry }) {
         </p>
       )
     case 'note':
-      return <p className={`${styles.text} ${styles.ruled}`}>{keep.text}</p>
+      /* The one place the hand survives. A note is the reader talking to
+         themselves, and it is worth one typeface to say so — but only here,
+         and never on anything the app itself says. */
+      return <p className={styles.hand}>{keep.text}</p>
     case 'strand':
       return keep.text ? <p className={styles.reflection}>{keep.text}</p> : null
     default:
-      return <p className={styles.text}>{keep.text}</p>
+      return <p className={styles.said}>{keep.text}</p>
   }
 }
 
 interface KeepProps {
-  row: Row
+  keep: Entry
   strands: Strand[]
-  last: boolean
   onMenu: (keep: Entry) => void
   onMotif: (motif: string) => void
+  /** Drop the kind label — the Deck already says what kind everything in it
+      is, and repeating it on every card is a column of the same word. */
+  unlabelled?: boolean
 }
 
-function Keep({ row, strands, last, onMenu, onMotif }: KeepProps) {
-  const { keep, braid } = row
+function Keep({ keep, strands, onMenu, onMotif, unlabelled }: KeepProps) {
   const kind = KIND[keep.type]
-  const strand = keep.strandId !== undefined ? strands.find((s) => s.id === keep.strandId) : undefined
-
-  /* Alternating, and small. The tilt is what makes a card look laid down
-     rather than placed; past a degree or so it stops reading as handmade and
-     starts reading as broken. Driven off the row's own timestamp so a card
-     never changes its lean because something was kept before it. */
-  const lean = keep.createdAt % 2 === 0 ? 0.5 : -0.5
+  const strand =
+    keep.strandId !== undefined ? strands.find((s) => s.id === keep.strandId) : undefined
 
   const where = [keep.chapter, keep.page !== undefined ? `p. ${keep.page}` : null]
     .filter(Boolean)
@@ -163,88 +141,53 @@ function Keep({ row, strands, last, onMenu, onMotif }: KeepProps) {
   const closing = keep.strandMark === 'close'
 
   return (
-    <article
-      className={styles.keep}
-      data-type={keep.type}
-      data-last={last || undefined}
-      data-lanes={braid.length || undefined}
-    >
-      <Thread className={styles.thread} />
-      {/* The knot this keep is tied on by. Over the thread, ringed in the
-          page's own colour, so the stitch appears to pass behind it. */}
-      <span className={styles.knot} aria-hidden="true" />
-
-      {/* The braid: one coloured ribbon per strand that was live when this was
-          kept, each on its own lane out from the spine, knotting where the
-          keep is actually tied to it. */}
-      {braid.map((pass) => (
-        <span
-          key={pass.strandId}
-          className={styles.ribbon}
-          style={{ '--lane': pass.lane, '--strand': strandColor(pass.hue) } as React.CSSProperties}
-          data-first={pass.first || undefined}
-          data-last={pass.last || undefined}
-          data-knot={pass.knot || undefined}
-          aria-hidden="true"
-        />
-      ))}
-
-      {/* Not every card is taped. An identical strip at the identical spot on
-          every sheet is the machine tell — the thing that turns a scrapbook
-          back into a feed with decoration on it. */}
-      <PaperSurface
-        tone={kind.tone}
-        rotate={lean}
-        taped={keep.createdAt % 3 === 0}
-        className={styles.card}
-      >
-        <header className={styles.head}>
-          <span className={styles.chip} aria-hidden="true">
-            <kind.Icon size={15} />
-          </span>
+    <PaperSurface as="article" tone={kind.tone} className={styles.keep} data-type={keep.type}>
+      <header className={styles.head}>
+        {!unlabelled && (
           <span className={styles.kind}>
+            <kind.Icon size={14} />
             {opening ? 'Strand opened' : closing ? 'Strand tied off' : kind.label}
           </span>
-          <span className={styles.when}>{keptLabel(keep.keptOn)}</span>
-          <button
-            type="button"
-            className={styles.more}
-            onClick={() => onMenu(keep)}
-            aria-label={`What to do with this ${KEEP[keep.type].one}`}
-          >
-            <MoreIcon size={18} />
-          </button>
-        </header>
-
-        {strand && (
-          <p
-            className={styles.strandName}
-            style={{ '--strand': strandColor(strand.hue) } as React.CSSProperties}
-          >
-            <StrandIcon size={13} />
-            {strand.name}
-          </p>
         )}
+        <span className={styles.when}>{keptLabel(keep.keptOn)}</span>
+        <button
+          type="button"
+          className={styles.more}
+          onClick={() => onMenu(keep)}
+          aria-label={`What to do with this ${KEEP[keep.type].one}`}
+        >
+          <MoreIcon size={18} />
+        </button>
+      </header>
 
-        <Body keep={keep} />
+      {strand && (
+        <p
+          className={styles.strandName}
+          style={{ '--strand': strandColor(strand.hue) } as React.CSSProperties}
+        >
+          <span className={styles.swatch} aria-hidden="true" />
+          {strand.name}
+        </p>
+      )}
 
-        {(where || keep.motifs?.length) && (
-          <footer className={styles.foot}>
-            {where && <span className={styles.where}>{where}</span>}
-            {keep.motifs?.map((motif) => (
-              <button
-                key={motif}
-                type="button"
-                className={styles.motif}
-                onClick={() => onMotif(motif)}
-              >
-                {motif}
-              </button>
-            ))}
-          </footer>
-        )}
-      </PaperSurface>
-    </article>
+      <Body keep={keep} />
+
+      {(where || keep.motifs?.length) && (
+        <footer className={styles.foot}>
+          {where && <span className={styles.where}>{where}</span>}
+          {keep.motifs?.map((motif) => (
+            <button
+              key={motif}
+              type="button"
+              className={styles.motif}
+              onClick={() => onMotif(motif)}
+            >
+              {motif}
+            </button>
+          ))}
+        </footer>
+      )}
+    </PaperSurface>
   )
 }
 

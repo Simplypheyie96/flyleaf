@@ -1,165 +1,85 @@
-/* The journey — the inside cover of one book, then everything kept from it.
+/* The journey — the page that hosts the three readings.
 
-   This file owns the page: the jacket, the epigraph, the tool bar, the
-   colophon, the dock, and the geometry the thread hangs on. The keeps
-   themselves — every card, every stitch, and all three readings of them — are
-   in journey/Keep.module.css, which is where their class names live and so the
-   only place that can style them. */
+   This file owns only what all three share: the column and its type scale, the
+   toolbar, the colophon, the dock and the undo. Each reading's own masthead and
+   arrangement live beside it — Ledger.module.css, Deck.module.css,
+   Weave.module.css — and the cards are in journey/Keep.module.css.
 
-.journeyColumn {
-  /* Wider than the home feed would be, narrower than the shelf. What sets it
-     is the cards: a quote is the longest thing on this page and it wants a
-     comfortable measure, which at this type size lands near 60 characters
-     rather than the shelf's 760px of board. */
-  --column-max: clamp(420px, 72vw, 600px);
-  gap: var(--space-6);
+   Everything the old file drew that is not here is gone on purpose: the thread
+   rail, the knots, the ribbons, the alternating two-lane spine, the ragged
+   scrapbook widths and the cover-opening rotation. They were the answer to
+   "what is going on the sides", and the answer was: not enough to earn the
+   room they took. */
+
+/* ---- The page ----------------------------------------------------------- */
+
+.page {
+  /* The back bar is the top of this screen, so nothing sits above it. The base
+     page pads 3rem down from the viewport, which would leave the sticky bar
+     landing three quarters of an inch into the page. */
+  padding-block-start: 0;
+  padding-block-end: calc(var(--space-7) + env(safe-area-inset-bottom, 0px));
 }
 
-/* ---- Back to the shelf ---- */
+.column {
+  --column-max: clamp(420px, 72vw, 600px);
 
-.back {
-  /* Its own row above the cover, aligned to the same leading edge as
-     everything under it. */
+  /* The four sizes, and there are four rather than eight.
+
+     Everything on this screen is one of four things: the book's name, the
+     reader's own words, the interface talking, or a fact. Each reading and
+     every card measures from these, so a change here moves all three at once
+     and none of them can drift into a fifth size. They inherit down through
+     the CSS-module boundary into Keep.module.css, which is how the cards get
+     them without this file being able to name their classes. */
+  --t-display: 2.125rem;
+  --t-read: 1.0625rem;
+  --t-chrome: 0.9375rem;
+  --t-micro: 0.6875rem;
+
+  --journey-gap: var(--space-5);
+  gap: var(--journey-gap);
+}
+
+/* The back bar's sentinel. Each reading drops an empty marker at the foot of
+   its masthead for the observer to watch; as a flex child it is 0 tall but
+   still costs a full gap on each side. Half a gap back at each end cancels
+   exactly the one it added, without hiding it — a `display: none` sentinel is
+   never intersected and the bar would never take the title over. */
+.column > div[aria-hidden='true']:empty {
+  margin-block: calc(-0.5 * var(--journey-gap));
+}
+
+/* The one thing you can do to the whole book, at the bar's trailing edge. */
+.barAction {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  align-self: start;
-  min-height: var(--tap-min);
-  padding-inline-end: var(--space-3);
-  color: var(--color-ink-soft);
-  font-size: var(--text-sm);
-  text-decoration: none;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  margin-inline-end: -10px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-accent-text);
+  cursor: pointer;
 }
 
-.back:hover {
-  color: var(--color-ink);
+.barAction:active {
+  opacity: 0.5;
 }
 
-/* ---- The inside cover --------------------------------------------------- */
+/* ---- The toolbar --------------------------------------------------------
 
-.insideCover {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: var(--space-5) var(--space-6);
-}
+   Assembled once by the route and handed to whichever reading is on, so the
+   switch reads as a switch rather than as three pages that happen to link to
+   each other. */
 
-.jacket {
-  position: relative;
-  flex: 0 0 auto;
-}
-
-.identity {
-  /* Wraps under the jacket on a phone and sits beside it from about 560px,
-     which is the width at which 200px of jacket and a readable line of title
-     can both be on the same row without either being squeezed. */
-  flex: 1 1 15rem;
-  min-width: min(100%, 15rem);
+.chrome {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
-
-.title {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: var(--text-2xl);
-  font-weight: 400;
-  line-height: var(--leading-tight);
-  letter-spacing: -0.01em;
-  text-wrap: balance;
-  color: var(--color-ink);
-}
-
-.author {
-  margin: 0;
-  font-size: var(--text-md);
-  color: var(--color-ink-soft);
-}
-
-/* The line the journey is introduced by. Assembled from what the reader
-   actually did — see lexicon.ts — so it is set in the book's own voice
-   rather than as a statistic. */
-.epigraph {
-  margin: var(--space-2) 0 0;
-  max-width: var(--measure);
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-size: var(--text-md);
-  line-height: var(--leading-body);
-  text-wrap: pretty;
-  color: var(--color-ink);
-}
-
-.hint {
-  margin: 0;
-  max-width: 46ch;
-  font-size: var(--text-sm);
-  line-height: var(--leading-body);
-  text-wrap: pretty;
-  color: var(--color-ink-faint);
-}
-
-.reading {
-  margin: var(--space-1) 0 0;
-  font-size: var(--text-xs);
-  letter-spacing: 0.04em;
-  color: var(--color-ink-faint);
-}
-
-.depth {
-  font-variant-numeric: tabular-nums;
-}
-
-.aboutBook {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-block-start: var(--space-3);
-  min-height: var(--tap-min);
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-pill);
-  background: var(--card-fill);
-  color: var(--color-ink-soft);
-  font-size: var(--text-sm);
-  cursor: pointer;
-  transition:
-    color var(--dur-quick) var(--ease-out),
-    border-color var(--dur-quick) var(--ease-out);
-}
-
-.aboutBook:hover {
-  color: var(--color-ink);
-  border-color: var(--color-chip-active-border);
-}
-
-/* The bookmark. Progress as a thing in the book rather than a figure about it:
-   a ribbon slipped over the top board, sitting as far across as the reader has
-   read. `--depth` is 0–1 and comes from the route; everything else here is
-   fixed, so a book at 3% and a book at 97% differ only in where the ribbon
-   sits — which is the whole point of drawing it. */
-.bookmark {
-  position: absolute;
-  inset-block-start: calc(-1 * var(--space-3));
-  inset-inline-start: calc(var(--space-4) + var(--depth) * (100% - var(--space-4) * 2 - 18px));
-  width: 18px;
-  height: 92px;
-  border-radius: 3px 3px 0 0;
-  background: linear-gradient(
-    to bottom,
-    color-mix(in oklch, var(--color-accent), white 12%),
-    var(--color-accent)
-  );
-  box-shadow: var(--elevation-1);
-  /* The swallowtail cut at the foot — the one detail that stops it reading as
-     a coloured rectangle stuck to the cover. */
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 9px), 0 100%);
-  transition: inset-inline-start var(--dur-move) var(--ease-move);
-}
-
-/* ---- The tool bar ------------------------------------------------------- */
 
 .tools {
   display: flex;
@@ -189,8 +109,9 @@
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
   background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome);
   color: var(--color-ink-soft);
-  font-size: var(--text-sm);
   cursor: pointer;
   transition:
     background-color var(--dur-quick) var(--ease-out),
@@ -233,9 +154,9 @@
   color: var(--color-ink);
 }
 
-/* On when the journey is not being read the way it was written. Without this
-   a reader can filter to one motif, scroll away, and spend a while wondering
-   where the rest of their journey went. */
+/* On when the journey is not being read the way it was written. Without this a
+   reader can sift to one motif, scroll away, and spend a while wondering where
+   the rest of their journey went. */
 .action[data-on] {
   background: var(--color-accent-tint);
   border-color: var(--color-chip-active-border);
@@ -255,8 +176,10 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--text-xs);
-  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-ink-faint);
 }
@@ -269,9 +192,10 @@
   padding: var(--space-1) var(--space-3);
   border: 1px solid color-mix(in oklch, var(--strand), transparent 60%);
   border-radius: var(--radius-pill);
-  background: color-mix(in oklch, var(--strand), var(--color-surface) 88%);
+  background: color-mix(in oklch, var(--strand), var(--color-paper) 88%);
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome);
   color: var(--color-ink);
-  font-size: var(--text-sm);
   cursor: pointer;
 }
 
@@ -285,7 +209,10 @@
 .tieOff {
   padding-inline-start: var(--space-2);
   border-inline-start: 1px solid color-mix(in oklch, var(--strand), transparent 65%);
-  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--color-ink-faint);
 }
 
@@ -293,7 +220,8 @@
 
 .sifted {
   margin: 0;
-  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome);
   color: var(--color-ink-soft);
 }
 
@@ -308,79 +236,36 @@
   cursor: pointer;
 }
 
-/* ---- The thread --------------------------------------------------------- */
+/* ---- Nothing there ------------------------------------------------------ */
 
-.journey {
-  /* How much room the thread and the braid own on a phone. Everything on a
-     keep measures from this one number, so moving the rail moves the stitch,
-     the knots, the ribbons and the cards together. */
-  --rail: var(--space-6);
-  /* The gap between two keeps, told to the thread so it can bridge it —
-     `.thread` is `100% + var(--keep-gap)` tall for exactly this reason. It has
-     to be the same number as the flex gap below or the stitch breaks. */
-  --keep-gap: var(--space-6);
-  /* The thread's centre, and its leading edge 4px back from it, both relative
-     to a card's own leading edge. Stated as one derived from the other so the
-     two can never drift apart. */
-  --tie-knot: calc(-1 * var(--rail) + 8px);
-  --tie-line: calc(var(--tie-knot) - 4px);
-  /* Where down a card the knot lands: the paper's own top padding plus half a
-     header row, so it ties on level with the kind label. */
-  --tie-y: calc(var(--space-5) + 13px);
-  /* Which way the braid's lanes run out from the spine. On a phone the thread
-     is against the leading edge, so the ribbons can only go further that way. */
-  --lane-dir: -1;
-  /* The Card Index's left margin, past 640px. */
-  --stamp: 7.5rem;
-
-  display: flex;
-  flex-direction: column;
-  gap: var(--keep-gap);
-  padding-inline-start: var(--rail);
-}
-
-/* The Card Index sets a shallower top padding on its cards, so the knot has to
-   come up to meet the header it is tying on level with. */
-.journey[data-variant='index'] {
-  --tie-y: calc(var(--space-4) + 13px);
-}
-
-/* The Scrapbook's ragged edge arrives here as a fraction, not as a width. A
-   variant is entitled to say how much of its lane a sheet takes; how wide the
-   lane is is this file's business, and past 760px that answer changes. Written
-   as plain percentages the ragged widths measured the whole column — right in
-   one column and wrong in two, where three sheets in every four grew past their
-   lane and printed straight across the centre thread. */
-.journey > article {
-  width: calc(100% * var(--ragged, 1));
-  margin-inline-start: var(--ragged-push, 0);
-}
-
-.divider {
-  margin: var(--space-3) 0 calc(-1 * var(--space-2));
+.plainBack {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: start;
+  min-height: var(--tap-min);
+  margin-block-start: var(--space-5);
   font-family: var(--font-sans);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-faint);
+  font-size: 1.0625rem;
+  color: var(--color-accent-text);
+  text-decoration: none;
 }
 
-/* ---- Nothing yet, or nothing matching ----------------------------------- */
-
-.absent,
 .missing {
   margin: 0;
   max-width: 44ch;
   padding: var(--space-6) 0;
   font-family: var(--font-serif);
-  font-size: var(--text-md);
+  font-size: var(--t-read);
   line-height: var(--leading-body);
   text-wrap: pretty;
   color: var(--color-ink-faint);
 }
 
-/* ---- The colophon ------------------------------------------------------- */
+/* ---- The colophon -------------------------------------------------------
+
+   The book's own end matter, set the way a printer sets it: terms and details,
+   no charts and no streaks. */
 
 .colophon {
   display: grid;
@@ -395,12 +280,15 @@
   grid-template-columns: 7rem 1fr;
   gap: var(--space-3);
   align-items: baseline;
-  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome);
 }
 
 .colophonLine dt {
-  font-size: var(--text-xs);
-  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-ink-faint);
 }
@@ -414,17 +302,16 @@
 
 /* ---- The dock ----------------------------------------------------------- */
 
-/* Both floating things ride in one bottom-anchored stack. The undo used to
-   stick on its own at the dock's height plus the dock's padding plus the gap,
-   added up by hand — which was wrong the moment either of them changed, and was
-   wrong already, because the dock is as tall as its buttons rather than as tall
-   as a bare tap target. Stacking them means only this element clears the bar and
-   the undo simply sits above its sibling. */
+/* Both floating things ride in one bottom-anchored stack, so the undo simply
+   sits above its sibling instead of being told how tall the dock is.
+
+   It clears the safe area and nothing else. The app's bottom bar and its "+"
+   are not painted on this route at all, so the old `--bar-clear` reservation
+   would now be an inch of empty air under a dock that is the only floating
+   thing on the screen. */
 .dock {
   position: sticky;
-  /* Above the floating bottom bar, not on it: --bar-clear is what the shell's
-     bar actually occupies, and the gap is the breathing room between them. */
-  inset-block-end: calc(var(--bar-clear) + var(--space-3));
+  inset-block-end: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -461,8 +348,9 @@
   border: 1px solid var(--border-hairline);
   border-radius: var(--radius-pill);
   background: var(--card-fill);
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome);
   color: var(--color-ink-soft);
-  font-size: var(--text-sm);
   white-space: nowrap;
   cursor: pointer;
 }
@@ -489,8 +377,6 @@
 
 /* ---- Undo --------------------------------------------------------------- */
 
-/* First in the stack, so it rides directly above the dock without either of
-   them knowing the other's height. */
 .undo {
   pointer-events: auto;
   display: flex;
@@ -500,8 +386,9 @@
   padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
   border-radius: var(--radius-pill);
   background: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome);
   color: var(--color-bg);
-  font-size: var(--text-sm);
   box-shadow: var(--elevation-1);
 }
 
@@ -516,122 +403,35 @@
   cursor: pointer;
 }
 
-/* ---- Motion -------------------------------------------------------------
+/* ---- Wider ---------------------------------------------------------------
 
-   The page's own arrival only. The keeps bring their own — the stitch down the
-   thread and the settle of each card are scroll-driven and live beside the
-   classes they move, in Keep.module.css. */
-
-@keyframes coverOpen {
-  from {
-    opacity: 0;
-    transform: perspective(900px) rotateY(-34deg) translateZ(-14px);
-  }
-  to {
-    opacity: 1;
-    transform: perspective(900px) rotateY(0deg) translateZ(0);
-  }
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    translate: 0 8px;
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  /* The jacket swings open on its hinge, and the title follows it in. It is
-     the one theatrical moment on the screen and it is over in under half a
-     second — the cover opening is what the reader has just asked for by
-     tapping the book. */
-  .opening {
-    transform-origin: left center;
-    animation: coverOpen var(--dur-move) var(--ease-move) both;
-  }
-
-  .identity {
-    animation: rise var(--dur-base) var(--ease-out) both;
-    animation-delay: calc(var(--dur-move) * 0.4);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  /* Not nothing: a short fade, so the page still assembles rather than
-     appearing whole, without the rotation that is the part which actually
-     causes trouble. */
-  .opening,
-  .identity {
-    animation: rise 160ms var(--ease-out) both;
-    transform: none;
-  }
-
-  .bookmark {
-    transition: none;
-  }
-}
-
-/* ---- The centre spine --------------------------------------------------- */
+   One number changes, and it is the column. The three readings each answer the
+   extra room in their own file — the Ledger grows its masthead, the Deck shows
+   two cards at a time — because what to do with width is a question about the
+   arrangement, and the arrangement is theirs. */
 
 @media (min-width: 760px) {
-  .journeyColumn {
-    --column-max: min(94vw, 900px);
-  }
-
-  .journey {
-    /* The thread comes in off the rail and runs down the middle, with keeps
-       alternating either side of it. There is finally room for a card to be
-       half the column wide and still hold a quote. */
-    --rail: 0px;
-    --keep-gap: var(--space-7);
-    padding-inline-start: 0;
-  }
-
-  /* Tag selectors, deliberately: a keep's class name is hashed inside
-     Keep.module.css and cannot be named from here, but every keep is an
-     `<article>` and this file owns the element that contains them. */
-  .journey > article {
-    width: calc((50% - var(--space-6)) * var(--ragged, 1));
-    /* The push is a single-column device. In two lanes `align-self` places the
-       sheet, and an auto inline margin outranks it — left alone it would send
-       every ragged sheet to the right-hand lane and empty the left one. */
-    margin-inline-start: 0;
-  }
-
-  .journey > article:nth-of-type(odd) {
-    align-self: flex-start;
-    --tie-line: calc(100% + var(--space-6) - 4px);
-    --tie-knot: calc(100% + var(--space-6));
-    --lane-dir: 1;
-  }
-
-  .journey > article:nth-of-type(even) {
-    align-self: flex-end;
-    --tie-line: calc(-1 * var(--space-6) - 4px);
-    --tie-knot: calc(-1 * var(--space-6));
-    --lane-dir: -1;
-  }
-
-  .divider {
-    align-self: center;
-    margin-block: var(--space-4);
+  .column {
+    --column-max: min(94vw, 720px);
   }
 
   /* The dock still spans the column, but the button inside it stops growing.
-     `flex: 1 1 auto` is right on a phone, where filling the width is what
-     makes it the obvious thing to reach for; at 900px it made the primary
-     action a 710px slab, which reads as a banner rather than as a button.
-     Capped and centred, the pair sits in the middle of the thread it belongs
-     to instead of bracketing the whole page. */
+     `flex: 1 1 auto` is right on a phone, where filling the width is what makes
+     it the obvious thing to reach for; at 720px it makes the primary action a
+     slab that reads as a banner rather than as a button. */
   .dockRow {
     justify-content: center;
   }
 
   .keepIt {
     flex: 0 1 20rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* The side rail is not painted on this route, so the room the base page
+     reserves for it is just a shove to the trailing edge. */
+  .page {
+    padding-inline-start: var(--space-5);
   }
 }
