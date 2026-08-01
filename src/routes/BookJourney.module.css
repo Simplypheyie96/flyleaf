@@ -345,6 +345,17 @@
   --tie-y: calc(var(--space-4) + 13px);
 }
 
+/* The Scrapbook's ragged edge arrives here as a fraction, not as a width. A
+   variant is entitled to say how much of its lane a sheet takes; how wide the
+   lane is is this file's business, and past 760px that answer changes. Written
+   as plain percentages the ragged widths measured the whole column — right in
+   one column and wrong in two, where three sheets in every four grew past their
+   lane and printed straight across the centre thread. */
+.journey > article {
+  width: calc(100% * var(--ragged, 1));
+  margin-inline-start: var(--ragged-push, 0);
+}
+
 .divider {
   margin: var(--space-3) 0 calc(-1 * var(--space-2));
   font-family: var(--font-sans);
@@ -584,7 +595,11 @@
      Keep.module.css and cannot be named from here, but every keep is an
      `<article>` and this file owns the element that contains them. */
   .journey > article {
-    width: calc(50% - var(--space-6));
+    width: calc((50% - var(--space-6)) * var(--ragged, 1));
+    /* The push is a single-column device. In two lanes `align-self` places the
+       sheet, and an auto inline margin outranks it — left alone it would send
+       every ragged sheet to the right-hand lane and empty the left one. */
+    margin-inline-start: 0;
   }
 
   .journey > article:nth-of-type(odd) {
@@ -604,5 +619,19 @@
   .divider {
     align-self: center;
     margin-block: var(--space-4);
+  }
+
+  /* The dock still spans the column, but the button inside it stops growing.
+     `flex: 1 1 auto` is right on a phone, where filling the width is what
+     makes it the obvious thing to reach for; at 900px it made the primary
+     action a 710px slab, which reads as a banner rather than as a button.
+     Capped and centred, the pair sits in the middle of the thread it belongs
+     to instead of bracketing the whole page. */
+  .dockRow {
+    justify-content: center;
+  }
+
+  .keepIt {
+    flex: 0 1 20rem;
   }
 }
