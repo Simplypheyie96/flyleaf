@@ -47,7 +47,28 @@
   --color-accent: oklch(0.66 0.11 78); /* graphic uses: icons, fills */
   --color-accent-text: oklch(0.45 0.09 252); /* fountain-pen blue ink */
   --color-accent-tint: oklch(0.93 0.02 240);
-  --color-chip-active: oklch(0.995 0.002 240); /* selected pill on glass */
+  /* Selected pill on glass. This was 0.995 at near-zero chroma — white on
+     white glass, so by day the selection had no edges at all.
+
+     Hue 234 is the search field's, so the pill belongs to the same pale blue
+     the reader already sees at the top of the shelf. The lightness is picked
+     to sit a step under the glass rather than under the page: glass over the
+     sky composites to about 0.966 and glass over a paper card to about 0.99,
+     so 0.945 is a fifth of a step down from the first and half a step from
+     the second — enough to hold an edge in both places, and short of the
+     0.93 sky itself, which read as a hole punched through the bar. */
+  --color-chip-active: oklch(0.968 0.018 240);
+  /* And the pill is drawn, not filled. Fill alone has to go dark enough to
+     beat the glass, which is what kept reading as heavy; an outline separates
+     at any lightness, so the fill can stay a whisper bluer than the track and
+     this line does the work. */
+  --color-chip-active-border: oklch(0.9 0.03 245);
+  /* The same glass, filled for a white card instead of the sky. GlassSurface
+     takes its colour from what is behind it, so the three controls floating
+     over the page read pale blue and the one seated on a paper card came out
+     white. This is what the others composite to (~0.966 over the sky), stated
+     outright so Appearance matches them wherever it sits. */
+  --chip-track-on-paper: oklch(0.962 0.014 240);
 
   /* ---- Entry-type identities (muted, airy) ---- */
   --color-quote: oklch(0.55 0.06 140); /* sage */
@@ -120,25 +141,6 @@
   --card-blur: 16px;
   --card-fallback: oklch(0.985 0.006 238); /* opaque stand-in */
   --card-chip: oklch(0.99 0.004 240 / 0.85); /* small nested badges */
-
-  /* ---- Segmented-control well ----
-     The groove a row of tabs sits in: the bottom bar, the shelf's view
-     switcher, the theme control in Settings. All three are the same object at
-     different sizes, so the groove is stated once here rather than three
-     times in three files.
-
-     A wash of whatever ink the surrounding surface is printed with, never a
-     fixed fill. The lit pill is the lightest thing in the control, so the
-     groove has to be darker than the surface behind it, and "darker" means
-     the opposite value by day and by night. Substitution is lazy, so this one
-     declaration resolves against the local --color-ink — including inside a
-     tinted card, which carries its own.
-
-     10%, not the 5% the reading gauge uses, because two of the three grooves
-     are cut into glass: backdrop-filter's saturate(150%) lifts a 5% wash back
-     out again, and it vanished. On paper 10% is still quiet. */
-  --track-well: color-mix(in oklch, var(--color-ink), transparent 90%);
-  --track-well-border: color-mix(in oklch, var(--color-ink), transparent 84%);
 
   /* ---- Entry-card tints (each type owns a surface, per refs) ---- */
   /* Tints are whispers over the sky, not opaque paper — enough hue to tell
@@ -386,6 +388,11 @@
   --color-accent-text: oklch(0.78 0.06 262); /* moonlit periwinkle ink */
   --color-accent-tint: oklch(0.34 0.03 265);
   --color-chip-active: oklch(0.37 0.03 265);
+  /* After dark the pill is already the lightest thing in the row, so the
+     outline only has to keep the edge crisp rather than create it. */
+  --color-chip-active-border: oklch(0.95 0.015 250 / 0.2);
+  /* What the floating glass composites to over the night page. */
+  --chip-track-on-paper: oklch(0.3 0.028 265);
 
   --color-quote: oklch(0.7 0.06 140);
   --color-note: oklch(0.75 0.09 85);

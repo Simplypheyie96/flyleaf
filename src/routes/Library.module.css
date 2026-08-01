@@ -95,11 +95,6 @@
   align-items: center;
   gap: 2px;
   padding: 4px;
-  /* The same groove the bottom bar and the theme control sit in. Without it
-     the lit pill was white on white glass and the control had no edges by
-     day; it only ever read after dark, where the glass happens to be dark. */
-  background: var(--track-well);
-  border-radius: var(--radius-pill);
 }
 
 .viewPill {
@@ -143,7 +138,7 @@
      knockout has to follow the capsule it's sitting in. */
   --icon-knockout: var(--color-chip-active);
   background: var(--color-chip-active);
-  border-color: var(--border-hairline);
+  border-color: var(--color-chip-active-border);
   box-shadow: var(--elevation-1);
   color: var(--color-ink);
 }
