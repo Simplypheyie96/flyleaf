@@ -524,7 +524,17 @@
 
 /* Off is a dot, on is a stitch — a change of shape as well as of weight, so
    the position survives being looked at quickly, and survives being looked at
-   by someone who cannot tell the two colours apart. */
+   by someone who cannot tell the two colours apart.
+
+   The shape change does not animate, and that is the whole point of this
+   block. It used to widen over 260ms, which looks correct when you press an
+   arrow once and falls apart the moment anyone swipes: a thumb turns the deck
+   faster than 260ms, so every swipe started a new widen on top of four that
+   had not finished shrinking, and the row became five half-wide, half-dark
+   bars with the gaps swallowed. An indicator is the one thing on screen that
+   must never lag the gesture it reports — it is where you are, not how you
+   got here. So the width is instant however fast the deck is turned, and only
+   the colour eases, briefly, so the swap is not a blink. */
 .pip {
   /* Both spellings, on purpose. A span in a flex row is a flex item, and a
      flex item's `inline-size` alone is not always what the browser measures
@@ -534,19 +544,17 @@
   width: 6px;
   block-size: 6px;
   height: 6px;
-  /* Never grow, never shrink, and take the stated width as the basis. Without
-     this a pip is free to absorb whatever room is left over in the row, which
-     is how four 6px dots turned into four 13px bars with the gaps squeezed
-     out of them. */
+  /* Never grow, never shrink, and take the stated width as the basis, so a
+     pip cannot absorb whatever room is left over in the row. */
   flex: 0 0 auto;
   border-radius: var(--radius-pill);
   background: var(--color-ink-faint);
   opacity: 0.35;
+  /* Colour only. Short enough that the fastest swipe a thumb can manage still
+     finds the row settled. */
   transition:
-    inline-size var(--dur-base) var(--ease-move),
-    width var(--dur-base) var(--ease-move),
-    opacity var(--dur-base) var(--ease-out),
-    background-color var(--dur-base) var(--ease-out);
+    opacity var(--dur-press) var(--ease-out),
+    background-color var(--dur-press) var(--ease-out);
 }
 
 .pip[data-on] {
