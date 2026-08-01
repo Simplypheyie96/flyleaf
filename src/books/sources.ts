@@ -192,8 +192,19 @@ function openLibraryCovers(doc: OpenLibraryDoc) {
    board. With it the request 404s, the <img> errors, and the book falls
    through to the next candidate and finally to a drawn cover — which is the
    behaviour we actually want. */
+/* `L` rather than `M` because of where these end up. `M` is 180px across, and
+   the Stack board draws a cover at up to 210 CSS pixels — so on the phones this
+   is built for the jacket was being blown up rather than sampled down, and it
+   went soft exactly where the reader looks at it longest. `L` caps the long
+   edge at 500px, which is 337 across on a normal 2:3 jacket: still short of a
+   3x board, but comfortably over it at 1.5x and no longer upscaling anywhere.
+
+   Same free Open Library endpoint, same `default=false` behaviour — checked
+   both sizes against a cover that exists and one that does not, and `L` answers
+   200 and 404 in exactly the places `M` does, so the fall-through below is
+   untouched. The cost is about 2.4x the bytes, once, on a book being added. */
 function coverUrl(kind: 'id' | 'olid' | 'isbn', key: string | number) {
-  return `https://covers.openlibrary.org/b/${kind}/${key}-M.jpg?default=false`
+  return `https://covers.openlibrary.org/b/${kind}/${key}-L.jpg?default=false`
 }
 
 /* ---- Google Books ---- */

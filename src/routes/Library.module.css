@@ -346,6 +346,18 @@
   rotate: -3deg;
 }
 
+/* Except when there is nothing to fan. The offset above centres the shape the
+   deck makes, and one book makes no shape — so the correction that centres a
+   pile of four leaves a single cover sitting two thirds of the way to the left
+   of an otherwise empty board. That is the first thing a reader sees after
+   adding their first book, and it looks like a mistake rather than a pile.
+
+   The tilt stays. Square in the middle of the board reads as a product shot;
+   three degrees off reads as a book someone put down. */
+.stack[data-single] .stackItem[data-slot='0'] {
+  translate: -50% -50%;
+}
+
 /* The gaps are set by the thumb, not by the eye. Each card behind the front
    has to leave at least --tap-min of itself showing, or the tap that brings it
    forward is aimed at a strip narrower than a fingertip — and the fourth book

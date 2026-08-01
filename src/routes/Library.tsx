@@ -264,6 +264,7 @@ function StackDeck({ books }: { books: Book[] }) {
       <div className={styles.stackFrame}>
         <div
           className={styles.stack}
+          data-single={n === 1 || undefined}
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
           onPointerCancel={() => {
@@ -451,6 +452,8 @@ function Library() {
   // wrapper is mid-fade. Morph leaves it alone and moves the books instead.
   const phaseClass = phase !== 'idle' ? styles[phase] : ''
 
+  const hasBooks = libraryBooks.length > 0
+
   return (
     <main className={pageStyles.page}>
       <div className={`${pageStyles.column} ${styles.shelfColumn}`}>
@@ -460,42 +463,51 @@ function Library() {
             <p className={styles.subtitle}>every book you keep</p>
           </div>
 
-          <GlassSurface className={styles.switcher}>
-            <div
-              className={styles.switcherInner}
-              role="group"
-              aria-label="Shelf view"
-            >
-              {VIEWS.map(({ id, Icon, hint }) => (
-                <button
-                  key={id}
-                  type="button"
-                  className={styles.viewPill}
-                  aria-pressed={view === id}
-                  aria-label={`${id} view — ${hint}`}
-                  title={`${id} — ${hint}`}
-                  onClick={() => choose(id)}
-                >
-                  <Icon size={20} />
-                </button>
-              ))}
-            </div>
-          </GlassSurface>
+          {/* Three ways to look at nothing is not a choice, and a search field
+              over an empty shelf is a promise the screen cannot keep. Both
+              arrive with the first book, on the same condition as the count at
+              the foot — including while Dexie is still answering, so a reader
+              who does have books never sees the controls appear twice. */}
+          {hasBooks && (
+            <GlassSurface className={styles.switcher}>
+              <div
+                className={styles.switcherInner}
+                role="group"
+                aria-label="Shelf view"
+              >
+                {VIEWS.map(({ id, Icon, hint }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={styles.viewPill}
+                    aria-pressed={view === id}
+                    aria-label={`${id} view — ${hint}`}
+                    title={`${id} — ${hint}`}
+                    onClick={() => choose(id)}
+                  >
+                    <Icon size={20} />
+                  </button>
+                ))}
+              </div>
+            </GlassSurface>
+          )}
         </header>
 
-        <GlassSurface className={styles.search}>
-          <div className={styles.searchInner}>
-            <SearchIcon size={18} />
-            <input
-              type="search"
-              className={styles.searchInput}
-              placeholder="Search books and memories"
-              aria-label="Search your books and memories"
-              autoComplete="off"
-              spellCheck={false}
-            />
-          </div>
-        </GlassSurface>
+        {hasBooks && (
+          <GlassSurface className={styles.search}>
+            <div className={styles.searchInner}>
+              <SearchIcon size={18} />
+              <input
+                type="search"
+                className={styles.searchInput}
+                placeholder="Search books and memories"
+                aria-label="Search your books and memories"
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
+          </GlassSurface>
+        )}
 
         {/* `data-shelf` is how the add sheet knows there is somewhere for a
             book to land. Added here rather than checked by route so it stays
@@ -511,11 +523,11 @@ function Library() {
             </p>
           )}
 
-          {libraryBooks.length > 0 && view === 'Stack' && (
+          {hasBooks && view === 'Stack' && (
             <StackDeck books={libraryBooks} />
           )}
 
-          {libraryBooks.length > 0 && view === 'Shelf' && (
+          {hasBooks && view === 'Shelf' && (
             <div className={styles.shelf}>
               <div className={styles.shelfRow}>
                 {libraryBooks.map((book, i) => {
@@ -572,7 +584,7 @@ function Library() {
             </div>
           )}
 
-          {libraryBooks.length > 0 && view === 'Grid' && (
+          {hasBooks && view === 'Grid' && (
             <div className={styles.grid}>
               {libraryBooks.map((book, i) => (
                 <div
@@ -597,7 +609,7 @@ function Library() {
           )}
         </div>
 
-        {libraryBooks.length > 0 && (
+        {hasBooks && (
           <p className={styles.count}>
             {libraryBooks.length} {libraryBooks.length === 1 ? 'book' : 'books'}
           </p>
