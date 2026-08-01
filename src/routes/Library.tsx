@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { CSSProperties, PointerEvent } from 'react'
+import type { CSSProperties, MouseEvent, PointerEvent } from 'react'
+import { Link } from 'react-router-dom'
 import BookCover from '../components/BookCover'
 import { floss, palette } from '../books/CoverArt'
 import SpineArt from '../books/SpineArt'
@@ -29,6 +30,26 @@ const VIEWS: { id: ShelfView; Icon: typeof StackIcon; hint: string }[] = [
   { id: 'Shelf', Icon: ShelfIcon, hint: 'standing, spines out' },
   { id: 'Grid', Icon: GridIcon, hint: 'covers in a grid' },
 ]
+
+/** The way into a book's journey, laid over the book itself.
+
+    An overlay rather than a wrapper because all three views draw a book
+    differently and two of them care exactly where their children sit: a spine
+    is a vertical flex row of stitching, title, mark and author, and a link
+    around that lot would be a new box in the middle of it. Sitting on top
+    instead means the shelf keeps the layout it was built with, and the whole
+    cover — not just its title — is the target, which is the 44px rule met by
+    the object rather than by padding added around a word.
+
+    The label is real text, hidden by `.reach`, so this reads as "Open The
+    Bell Jar" to a screen reader rather than as an unlabelled link. */
+function OpenJourney({ book }: { book: Book }) {
+  return (
+    <Link to={`/book/${book.id}`} className={styles.reach}>
+      Open {book.title}
+    </Link>
+  )
+}
 
 /* ---- Shelf geometry ----
    A real shelf is not a row of identical blocks: books differ in thickness and
@@ -213,6 +234,12 @@ function StackDeck({ books }: { books: Book[] }) {
   const [dealing, setDealing] = useState<number | null>(null)
   const clear = useRef(0)
   const from = useRef<{ x: number; y: number } | null>(null)
+  /* A swipe that started on the front book ends on it too, and the browser
+     fires a click for that — which, now that the front book is a link to its
+     journey, would mean every turn of the deck also opened a book. The pointer
+     handler knows it was a swipe before the click arrives, so it leaves this
+     flag for the capture-phase handler below to act on. */
+  const swiped = useRef(false)
 
   // A book removed from under the front one must not leave the deck pointing
   // past its own end.
@@ -241,6 +268,7 @@ function StackDeck({ books }: { books: Book[] }) {
      book, so a swipe that begins on a buried corner still turns the pile. */
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
     from.current = { x: event.clientX, y: event.clientY }
+    swiped.current = false
   }
 
   function onPointerUp(event: PointerEvent<HTMLDivElement>) {
@@ -251,7 +279,18 @@ function StackDeck({ books }: { books: Book[] }) {
     // Vertical wins ties: the page scrolls, and a scroll that turned the deck
     // on the way past would be maddening.
     if (Math.abs(dx) < SWIPE_MIN || Math.abs(dx) < Math.abs(event.clientY - start.y)) return
+    swiped.current = true
     turn(dx < 0 ? 1 : -1)
+  }
+
+  /* Capture, so this runs before the link's own handling rather than after it
+     has already navigated. Only ever swallows a click the pointer handler has
+     just declared a swipe, so a plain tap on the front book still opens it. */
+  function onClickCapture(event: MouseEvent<HTMLDivElement>) {
+    if (!swiped.current) return
+    swiped.current = false
+    event.preventDefault()
+    event.stopPropagation()
   }
 
   return (
@@ -270,6 +309,7 @@ function StackDeck({ books }: { books: Book[] }) {
           onPointerCancel={() => {
             from.current = null
           }}
+          onClickCapture={onClickCapture}
         >
           {books.map((book, i) => {
             const slot = (i - active + n) % n
@@ -301,9 +341,14 @@ function StackDeck({ books }: { books: Book[] }) {
                   />
                 </span>
 
-                {/* Only what is showing can be reached. The front book has no
-                    button over it: it is the one you are already looking at,
-                    and a control that does nothing is worse than none. */}
+                {/* Only what is showing can be reached, and what each showing
+                    book does depends on where it is in the pile. Behind the
+                    front one, the useful action is to bring it forward — you
+                    cannot read a cover you are looking at edge-on. The front
+                    book is already chosen, so tapping it does the next thing
+                    instead and opens its journey. */}
+                {slot === 0 && <OpenJourney book={book} />}
+
                 {slot > 0 && !buried && (
                   <button
                     type="button"
@@ -576,6 +621,7 @@ function Library() {
                       <span className={styles.spineAuthor} title={book.author}>
                         {fitted[book.id]?.author ?? book.author}
                       </span>
+                      <OpenJourney book={book} />
                     </div>
                   )
                 })}
@@ -603,6 +649,7 @@ function Library() {
                     covers={book.covers}
                     size="small"
                   />
+                  <OpenJourney book={book} />
                 </div>
               ))}
             </div>
