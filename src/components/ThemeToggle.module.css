@@ -1,26 +1,30 @@
 /* A segmented track, not three words floating on the card.
 
    The bottom bar and the Library's view switcher both seat their pills inside
-   a container with 4px of padding and 2px between them. This is the same
-   control at a different size, so it reuses those two numbers rather than
-   introducing a third set — and it takes its track from --card-chip, the
+   a container with a few pixels of padding and a hairline round it. This is
+   the same control at a different size, so it reuses those numbers rather
+   than introducing a third set, and takes its fill from --card-chip — the
    token for a small surface nested inside a paper card. */
 .group {
   display: flex;
-  width: 100%;
+  align-items: center;
   gap: 2px;
-  padding: 4px;
+  padding: 3px;
   background: var(--card-chip);
   border: 1px solid var(--border-hairline);
   border-radius: var(--radius-pill);
 }
 
 .option {
-  /* Equal thirds. Three words of different lengths in three differently sized
-     pills read as three buttons; equal cells read as one control. */
-  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  /* The tap floor on both axes: two of the three cells are only ever a glyph
+     wide, with no word to grow them. */
+  min-width: var(--tap-min);
   min-height: var(--tap-min);
-  padding: var(--space-2) var(--space-3);
+  padding-inline: var(--space-2);
   /* Always present, only ever recoloured. A border that appeared with the
      selection would nudge the other two options sideways every time the
      reader switched — the same correction the shelf's view pills carry. */
@@ -31,12 +35,17 @@
   font-size: var(--text-sm);
   font-weight: 560;
   cursor: pointer;
+  white-space: nowrap;
   /* Colour and fill only: the selection is the message, and a control that
      also moves gives the eye two things to follow. */
   transition:
     background-color var(--dur-quick) var(--ease-out),
     border-color var(--dur-quick) var(--ease-out),
     color var(--dur-quick) var(--ease-out);
+}
+
+.optionLabel {
+  line-height: 1;
 }
 
 .option:hover {
@@ -49,6 +58,9 @@
 }
 
 .option[aria-pressed='true'] {
+  /* A shade more room than the icon-only cells, because this one carries a
+     word as well as a glyph. */
+  padding-inline: var(--space-3);
   background: var(--color-chip-active);
   border-color: var(--border-hairline);
   box-shadow: var(--elevation-1);
