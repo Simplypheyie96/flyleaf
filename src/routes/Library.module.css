@@ -516,25 +516,42 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  /* The row is exactly as wide as its pips and never a share of the pager.
+     A pips row that is handed a width has spare room in it, and spare room in
+     a flex container is the thing that stretches the dots. */
+  flex: 0 0 auto;
 }
 
 /* Off is a dot, on is a stitch — a change of shape as well as of weight, so
    the position survives being looked at quickly, and survives being looked at
    by someone who cannot tell the two colours apart. */
 .pip {
+  /* Both spellings, on purpose. A span in a flex row is a flex item, and a
+     flex item's `inline-size` alone is not always what the browser measures
+     from — `width` is the property every engine agrees on, and the two say the
+     same thing here. Same for the height. */
   inline-size: 6px;
+  width: 6px;
   block-size: 6px;
+  height: 6px;
+  /* Never grow, never shrink, and take the stated width as the basis. Without
+     this a pip is free to absorb whatever room is left over in the row, which
+     is how four 6px dots turned into four 13px bars with the gaps squeezed
+     out of them. */
+  flex: 0 0 auto;
   border-radius: var(--radius-pill);
   background: var(--color-ink-faint);
   opacity: 0.35;
   transition:
     inline-size var(--dur-base) var(--ease-move),
+    width var(--dur-base) var(--ease-move),
     opacity var(--dur-base) var(--ease-out),
     background-color var(--dur-base) var(--ease-out);
 }
 
 .pip[data-on] {
   inline-size: 20px;
+  width: 20px;
   background: var(--color-accent-text);
   opacity: 1;
 }
