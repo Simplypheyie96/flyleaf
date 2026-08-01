@@ -1,0 +1,645 @@
+/* The add sheet. Glass, because it is chrome floating over the library
+   rather than a page of its own — the shelf stays visible underneath, which
+   is the whole point of a sheet: you are adding to something that is still
+   there. */
+
+.dialog {
+  /* The top layer has no inherited layout, so the sheet positions itself. */
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 100%;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* Only when open. An author-origin `display` beats the UA's
+   `dialog:not([open]) { display: none }` whatever its specificity, so a bare
+   `display: flex` here leaves a closed sheet in the flow, full height, with
+   the page shoved off the bottom of the screen. */
+.dialog[open] {
+  /* Rising from the bottom edge on a phone, the way a sheet does. */
+  display: flex;
+
+  /* A view transition ignores the top layer, so without a name of its own the
+     sheet is simply absent from the snapshot and cuts to nothing the instant
+     it closes — while the cover it was holding takes 420ms to reach the shelf.
+     Naming it puts it back in the picture so it can be dissolved instead.
+     On `[open]` only: a closed sheet holding a name is a name the document is
+     carrying for no reason. */
+  view-transition-name: add-sheet;
+}
+
+.dialog::backdrop {
+  background: oklch(from var(--shadow-tint) l c h / 0.28);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.panel {
+  --glass-pad: 0;
+  --glass-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  width: 100%;
+  max-width: 560px;
+  /* Tall enough to hold a list worth scanning, short enough that the library
+     still shows above it and the sheet reads as a sheet. */
+  max-height: min(86svh, 720px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* GlassSurface wraps whatever it is given in a scrim, so the sheet's flex
+   column has to pass through that layer. Without this the panel's max-height
+   never reaches the results list, and forty results push the sheet past the
+   bottom of the screen instead of scrolling inside it. */
+.panel > * {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+/* Denser glass at night, and only here. By day the sheet sits over a pale page
+   and 55% is a pane you can see the library through. At night it sits over the
+   one bright thing on the screen — the deck — and the covers come through the
+   panel and land behind the search results, so a row's thumbnail has somebody
+   else's flowers in it. The panel keeps its own fill rather than moving the
+   global token, because the nav bar and the view switcher float over empty sky
+   and are right as they are. */
+[data-theme='dark'] .panel {
+  --glass-fill: oklch(0.28 0.03 265 / 0.82);
+  --glass-fallback: oklch(0.25 0.028 265);
+}
+
+/* ---- The grab handle ---- */
+
+/* The bar is 4px tall and nobody can hit 4px. This is the target: full width
+   and 28px of it, so the gesture starts anywhere along the top of the sheet
+   rather than on the mark itself. */
+.grab {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  /* The browser must not claim the vertical gesture for a scroll or a
+     pull-to-refresh — without this the drag is intercepted before the first
+     pointermove ever arrives. */
+  touch-action: none;
+  cursor: grab;
+}
+
+.grab:active {
+  cursor: grabbing;
+}
+
+.grabber {
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-ink-faint);
+  opacity: 0.5;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  /* The handle already sits 28px above this, so the sheet's own top padding
+     comes off — otherwise the header is pushed down by a control that exists
+     to be unobtrusive. */
+  gap: var(--space-5);
+  padding: 0 var(--space-5)
+    calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+}
+
+/* ---- Wide: a sheet stops being a sheet ----
+   1024px is not a device size, it is where App.module.css retires the bottom
+   bar for the side rail. That is the honest trigger: a sheet rises from the
+   bottom edge because that edge is where the thumb lives and where the app's
+   actions already are. Once navigation has moved to the leading edge, the
+   bottom of the window is just the bottom of the window, and a panel pinned
+   to it is a phone layout wearing a large screen — two thirds of the display
+   empty above a form that has drifted away from everything it belongs to.
+
+   So above the rail's breakpoint the panel comes to the middle and closes its
+   corners. It keeps its width, its max-height and every one of its stages;
+   only where it sits changes. */
+@media (min-width: 1024px) {
+  .dialog {
+    align-items: center;
+  }
+
+  .panel {
+    /* All four corners now: a square-bottomed panel floating in the middle of
+       the screen reads as something that has come loose from the edge. */
+    --glass-radius: var(--radius-lg);
+  }
+
+  /* The handle is a drag target for dismissing the sheet downward, and there
+     is no downward for it to go from here. Gone rather than inert — a grab
+     cursor over something that cannot be grabbed is worse than no handle. The
+     header's Close button is the way out and has been all along. */
+  .grab {
+    display: none;
+  }
+
+  .inner {
+    /* The 28px the handle was occupying has to come back as real padding, or
+       the title sits against the top of the glass. */
+    padding-block-start: var(--space-5);
+  }
+}
+
+/* ---- Header ---- */
+
+/* Centred rather than baseline-aligned: a round control has no baseline to
+   share with a serif title, and aligning one to the other drops the disc
+   below the line it belongs to. */
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The one rule that lays out both headers. Search reads
+   `[title ......... close]`, the two form steps read `[back] title ......`,
+   and pushing the free space off the title's trailing edge gives each the
+   arrangement it wants without either stage restating the header. */
+.title {
+  margin-inline-end: auto;
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+/* Close and Back are the two controls in this sheet that are not the point of
+   it, so they stop being words. A word in the header competes with the title
+   beside it for the same reading; a disc is read as an object and dismissed
+   in one glance.
+
+   The same frosted material as the search field below it, so everything the
+   reader can touch inside the sheet is visibly one family — and the chip is
+   what carries the affordance, which is why the glyph can stay ink instead of
+   shouting in the accent colour. */
+.iconButton {
+  flex: none;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--card-border);
+  background: var(--card-fill);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  color: var(--color-ink);
+}
+
+
+/* ---- Search field ---- */
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--card-fill);
+  border: 1px solid var(--card-border);
+  color: var(--color-ink-soft);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap-min);
+  border: none;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 16px; /* keeps iOS from zooming the sheet on focus */
+}
+
+.input::placeholder {
+  color: var(--color-ink-faint);
+}
+
+.input:focus {
+  outline: none;
+}
+
+/* ---- Results ---- */
+
+.results {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  /* Pulled out by exactly one row's padding.
+
+     A row needs inline padding so its hover chip has a shape, but that padding
+     was also pushing every cover 8px inboard of the search field and the title
+     above it — four different leading edges down one narrow sheet, which is
+     what read as crooked. Widening the scroller instead puts the row's
+     PADDING in this margin and its CONTENT back on the sheet's own edge. */
+  margin-inline: calc(var(--space-2) * -1);
+
+  /* A row sliced off mid-cover at the scroll edge looks like a rendering
+     fault; the same row faded out reads as "there is more here."
+
+     The padding and the negative margin are a pair, and they are what keep
+     this from costing any space: the box grows by --fade at each end and is
+     then pulled back by the same amount, so the sheet's spacing is unchanged
+     and the first row still starts exactly where it did. What it buys is that
+     at rest the fade band sits over that padding — empty — so the top row is
+     never dimmed for no reason. The band only ever eats content once there is
+     content scrolled underneath it. */
+  --fade: var(--space-4);
+  padding-block: var(--fade);
+  margin-block: calc(var(--fade) * -1);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--fade),
+    #000 calc(100% - var(--fade)),
+    transparent 100%
+  );
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-2);
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  text-align: start;
+  cursor: pointer;
+}
+
+.result:hover,
+.result:focus-visible {
+  background: var(--card-fill);
+}
+
+.resultCover {
+  flex-shrink: 0;
+}
+
+.resultText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.resultTitle {
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  line-height: 1.25;
+  color: var(--color-ink);
+}
+
+.resultMeta {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--color-ink-soft);
+}
+
+/* The three empty answers — nothing typed, still looking, nothing found —
+   all read as the same calm voice rather than as an error. */
+.quiet {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  padding: var(--space-5) var(--space-2);
+  text-wrap: pretty;
+}
+
+/* The second way in, and it has to look like a way in. Dashed, not filled:
+   this is the outline of a book you have not written down yet, and the filled
+   weight in this sheet belongs to Add to library at the end of the flow. Its
+   own row with real space above it, so it is not read as the last search
+   result. */
+.manualButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  margin-block-start: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  /* Mixed from the label's own ink rather than taken from the tint token: the
+     tint sits at 0.93 lightness and all but vanished against the sheet, and
+     this way the dash and the words in it are visibly the same colour, and it
+     follows the ink when the ink flips at night. */
+  border: 1.5px dashed color-mix(in oklch, var(--color-accent-text), transparent 62%);
+  border-radius: var(--radius-pill);
+  background: var(--card-fill);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-accent-text);
+  cursor: pointer;
+  transition:
+    transform var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out),
+    background-color var(--dur-quick) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .manualButton:hover {
+    border-color: var(--color-accent-text);
+    background: var(--color-paper);
+  }
+}
+
+.manualButton:active {
+  transform: scale(0.98);
+  transition-duration: var(--dur-press);
+}
+
+/* ---- Forms: shelving it yourself, and the confirm step ---- */
+
+/* Both form stages are built the way the search stage is: a header that stays,
+   a body that scrolls, and the button that finishes the job pinned under it.
+
+   The whole form used to be the scroller, submit button included. With the
+   calendar folded open that put six rows of dates between the reader and the
+   only control that adds the book — off the bottom of a 900px laptop
+   entirely, so the sheet looked like it had no way to finish. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-height: 0;
+}
+
+.formBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.labelLine {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.optional {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  letter-spacing: 0;
+  text-transform: none;
+  /* Same reason as the calendar's column heads: this is a word the reader has
+     to read to know the field can be skipped, not an ornament, so it uses the
+     soft ink the faint token is not allowed to stand in for. */
+  color: var(--color-ink-soft);
+}
+
+.textInput {
+  width: 100%;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--card-fill);
+  color: var(--color-ink);
+  /* Serif: what the reader types here is the book's own title and author, and
+     it is typeset in this face on the cover a moment later. */
+  font-family: var(--font-serif);
+  font-size: 16px;
+}
+
+.textInput:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 1px;
+}
+
+/* ---- The date ---- */
+
+/* Same stack as `.label`, so the caption sits over its control on the same
+   rhythm as Title and Author above it. */
+.dateField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* The closed state, and the way in: the answer already written out, and a
+   caret saying there is a calendar folded under it. */
+.dateBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding-block: 0;
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--card-fill);
+  color: var(--color-ink-soft);
+  text-align: start;
+  cursor: pointer;
+  transition: border-color var(--dur-press) var(--ease-out);
+}
+
+.dateValue {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  /* A long weekday in a long locale — "Wednesday, 30 September 2026" — is the
+     one string here that can outgrow the row. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dateCaret {
+  flex: none;
+  color: var(--color-ink-faint);
+  transition: transform var(--dur-quick) var(--ease-out);
+}
+
+.dateBox[aria-expanded='true'] {
+  border-color: var(--color-accent-text);
+}
+
+.dateBox[aria-expanded='true'] .dateCaret {
+  transform: rotate(180deg);
+  color: var(--color-ink-soft);
+}
+
+.dateBox:hover {
+  color: var(--color-ink);
+}
+
+.dateBox:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 1px;
+}
+
+/* The calendar sits in its own bordered panel below the row rather than
+   floating over the sheet: the sheet already scrolls, and a second layer over
+   a layer that can be dragged away is one gesture too many to keep straight. */
+.datePicker {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--card-fill);
+  animation: unfold var(--dur-base) var(--ease-out);
+}
+
+@keyframes unfold {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .datePicker { animation: none; }
+  .dateCaret { transition: none; }
+}
+
+.chosen {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+/* Wraps the cover only so it can carry a view-transition-name of its own —
+   the box the browser measures on the way to the shelf. `flex` rather than
+   `inline-block` so it is exactly the cover's height with no baseline gap
+   under it, which would otherwise be captured as part of the travelling box
+   and land as a sliver of empty space on the shelf. */
+.chosenCover {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.chosenText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.chosenTitle {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+/* A fieldset is the right element for a group of buttons answering one
+   question, but the UA dresses it as a box: `margin-inline: 2px` and
+   `min-inline-size: min-content`, which stood these two groups 2px inside
+   every other left edge in the sheet. Reset to the plain stack it looks like. */
+.group {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* A legend renders outside its fieldset's flex flow, so the `gap` above never
+   reaches it — the question was sitting hard against its own answers while
+   every other label in the sheet had 8px under it. Restated here, where it
+   can actually land. */
+.group > legend {
+  margin-block-end: var(--space-2);
+}
+
+.chipRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* The one selectable pill in the app: nav tab, shelf switcher, format, day.
+   Sized to its own content rather than stretched to a third of the row, so
+   the chosen one can put its name on without the other two reserving room for
+   words they are not showing. */
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  min-width: var(--tap-min);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-pill);
+  /* Transparent rather than absent, so taking the hairline on selection does
+     not move the pill or its neighbours by a pixel. */
+  border: 1px solid transparent;
+  background: var(--card-fill);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chip:hover {
+  color: var(--color-ink);
+}
+
+.chip[aria-pressed='true'] {
+  padding-inline: var(--space-4);
+  background: var(--color-chip-active);
+  border-color: var(--border-hairline);
+  color: var(--color-ink);
+  box-shadow: var(--elevation-1);
+}
+
+.submit {
+  align-self: stretch;
+}

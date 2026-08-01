@@ -80,6 +80,55 @@ export function VoiceIcon({ size = 22 }: IconProps) {
   )
 }
 
+/* ---- How a book is being read ----
+   Paired with BookIcon, which serves the physical copy. Three objects the
+   reader actually holds, not three abstractions — and deliberately far enough
+   apart in silhouette to be told apart at 20px with no label under two of
+   them: an open book, a slab, a headband. */
+
+/* A reader held upright, with the one line of chrome along its foot that says
+   screen rather than card. Nothing is drawn in the page area: a couple of
+   ruled lines in there would collide with the shelf icon at this size. */
+export function ScreenIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <rect x="6.4" y="3.4" width="11.2" height="17.2" rx="2.2" />
+        <path d="M9.9 17.6 L 14.1 17.6" />
+      </g>
+    </svg>
+  )
+}
+
+/* Headphones, not a speaker or a waveform. The microphone is already spoken
+   for by VoiceIcon — that one is the reader recording, this one is the reader
+   listening, and the two must not be confusable. */
+/* The one date control in the app. Two posts above the head, because a
+   calendar with a flat top edge reads as a window at this size. */
+export function CalendarIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <rect x="3.6" y="5.4" width="16.8" height="15" rx="2.4" />
+        <path d="M3.6 10 L 20.4 10" />
+        <path d="M8.4 3.5 L 8.4 6.6 M 15.6 3.5 L 15.6 6.6" />
+      </g>
+    </svg>
+  )
+}
+
+export function HeadphonesIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M5.5 13.4 L 5.5 11.6 C 5.5 8 8.4 5.1 12 5.1 C 15.6 5.1 18.5 8 18.5 11.6 L 18.5 13.4" />
+        <rect x="3.6" y="12.6" width="3.8" height="6.4" rx="1.9" />
+        <rect x="16.6" y="12.6" width="3.8" height="6.4" rx="1.9" />
+      </g>
+    </svg>
+  )
+}
+
 /* ---- Library view switcher ----
    Three literal objects rather than three abstractions: a pile seen edge-on,
    spines standing on a shelf, thumbnails in a grid. Drawn on the same 24px
@@ -158,6 +207,67 @@ export function GridIcon({ size = 22 }: IconProps) {
         <rect x="13.2" y="4.6" width="6.2" height="6.2" rx="1.6" />
         <rect x="4.6" y="13.2" width="6.2" height="6.2" rx="1.6" />
         <rect x="13.2" y="13.2" width="6.2" height="6.2" rx="1.6" />
+      </g>
+    </svg>
+  )
+}
+
+/* Drawn a little inside the box rather than corner to corner: a full-bleed
+   cross reads as a delete, and this only puts a sheet away. */
+export function CloseIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M7.75 7.75 L 16.25 16.25" />
+        <path d="M16.25 7.75 L 7.75 16.25" />
+      </g>
+    </svg>
+  )
+}
+
+/* A chevron with no shaft, pointing whichever way it is asked to. Used on its
+   own wherever something steps through a set in place — the deck on the
+   Library, one book at a time. */
+export function ChevronIcon({
+  size = 22,
+  dir = 'left',
+}: IconProps & { dir?: 'left' | 'right' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path
+          d={
+            dir === 'left'
+              ? 'M14.25 6 L 8.75 12 L 14.25 18'
+              : 'M9.75 6 L 15.25 12 L 9.75 18'
+          }
+        />
+      </g>
+    </svg>
+  )
+}
+
+/* The same glyph under the name of the job it does. Back moves between steps
+   of one sheet, not to a previous page, and an arrow would promise the larger
+   journey — but it is still a chevron, and there should only be one of those. */
+export function BackIcon({ size = 22 }: IconProps) {
+  return <ChevronIcon size={size} dir="left" />
+}
+
+/* The hint that a control has something folded underneath it. Drawn pointing
+   down; the stylesheet turns it over when the thing is open. Takes a class
+   because that turn belongs to whoever is using it, not to the icon. */
+export function CaretIcon({ size = 22, className }: IconProps & { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <g {...strokeProps}>
+        <path d="M6 9.5 L 12 15.5 L 18 9.5" />
       </g>
     </svg>
   )

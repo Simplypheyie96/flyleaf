@@ -1,180 +1,154 @@
-/* A designed printed object: bound at the left, framed, ruled, on stock that
-   has a tooth to it. Tint comes from --cover-hue (an entry-hue token) until
-   real covers arrive in 03.
+/* The cover board.
 
-   Three things do the work here, and all three are physical rather than
-   decorative: paper grain, light falling from above so the foot of the board
-   sits in shade, and a bound edge at the left that is rolled rather than
-   painted on. A flat tint in a rounded rectangle is a swatch, not a book. */
+   A pale pastel card with needlework worked over the whole of it and the type
+   set in a reserved band at the foot. Two things it deliberately no longer
+   has: paper grain and a shaded gradient. Both were what made a board read as
+   old stock rather than as something pretty — the tooth of the paper and the
+   dirt in its corners are exactly the two things that age it.
+
+   The third thing it no longer has is a painted spine. A cover seen face-on
+   does not show its spine; the strip was drawing geometry that is not there
+   and taking 9% of the art width to do it. What replaces it is a hinge — a
+   soft crease a few pixels in where the board folds, square at the bound edge
+   and rounder at the fore-edge where a book is actually handled. The Shelf
+   view still draws real spines; that is the shelf's own rendering, not this. */
 .cover {
   position: relative;
   aspect-ratio: 2 / 3;
-  border-radius: 4px 10px 10px 4px;
-  background:
-    /* Grain first so it sits over the tint. Opacity is baked into the SVG —
-       a background layer has no opacity of its own. */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.05'/%3E%3C/svg%3E"),
-    /* Only the hue is taken from the entry token; L and C come from the book
-       recipe, so the same board dims for night without being restated here.
-       The foot is darker and slightly more saturated than the head because
-       the light falls from above — the stops are offsets from the lit edge
-       rather than three independent numbers, so that relationship survives
-       the theme swap. */
-    linear-gradient(
-        to bottom,
-        oklch(
-            from var(--cover-hue, var(--color-image)) var(--book-cover-l)
-              var(--book-cover-c) h
-          )
-          0%,
-        oklch(
-            from var(--cover-hue, var(--color-image))
-              calc(var(--book-cover-l) - 0.035) calc(var(--book-cover-c) + 0.01)
-              h
-          )
-          58%,
-        oklch(
-            from var(--cover-hue, var(--color-image))
-              calc(var(--book-cover-l) - 0.07) calc(var(--book-cover-c) + 0.014)
-              h
-          )
-          100%
-      );
-  color: oklch(
-    from var(--cover-hue, var(--color-image)) var(--book-cover-ink-l)
-      var(--book-cover-ink-c) h
+  border-radius: 2px 8px 8px 2px;
+  background: linear-gradient(
+    to bottom,
+    oklch(var(--book-cover-l) var(--book-cover-c) var(--cover-h)) 0%,
+    oklch(calc(var(--book-cover-l) - 0.018) var(--book-cover-c) var(--cover-h))
+      100%
   );
-  /* The board has a thickness: a hairline at the edge, and the fore-edge
-     corner catching a little less light than the face. */
+  /* Type is printed ink, not a tint of the board. Deriving it from the cover
+     hue put the title in taupe on any warm board — the last of the browns. */
+  color: var(--color-ink);
   box-shadow:
-    inset 0 0 0 1px oklch(from var(--book-shade) l c h / 0.07),
-    inset -4px -5px 10px -8px oklch(from var(--book-shade) l c h / 0.5);
+    inset 2px 0 3px -2px oklch(from var(--book-shade) l c h / 0.14),
+    inset 0 0 0 1px oklch(from var(--book-shade) l c h / 0.05),
+    2px 5px 12px -6px oklch(from var(--book-shade) l c h / 0.28);
   rotate: var(--cover-rotate, 0deg);
+  /* The board is exactly 2:3 and nothing printed on it may change that, so
+     anything that outgrows its budget is clipped at the edge rather than
+     allowed to stand the book taller than the one beside it. */
+  overflow: hidden;
+  /* The type is sized off the board, not off the root, so a 44px board and a
+     140px board carry the same proportions instead of the small one drowning
+     in type. */
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   align-items: center;
-  justify-content: space-between;
-  /* Extra on the left: the art is centred on the front board, not on the
-     whole silhouette, so the bound edge doesn't count. */
-  padding: var(--space-4) var(--space-3) var(--space-4)
-    calc(var(--space-3) + 9px);
   text-align: center;
 }
 
-/* The printed frame — a rule with a second, fainter one outside it, the way a
-   frame is actually set. Kept clear of the bound edge on the left. The outline
-   is a ring rather than a third pseudo-element, and costs no layout. */
-.cover::before {
-  content: '';
+/* The art is the board — full bleed, behind the type, and it is the art that
+   leaves the foot clear rather than the flex column rationing it. */
+.art {
   position: absolute;
-  inset: 9px 8px 9px 15px;
-  border: 1px solid
-    oklch(
-      from var(--cover-hue, var(--color-image)) var(--book-rule-l)
-        var(--book-rule-c) h / 0.5
-    );
-  border-radius: 2px 5px 5px 2px;
-  outline: 1px solid
-    oklch(
-      from var(--cover-hue, var(--color-image)) var(--book-rule-l)
-        var(--book-rule-c) h / 0.22
-    );
-  outline-offset: 3px;
-  pointer-events: none;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
-/* The bound edge. Same gradient language as the shelf spines — dark at the
-   rolled back, a highlight where it turns, then the hinge shadow where the
-   front board begins — so a book looks like the same object in Stack, Shelf
-   and Grid rather than three different drawings of one. */
-.cover::after {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 11px;
-  border-radius: 4px 0 0 4px;
-  background: linear-gradient(
-    to right,
-    oklch(from var(--book-shade) l c h / 0.22) 0%,
-    oklch(from var(--book-shade) l c h / 0.06) 32%,
-    oklch(from var(--book-sheen) l c h / 0.18) 56%,
-    oklch(from var(--book-shade) l c h / 0.13) 93%,
-    oklch(from var(--book-shade) l c h / 0.04) 100%
-  );
-  pointer-events: none;
-}
-
-.top {
-  font-family: var(--font-mono);
-  font-size: 0.5625rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding-top: var(--space-2);
-  color: oklch(
-    from var(--cover-hue, var(--color-image)) var(--book-rule-l)
-      var(--book-rule-c) h
-  );
+/* The reserved band: the bottom third of a 2:3 board. Inside the worked
+   border, not on it — the stitched frame runs to x=7 and y=143 of a 100×150
+   field, and any tighter inset sits the byline straight on top of it. */
+.type {
+  position: relative;
+  width: 100%;
+  height: 33.3%;
+  padding-inline: 12%;
+  padding-block-end: 9%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4%;
 }
 
 .title {
   font-family: var(--font-serif);
-  font-size: var(--text-md);
-  line-height: 1.3;
-  padding-inline: var(--space-2);
-  /* A title is two or three words; balanced, it centres in the frame instead
-     of leaving one word stranded under the other two. */
+  font-size: 10.8cqw;
+  line-height: 1.2;
   text-wrap: balance;
+  /* The measure here is about seven ems, so a genuinely long word —
+     "Cartographer's" — is wider than the band and rides out over the edge of
+     the board. Hyphenate it, which is what a typesetter would do, and break it
+     as the last resort rather than let it escape. */
+  hyphens: auto;
+  overflow-wrap: break-word;
+  /* A long title has a real budget rather than an open one, because the band
+     is a fixed share of a fixed board. The whole title is a tap away and is
+     read on the book's own page. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
 }
 
-.rule {
-  display: block;
-  width: 28px;
-  border-top: 1px solid
-    oklch(
-      from var(--cover-hue, var(--color-image)) var(--book-rule-l)
-        var(--book-rule-c) h / 0.6
-    );
-  margin-block: var(--space-2);
-  margin-inline: auto;
-}
-
+/* One line. A wrapped byline reads as two authors rather than one. */
 .author {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
-  letter-spacing: 0.1em;
+  font-size: 6.7cqw;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  padding-bottom: var(--space-2);
-  color: oklch(
-    from var(--cover-hue, var(--color-image)) var(--book-rule-l)
-      var(--book-rule-c) h
-  );
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: oklch(from var(--color-ink) 0.5 0.02 h);
 }
 
-/* Compact covers (grid) tighten their type */
-.small {
-  padding: var(--space-3) var(--space-2) var(--space-3)
-    calc(var(--space-2) + 6px);
+[data-theme='dark'] .author {
+  color: oklch(from var(--color-ink) 0.78 0.02 h);
 }
 
-.small .top {
-  display: none;
+/* A real cover is someone else's finished design. It gets the board and its
+   hinge — so it is the same physical object as the drawn covers beside it —
+   and nothing else: no type of ours on top of their typography. Applied only
+   once the photograph has decoded; until then the drawn cover is what the
+   reader sees. */
+.photographed .art,
+.photographed .type {
+  visibility: hidden;
 }
 
-.small .title {
-  font-size: var(--text-xs);
+/* Laid over the drawn cover rather than replacing it, so a slow or dead
+   catalogue shows a book instead of an empty rectangle. */
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Editions are photographed at every aspect ratio there is; the board is
+     always 2:3. Cover-crop rather than letterbox, so a shelf stays a shelf. */
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
 }
 
-.small .author {
-  font-size: 0.5rem;
+/* At night the drawn boards come down to 0.40 with the rest of the room. A
+   photograph does not — it arrives at whatever the publisher printed, so a
+   pale jacket sits in the grid like a lit screen among unlit objects, and the
+   eye goes to it rather than to the book the reader was looking for.
+
+   Brightness rather than a scrim or a desaturation. It is multiplicative, so
+   it takes the same proportion off every cover: a pale jacket comes down a
+   long way, a dark one barely moves, which is what less light in a room
+   actually does. And it leaves the hue alone — the cover is someone else's
+   finished design and dimming the lamp is as far as this is entitled to go. */
+[data-theme='dark'] .image {
+  filter: brightness(0.8);
 }
 
-/* At thumbnail size the frame's second rule lands 3px from the first and the
-   two read as one thick smudge. One rule, closer in, and a narrower binding. */
-.small::before {
-  inset: 6px 5px 6px 10px;
-  outline: none;
-}
-
-.small::after {
-  width: 7px;
+/* Thumbnail (a search result, 44px across). No type at all: at this size a set
+   title is a grey smudge. The motif alone, which is what the eye matches
+   against the row's real title anyway — and it takes the whole board, since
+   CoverArt is told there is no band to leave clear. */
+.thumb {
+  border-radius: 1px 4px 4px 1px;
 }

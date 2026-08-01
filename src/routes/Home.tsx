@@ -143,7 +143,6 @@ function Home() {
                   <BookCover
                     title={book.title}
                     author={book.author}
-                    hue="image"
                     width={104}
                     rotate={-2}
                   />

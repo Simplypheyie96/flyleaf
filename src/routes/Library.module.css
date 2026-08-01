@@ -148,6 +148,27 @@
    Below a 468px column the cap never bit, so the label centred on the shelf by
    accident; at 760 it centred inside a 468px box pinned to the leading edge
    instead, and sat visibly off the books it counts. */
+/* An empty shelf is the first thing a new reader sees, so it is written in the
+   same voice as the rest of the app rather than as a system message — and it
+   is given the height a shelf would have taken, so the page does not collapse
+   around it and then jump when the first book lands. */
+.empty {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 34ch;
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-4);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  text-align: center;
+  text-wrap: pretty;
+}
+
 .count {
   max-width: none;
   font-family: var(--font-mono);
@@ -214,44 +235,145 @@
   }
 }
 
-/* ---- Stack: a centered deck of framed prints — front book matted and
-        fully visible, the rest tucked behind at slight angles (per ref) ---- */
+/* ---- Stack: a deck you deal through ----
+
+   The pile is fanned to one side rather than piled square, and that fan is the
+   whole argument: a square pile of books is one book with some noise behind
+   it, while a fan is visibly several, each with an edge you can put a thumb
+   on. Every card sits at a slot measured from the front, so moving the front
+   moves all of them at once — and because the slots are plain declarations,
+   the transition between two of them *is* the swap animation. */
+.deck {
+  margin-block: var(--space-4);
+
+  /* How far each card behind the front is faded back. A variable rather than a
+     number on the slot, because the right amount is not the same in both
+     modes: fading toward a pale page reads as haze, and the card is still a
+     card. Fading the same card toward a near-black page reads as switching it
+     off — at 0.6 the fourth book's title was unreadable and its tap target,
+     which is sized to the millimetre, was aimed at something you could barely
+     see. Depth at night comes from the scale and the rotation, which are
+     unchanged; the opacity is given back. */
+  --deck-fade-1: 0.92;
+  --deck-fade-2: 0.78;
+  --deck-fade-3: 0.6;
+}
+
+[data-theme='dark'] .deck {
+  --deck-fade-1: 0.96;
+  --deck-fade-2: 0.89;
+  --deck-fade-3: 0.8;
+}
+
 .stack {
   position: relative;
   height: clamp(300px, 88vw, 380px);
-  margin-block: var(--space-4);
+  /* The deck turns on a horizontal drag, so the browser must not also read
+     that drag as a scroll — but vertical still has to reach the page, or the
+     Library becomes a surface you cannot scroll past. */
+  touch-action: pan-y;
 }
 
 /* The percentage is what centres the pile on any column; the cap is what keeps
    it a pile. Left uncapped, a 760px column gives 410px covers in a container
    the height clamp holds at 380 — the books outgrow the surface they are piled
    on. 228px is the width this was drawn at, so the phone is untouched and a
-   desk gets the same object with more air around it. */
+   desk gets the same object with more air around it.
+
+   The slot geometry rides `translate`/`rotate`/`scale` rather than `transform`
+   because `.book` already owns `transform` for the lift and the press, and the
+   individual properties compose before it — so the two can coexist without
+   either having to know about the other. */
 .stackItem {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(54%, 228px);
+  width: min(48%, 210px);
   translate: -50% -50%;
+  transform-origin: 20% 90%;
+  /* `.stackItem` is declared after `.book` at the same specificity, so this
+     shorthand replaces the one there outright. Everything `.book` animates has
+     to be listed again here or the tap feedback stops moving. */
+  transition:
+    translate var(--dur-move) var(--ease-move),
+    rotate var(--dur-move) var(--ease-move),
+    scale var(--dur-move) var(--ease-move),
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
 }
 
-.stackItem:nth-child(1) {
-  rotate: -4deg;
+/* Front. Barely off square, because the book you are being shown should read
+   as presented rather than as dealt.
+
+   Not on the centre line, though: the fan only opens one way, so centring the
+   front book puts the whole deck's weight to the right of the column and runs
+   the last card off the screen. Every slot is offset the same amount to the
+   left, which centres the shape the deck actually makes rather than the one
+   card it happens to be showing. */
+.stackItem[data-slot='0'] {
+  translate: -88% -50%;
+  rotate: -3deg;
 }
 
-.stackItem:nth-child(2) {
+/* The gaps are set by the thumb, not by the eye. Each card behind the front
+   has to leave at least --tap-min of itself showing, or the tap that brings it
+   forward is aimed at a strip narrower than a fingertip — and the fourth book
+   was down to 17px. Tighter spacing looked better and could not be used. */
+.stackItem[data-slot='1'] {
+  translate: -59% -53%;
+  rotate: 4deg;
+  scale: 0.95;
+  opacity: var(--deck-fade-1);
+}
+
+.stackItem[data-slot='2'] {
+  translate: -30% -56%;
   rotate: 8deg;
-  translate: -46% -52%;
+  scale: 0.9;
+  opacity: var(--deck-fade-2);
 }
 
-.stackItem:nth-child(3) {
-  rotate: -14deg;
-  translate: -55% -49%;
+.stackItem[data-slot='3'] {
+  translate: -1% -58%;
+  rotate: 12deg;
+  scale: 0.85;
+  opacity: var(--deck-fade-3);
 }
 
-.stackItem:nth-child(4) {
-  rotate: 16deg;
-  translate: -48% -47%;
+/* Below about 360px the fan runs out of room before the thumb does: the steps
+   are a share of the card, the card is a share of the column, and at four deep
+   they fall to 37px against a 44px minimum. So the smallest phones get three
+   books instead of four and a wider gap between them. The count below the deck
+   is what says there are more, which it was already doing. */
+@media (max-width: 360px) {
+  .stackItem[data-slot='0'] {
+    translate: -88% -50%;
+  }
+
+  .stackItem[data-slot='1'] {
+    translate: -52% -53%;
+  }
+
+  .stackItem[data-slot='2'] {
+    translate: -16% -56%;
+  }
+
+  .stackItem[data-slot='3'] {
+    translate: -16% -56%;
+    rotate: 8deg;
+    scale: 0.9;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* Everything past the fourth holds the fourth's pose with nothing showing, so
+   the deck has somewhere to deal from and somewhere to deal to. A shelf of
+   sixty is still four books deep to look at, which is what a pile looks like. */
+.stackItem[data-buried] {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* No matte. The books pile as books, not as a stack of framed prints — the
@@ -260,6 +382,135 @@
    round) or it paints a rectangle behind the book. */
 .stackItem.book {
   border-radius: 4px 10px 10px 4px;
+}
+
+/* The arc. A card crossing between the front of the pile and the back of it
+   travels further than any other, and sliding it flat through its neighbours
+   looks like a glitch — so it lifts out to the side on the way, the way a hand
+   deals. Only ever one card at a time, and only on that crossing. */
+.dealt {
+  display: block;
+}
+
+.stackItem[data-dealing] .dealt {
+  animation: deal var(--dur-move) var(--ease-move);
+}
+
+@keyframes deal {
+  0% {
+    transform: none;
+  }
+  50% {
+    transform: translate(16%, -9%) rotate(-7deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Any book you can see, you can reach — laid over the whole card so the
+   exposed sliver is entirely a target, with the front card's higher stacking
+   taking back whatever it covers. The label is for screen readers; sighted
+   readers have the cover itself. */
+.reach {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  background: none;
+  border-radius: inherit;
+  color: transparent;
+  font-size: 0;
+  cursor: pointer;
+}
+
+.reach:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 3px;
+}
+
+/* ---- Turning the deck ----
+   Arrows either side of the position, because the arrows are the instruction:
+   a reader who has never swiped a card in their life can still see that this
+   goes forwards and backwards. Neither is ever disabled — the deck wraps, and
+   a dead control on a four-book shelf teaches nothing. */
+.deckControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+.deckArrow {
+  display: grid;
+  place-items: center;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  background: var(--card-fill);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition:
+    transform var(--dur-quick) var(--ease-out),
+    background-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .deckArrow:hover {
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+}
+
+.deckArrow:active {
+  transform: scale(0.92);
+  transition-duration: var(--dur-press);
+}
+
+.pips {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Off is a dot, on is a stitch — a change of shape as well as of weight, so
+   the position survives being looked at quickly, and survives being looked at
+   by someone who cannot tell the two colours apart. */
+.pip {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-ink-faint);
+  opacity: 0.35;
+  transition:
+    inline-size var(--dur-base) var(--ease-move),
+    opacity var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+
+.pip[data-on] {
+  inline-size: 20px;
+  background: var(--color-accent-text);
+  opacity: 1;
+}
+
+.tally {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-soft);
+}
+
+/* Reduced motion keeps the swap — a deck that changes with no transit at all
+   is harder to follow, not easier — but drops the arc, which is the part that
+   is there for pleasure rather than for sense. */
+@media (prefers-reduced-motion: reduce) {
+  .stackItem[data-dealing] .dealt {
+    animation: none;
+  }
 }
 
 /* ---- Shelf: books standing on a board ----
@@ -292,13 +543,32 @@
      made this read as an extruded metal bar. */
   background: linear-gradient(
     to bottom,
-    color-mix(in oklch, var(--shelf-board), transparent 66%) 0,
+    color-mix(in oklch, var(--shelf-join), transparent 66%) 0,
     color-mix(in oklch, var(--shelf-board), transparent 89%) 2px,
     color-mix(in oklch, var(--shelf-board), transparent 83%) 5px,
     color-mix(in oklch, var(--shelf-board), transparent 73%) 100%
   );
   /* Cast onto the page below, so the board reads as standing off it. */
   box-shadow: var(--elevation-1);
+}
+
+/* The night board. Same three bands, same light coming from above — only the
+   material is different, so the alphas have to run the other way. By day the
+   face is drawn by how much ink is added, and the front edge is the band with
+   the least of it. By night the face is drawn by how much light it catches,
+   so the front edge is the band with the most, falling away towards an
+   underside that keeps almost none.
+
+   Without this the whole ledge collapsed: near-black at four alphas over a
+   near-black sky is one smudge, and five books stood on a crack. */
+[data-theme='dark'] .ledge {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--shelf-join), transparent 45%) 0,
+    color-mix(in oklch, var(--shelf-board), transparent 79%) 2px,
+    color-mix(in oklch, var(--shelf-board), transparent 85%) 5px,
+    color-mix(in oklch, var(--shelf-board), transparent 94%) 100%
+  );
 }
 
 /* ---- A spine ----
@@ -315,13 +585,17 @@
      shelf. One border does what would otherwise be another pseudo-element. */
   /* Hue in, recipe from the sheet — the same board, under a different light,
      in each theme. The head edge is the paper block seen end-on, so it is
-     always the brightest part of the spine. */
+     always the brightest part of the spine.
+
+     The hue arrives as a bare angle, taken from the book's own seed, so a
+     title is the same colour standing on the shelf as it is lying face-up in
+     the Stack. It used to be one of the five entry hues picked off the row's
+     id, which meant a book changed colour when something was added ahead of
+     it. */
   border-top: 2px solid
-    oklch(from var(--spine-hue) var(--book-head-l) var(--book-head-c) h);
-  background: oklch(
-    from var(--spine-hue) var(--book-face-l) var(--book-face-c) h
-  );
-  color: oklch(from var(--spine-hue) var(--book-ink-l) var(--book-ink-c) h);
+    oklch(var(--book-head-l) var(--book-head-c) var(--spine-hue));
+  background: oklch(var(--book-face-l) var(--book-face-c) var(--spine-hue));
+  color: oklch(var(--book-ink-l) var(--book-ink-c) var(--spine-hue));
   writing-mode: vertical-rl;
   /* Latin runs sideways with the spine, punctuation included. The default
      `mixed` is a CJK rule: it stands quotes and apostrophes upright, where
@@ -371,16 +645,19 @@
   );
 }
 
-/* The two rules stamped near the head and the foot of most bound spines.
-   Inset 6px, clear of the 12px text padding. */
-.spine::after {
-  content: '';
+/* The stitching — the bands at head and foot and the borders down both long
+   edges — is drawn in SpineArt.tsx, not here. It used to be four
+   `repeating-linear-gradient` rows on a pseudo-element, which was enough for
+   two hairlines and could go no further: a gradient cannot turn a corner, and
+   it cannot be worked in the same units as the flowers on the cover.
+
+   This rule only places it. `inset: 0` rather than a size, because the SVG
+   carries its own width and height in pixels: the box is here to pin it, not
+   to stretch it. */
+.spineArt {
   position: absolute;
-  inset: 6px 5px;
+  inset: 0;
   pointer-events: none;
-  border-top: 1px solid currentColor;
-  border-bottom: 1px solid currentColor;
-  opacity: 0.28;
 }
 
 /* A step up from the old 13px: the serif has no bold to lean on now, so the
@@ -396,6 +673,15 @@
   font-size: var(--text-sm);
   line-height: 1;
   white-space: nowrap;
+}
+
+/* The device between the title and the byline. `flex: none` because a flex
+   item in vertical-rl is squeezed along the vertical axis, and an 18px mark
+   crushed to 11px is just a smudge — the title is cut to make room for it in
+   Library.tsx, so it never has to give any back. */
+.spineMark {
+  position: relative;
+  flex: none;
 }
 
 .spineAuthor {
@@ -434,8 +720,13 @@
   }
 }
 
+/* A grid item's automatic minimum size is its min-content size, so a long
+   title was quietly overriding the cover's 2:3 and standing one book 19px
+   taller than the one beside it. A contact sheet is only a contact sheet if
+   every board is the same board. */
 .grid > * {
   min-width: 0;
+  min-height: 0;
 }
 
 /* The bloom has to follow the cover's own silhouette — spine edge square,
