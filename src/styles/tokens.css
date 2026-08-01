@@ -26,7 +26,13 @@
   /* ---- Ink ---- */
   --color-ink: oklch(0.25 0.015 255);
   --color-ink-soft: oklch(0.44 0.02 250);
-  --color-ink-faint: oklch(0.54 0.02 245); /* large/decorative only */
+  /* 0.51, not the 0.54 it was. The "large/decorative only" caveat below was
+     written as a licence and then used as one — the journey's dates and the
+     colophon's terms are both 13px and both faint, and both measured 4.1–4.4
+     against what they actually sit on, which is under AA for text that size.
+     Three hundredths of lightness is the whole fix: it holds the ramp's shape
+     (soft 0.44, faint 0.51) and still reads as the quietest ink on the page. */
+  --color-ink-faint: oklch(0.51 0.02 245);
 
   /* ---- An unlit pager dot ----
 
@@ -511,11 +517,13 @@
      against the extra chroma in the tint under them. */
   --tint-ink: oklch(0.3 0.03 265);
   --tint-ink-soft: oklch(0.44 0.025 265);
-  /* 0.48, not the 0.53 the lightness pattern would suggest: measured on the
-     tints it lands at 4.5 where the day faint lands at 4.4, and a "faint" that
-     is fainter after dark than it is by day is a regression dressed up as a
-     theme. */
-  --tint-ink-faint: oklch(0.48 0.022 265);
+  /* 0.45, not the 0.53 the lightness pattern would suggest, and not the 0.48
+     this was: the earlier number was measured against one tint and taken for
+     all of them, and on the strand sheet — the most chromatic of the six — it
+     lands at 4.1. A "faint" that is fainter after dark than it is by day is a
+     regression dressed up as a theme, so this stays a step under the day
+     faint's effective contrast rather than a step over it. */
+  --tint-ink-faint: oklch(0.45 0.022 265);
   --tint-reverse: oklch(0.95 0.01 250);
   --tint-border: oklch(0.25 0.03 265 / 0.12);
   --tint-edge: oklch(1 0 0 / 0.55);

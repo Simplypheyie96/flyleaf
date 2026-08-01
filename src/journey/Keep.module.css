@@ -469,21 +469,27 @@
    the page to look like something they made rather than something they filed.
 
    The widths run on a four-row cycle so the ragged edge never repeats on a
-   two-beat, and every one of them keeps at least 84% of the column, which at
-   390px is ~290px of card and ~250px of text. Below that a quote comes apart. */
+   two-beat, and every one of them keeps at least 84% of the lane, which at
+   390px is ~290px of card and ~250px of text. Below that a quote comes apart.
+
+   Fractions, not widths: the lane is BookJourney.module.css's to size, and past
+   760px it stops being the column and becomes half of it. Saying 88% here meant
+   88% of the column in both layouts, which put most of the spread across the
+   centre thread. `--ragged-push` goes with it, because the auto margin that
+   ragged-rights a sheet in one column would beat `align-self` in two. */
 
 [data-variant='scrap'] .keep:nth-child(4n + 2) {
-  width: 88%;
-  margin-inline-start: auto;
+  --ragged: 0.88;
+  --ragged-push: auto;
 }
 
 [data-variant='scrap'] .keep:nth-child(4n + 3) {
-  width: 94%;
+  --ragged: 0.94;
 }
 
 [data-variant='scrap'] .keep:nth-child(4n + 4) {
-  width: 84%;
-  margin-inline-start: auto;
+  --ragged: 0.84;
+  --ragged-push: auto;
 }
 
 /* Laid over, not stacked: each sheet overlaps the one above by a third of the
@@ -556,7 +562,20 @@
   letter-spacing: 0.06em;
 }
 
-@media (min-width: 640px) {
+/* Bounded at the top as well as the bottom, because past 760px the route
+   splits the column into two lanes about a centre thread — and "back past the
+   card's leading edge" is the margin only for the lane on the left. For the
+   lane on the right that offset lands the stamp on the thread: measured at
+   1180px the card starts at 674 and the stamp runs 554–670 with the spine at
+   642, so the date is printed straight through it.
+
+   There is no margin to move it to. The column is already at its 900px cap
+   with about 90px of air either side, and the stamp wants 120 — so the honest
+   answer is that this treatment belongs to the single-column window, and the
+   two-lane layout puts the date back in the card head where the head still has
+   the room for it. Both lanes then read the same, which a symmetric layout
+   ought to. */
+@media (min-width: 640px) and (max-width: 759.98px) {
   /* Out into the margin. Absolute against the card, offset back past its own
      leading edge — the card is the containing block, so the gutter is measured
      from the one edge that is guaranteed to be where the reader sees it. */
