@@ -190,12 +190,28 @@
   --card-quote: oklch(0.985 0.042 72 / 0.55); /* warm tan */
   --card-note: oklch(0.98 0.05 100 / 0.52); /* sticky yellow */
   --card-voice: oklch(0.975 0.024 275 / 0.52); /* pale periwinkle */
+  /* An image card is a mount board, so it is barely tinted — whatever is
+     pinned to it supplies the colour, and a strong board would fight it. */
+  --card-image: oklch(0.985 0.026 45 / 0.5); /* clay-washed mount */
+  /* A highlight card is the palest of the five on purpose. What names the
+     type is the marker stripe through the words, and a mustard surface under
+     a mustard stripe would swallow it — and would be indistinguishable from
+     the note's sticky yellow besides. Warm, though, and at almost no chroma:
+     every other sheet in this scrapbook is warm, and a cool one reads as a
+     different material rather than a paler one. */
+  --card-highlight: oklch(0.99 0.008 85 / 0.5);
   /* Opaque twins, used where transparency is unavailable or unwanted */
   --card-quote-solid: oklch(0.955 0.022 70);
   --card-note-solid: oklch(0.968 0.042 100);
   --card-voice-solid: oklch(0.955 0.02 265);
+  --card-image-solid: oklch(0.958 0.018 45);
+  --card-highlight-solid: oklch(0.975 0.006 85);
   --card-edge-light: oklch(1 0 0 / 0.7); /* lit top edge on cards */
   --note-rule: oklch(0.6 0.08 100 / 0.25); /* ruled lines on notes */
+  /* The marker itself. Translucent, because a highlighter lays ink over the
+     words rather than behind them and the letters go on showing through. */
+  --highlighter: oklch(0.9 0.14 95 / 0.5);
+  --photo-corner: oklch(0.5 0.03 250 / 0.32); /* the mounts on a picture */
 
   /* ---- The inside of a tinted card ----
 
@@ -219,9 +235,34 @@
   --tint-edge: var(--card-edge-light);
   --tint-chip: var(--card-chip);
   --tint-rule: var(--note-rule);
+  /* Tape belongs to the sheet it is stuck to, not to the room. The room's own
+     tape is judged against the page behind the card; on a tinted card it is
+     judged against the card, and after dark those two are opposite — a strip
+     tuned for a dark page laid across a pale sheet is a bruise, not tape. */
+  --tint-tape: var(--tape-fill);
+  --tint-tape-edge: var(--tape-edge);
   --tint-quote: var(--color-quote);
   --tint-note: var(--color-note);
   --tint-voice: var(--color-voice);
+  --tint-image: var(--color-image);
+  --tint-highlight: var(--color-highlight);
+
+  /* ---- The voice orb ----
+
+     Stated once and never restated for the night, unlike everything else in
+     this file. The orb only ever sits on the voice card, and that card is a
+     pale periwinkle sheet in both themes — so the object is lit by the card,
+     not by the room, and the room changing around it changes nothing about
+     how it should look.
+
+     Warm, not clinical: the reference for this one object is a cold glowing
+     sphere, and the borrowed part is the calm of it — a slow breath and a
+     soft bloom — never the temperature. */
+  --orb-core: oklch(0.93 0.045 280); /* lit face, top-left */
+  --orb-body: oklch(0.78 0.075 272);
+  --orb-rim: oklch(0.58 0.1 268); /* where it turns away from the light */
+  --orb-glow: oklch(0.72 0.12 278 / 0.42); /* the bloom it casts on the card */
+  --orb-wave: oklch(0.55 0.07 265); /* the trace beside it */
 
   /* ---- Glass (chrome only) ---- */
   --glass-fill: oklch(0.99 0.005 240 / 0.6);
@@ -385,11 +426,28 @@
   --card-quote: oklch(0.87 0.045 168 / 0.96);
   --card-note: oklch(0.885 0.05 95 / 0.96);
   --card-voice: oklch(0.87 0.042 285 / 0.96);
+  /* Both of these sit lower in chroma than the three above them, and for the
+     reasons they were given by day: the mount board must not out-colour the
+     photograph pinned to it, and the highlight sheet must stay the palest of
+     the five so the marker stripe is what names it. Warm hues read stronger
+     at equal chroma, so 45° in particular is pulled well back — at the 0.04
+     the others use, the image card was the loudest thing on a night page
+     whose job was to be the quietest. */
+  --card-image: oklch(0.885 0.022 45 / 0.96);
+  --card-highlight: oklch(0.92 0.012 88 / 0.96);
   --card-quote-solid: oklch(0.87 0.045 168);
   --card-note-solid: oklch(0.885 0.05 95);
   --card-voice-solid: oklch(0.87 0.042 285);
+  --card-image-solid: oklch(0.885 0.022 45);
+  --card-highlight-solid: oklch(0.92 0.012 88);
   --card-edge-light: oklch(0.95 0.015 250 / 0.16); /* moonlit top edge */
   --note-rule: oklch(0.75 0.06 100 / 0.16);
+  /* Deeper after dark. The card underneath it is a pale sheet either way, so
+     the stripe is judged against that rather than against the page — but the
+     night sheet is a shade darker than the day one, and a marker mixed for
+     the day one goes weak on it. */
+  --highlighter: oklch(0.85 0.15 95 / 0.55);
+  --photo-corner: oklch(0.32 0.03 265 / 0.36);
 
   /* The interior of those lit cards. Every one of these is a day-ish value
      living inside the night theme, because that is the literal situation: the
@@ -413,9 +471,15 @@
   --tint-edge: oklch(1 0 0 / 0.55);
   --tint-chip: oklch(1 0 0 / 0.55);
   --tint-rule: oklch(0.5 0.07 95 / 0.3);
+  /* Pale, because the sheet it crosses is pale — and the twelve pixels that
+     overhang the card onto the night page are meant to be seen. */
+  --tint-tape: oklch(0.99 0.008 250 / 0.5);
+  --tint-tape-edge: oklch(0.55 0.02 255 / 0.2);
   --tint-quote: oklch(0.5 0.07 140);
   --tint-note: oklch(0.52 0.1 85);
   --tint-voice: oklch(0.5 0.08 265);
+  --tint-image: oklch(0.5 0.09 45);
+  --tint-highlight: oklch(0.52 0.11 95);
   --tape-fill: oklch(0.6 0.02 260 / 0.3);
   --tape-edge: oklch(0.8 0.02 255 / 0.22);
 

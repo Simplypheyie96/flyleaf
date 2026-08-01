@@ -1,10 +1,14 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BookCover from '../components/BookCover'
 import PaperSurface from '../components/PaperSurface'
+import VoiceOrb from '../components/VoiceOrb'
 import {
   BackIcon,
   BookIcon,
   HeadphonesIcon,
+  HighlightIcon,
+  ImageIcon,
   NoteIcon,
   QuoteIcon,
   ScreenIcon,
@@ -22,31 +26,86 @@ const FORMAT: Record<BookFormat, { label: string; Icon: typeof BookIcon }> = {
   audio: { label: 'Audio', Icon: HeadphonesIcon },
 }
 
-/* Which object each kind of memory is. `tone` is the paper it is written on
-   and comes from PaperSurface's own set, so a quote here is the same tan sheet
-   a quote is on the home timeline — the reader learns the colour once.
+type Tone = 'quote' | 'note' | 'voice' | 'image' | 'highlight'
 
-   Image and highlight are listed with no paper of their own yet: they are
-   gate 2's work, and until they have one they fall back to plain paper rather
-   than borrowing a colour that already means something else. */
 const KIND: Record<
   EntryType,
-  { label: string; tone?: 'quote' | 'note' | 'voice'; Icon: typeof BookIcon }
+  { label: string; tone: Tone; Icon: typeof BookIcon }
 > = {
   quote: { label: 'Quote', tone: 'quote', Icon: QuoteIcon },
   note: { label: 'Note', tone: 'note', Icon: NoteIcon },
   voice: { label: 'Voice memo', tone: 'voice', Icon: VoiceIcon },
-  image: { label: 'Image', Icon: NoteIcon },
-  highlight: { label: 'Highlight', Icon: QuoteIcon },
+  image: { label: 'Image', tone: 'image', Icon: ImageIcon },
+  highlight: { label: 'Highlight', tone: 'highlight', Icon: HighlightIcon },
 }
 
-/* GATE 1 PLACEHOLDERS — not a fixture, and not shipped past this gate.
+/* ---------------------------------------------------------------------------
+   PLACEHOLDERS — one of each of the five types, so the styling of all five can
+   be looked at before there is any way to make one. Not fixtures, not seed
+   data: they live here, they are never written to the database, and they are
+   deleted the moment step 05 can keep a real memory.
 
-   They are typed as real `Entry` rows and rendered through the same component
-   the store will feed, so gate 2 replaces the source and touches no markup.
-   Deliberately uneven: a long quote, a two-word note and a memo with no text
-   are the three shapes that break a timeline, and a set of tidy equal cards
-   would prove nothing about whether this layout holds. */
+   The two media blobs are made here rather than shipped as files, for the same
+   reason. The recording is silent — what it is for is watching the orb breathe
+   and the trace fill, and six seconds of a synthesised tone on a page about
+   someone's reading would be worse than nothing.
+--------------------------------------------------------------------------- */
+
+function silentWav(seconds: number) {
+  const rate = 8000
+  const frames = rate * seconds
+  const buf = new ArrayBuffer(44 + frames)
+  const view = new DataView(buf)
+  const tag = (at: number, s: string) => {
+    for (let i = 0; i < s.length; i += 1) view.setUint8(at + i, s.charCodeAt(i))
+  }
+  tag(0, 'RIFF')
+  view.setUint32(4, 36 + frames, true)
+  tag(8, 'WAVE')
+  tag(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true) // PCM
+  view.setUint16(22, 1, true) // mono
+  view.setUint32(24, rate, true)
+  view.setUint32(28, rate, true)
+  view.setUint16(32, 1, true)
+  view.setUint16(34, 8, true)
+  tag(36, 'data')
+  view.setUint32(40, frames, true)
+  // Silence in 8-bit PCM is the middle of the range, not zero.
+  new Uint8Array(buf, 44).fill(128)
+  return new Blob([buf], { type: 'audio/wav' })
+}
+
+/* A photographed page: warm paper, a block of type too small to read, and the
+   shadow of the gutter down one side. Abstract on purpose — a real photograph
+   would be someone's, and an invented scene would be a picture this app is
+   pretending a reader took. */
+const PLACEHOLDER_PHOTO = `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450">
+     <defs>
+       <linearGradient id="p" x1="0" y1="0" x2="1" y2="1">
+         <stop offset="0" stop-color="#f6efe3"/><stop offset="1" stop-color="#e8dcc8"/>
+       </linearGradient>
+       <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
+         <stop offset="0" stop-color="#000" stop-opacity="0.22"/>
+         <stop offset="1" stop-color="#000" stop-opacity="0"/>
+       </linearGradient>
+     </defs>
+     <rect width="600" height="450" fill="url(#p)"/>
+     <rect width="46" height="450" fill="url(#g)"/>
+     ${Array.from(
+       { length: 14 },
+       (_, i) =>
+         `<rect x="92" y="${70 + i * 24}" width="${i % 5 === 4 ? 250 : 430}" height="6" rx="3" fill="#3b3229" opacity="0.5"/>`,
+     ).join('')}
+   </svg>`,
+)}`
+
+async function placeholderPhoto() {
+  return (await fetch(PLACEHOLDER_PHOTO)).blob()
+}
+
 const PLACEHOLDERS: Entry[] = [
   {
     id: -1,
@@ -61,7 +120,7 @@ const PLACEHOLDERS: Entry[] = [
     id: -2,
     bookId: 0,
     type: 'note',
-    text: 'Come back to this one.',
+    text: 'Come back to this one. Something about the way she keeps the worst of it in the margins.',
     chapter: 'Chapter 4',
     keptOn: '2026-06-09',
     createdAt: 2,
@@ -69,20 +128,39 @@ const PLACEHOLDERS: Entry[] = [
   {
     id: -3,
     bookId: 0,
-    type: 'voice',
-    duration: 47,
-    page: 118,
-    keptOn: '2026-06-21',
+    type: 'highlight',
+    text: 'the sea did the same thing every day and it was never once the same',
+    page: 96,
+    keptOn: '2026-06-14',
     createdAt: 3,
   },
   {
     id: -4,
     bookId: 0,
+    type: 'voice',
+    text: 'Read this bit out to J. on the phone',
+    duration: 6,
+    page: 118,
+    keptOn: '2026-06-21',
+    createdAt: 4,
+  },
+  {
+    id: -5,
+    bookId: 0,
+    type: 'image',
+    text: 'The page I kept turning back to.',
+    page: 164,
+    keptOn: '2026-07-02',
+    createdAt: 5,
+  },
+  {
+    id: -6,
+    bookId: 0,
     type: 'quote',
     text: 'Nothing was different, and everything was.',
     page: 203,
     keptOn: '2026-07-14',
-    createdAt: 4,
+    createdAt: 6,
   },
 ]
 
@@ -95,25 +173,17 @@ function keptLabel(iso: string) {
   })
 }
 
-/** "0:47". Minutes and seconds, never bare seconds: 47 on its own reads as a
-    page number on a screen that is full of page numbers. */
-function clock(seconds: number) {
-  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
-}
+/* The thread — one stitched segment, drawn beside the memory it ties on.
+   Segments rather than a single line down the section, for two reasons: each
+   one stretches its own wander differently, so no two stretches of thread are
+   identical the way a repeating border would be; and a short element is a
+   subject a scroll-driven timeline can actually measure, which is what lets
+   the stitch draw itself as the reader arrives at it.
 
-/* The thread itself — a single stitched line running the height of whatever
-   it is put inside.
-
-   Drawn rather than built from a dashed border because a border is a machine
-   line: perfectly straight, perfectly even, and the one thing this screen is
-   not meant to look like. The path wanders by a pixel or so, the way a hand
-   sewing a straight seam does.
-
-   `preserveAspectRatio="none"` lets the 100-unit-tall viewBox stretch to any
-   real height, which would normally drag the stroke and the dashes out of
-   shape with it — `vector-effect: non-scaling-stroke` is what keeps a stitch
-   the same length and the same weight on a journey of four entries and one of
-   forty. */
+   `preserveAspectRatio="none"` lets the 100-unit-tall box stretch to any real
+   height, which would normally drag the stroke and the dashes out of shape
+   with it — `vector-effect: non-scaling-stroke` is what keeps a stitch the
+   same length on a long card and a short one. */
 function Thread({ className }: { className: string }) {
   return (
     <svg
@@ -127,7 +197,83 @@ function Thread({ className }: { className: string }) {
   )
 }
 
-function JourneyEntry({ entry }: { entry: Entry }) {
+/** A blob, as something an `img` or an `audio` can be pointed at. The handle is
+    released on the way out; a journey scrolled end to end would otherwise leak
+    one per picture it passed. */
+function useObjectUrl(blob: Blob | undefined) {
+  const [url, setUrl] = useState<string>()
+  useEffect(() => {
+    if (!blob) return
+    const made = URL.createObjectURL(blob)
+    setUrl(made)
+    return () => {
+      URL.revokeObjectURL(made)
+      setUrl(undefined)
+    }
+  }, [blob])
+  return url
+}
+
+function KeptImage({ entry }: { entry: Entry }) {
+  const url = useObjectUrl(entry.media)
+  return (
+    <figure className={styles.mount}>
+      <div className={styles.print}>
+        {url ? (
+          /* The caption is the alt text when there is one. A reader writing
+             "the page I kept turning back to" has described their own picture
+             better than any generated string would. */
+          <img src={url} alt={entry.text ?? 'A picture kept from this book'} />
+        ) : (
+          <p className={styles.absent}>This picture isn’t on this device.</p>
+        )}
+        {/* Photo corners. Four, because three is a mount that has come loose. */}
+        <span className={styles.corner} data-at="tl" aria-hidden="true" />
+        <span className={styles.corner} data-at="tr" aria-hidden="true" />
+        <span className={styles.corner} data-at="bl" aria-hidden="true" />
+        <span className={styles.corner} data-at="br" aria-hidden="true" />
+      </div>
+      {entry.text && (
+        <figcaption className={styles.caption}>{entry.text}</figcaption>
+      )}
+    </figure>
+  )
+}
+
+function EntryBody({ entry }: { entry: Entry }) {
+  switch (entry.type) {
+    case 'voice':
+      return (
+        <>
+          <VoiceOrb
+            media={entry.media}
+            duration={entry.duration}
+            seed={entry.id}
+            label={`the memo kept on ${keptLabel(entry.keptOn)}`}
+          />
+          {entry.text && <p className={styles.caption}>{entry.text}</p>}
+        </>
+      )
+    case 'image':
+      return <KeptImage entry={entry} />
+    case 'highlight':
+      /* The stripe goes on the inline span, not the paragraph: a marker
+         follows the words to the end of each line and stops, and a background
+         on the block would run the full width of the card and read as a
+         coloured panel. */
+      return (
+        <p className={styles.marked}>
+          <span>{entry.text}</span>
+        </p>
+      )
+    case 'note':
+      return <p className={`${styles.text} ${styles.ruled}`}>{entry.text}</p>
+    default:
+      return <p className={styles.text}>{entry.text}</p>
+  }
+}
+
+function JourneyEntry({ entry, last }: { entry: Entry; last: boolean }) {
   const kind = KIND[entry.type]
   /* Alternating, and small. The tilt is what makes a card look laid down
      rather than placed; past a degree or so it stops reading as handmade and
@@ -139,9 +285,10 @@ function JourneyEntry({ entry }: { entry: Entry }) {
     entry.chapter ?? (entry.page !== undefined ? `Page ${entry.page}` : null)
 
   return (
-    <article className={styles.entry}>
-      {/* The knot where this memory is tied on. Sits over the thread, in the
-          page's own colour, so the stitch appears to pass behind it. */}
+    <article className={styles.entry} data-last={last || undefined}>
+      <Thread className={styles.thread} />
+      {/* The knot this memory is tied on by. Over the thread, in the page's
+          own colour, so the stitch appears to pass behind it. */}
       <span className={styles.knot} aria-hidden="true" />
 
       {/* Not every card is taped. An identical strip at the identical spot on
@@ -161,13 +308,7 @@ function JourneyEntry({ entry }: { entry: Entry }) {
           <span className={styles.when}>{keptLabel(entry.keptOn)}</span>
         </header>
 
-        {entry.type === 'voice' ? (
-          <p className={styles.pending}>
-            {entry.duration !== undefined ? clock(entry.duration) : 'Recording'}
-          </p>
-        ) : (
-          <p className={styles.text}>{entry.text}</p>
-        )}
+        <EntryBody entry={entry} />
 
         {where && <p className={styles.where}>{where}</p>}
       </PaperSurface>
@@ -178,20 +319,20 @@ function JourneyEntry({ entry }: { entry: Entry }) {
 /* The journey: the inside cover of a book, then everything kept from it,
    hanging off one thread in the order it was kept.
 
-   The thread runs down the leading edge rather than the middle. The plan drawn
-   for this screen had entries alternating either side of a centre spine on the
-   phone too, and the arithmetic does not survive it: the column is about 342px
-   at 390px wide, so a card either side of a centre line gets ~165px, and after
-   its own padding that is roughly 117px of text — twelve characters a line. A
-   quote would come apart. Against the leading edge each card keeps ~310px and,
-   just as usefully, there is only one place the next memory can be, so the
-   order is never ambiguous. Alternation is worth having at iPad width, where
-   there is room for it, and that is gate 5. */
+   On a phone the thread runs down the leading edge rather than the middle. The
+   plan drawn for this screen had entries alternating either side of a centre
+   spine on the phone too, and the arithmetic does not survive it: the column is
+   about 342px at 390px wide, so a card either side of a centre line gets
+   ~165px, and after its own padding that is roughly 117px of text — twelve
+   characters a line. A quote would come apart. Against the leading edge each
+   card keeps ~310px and, just as usefully, there is only one place the next
+   memory can be, so the order is never ambiguous. The centre spine and the
+   alternation arrive at the width that can pay for them, near 760px. */
 function BookJourney() {
   const { id } = useParams()
   const parsed = Number(id)
   const book = useBook(Number.isFinite(parsed) ? parsed : undefined)
-  const entries = PLACEHOLDERS
+  const entries = usePlaceholders()
 
   // Dexie has not answered yet. Nothing, rather than a skeleton: the answer is
   // local and arrives within a frame or two, and a shape that flashes is worse
@@ -223,13 +364,15 @@ function BookJourney() {
                 card here would make the book one more keepsake among the
                 keepsakes below instead of the thing they all belong to. */}
             <header className={styles.insideCover}>
-              <BookCover
-                title={book.title}
-                author={book.author}
-                covers={book.covers}
-                width={112}
-                rotate={-2}
-              />
+              <div className={styles.opening}>
+                <BookCover
+                  title={book.title}
+                  author={book.author}
+                  covers={book.covers}
+                  width={112}
+                  rotate={-2}
+                />
+              </div>
               <div className={styles.identity}>
                 <h1 className={styles.title}>{book.title}</h1>
                 <p className={styles.author}>{book.author}</p>
@@ -261,9 +404,12 @@ function BookJourney() {
             </header>
 
             <section className={styles.journey} aria-label="Kept memories">
-              <Thread className={styles.thread} />
-              {entries.map((entry) => (
-                <JourneyEntry key={entry.id} entry={entry} />
+              {entries.map((entry, i) => (
+                <JourneyEntry
+                  key={entry.id}
+                  entry={entry}
+                  last={i === entries.length - 1}
+                />
               ))}
             </section>
           </>
@@ -271,6 +417,31 @@ function BookJourney() {
       </div>
     </main>
   )
+}
+
+/* Placeholder media, attached after the first paint. Both blobs are built in
+   the browser, and neither is worth holding up the page for. Goes with the
+   placeholders themselves at step 05. */
+function usePlaceholders() {
+  const [entries, setEntries] = useState(PLACEHOLDERS)
+  useEffect(() => {
+    let live = true
+    void placeholderPhoto().then((photo) => {
+      if (!live) return
+      setEntries((current) =>
+        current.map((entry) => {
+          if (entry.type === 'image') return { ...entry, media: photo }
+          if (entry.type === 'voice')
+            return { ...entry, media: silentWav(entry.duration ?? 6) }
+          return entry
+        }),
+      )
+    })
+    return () => {
+      live = false
+    }
+  }, [])
+  return entries
 }
 
 export default BookJourney

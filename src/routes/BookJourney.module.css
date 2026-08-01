@@ -1,6 +1,4 @@
-/* The journey — the inside cover of one book, then everything kept from it.
-
-   Gate 1: static, light, phone. No motion, no orb, no add action. */
+/* The journey — the inside cover of one book, then everything kept from it. */
 
 .journeyColumn {
   /* Wider than the home feed would be, narrower than the shelf. What sets it
@@ -8,10 +6,16 @@
      comfortable measure, which at this type size lands near 60 characters
      rather than the shelf's 760px of board. */
   --column-max: clamp(420px, 72vw, 600px);
-  /* How much room the thread and its knots own. Everything below measures
-     from this one number, so the rail can be widened for iPad in gate 5 and
-     the stitch, the knots and the cards all move together. */
+  /* How much room the thread and its knots own on a phone. Everything below
+     measures from this one number, so the rail moves and the stitch, the knots
+     and the cards all move with it. */
   --rail: var(--space-6);
+  /* Where the thread runs, relative to a card's own leading edge. On a phone
+     that is out in the rail; past 760px each side of a centre spine overrides
+     it. The 4px is the thread's offset inside its own 8-wide box, the 5px is
+     half a knot — stated here so the two can never drift apart. */
+  --tie-line: calc(-1 * var(--rail) + 4px);
+  --tie-knot: calc(-1 * var(--rail) + 4px);
   gap: var(--space-5);
 }
 
@@ -135,15 +139,23 @@
   padding-block: var(--space-2);
 }
 
+/* ---- One kept memory ---- */
+
+.entry {
+  position: relative;
+}
+
+/* Each memory carries its own length of thread, running past its own bottom
+   edge to meet the next one — so the strand is continuous but is measured, and
+   stitched, one keepsake at a time. */
 .thread {
   position: absolute;
-  /* The stitch is 8 units wide in its own box and the line runs down the
-     middle of it, so the box starts at the leading edge and the thread itself
-     lands 4px in — which is what the knots are centred on. */
-  inset-inline-start: 0;
-  inset-block: 0;
+  inset-block-start: 0;
+  /* The stitch is 8 units wide in its own box and runs down the middle, hence
+     the 4px already folded into --tie-line. */
+  inset-inline-start: var(--tie-line);
   width: 8px;
-  height: 100%;
+  height: calc(100% + var(--space-6));
   fill: none;
   stroke: var(--thread-ink, color-mix(in oklch, var(--color-ink), transparent 68%));
   stroke-width: 2;
@@ -154,16 +166,17 @@
   vector-effect: non-scaling-stroke;
 }
 
-/* ---- One kept memory ---- */
-
-.entry {
-  position: relative;
+/* The strand ends at the last knot rather than running off the end of the
+   page — thread is tied off, not cut. */
+.entry[data-last] .thread {
+  height: calc(var(--space-5) + 5px);
 }
 
 .knot {
   position: absolute;
-  /* Centred on the thread: back out the rail, then back out half the knot. */
-  inset-inline-start: calc(-1 * var(--rail) - 5px + 4px);
+  /* Centred on the thread: --tie-knot is the thread's own centre line, then
+     back out half the knot. */
+  inset-inline-start: calc(var(--tie-knot) - 5px);
   inset-block-start: var(--space-5);
   width: 10px;
   height: 10px;
@@ -228,19 +241,158 @@
   color: var(--color-ink);
 }
 
-/* Voice has no text of its own until gate 2 gives it a waveform and gate 3
-   gives it the orb. Until then it says how long it is and nothing more, in
-   the same face the duration will keep afterwards. */
-.pending {
-  font-family: var(--font-mono);
-  font-size: var(--text-md);
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink-soft);
-}
-
 .where {
   font-size: var(--text-xs);
   color: var(--color-ink-faint);
+}
+
+/* ---- A note: ruled paper ----
+
+   The rules are painted on the paragraph rather than the card, so they run
+   under the writing and stop where the writing stops — which is what a torn
+   half-sheet looks like, and which means a two-line note is not a full page of
+   empty lines with two lines of ink at the top.
+
+   The period is the line-height exactly, so the two can never drift; the
+   quarter-step of negative offset lifts each rule off the bottom of its line
+   box and puts it just under the baseline, where a printed rule sits. */
+.ruled {
+  --line: 1.6em;
+  line-height: 1.6;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--line) - 1px),
+    var(--note-rule) calc(var(--line) - 1px),
+    var(--note-rule) var(--line)
+  );
+  background-position: 0 -0.2em;
+}
+
+/* ---- A highlight: the marker ----
+
+   The stripe is what names this type, which is why the card under it is the
+   palest of the five (see --card-highlight). It goes on the inline span and
+   not the paragraph: a marker follows the words to the end of each line and
+   stops there, and a background on the block would run the full width of the
+   card and read as a coloured panel instead.
+
+   `box-decoration-break: clone` is what makes a wrapped highlight look drawn
+   rather than filled — without it the stripe is one box spanning every line,
+   and the ends only appear at the very start and the very end. */
+.marked {
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  /* Looser than the quote's 1.5: two stripes on consecutive lines want a gap
+     between them, or the marking reads as one solid block. */
+  line-height: 1.75;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+  color: var(--color-ink);
+}
+
+.marked span {
+  /* Seven degrees off level, so the ends of the stroke are slanted the way a
+     chisel tip leaves them and the stripe drifts very slightly as it crosses
+     the words.
+
+     The ends are lengths and not percentages. `box-decoration-break: clone`
+     gives every wrapped line its own gradient box, so a percentage inset is
+     measured against that line's width — on a full line it swallowed the
+     first two letters, and on a three-word last line it swallowed nothing.
+     Four pixels is four pixels on both. */
+  background-image: linear-gradient(
+    97deg,
+    transparent 0 1px,
+    var(--highlighter) 5px calc(100% - 5px),
+    transparent calc(100% - 1px)
+  );
+  background-repeat: no-repeat;
+  /* Slightly taller than the type and lifted to sit over it: ink laid on the
+     words, not a band behind them. */
+  background-size: 100% 1.1em;
+  background-position: 0 0.28em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding-inline: 0.18em;
+}
+
+/* ---- An image: mounted, not embedded ---- */
+
+.mount {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.print {
+  position: relative;
+  border-radius: var(--radius-sm);
+  /* Something behind the picture while it decodes, so the card does not jump
+     from nothing to a photograph. */
+  background: var(--card-chip);
+}
+
+.print img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+/* Photo corners. Four, because three is a mount that has come loose. */
+.corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: var(--photo-corner);
+}
+
+.corner[data-at='tl'] {
+  top: 0;
+  left: 0;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  border-start-start-radius: var(--radius-sm);
+}
+
+.corner[data-at='tr'] {
+  top: 0;
+  right: 0;
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+  border-start-end-radius: var(--radius-sm);
+}
+
+.corner[data-at='bl'] {
+  bottom: 0;
+  left: 0;
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+  border-end-start-radius: var(--radius-sm);
+}
+
+.corner[data-at='br'] {
+  bottom: 0;
+  right: 0;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  border-end-end-radius: var(--radius-sm);
+}
+
+.absent {
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+  color: var(--color-ink-faint);
+}
+
+/* What the reader wrote beside the picture or the recording. Smaller than kept
+   text and in the interface face, because it is theirs about the thing rather
+   than the thing itself. */
+.caption {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  text-wrap: pretty;
+  color: var(--color-ink-soft);
 }
 
 /* ---- Nothing to show ---- */
@@ -252,4 +404,166 @@
   line-height: 1.5;
   text-wrap: pretty;
   color: var(--color-ink-soft);
+}
+
+/* ===========================================================================
+   MOTION
+
+   Three moments, and nothing else: the book opens, the thread stitches itself
+   as you go down, and each keepsake settles onto the page as it arrives. All
+   three are transform, opacity or a clip on an eight-pixel column — no layout,
+   no paint on a large surface.
+
+   The scroll-driven pair is progressive enhancement in the strict sense: the
+   animations exist only inside @supports, so a browser without scroll
+   timelines gets the finished page rather than a broken one, and no scroll
+   listener is ever attached to approximate it.
+   =========================================================================== */
+
+@keyframes coverOpen {
+  from {
+    opacity: 0;
+    transform: perspective(900px) rotateY(-34deg) translateZ(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(900px) rotateY(0deg) translateZ(0);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* The stitch, pulled through the cloth from the top down. */
+@keyframes stitch {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Laid down, not flown in. It arrives a little lower and a little more
+   crooked than it ends up, and comes to rest at the tilt PaperSurface gave
+   it — which is why the final keyframe reads --paper-rotate rather than
+   zero. */
+@keyframes settle {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+    rotate: calc(var(--paper-rotate, 0deg) - 1.4deg);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: var(--paper-rotate, 0deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The cover swings open on its spine. One beat, on arrival, and the only
+     3D on the screen — it is the thing the page is about. */
+  .opening {
+    transform-origin: left center;
+    animation: coverOpen var(--dur-move) var(--ease-move) both;
+  }
+
+  .identity {
+    animation: rise var(--dur-base) var(--ease-out) both;
+    animation-delay: calc(var(--dur-move) * 0.4);
+  }
+
+  @supports (animation-timeline: view()) {
+    .thread {
+      animation: stitch linear both;
+      animation-timeline: view();
+      /* Drawn while the memory is coming up the screen, finished a little
+         before it is fully in view — so the thread always reaches the knot
+         ahead of the card the reader is about to read. */
+      animation-range: entry 0% entry 80%;
+    }
+
+    .card {
+      animation: settle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 90%;
+    }
+  }
+}
+
+/* Tier 1 and 2, tiered rather than switched off. The cover's 3D swing is a
+   large rotation with depth and is removed outright; the settle and the rise
+   lose their travel and their tilt and keep the fade, so nothing teleports.
+   The stitch is left to the @supports block above, which reduced motion never
+   enters — the thread simply arrives drawn. */
+@media (prefers-reduced-motion: reduce) {
+  .opening,
+  .identity {
+    animation: rise 160ms var(--ease-out) both;
+    transform: none;
+  }
+}
+
+/* ===========================================================================
+   WIDER THAN A PHONE
+
+   Past 760px the column can pay for a centre spine, so the thread moves to the
+   middle and the keepsakes hang off it either side in reading order. Below it
+   they cannot: at 390px a card either side of a centre line keeps about 117px
+   of text, which is twelve characters a line, and a quote comes apart.
+   =========================================================================== */
+
+@media (min-width: 760px) {
+  .journeyColumn {
+    --column-max: min(94vw, 900px);
+    /* The spine is the middle of the section now, not a rail beside it. */
+    --rail: 0px;
+  }
+
+  .insideCover {
+    gap: var(--space-6);
+  }
+
+  .title {
+    font-size: var(--text-xl);
+  }
+
+  .journey {
+    padding-inline-start: 0;
+    /* More air, because the eye now travels side to side as well as down. */
+    gap: var(--space-7);
+  }
+
+  /* Half the section, less the clearance the spine needs on either side. */
+  .entry {
+    width: calc(50% - var(--space-6));
+  }
+
+  .entry:nth-child(odd) {
+    align-self: flex-start;
+    /* Thread and knot hang off the trailing edge, out at the centre line. */
+    --tie-line: calc(100% + var(--space-6) - 4px);
+    --tie-knot: calc(100% + var(--space-6));
+  }
+
+  .entry:nth-child(even) {
+    align-self: flex-end;
+    --tie-line: calc(-1 * var(--space-6) - 4px);
+    --tie-knot: calc(-1 * var(--space-6));
+  }
+
+  /* The last stitch stops at its own knot as before, but the knot is now at
+     the top of a card that may be on either side. */
+  .entry[data-last] .thread {
+    height: calc(var(--space-5) + 5px);
+  }
 }
