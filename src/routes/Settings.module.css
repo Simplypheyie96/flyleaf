@@ -20,54 +20,47 @@
   color: var(--color-ink-soft);
 }
 
-/* A section is one paper card holding one heading and a stack of rows. The
-   page column already spaces the cards from each other, so a card is only
-   responsible for what is inside it. */
+/* A section is one paper card: a heading, a line saying what it does, and the
+   controls.
+
+   Tighter than a keepsake card on purpose. --space-5 suits a surface that is
+   mostly the thing it holds; this one is mostly control, and at 24 a card
+   carrying a single switch was half air. */
 .section {
-  display: flex;
-  flex-direction: column;
-  /* One step between the heading and the first row, and the same step between
-     rows, so a section with four rows keeps a single rhythm instead of
-     bunching under its heading. */
-  gap: var(--space-4);
-}
-
-.sectionTitle {
-  font-size: var(--text-lg);
-}
-
-/* A row is a label, an optional hint beneath it, and one control.
-
-   The control sits under its label rather than beside it. This one is three
-   words wide and will not share a line with its label on a phone — and a row
-   shape that only holds narrow controls is not a shape the sections arriving
-   in steps 09-12 could reuse. */
-.row {
+  --paper-pad: var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
-.rowText {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  min-width: 0;
+/* Heading and control share the first line; the description runs full width
+   underneath both. A control parked beside a heading has no dead space to its
+   right, and a description given the whole width has room to be a sentence
+   rather than a fragment. */
+.sectionHead {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: var(--space-4);
+  row-gap: var(--space-1);
 }
 
-/* Leading-aligned and weighted, because a settings list is scanned down its
-   labels. Nothing here is centred. */
-.rowLabel {
-  font-size: var(--text-sm);
-  font-weight: 620;
+.sectionTitle {
+  grid-column: 1;
+  font-size: var(--text-lg);
 }
 
-.rowHint {
+.sectionControl {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.sectionHint {
+  grid-column: 1 / -1;
   font-size: var(--text-xs);
   color: var(--color-ink-soft);
   /* A span, not a <p>: the reading measure in index.css caps paragraphs at
-     --measure, which is right for prose and irrelevant to a one-line hint
-     that is already inside a 560px column. `pretty` keeps the last word off
-     a line of its own when it does wrap. */
+     --measure, which is right for prose and irrelevant to two short lines
+     already inside a 560px column. */
   text-wrap: pretty;
 }
