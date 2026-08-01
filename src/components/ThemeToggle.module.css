@@ -10,13 +10,8 @@
   align-items: center;
   gap: 2px;
   padding: 3px;
-  /* A wash of the room's ink, not a lighter fill — the same trick the reading
-     gauge on Home uses to sit inside a pale card. --card-chip is a *lighter*
-     surface, which separates from a dark card at night but at L 0.99 against
-     a card at L 0.995 is invisible by day. Ink-relative, so one declaration
-     is right in both themes. */
-  background: color-mix(in oklch, var(--color-ink), transparent 95%);
-  border: 1px solid var(--border-hairline);
+  background: var(--track-well);
+  border: 1px solid var(--track-well-border);
   border-radius: var(--radius-pill);
 }
 
