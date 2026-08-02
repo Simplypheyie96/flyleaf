@@ -80,6 +80,19 @@ export const CHOSEN: Record<EntryType, Direction> = {
   thread: 'pressed',
 }
 
-export function cardFor(type: EntryType): ComponentType<CardProps> {
-  return SETS[CHOSEN[type]][type]
+/* A whole journey, drawn in one direction throughout.
+
+   The gallery shows three keeps of one type at a time, which is enough to
+   judge a drawing and not enough to judge a page: what a set actually feels
+   like is thirteen keeps of seven different types running down one thread,
+   with the dividers and the ties between them. `?dir=marginalia` on a book's
+   own URL redraws every card from that set without touching `CHOSEN`, so the
+   three can be looked at as pages rather than as swatches.
+
+   A preview handle, not a product feature. Nothing links to it, an unknown
+   value falls straight back to `CHOSEN`, and it comes out with the gallery
+   once the seven choices are made. */
+export function cardFor(type: EntryType, preview?: string | null): ComponentType<CardProps> {
+  const dir = preview && preview in SETS ? (preview as Direction) : CHOSEN[type]
+  return SETS[dir][type]
 }
