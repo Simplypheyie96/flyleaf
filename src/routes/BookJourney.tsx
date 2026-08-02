@@ -29,7 +29,7 @@ import FormatRow from '../components/FormatRow'
 import GlassSurface from '../components/GlassSurface'
 import Sheet from '../components/Sheet'
 import CalendarPicker from '../components/date/CalendarPicker'
-import { shortDate, spanDate, todayISO } from '../components/date/dates'
+import { shortDate, spanPair, todayISO } from '../components/date/dates'
 import {
   ChevronIcon,
   CloseIcon,
@@ -265,6 +265,8 @@ function BookJourney() {
      to find than "10". The spelled-out counts stay in the prose surfaces
      (the colophon), where they belong. */
   const facts = `${keeps.length} ${keeps.length === 1 ? 'keep' : 'keeps'}`
+  /* Both ends at once, because the year on one of them depends on the other. */
+  const span = spanPair(book.startedOn, book.finishedOn)
 
   /* The first notch, and the only one Flyleaf writes itself. Not a card: it is
      an inscription on the page, named on its meta line like every other notch
@@ -396,86 +398,93 @@ function BookJourney() {
             size="small"
             className={styles.cover}
           />
+          {/* Everything that is *about* the book, in one column: name, byline,
+              formats, dates. The cover is the other column and holds nothing
+              but the cover.
+
+              Two alignment edges on the whole head, which is the point. The
+              dates used to sit outside this block on a full-width line of
+              their own, so their leading edge lined up with the spine of the
+              book and with nothing in the column of writing above them —
+              three edges to read where there should have been two. */}
           <div className={styles.about}>
-            {/* No ornament in here. The title measures 252px in the column's
-                254 — it fits on one line by two pixels, and the little star
-                that used to ride the last word was 18 of them, so the one
-                decorative mark on the head was the sole reason the name of
-                the book broke across two. */}
-            <h1 className={styles.title}>{book.title}</h1>
+            {/* One line, always. A title that wraps pushes the byline, the
+                formats and the dates down with it, so the head's height came
+                out of how long the book's name happened to be. The full name
+                is still here for anyone who wants it — on the element, and in
+                the bar the head folds down into. */}
+            <h1 className={styles.title} title={book.title}>
+              {book.title}
+            </h1>
             <p className={styles.author}>
               {book.author} · {facts}
             </p>
 
-            <FormatRow
-              small
-              value={formatsOf(book)}
-              onChange={(next) => void setFormats(book.id, next)}
-            />
+            <div className={styles.formats}>
+              <FormatRow
+                small
+                value={formatsOf(book)}
+                onChange={(next) => void setFormats(book.id, next)}
+              />
+            </div>
 
+            {/* The reading span: one pill, two tappable ends, an arrow between.
+
+                A date, an arrow and a second date is already a sentence, so
+                there are no labels — nobody reads "Jul 2 → still reading" and
+                wonders which end is which. The two ends are formatted together
+                rather than one at a time, which is what stops the same year
+                being printed twice inside one pill.
+
+                Each end is its own button and the arrow is neither of them. */}
+            {book.startedOn || book.finishedOn ? (
+              <div className={styles.span}>
+                <button
+                  type="button"
+                  className={styles.spanEnd}
+                  data-unset={!book.startedOn || undefined}
+                  onClick={() => setPicking('opened')}
+                  aria-label={
+                    book.startedOn
+                      ? `Started ${shortDate(book.startedOn)}. Change the day.`
+                      : 'No start date yet. Set one.'
+                  }
+                >
+                  {/* The label carries its own clipping so the button does not.
+                      `overflow: hidden` on the button would crop its own 44px
+                      tap pseudo back to the 33 it paints. */}
+                  <span className={styles.spanText}>{span.start ?? 'no start date'}</span>
+                </button>
+                <span className={styles.spanArrow} aria-hidden="true">
+                  →
+                </span>
+                <button
+                  type="button"
+                  className={styles.spanEnd}
+                  data-unset={!book.finishedOn || undefined}
+                  onClick={() => setPicking('closed')}
+                  aria-label={
+                    book.finishedOn
+                      ? `Finished ${shortDate(book.finishedOn)}. Change the day.`
+                      : 'Still reading. Set the day you finished.'
+                  }
+                >
+                  <span className={styles.spanText}>{span.finish ?? 'still reading'}</span>
+                </button>
+              </div>
+            ) : (
+              <div className={styles.span}>
+                <button
+                  type="button"
+                  className={styles.spanEnd}
+                  onClick={() => setPicking('opened')}
+                >
+                  <span className={styles.spanText}>Add reading dates</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* The reading span, on one line, as one pill, on a line of its own.
-
-            It was two labelled columns: STARTED over its date, FINISHED over
-            its date, four lines of chrome and two dashed underlines to say
-            what an arrow says on its own. A date, an arrow and a second date
-            is already a sentence — the labels were repeating what the shape
-            of it had told you.
-
-            It used to live in the column beside the cover, and that is what
-            made the head look lopsided: the text column ran 46px past the
-            bottom of the board, so the board sat in the top corner of a tall
-            empty rectangle. Out here the two columns above end level with
-            each other and the dates get a full line to sit on.
-
-            Each end is still its own button, so the halves stay separately
-            tappable at full pill height, and the arrow between them is not
-            one of them. */}
-        {book.startedOn || book.finishedOn ? (
-          <div className={styles.span}>
-            <button
-              type="button"
-              className={styles.spanEnd}
-              data-unset={!book.startedOn || undefined}
-              onClick={() => setPicking('opened')}
-              aria-label={
-                book.startedOn
-                  ? `Started ${shortDate(book.startedOn)}. Change the day.`
-                  : 'No start date yet. Set one.'
-              }
-            >
-              {book.startedOn ? spanDate(book.startedOn) : 'no start yet'}
-            </button>
-            <span className={styles.spanArrow} aria-hidden="true">
-              →
-            </span>
-            <button
-              type="button"
-              className={styles.spanEnd}
-              data-unset={!book.finishedOn || undefined}
-              onClick={() => setPicking('closed')}
-              aria-label={
-                book.finishedOn
-                  ? `Finished ${shortDate(book.finishedOn)}. Change the day.`
-                  : 'Still reading. Set the day you finished.'
-              }
-            >
-              {book.finishedOn ? spanDate(book.finishedOn) : 'still reading'}
-            </button>
-          </div>
-        ) : (
-          <div className={styles.span}>
-            <button
-              type="button"
-              className={styles.spanEnd}
-              onClick={() => setPicking('opened')}
-            >
-              Add reading dates
-            </button>
-          </div>
-        )}
         </div>
         </div>
 
