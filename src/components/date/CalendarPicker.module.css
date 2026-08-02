@@ -113,7 +113,7 @@
 
 .heads {
   padding-block-end: var(--space-1);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-2xs);
   letter-spacing: 0.08em;
   text-align: center;

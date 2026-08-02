@@ -10,19 +10,22 @@
    anywhere. Six versions before this one all had a device: a baseline grid, an
    inset card, a hanging indent. This one has none.
 
-   PLOT THREADS — an open case, marked with a seal. Every drawing before this
-   one put its difference *inside* the rectangle — knots on a cord, tally
-   strokes, a status strip — which from two feet away is the same card as a
-   note with something drawn on it. So the difference is the outline, twice
-   over: the border is dashed rather than drawn, because a thread is the one
-   kind that is not settled yet and a broken line is what provisional looks
-   like; and a seal hangs off the leading edge, breaking that outline, which no
-   other card in the set does. Both are visible before a word is read.
+   PLOT THREADS — an open case, tabbed like one. Every drawing before this one
+   put its difference *inside* the rectangle — knots on a cord, tally strokes,
+   a status strip — which from two feet away is the same card as a note with
+   something drawn on it. So the difference is the outline: the border is
+   dashed rather than drawn, because a thread is the one kind that is not
+   settled yet and a broken line is what provisional looks like, and the stance
+   is a tab cut into the top corner rather than a line inside the column. Both
+   are visible before a word is read.
 
-   The seal is also where the stance went. It used to be a word on a tab; it is
-   now the ring around the seal, filling as the reader moves from a hunch to
-   something they are sure of — one shape carrying one fact, instead of a
-   second label to read.
+   The tab was a seal for a while — a ring hung half off the leading edge,
+   filling a third of the way round for a hunch and closed for something
+   certain, on the argument that one shape carrying one fact beats a second
+   label to read. It is a good argument about a shape nobody can read: a ring
+   reports a value out of three with no scale on screen to read it against, so
+   it only worked for someone who already knew, and it sat where the card's own
+   name should be. The word says the thing. The tab is the shape.
 
    VOICE — an instrument. It is the only keep on the page you *operate* rather
    than read, and the drawing has to say so before anything else does: a filled
@@ -72,13 +75,15 @@ export function Character({ keep }: CardProps) {
    different kind of object from across the room — and it happens to be exactly
    what the type means, since a thread is the one keep that is still running.
 
-   The seal breaks that edge. It hangs half outside the leading rule, and its
-   ring fills as the stance hardens: a third of the way round for a hunch, two
-   thirds for a suspicion, closed for something certain. One shape, one fact.
-   The stance used to be a word on a tab, which meant reading a label to learn
-   something the card could have shown. The seal carries no glyph, because the
-   knot standing in the gutter beside it already carries the one this type
-   would have used.
+   The tab is the second shape. The stance sits on it, cut into the top corner
+   and filled, which is where a case file carries its own name and which
+   nothing else in the journey does. It was a seal for a while — a ring hung
+   half off the leading rule, filling as the stance hardened — on the argument
+   that one shape carrying one fact beats a label you have to read. The
+   argument holds for shapes that can be read. A ring reports a value out of
+   three against a scale that is nowhere on the screen, so it told you nothing
+   you did not already know, and it stood where the card's own name goes. The
+   word is the fact; the tab is the shape.
 
    The question is one line. A thread's name is a thing you are carrying
    around, not a paragraph, and a name that wraps turns every card in the
@@ -98,21 +103,10 @@ export function Thread({ keep, onMotif }: CardProps) {
   const strands = keep.motifs ?? []
   return (
     <article className={`${s.card} ${s.dossier}`} data-stance={stance}>
-      {/* Hung on the leading edge, half outside the dashed rule it breaks. It
-          clears the journey's own thread in the gutter by a few pixels on
-          purpose: near enough to read as tied to it, not so near that it looks
-          strung on it.
-
-          Empty on purpose. The first version carried the thread glyph, and the
-          knot standing in the gutter twenty pixels away carries that same
-          glyph — two circles with one mark between them, which is the exact
-          noise this card was supposed to stop making. The knot says *what kind
-          of keep*; the seal says *how sure*, and it says it with the one thing
-          the knot has no version of: a ring that fills. */}
-      <span className={s.seal} aria-hidden="true" />
-
-      {/* The word for the ring. Anyone who cannot see how full the seal is
-          reads the stance here instead, and nobody reads it twice. */}
+      {/* The stance, on a tab cut into the top corner — first in the markup
+          because it is first in the reading order and first on the card, and
+          pulled onto the card's own edge in CSS rather than positioned out of
+          flow, so the title below it moves when the tab does. */}
       <p className={s.standing}>{STANCE[stance].label}</p>
 
       <h3 className={s.asked} title={keep.name}>

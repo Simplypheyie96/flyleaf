@@ -106,7 +106,7 @@
 }
 
 .term {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
   letter-spacing: 0.12em;
   text-transform: uppercase;

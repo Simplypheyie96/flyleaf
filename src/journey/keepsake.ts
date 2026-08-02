@@ -128,18 +128,36 @@ export const W = 1080
 export const H = 1350
 const PAD = 96
 
+/* The same two families the app is set in. These names have to match a face
+   the page actually loaded: document.fonts.load() resolves with an empty list
+   and no error when the family is unknown, so a wrong name here does not throw
+   — it just draws the whole picture in the system fallback and says nothing.
+   These read "Geist" until now, which is a face this app has never shipped. */
 const SERIF = '"Instrument Serif", Georgia, serif'
-const SANS = '"Geist Variable", system-ui, sans-serif'
-const MONO = '"Geist Mono Variable", ui-monospace, monospace'
+const SANS = '"Instrument Sans Variable", system-ui, sans-serif'
 
 /** Canvas takes no font it has not been told to load, whatever the CSS did. */
 export async function readyFonts() {
   await Promise.all([
     document.fonts.load(`400 96px ${SERIF}`),
+    document.fonts.load(`italic 400 34px ${SERIF}`),
     document.fonts.load(`400 32px ${SANS}`),
-    document.fonts.load(`500 24px ${MONO}`),
+    document.fonts.load(`600 22px ${SANS}`),
   ])
   await document.fonts.ready
+}
+
+/* The stamped labels — a term, an author, a page, never a sentence. On screen
+   these are the sans in capitals with tracking on it, and the tracking is what
+   makes them read as stamped rather than shouted; the canvas has to be told
+   both. ctx.letterSpacing sticks to the context once set, so it is put back
+   here rather than left for the next fillText to inherit it. */
+function stamp(ctx: CanvasRenderingContext2D, text: string, x: number, y: number) {
+  const was = ctx.letterSpacing
+  ctx.font = `600 22px ${SANS}`
+  ctx.letterSpacing = '2.6px'
+  ctx.fillText(text, x, y)
+  ctx.letterSpacing = was
 }
 
 function wrap(ctx: CanvasRenderingContext2D, text: string, max: number) {
@@ -264,8 +282,7 @@ function foot(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   ctx.fillText(title, PAD, y - 34)
 
   ctx.fillStyle = look.palette.soft
-  ctx.font = `500 22px ${MONO}`
-  ctx.fillText(k.author.toUpperCase(), PAD, y)
+  stamp(ctx, k.author.toUpperCase(), PAD, y)
 }
 
 function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
@@ -273,8 +290,7 @@ function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
 
   ctx.textAlign = 'left'
   ctx.fillStyle = look.palette.soft
-  ctx.font = `500 22px ${MONO}`
-  ctx.fillText('A READING', PAD, y)
+  stamp(ctx, 'A READING', PAD, y)
   y += 92
 
   ctx.fillStyle = look.palette.ink
@@ -303,10 +319,9 @@ function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
      closing line. */
   const stop = FLOOR - noteRoom(ctx, k)
   for (const { term, detail } of k.lines) {
-    ctx.font = `500 22px ${MONO}`
     if (y + 70 > stop) break
     ctx.fillStyle = look.palette.soft
-    ctx.fillText(term.toUpperCase(), PAD, y)
+    stamp(ctx, term.toUpperCase(), PAD, y)
     y += 40
 
     ctx.fillStyle = look.palette.ink
@@ -322,8 +337,7 @@ function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   note(ctx, k, look, y)
 
   ctx.fillStyle = look.palette.soft
-  ctx.font = `500 22px ${MONO}`
-  ctx.fillText(k.author.toUpperCase(), PAD, H - PAD - 8)
+  stamp(ctx, k.author.toUpperCase(), PAD, H - PAD - 8)
 }
 
 function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
@@ -355,8 +369,7 @@ function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   if (k.line.where) {
     y += 24
     ctx.fillStyle = look.palette.accent
-    ctx.font = `500 22px ${MONO}`
-    ctx.fillText(k.line.where.toUpperCase(), PAD, y)
+    stamp(ctx, k.line.where.toUpperCase(), PAD, y)
   }
 
   note(ctx, k, look, y + 20)
@@ -369,8 +382,7 @@ function drawTally(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
 
   ctx.textAlign = 'left'
   ctx.fillStyle = look.palette.soft
-  ctx.font = `500 22px ${MONO}`
-  ctx.fillText('WHAT I KEPT', PAD, y)
+  stamp(ctx, 'WHAT I KEPT', PAD, y)
   y += 100
 
   ctx.fillStyle = look.palette.ink

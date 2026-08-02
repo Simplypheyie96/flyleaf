@@ -86,7 +86,7 @@
 /* Mono caps: this is a setting's current value, in the same voice the app
    uses everywhere else for one — not a word of prose. */
 .displayName {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -332,7 +332,7 @@
 
 .count {
   max-width: none;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -953,7 +953,7 @@
 
 .spineAuthor {
   position: relative;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.5625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1072,7 +1072,7 @@
    colophon gives the same fact. */
 .feedWhere {
   margin: 0;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
   letter-spacing: 0.04em;
   color: var(--color-ink-faint);
@@ -1093,7 +1093,7 @@
 
 .feedKeepKind {
   flex: 1 1 auto;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-2xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
