@@ -529,20 +529,6 @@ export function FeedIcon({ size = 22 }: IconProps) {
   )
 }
 
-/** Colophon: the small printed device at the end of a book. A leaf inside a
-    ruled square — the whole journey pressed onto one card. */
-export function ColophonIcon({ size = 22 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-      <g {...strokeProps}>
-        <rect x="4.5" y="4.5" width="15" height="15" rx="2.5" />
-        <path d="M8.5 15.5 C 8.5 11 11 8.5 15.5 8.5 C 15.5 13 13 15.5 8.5 15.5 Z" />
-        <path d="M8.5 15.5 L 12 12" />
-      </g>
-    </svg>
-  )
-}
-
 /** Fair Copy: a clean sheet drawn off a marked-up one. */
 export function FairCopyIcon({ size = 22 }: IconProps) {
   return (
@@ -558,13 +544,47 @@ export function FairCopyIcon({ size = 22 }: IconProps) {
   )
 }
 
-/** Plus, for adding a keep. */
-export function PlusIcon({ size = 22 }: IconProps) {
+/** Keep something: the rosette.
+
+    Three drawings got thrown away before this one. A plus — the glyph every
+    app on the phone already puts in that corner, saying nothing about which
+    app you are in. Then a pressed sprig in hairlines, which at 22px reversed
+    out of a dark disc closed into a scribble. Then the same sprig filled and
+    scaled up, which is what is on screen now and reads as a tick: a stem
+    sweeping up to the right with two narrow blades off it is, at this size,
+    a checkmark with a decoration problem.
+
+    Every one of those failed the same way — the shape was a diagonal made of
+    thin parts, and a diagonal made of thin parts is a stroke, not an object.
+    So this is an object. Five petals and a centre, radial, filled, occupying
+    nearly the whole frame: a flower is one of about four silhouettes a person
+    can name from the corner of their eye, and the needlework blossom is
+    already printed on every cover in the library, so the button in the corner
+    is now the app's own mark rather than a generic one.
+
+    Geometry, so it stays true if anyone retouches it: petal centres sit 5.8
+    from the middle of a 24 box, each an ellipse 3.5 long by 2.8 across lying
+    on its own radius, 72° apart. Adjacent centres are 6.82 apart against a
+    combined width of 5.6, so no two petals touch — the gaps are what make it
+    legible small. Inner tips reach 2.3 from the middle and the eye is 1.8, so
+    there is a half-unit ring of air around it that survives to about 16px. */
+export function KeepIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-      <g {...strokeProps}>
-        <path d="M12 5.5 L 12 18.5" />
-        <path d="M5.5 12 L 18.5 12" />
+      <g fill="currentColor">
+        {/* Twelve o'clock, then round. Each petal is two half-arcs between the
+            ends of its own major axis, with the axis rotation set to the same
+            angle as the radius it sits on. */}
+        <path d="M12 2.7 A 3.5 2.8 -90 1 1 12 9.7 A 3.5 2.8 -90 1 1 12 2.7 Z" />
+        <path d="M20.845 9.126 A 3.5 2.8 -18 1 1 14.187 11.29 A 3.5 2.8 -18 1 1 20.845 9.126 Z" />
+        <path d="M17.466 19.524 A 3.5 2.8 54 1 1 13.352 13.86 A 3.5 2.8 54 1 1 17.466 19.524 Z" />
+        <path d="M6.534 19.524 A 3.5 2.8 126 1 1 10.648 13.86 A 3.5 2.8 126 1 1 6.534 19.524 Z" />
+        <path d="M3.155 9.126 A 3.5 2.8 198 1 1 9.813 11.29 A 3.5 2.8 198 1 1 3.155 9.126 Z" />
+        {/* The eye. Free-standing rather than cut out of the petals, because a
+            knocked-out centre needs a background to knock out to and this
+            glyph rides a dark disc, a pale chip and open sky in three
+            different places. */}
+        <circle cx="12" cy="12" r="1.8" />
       </g>
     </svg>
   )
@@ -577,6 +597,20 @@ export function EditIcon({ size = 22 }: IconProps) {
       <g {...strokeProps}>
         <path d="M15.5 4.8 L 19.2 8.5 L 8.7 19 L 4.5 19.5 L 5 15.3 Z" />
         <path d="M13.5 6.8 L 17.2 10.5" />
+      </g>
+    </svg>
+  )
+}
+
+/** Save: the share arrow turned round, coming down into the same tray. The two
+    live side by side on the keepsake, so they have to read as one pair. */
+export function SaveIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M12 4.5 L 12 15.5" />
+        <path d="M8.5 12 L 12 15.5 L 15.5 12" />
+        <path d="M7 11 L 5.5 11 C 5 11 4.5 11.5 4.5 12 L 4.5 19 C 4.5 19.5 5 20 5.5 20 L 18.5 20 C 19 20 19.5 19.5 19.5 19 L 19.5 12 C 19.5 11.5 19 11 18.5 11 L 17 11" />
       </g>
     </svg>
   )

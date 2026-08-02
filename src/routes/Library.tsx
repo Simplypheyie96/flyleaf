@@ -9,7 +9,10 @@ import { seedFrom } from '../books/seed'
 import GlassSurface from '../components/GlassSurface'
 import Sparkle from '../components/Sparkle'
 import PaperSurface from '../components/PaperSurface'
+import Sheet from '../components/Sheet'
 import {
+  CaretIcon,
+  CheckIcon,
   ChevronIcon,
   FeedIcon,
   GridIcon,
@@ -540,6 +543,9 @@ function Library() {
   })
   const [view, setView] = useState<ShelfView>(getStoredView)
   const [phase, setPhase] = useState<FadePhase>('idle')
+  // Only ever true on a narrow column, where the four view pills are folded
+  // away behind the masthead button rather than laid out in the toolbar.
+  const [picking, setPicking] = useState(false)
   const [fitted, setFitted] = useState<
     Record<string, { title: string; author: string }>
   >({})
@@ -601,18 +607,46 @@ function Library() {
   const phaseClass = phase !== 'idle' ? styles[phase] : ''
 
   const hasBooks = libraryBooks.length > 0
+  const laid = VIEWS.find((v) => v.id === view) ?? VIEWS[0]
 
   return (
     <main className={pageStyles.page}>
       <div className={`${pageStyles.column} ${styles.shelfColumn}`}>
-        {/* The name gets the whole line — no control shares a row with a
-            display serif on a phone, which is the only way "The Library" is
-            never allowed to wrap. */}
+        {/* The name and, on a narrow column, the folded-up display control.
+            Nothing else may share this line: the only way "The Library" is
+            never allowed to wrap is that a display serif never competes for
+            the row with anything that grows. */}
         <header className={styles.masthead}>
-          <h1 className={styles.title}>
-            The Library <Sparkle size={15} className={styles.spark} />
-          </h1>
-          <p className={styles.subtitle}>every book you keep</p>
+          <div className={styles.mastheadName}>
+            <h1 className={styles.title}>
+              The Library <Sparkle size={15} className={styles.spark} />
+            </h1>
+            <p className={styles.subtitle}>every book you keep</p>
+          </div>
+
+          {/* Four view pills want 190px. On a phone the column is about 327,
+              which leaves the search field a slot too narrow to type a title
+              into — so the display choice is what gives: it folds up here
+              beside the name and only unfolds into the toolbar when the
+              column can carry both. Both are always in the markup and the
+              container query hides one outright; `display: none` takes it out
+              of the accessibility tree as well, so there is never a second
+              copy of the same control to tab through. */}
+          {hasBooks && (
+            <GlassSurface className={styles.display}>
+              <button
+                type="button"
+                className={styles.displayBtn}
+                aria-haspopup="dialog"
+                aria-label={`${view} — change how the shelf is laid out`}
+                onClick={() => setPicking(true)}
+              >
+                <laid.Icon size={18} />
+                <span className={styles.displayName}>{view}</span>
+                <CaretIcon size={14} />
+              </button>
+            </GlassSurface>
+          )}
         </header>
 
         {/* One toolbar: search flexes, the view switcher holds its corner.
@@ -787,6 +821,44 @@ function Library() {
             {libraryBooks.length} {libraryBooks.length === 1 ? 'book' : 'books'}
           </p>
         )}
+
+        {/* The folded display control, opened. Written out in words here
+            because there is room for them: the toolbar version has to make do
+            with four glyphs, and this is where a reader finds out what they
+            mean. */}
+        <Sheet
+          open={picking}
+          onClose={() => setPicking(false)}
+          label="How the shelf is laid out"
+          name="display"
+        >
+          <h2 className={styles.sheetTitle}>How to lay it out</h2>
+          <div className={styles.viewList} role="group" aria-label="Shelf view">
+            {VIEWS.map(({ id, Icon, hint }) => (
+              <button
+                key={id}
+                type="button"
+                className={styles.viewRow}
+                aria-pressed={view === id}
+                onClick={() => {
+                  setPicking(false)
+                  choose(id)
+                }}
+              >
+                <Icon size={22} />
+                <span className={styles.viewText}>
+                  <span className={styles.viewLabel}>{id}</span>
+                  <span className={styles.viewHint}>{hint}</span>
+                </span>
+                {view === id && (
+                  <span className={styles.viewTick}>
+                    <CheckIcon size={18} />
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </Sheet>
       </div>
     </main>
   )

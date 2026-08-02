@@ -101,6 +101,48 @@
   --glass-fallback: oklch(0.25 0.028 265);
 }
 
+/* A height rather than a ceiling — the same number, asked for rather than
+   permitted. Everything above is a ceiling on purpose: a sheet with two rows
+   in it should be two rows tall. But a sheet whose print is one object being
+   looked at has the opposite problem. Its stage is trying to take the space
+   the sheet has left over, while the sheet is trying to take its height from
+   the stage, and two boxes each waiting for the other to go first collapse to
+   whatever the object's own intrinsic size happens to be — a canvas at its
+   full 1350px, a textarea at its default two rows. Stating the height breaks
+   the circle: the sheet is this tall, and the leftovers are real. */
+/* Taller than the 86% ceiling above, as well as definite. The plate is 4:5, so
+   every pixel of height it is not given comes off its width twice over — at
+   the old ceiling a 340px-wide stage handed back a 201px picture with 70px of
+   empty sheet down either side. The page behind a sheet is worth showing when
+   the sheet is a form you are filling in against it; it is worth nothing at all
+   when the sheet is one object you are looking at. */
+.fill {
+  /* Both, because a maximum outranks a height: the ceiling set on `.panel`
+     would otherwise quietly hold this back to the number it is replacing. */
+  height: min(92svh, 780px);
+  max-height: min(92svh, 780px);
+}
+
+/* A short screen does not have smaller chrome. The handle, the header, the
+   buttons and the padding cost the same 200-odd pixels on a 667px phone as on
+   an 844px one, so the same 86% ceiling hands the content far less and the
+   backdrop — which nobody is looking at — far more. Fourteen per cent of a
+   short screen is under a hundred pixels; the page still shows above the
+   sheet, and the sheet still reads as a sheet.
+
+   A ceiling, not a height: a sheet with two rows in it stays two rows tall
+   here exactly as it does everywhere else. */
+@media (max-height: 700px) {
+  .panel {
+    max-height: 93svh;
+  }
+
+  .fill {
+    height: 95svh;
+    max-height: 95svh;
+  }
+}
+
 /* ---- The grab handle ---- */
 
 /* The bar is 4px tall and nobody can hit 4px. This is the target: full width
@@ -142,6 +184,25 @@
   gap: var(--space-5);
   padding: 0 var(--space-5)
     calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Below `.inner` rather than up in the short-screen block with the panel's
+   height, and that is not tidiness — a media query carries no extra weight, so
+   the unconditional rule above would simply have won and the override would
+   have been dead code that measured as if it were live.
+
+   The chrome does not shrink with the screen, which is the actual problem: the
+   handle, the header, the footer and these two gaps cost the same ~266px on a
+   667px phone as on an 844px one, so a short phone pays 40% of its screen for
+   them where a tall one pays 31%. Of that, the gaps are the only part that is
+   air rather than a control, so they are what gives. One step down the scale,
+   not a collapse: 12px is still a clear break between the title, the thing
+   being worked on, and the way out. */
+@media (max-height: 700px) {
+  .inner {
+    gap: var(--space-3);
+    padding-block-end: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* ---- Wide: a sheet stops being a sheet ----

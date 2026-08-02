@@ -45,15 +45,6 @@
   color: var(--color-ink);
 }
 
-/* One line under the title saying what this sheet is for, where the title
-   alone would not carry it. */
-.blurb {
-  font-size: var(--text-sm);
-  line-height: var(--leading-body);
-  text-wrap: pretty;
-  color: var(--color-ink-soft);
-}
-
 /* ---- The scrolling middle ----
 
    Every sheet here is a header that stays, a body that scrolls and — where
@@ -168,7 +159,11 @@
   padding: var(--space-5);
   border-radius: var(--radius-md);
   border: 1px solid color-mix(in oklch, var(--color-danger), transparent 70%);
-  background: color-mix(in oklch, var(--color-danger), var(--color-paper) 92%);
+  /* oklab: 92% of the way from danger's red (25) to paper's blue-white (240)
+     is 92% of the way round the hue wheel too, which landed this wash on 252 —
+     a faintly blue panel behind a delete warning. Across the neutral axis it
+     is what it should be, the palest possible red. */
+  background: color-mix(in oklab, var(--color-danger), var(--color-paper) 92%);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   text-wrap: pretty;
@@ -202,7 +197,7 @@
   flex-direction: column;
   gap: var(--space-2);
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: var(--text-2xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-ink-soft);
@@ -245,7 +240,7 @@
   color: var(--color-ink);
   font-family: var(--font-serif);
   /* 16px flat: anything smaller and iOS zooms the whole sheet on focus. */
-  font-size: 16px;
+  font-size: var(--text-field);
   line-height: var(--leading-body);
 }
 
@@ -259,12 +254,24 @@
   resize: vertical;
 }
 
-/* The fair copy, which is a piece of writing rather than a field. Given the
-   height of a real draft so the reader can read a paragraph of it without
-   scrolling a box inside a scrolling sheet. */
-.tall {
-  min-height: 16rem;
+/* A piece of writing rather than a field — the fair copy, and the plain-text
+   keepsake. It takes the whole stage and scrolls inside itself.
+
+   It used to have no height of its own: a script measured the draft and grew
+   the box to fit, so the box never scrolled and the sheet's scroller carried
+   it. That measurement ran before the serif finished loading, which set the
+   height from a fallback face and — with `overflow: hidden` holding the box to
+   that number — quietly cut the last lines off a long review. A box that is
+   simply the size of the space it is in has nothing to measure and nothing to
+   get wrong. `resize` stays off: the box is already exactly the stage. */
+.write {
+  min-height: 0;
+  block-size: 100%;
+  resize: none;
   line-height: var(--leading-body);
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--color-ink), transparent 70%) transparent;
 }
 
 .input:focus-visible,
@@ -420,7 +427,7 @@
   border-radius: var(--radius-pill);
   background: none;
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: var(--text-2xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-accent-text);
@@ -457,6 +464,23 @@
   min-width: 12ch;
 }
 
+/* The recorder is itself a field, so its buttons cannot be the field fill they
+   are sitting on — that is one flat rectangle with a hairline drawn across it.
+   Raised to the level a chip uses when it is on: away from the field in both
+   themes, and a token that already means "a control standing off a control"
+   rather than a third grey invented here. */
+.recorder .capture {
+  background: var(--color-chip-active);
+  border-color: var(--color-chip-active-border);
+}
+
+/* The same fill as every other control on a sheet, which it was not: it took
+   `--card-fallback`, and on this panel that reads as 0.985 against a 0.978
+   sheet — a button brighter than the surface holding it, sitting in a row with
+   a segmented control at 0.948. A control has to be a step off its sheet, and
+   the direction of that step is set once for the whole app by `--field-fill`:
+   down by day, up by night. Borrowing a card token for a control was what put
+   this one the wrong side of the paper. */
 .capture {
   display: inline-flex;
   align-items: center;
@@ -464,8 +488,8 @@
   min-height: var(--tap-min);
   padding-inline: var(--space-5);
   border-radius: var(--radius-pill);
-  border: 1px solid var(--border-hairline);
-  background: var(--card-fallback);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: 620;
@@ -568,7 +592,7 @@
   min-width: 0;
   color: var(--color-ink);
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: var(--text-field);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -586,6 +610,335 @@
   background: var(--field-fill);
 }
 
+/* ---- Sharing: a stage, a band of controls, and two ways out ----
+
+   A share sheet is one object and a few decisions about it, and the object has
+   to be the biggest thing in the room. The old shape made the whole sheet a
+   scroller: the picture sat 176px tall under about 550px of controls, so
+   choosing a palette scrolled the picture off the top and every choice after
+   that was made blind. Three panes, four scrollbars, and the thing being sent
+   was the smallest item on screen.
+
+   Now the sheet does not scroll at all. The preview takes every pixel the
+   controls do not, the controls are a short fixed band beneath it, and the two
+   buttons are under that. Nothing moves; you look at the thing and change it. */
+
+/* Stage, caption and band as one block, so the sheet's own 24px rhythm falls
+   between the header, this, and the two buttons — and not between a picture
+   and the sentence describing it. */
+.compose {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.stage {
+  flex: 1;
+  /* Everything the caption, the band and the two buttons do not need — which
+     is a real number only because the sheet asks for a height of its own
+     (`Sheet`'s `fill`) instead of taking one from what is on the stage.
+
+     `min-height: 0` and nothing else. A floor was tried here first, and it was
+     both wrong and inert: wrong because a stage that refuses to shrink pushes
+     the buttons out through the bottom of a panel that clips them, and inert
+     because `min-block-size` and `min-height` are the same property, so the
+     zero written under it had been quietly cancelling the floor all along. */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* Centred by auto margins rather than by `align-items`, which is the one
+     difference that matters here: an over-tall child in a centred flex box has
+     its head clipped off with no way to scroll back to it, and auto margins
+     simply resolve to zero once the content outgrows the box. */
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* Thin and drawn in the page's own ink. Only the card ever needs it — a
+     reading with a dozen facts on it outgrows the stage on a small phone —
+     and one hairline track is a long way from the four the old sheet had. */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--color-ink), transparent 72%) transparent;
+  /* Room for a focus ring, taken back off the outside. Same pair as `.body`,
+     and the same reason: a vertical scroller computes `overflow-x: auto` with
+     it, so without this the stage clips its own children's outlines. */
+  padding-inline: 3px;
+  margin-inline: -3px;
+}
+
+.stage > * {
+  flex: none;
+  margin-block: auto;
+}
+
+/* A reading with a dozen facts on it is taller than any stage a phone can give
+   it — eight of those facts at the 44px a finger needs is 390px before the
+   title is set — so the card scrolls. What it must not do is end on a hard
+   horizontal cut, which is how a clipped bug looks and how a deliberate
+   scroller does not. The last 24px dissolve instead.
+
+   24 because that is exactly the card's own bottom padding: scrolled to the
+   end, the thing being faded out is paper margin, never a fact. Card only —
+   over a textarea this would be sitting on the line somebody is typing, and
+   over the plate there is nothing to fade, the picture already fits. */
+.fades {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--space-5)), transparent);
+}
+
+/* The text pane is the exception: the writing is the preview, so it takes the
+   stage rather than sitting in the middle of it. */
+.stage > .write {
+  flex: 1;
+  margin-block: 0;
+}
+
+/* One quiet line between the stage and the controls, saying what the pane in
+   front of you does. It replaced a paragraph per pane plus a hint under the
+   shape chips — four blocks of explanation for a screen whose whole job is to
+   show you the answer instead of describing it. */
+.caption {
+  flex: none;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  text-align: center;
+  text-wrap: pretty;
+  color: var(--color-ink-soft);
+}
+
+/* The band. Fixed height, no scroll, and the reason the stage can be as big as
+   it is: everything in here is one row tall. */
+.band {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ---- Segmented: several buttons that are one control ----
+
+   Three mutually exclusive answers to one question belong in one track, not in
+   three pills with sky between them — the same rule the journey's chrome pill
+   follows. Built from the sheet's own field material and the chip's own chosen
+   state, so it is the app's existing pill grouped, not a new control. */
+.segment {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+}
+
+.segmentItem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  /* The track adds its own 8px, so this is the hit area and not the row. */
+  min-block-size: var(--tap-min);
+  min-inline-size: 0;
+  padding-inline: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  letter-spacing: 0.01em;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
+}
+
+.segmentItem:hover {
+  color: var(--color-ink);
+}
+
+.segmentItem[aria-checked='true'] {
+  background: var(--color-chip-active);
+  border-color: var(--border-hairline);
+  color: var(--color-ink);
+  box-shadow: var(--elevation-1);
+}
+
+.segmentItem:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -1px;
+}
+
+/* ---- The rail: a printer's spec strip ----
+
+   Three axes on one line — what the picture shows, what it is printed on, what
+   it is printed in — each behind its own stamped label, divided by hairlines.
+   Stacked as three labelled fieldsets they were 200px of the sheet and pushed
+   the picture down to a thumbnail; laid out along one line they are 52px and
+   the picture keeps the difference.
+
+   It scrolls sideways when the words outrun the phone, the same way the
+   journey's filter rail does, and fades at the trailing edge rather than
+   showing a track. A rail is a shelf of options, not a document. */
+.rail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  /* The fade has to sit inside the padding, or a chip at rest looks dimmed for
+     no reason; it only ever eats a chip once one is genuinely scrolled under
+     it. `--fade` matches the gap so nothing lands half-lit. */
+  --fade: var(--space-5);
+  padding-inline-end: var(--fade);
+  margin-inline-end: calc(-1 * var(--fade));
+  mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(100% - var(--fade)),
+    transparent 100%
+  );
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* `flex: none` is load-bearing. A flex item shrinks by default, and these
+   groups hold chips that refuse to — so on a narrow phone each group's box was
+   squeezed below its contents and the swatches spilled out to the right, under
+   the next group's label. They still drew in the right place; they just could
+   not be tapped, because the label painted after them was what the tap landed
+   on. Groups keep their own width and the rail scrolls, which is what a rail
+   is for. */
+.railGroup {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Stamped, not written: the axis names are the caption on a printer's strip,
+   and at this size they have to be soft ink rather than faint — 11px tracked
+   uppercase is already working hard enough to be read. */
+.railLabel {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.railSep {
+  flex: none;
+  inline-size: 1px;
+  block-size: 24px;
+  margin-inline: var(--space-1);
+  background: var(--border-hairline);
+}
+
+/* A palette is a thing you look at, not a word you read, so its button is the
+   disc. Full tap height, and the disc sits in the middle of it. */
+.swatchPick {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: none;
+  cursor: pointer;
+  transition: background-color var(--dur-quick) var(--ease-out);
+}
+
+.swatchPick[aria-checked='true'] {
+  background: var(--color-chip-active);
+  border-color: var(--border-hairline);
+  box-shadow: var(--elevation-1);
+}
+
+.swatchPick:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -1px;
+}
+
+/* ---- The closing line ----
+
+   The one thing on a keepsake that did not come out of the book, so it is
+   written straight onto the band rather than filed under a label in a form.
+   One line at rest, up to three once there is something to say. */
+.inscribe {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+}
+
+.inscribeField {
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: var(--tap-min);
+  max-block-size: 5.25rem;
+  padding-block: var(--space-3);
+  border: none;
+  background: none;
+  color: var(--color-accent-text);
+  font-family: var(--font-serif);
+  font-style: italic;
+  /* 16px flat: anything smaller and iOS zooms the whole sheet on focus. */
+  font-size: var(--text-field);
+  line-height: var(--leading-snug);
+  resize: none;
+  scrollbar-width: none;
+}
+
+.inscribeField::placeholder {
+  font-style: normal;
+  color: var(--color-ink-faint);
+}
+
+.inscribeField:focus {
+  outline: none;
+}
+
+.inscribe:focus-within {
+  border-color: var(--color-accent-text);
+}
+
+/* Short screen: everything the stage does not need gives a little back. The
+   caption stays — it is the only place that says what "The tally" draws, and
+   twenty pixels of picture is a poor trade for not knowing what you are
+   choosing between. */
+@media (max-height: 700px) {
+  .compose {
+    gap: var(--space-2);
+  }
+
+  .band {
+    gap: var(--space-1);
+  }
+
+  .footRow {
+    padding-block-start: var(--space-2);
+  }
+}
+
 /* ---- The foot ---- */
 
 .foot {
@@ -600,6 +953,29 @@
   align-self: stretch;
 }
 
+/* Two ways out, weighted the same. The stacked version read as one real button
+   with a footnote under it, which is wrong twice over: copying is a first-class
+   answer, and on any machine without a system share sheet it is the only one
+   that does anything. Equal columns, wrapping to a stack only when the words
+   genuinely stop fitting side by side. */
+.footRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+}
+
+/* A rem basis, not a `ch` one. `ch` resolves against each element's own font,
+   so the sans-serif pill and the semibold slab beside it came out ten pixels
+   apart from the same declaration — and on a phone the pair squeezed onto one
+   line just tightly enough to break "Send it somewhere" over two. 12rem is
+   wider than half a phone sheet, so the row stacks cleanly there and sits side
+   by side the moment there is honest room for it. */
+.footRow > * {
+  flex: 1 1 12rem;
+  justify-content: center;
+}
+
 /* The count under the fair copy, and the note about what could not be written
    out. Quiet, and never in the way of the text it is counting. */
 .tally {
@@ -611,7 +987,17 @@
   color: var(--color-ink-faint);
 }
 
+/* The count keeps its own line — left to itself it broke after the number and
+   set "285" over "words" in a column two characters wide, which reads as a
+   heading over a caption rather than as one short fact. The note beside it is
+   the part with words to spare, so it is the part that wraps. */
+.tally > span {
+  flex: none;
+  white-space: nowrap;
+}
+
 .tally em {
+  flex: 1;
   font-style: normal;
   text-wrap: pretty;
 }

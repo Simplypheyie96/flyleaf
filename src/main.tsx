@@ -1,12 +1,18 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-/* Self-hosted so the archive still reads with no network. Instrument Serif
-   ships one weight and one italic — that is the whole family, so nothing here
-   may ask it for a bold. */
-import '@fontsource/instrument-serif/400.css'
-import '@fontsource/instrument-serif/400-italic.css'
-import '@fontsource-variable/geist'
-import '@fontsource-variable/geist-mono'
+/* Self-hosted so the archive still reads with no network, and so the share
+   canvas can draw with them without tainting.
+
+   Newsreader is the reading voice: a text serif with a real 200–800 range and
+   a true italic, which is what lets a title be a title at 24px instead of
+   needing 38px to look like one. Instrument Sans is the app's own voice.
+   IBM Plex Mono is only ever a small stamped label — dates, page numbers.
+   Patrick Hand is the reader's hand and is deliberately left alone. */
+import '@fontsource-variable/newsreader'
+import '@fontsource-variable/newsreader/wght-italic.css'
+import '@fontsource-variable/instrument-sans'
+import '@fontsource/ibm-plex-mono/400.css'
+import '@fontsource/ibm-plex-mono/500.css'
 import '@fontsource/patrick-hand'
 import './styles/tokens.css'
 import './styles/motion.css'

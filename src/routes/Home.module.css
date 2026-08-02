@@ -123,7 +123,12 @@
   border: 1px solid color-mix(in oklch, var(--color-ink), transparent 82%);
   border-radius: 10px;
   padding: var(--space-3);
-  background: color-mix(in oklch, var(--color-ink), transparent 95%);
+  /* 97%, not 95%. The panel tints itself by laying ink over the card, which
+     also darkens the paper under the 11px readout printed on it — soft ink on
+     that slightly muddied wash measured 4.48:1, under AA by a rounding error
+     at the smallest size in the app. Two points of wash is the whole fix; the
+     panel still reads as inset because the hairline is doing that work. */
+  background: color-mix(in oklch, var(--color-ink), transparent 97%);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -136,7 +141,7 @@
   justify-content: space-between;
   gap: var(--space-3);
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: var(--text-2xs);
   letter-spacing: 0.06em;
   /* the page count and percentage both climb as you read; proportional digits
      would shift the row on every update */
@@ -247,7 +252,7 @@
 .memoryType {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: var(--text-2xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-ink-soft);

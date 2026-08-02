@@ -78,7 +78,7 @@
   /* 17px, the interface reading size, in the interface face. The old back
      control was serif at heading size and read as a title. */
   font-family: var(--font-sans);
-  font-size: 1.0625rem;
+  font-size: var(--text-md);
   letter-spacing: -0.01em;
   white-space: nowrap;
 }

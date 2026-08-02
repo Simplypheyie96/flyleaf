@@ -1,0 +1,202 @@
+/* The keepsake — the card, the plate, and the controls that shape them.
+
+   A printer sets a colophon centred, small, and with more air around it than
+   anything else on the page: it is the last thing in a book and it is allowed
+   to be quiet. That is the card here. Centred setting is wrong almost
+   everywhere else in this app and right here, because this block is a single
+   short object being looked at rather than a column being read.
+
+   The difference from the old version is that the card is now the editing
+   surface — every line in it is a switch — so the rows need a target big
+   enough to hit and a state that is obvious at a glance, without any of that
+   turning the card into a form. */
+
+/* 24px rather than 32. The card is now the full width of the sheet instead of
+   a thumbnail under a stack of controls, and at that size the old padding was
+   spending a sixth of the stage's height on air at the top and bottom while
+   the facts underneath were the thing being scrolled for. */
+.card {
+  --paper-pad: var(--space-5);
+  text-align: center;
+}
+
+.bookTitle {
+  font-family: var(--font-serif);
+  /* Instrument Serif has no bold — weight is stated so a fallback face cannot
+     synthesise one and change the card's whole voice. */
+  font-weight: 400;
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  text-wrap: balance;
+  color: var(--color-ink);
+}
+
+.author {
+  margin-block-start: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+/* Not a border on the list: a short centred rule, the way the mark between a
+   title page and its imprint is set. A full-width line would cut the card in
+   two and make the facts look like a separate card underneath. */
+.rule {
+  display: block;
+  inline-size: 44px;
+  block-size: 1px;
+  margin: var(--space-4) auto;
+  /* Not --card-border: that token is the lit edge of a translucent card, a
+     white at 55%, and this card is opaque paper. On paper it disappeared and
+     left an unexplained gap where a printer's mark should be. */
+  background: var(--border-hairline);
+}
+
+.set {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Each fact is a switch. It carries no chrome of its own — no border, no fill,
+   nothing that would make the card look like a settings screen — and says what
+   it is by lighting up or going quiet when it is tapped. The padding is here to
+   make the target reachable, not to draw a box. */
+.line {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  inline-size: 100%;
+  /* The row is the hit area and the hit area is 44px, so the padding only has
+     to keep a one-line fact off the fact under it — anything more is height
+     the card does not have. A fact that wraps grows past the minimum on its
+     own. */
+  min-block-size: var(--tap-min);
+  padding: var(--space-1) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    opacity var(--dur-quick) var(--ease-out),
+    background-color var(--dur-quick) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .line:hover {
+    background: color-mix(in oklab, var(--color-ink) 4%, transparent);
+  }
+}
+
+.line:active {
+  transform: translateY(var(--press));
+  transition-duration: var(--dur-press);
+}
+
+/* Left out. Still on the card, because the way back in is to tap it again and
+   a line that vanished would leave nothing to tap. Dimmed rather than struck
+   through: a strike reads as a correction, and nothing here is wrong. */
+.line[aria-pressed='false'] {
+  opacity: 0.32;
+}
+
+.term {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.detail {
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+  /* Counts and dates sit under one another down the card, so the digits have
+     to hold their column. */
+  font-variant-numeric: tabular-nums;
+  text-wrap: pretty;
+  color: var(--color-ink);
+}
+
+/* The reader's own closing line, under the rule and in their own hand's voice.
+   Italic and in the accent because it is the one thing on the card that did not
+   come out of the book — the same treatment the drawn plate gives it. */
+.note {
+  margin-block-start: var(--space-4);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--border-hairline);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-accent-text);
+}
+
+/* ---- The plate ----
+
+   The drawn picture. It used to be sized by a number — 11rem, or 24svh,
+   whichever was smaller — because it was one item in a scroller and had to be
+   rationed against everything stacked above it. At 176px tall it was the
+   smallest thing on a screen whose entire purpose was to show it, and reaching
+   the palette scrolled it out of sight, so every choice after the first was
+   made blind.
+
+   It has no size of its own now. The frame takes whatever height the stage has
+   left, and the plate is fitted inside it: `auto` on both axes with a cap on
+   both axes is the contain rule for a replaced element, so the picture grows
+   until it meets an edge and never distorts against the other one. Roughly
+   twice the old height on a phone, and it moves with the sheet instead of
+   being budgeted against it. */
+
+/* Exactly the stage, and centred in it. Height rather than `flex: 1` on
+   purpose: the stage sets `flex: none` on its children so a tall card keeps
+   its own height and scrolls, and one cross-file specificity tie is a poor
+   thing to hang a layout on. */
+.frame {
+  block-size: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.plate {
+  display: block;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  /* The cap above does nothing without these. A grid item's automatic minimum
+     size is its content, and for a canvas that content is the backing store —
+     1350px of it. A minimum beats a maximum, so the plate sat at its full
+     intrinsic height and overflowed the frame that was supposed to be fitting
+     it. Zero on both axes hands the max back its job. */
+  min-inline-size: 0;
+  min-block-size: 0;
+  /* 4:5, held so the sheet doesn't jump the moment the first paint lands. */
+  aspect-ratio: 1080 / 1350;
+  border-radius: var(--radius-md);
+  box-shadow: var(--elevation-2);
+}
+
+/* A palette, as the thing it is: a disc of that paper with that accent at its
+   centre. Naming the four is not enough — "Fern" and "Bloom" are only words
+   until you have seen them. */
+.swatch {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--border-hairline);
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      var(--swatch-core) 0 34%,
+      var(--swatch-paper) 35% 100%
+    );
+}

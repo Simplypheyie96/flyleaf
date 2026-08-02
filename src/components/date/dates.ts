@@ -111,6 +111,19 @@ export function shortDate(iso: string) {
   })
 }
 
+/** "Jul 2", or "Jul 2, 2019" once the year stops being this one. For the two
+    ends of a reading span, where the same year would otherwise be printed
+    twice in one pill — and where the year of a book you are reading right now
+    is not news. */
+export function spanDate(iso: string) {
+  const d = fromISO(iso)
+  return d.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    ...(d.getFullYear() === new Date().getFullYear() ? {} : { year: 'numeric' }),
+  })
+}
+
 /** What a screen reader should hear on a day cell — the full date, never the
     bare numeral, because "17" out of context tells you nothing. */
 export function dayLabel(d: Date) {

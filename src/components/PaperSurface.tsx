@@ -16,6 +16,9 @@ interface PaperSurfaceProps {
   /** Scrapbook tilt in degrees (keep within ±2.5). */
   rotate?: number
   taped?: boolean
+  /** Set when the surface sits on a GlassSurface — a sheet, a bar, a pill.
+      Drops the frosting for an opaque fill; see `.solid` for why. */
+  onGlass?: boolean
   /** Entry-type surface tint. */
   tone?: PaperTone
   /** The element to print on. A keep is an `article`, a pile of them is a
@@ -45,13 +48,20 @@ function PaperSurface({
   children,
   rotate = 0,
   taped = false,
+  onGlass = false,
   tone = 'default',
   as: Tag = 'div',
   className,
   style,
   ...data
 }: PaperSurfaceProps) {
-  const classes = [styles.paper, taped && styles.taped, TONE_CLASS[tone], className]
+  const classes = [
+    styles.paper,
+    taped && styles.taped,
+    onGlass && styles.solid,
+    TONE_CLASS[tone],
+    className,
+  ]
     .filter(Boolean)
     .join(' ')
   return (

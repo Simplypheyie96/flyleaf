@@ -5,7 +5,7 @@ Everything installed, grouped by job. Type `/skill-name` in chat, or say "use th
 Namespaced entries (`plugin:name`) come from plugins — type them with the prefix.
 
 **Contents**
-[**How to prompt with skills**](#how-to-prompt-with-skills) · [Start here](#start-here) · [Whole pages](#whole-pages--site-types) · [Look packs](#look-packs-aesthetic-systems) · [Fundamentals](#design-fundamentals) · [Layout details](#layout--structural-details) · [Effects](#effects--backgrounds) · [Animation](#animation) · [GSAP](#gsap) · [Scroll](#scroll-storytelling) · [3D](#3d--threejs) · [Games](#games) · [Sound](#sound--audio) · [Making images](#making-images) · [Slides & video](#slides--video) · [Non-web](#non-web--native) · [Frameworks](#frameworks--libraries) · [Tooling](#build-tooling--infra) · [Testing](#testing--browser-automation) · [Audits](#audits--quality) · [Engineering process](#engineering-process) · [UX research](#ux-research--product-thinking) · [Web research](#web-research--scraping-firecrawl) · [Writing](#writing--social) · [Support](#customer-support) · [Meta](#meta--skill-authoring) · [Plugins](#plugin-skills) · [MCP & external tools](#mcp-servers--external-tools) · [Built-ins](#built-in-claude-code-skills)
+[**How to prompt with skills**](#how-to-prompt-with-skills) · [Start here](#start-here) · [Whole pages](#whole-pages--site-types) · [Look packs](#look-packs-aesthetic-systems) · [Fundamentals](#design-fundamentals) · [Layout details](#layout--structural-details) · [Effects](#effects--backgrounds) · [Canvas UI](#canvas-ui-external-registry-not-installed) · [Animation](#animation) · [GSAP](#gsap) · [Scroll](#scroll-storytelling) · [3D](#3d--threejs) · [Games](#games) · [Sound](#sound--audio) · [Making images](#making-images) · [Slides & video](#slides--video) · [Non-web](#non-web--native) · [Frameworks](#frameworks--libraries) · [Tooling](#build-tooling--infra) · [Testing](#testing--browser-automation) · [Audits](#audits--quality) · [Engineering process](#engineering-process) · [UX research](#ux-research--product-thinking) · [Web research](#web-research--scraping-firecrawl) · [Writing](#writing--social) · [Support](#customer-support) · [Meta](#meta--skill-authoring) · [Plugins](#plugin-skills) · [MCP & external tools](#mcp-servers--external-tools) · [Built-ins](#built-in-claude-code-skills)
 
 ---
 
@@ -69,6 +69,8 @@ Say the symptom out loud and read across.
 | "The animation feels janky." | `/60fps-animation` or `/fixing-motion-performance` |
 | "I want it to feel expensive." | `/high-end-visual-design` or `/emil-design-eng` |
 | "I have a reference I like." | `/web-clone` or `/firecrawl-website-design-clone` |
+| "I have a video of an animation I want to rebuild." | `/animation-reverse-engineering` |
+| "I rebuilt it and it's *almost* right." | `/animation-reverse-engineering` — measures what eyeballing missed |
 | "I don't know what to build yet." | `superpowers:brainstorming` |
 | "I know what to build, it's big." | `superpowers:writing-plans` |
 | "It's broken and I can't tell why." | `superpowers:systematic-debugging` or `/diagnosing-bugs` |
@@ -90,6 +92,8 @@ Skills fall into four roles. Take one from each, in this order.
 | 4 | **QA** | Checks the result before handoff. | `/web-design-guidelines`, `/fixing-accessibility`, `/review-animations` |
 
 **Never stack two look packs.** They're complete systems — color, type scale, surfaces, spacing. Two of them average into something that looks like neither. Want a blend? Pick one as the base and describe the borrowed part in words: *"`/swiss-design` as the base, but frosted panels on the pricing cards only."*
+
+**Never reuse a pack across projects, either.** Stacking two is one failure mode; running the same one on everything you build is the other, and it's the slower, harder one to notice. See [One pack, one project](#look-packs-aesthetic-systems).
 
 **Three to five skills is the ceiling.** Past that, the early instructions get diluted by the later ones.
 
@@ -240,7 +244,7 @@ Don't start over. Name what happened and re-scope.
 | `/redesign-existing-projects` | Audits an existing site, removes generic AI patterns, upgrades to premium. |
 | `/web-clone` | Website cloning/recreation methodology. |
 
-> **`/landing-page-design` has a land-grab description.** It tells Claude to fire on "ANY landing page, marketing site, web UI, page section, component, or prototype, even when the user does not mention design," and then imposes a fixed font, type scale, radius, and motion system. That collides with your no-house-style rule. Use it when you want *its* look. When you want your own, name `/landing-page` explicitly or it may get overridden silently.
+> **`/landing-page-design` ships a house style, and its description has been narrowed on purpose.** As published it told Claude to fire on "ANY landing page, marketing site, web UI, page section, component, or prototype, even when the user does not mention design," which meant it could switch itself on for a single card and quietly impose Geist, Tailwind's type scale, its radii and its motion. That collides with your no-house-style rule. The description now says: landing and marketing pages only, only when you have no direction of your own, never for app UI, components, prototypes, or a project that already has a `DESIGN.md`, a `refs/` folder, or an established look. It also now forbids two things outright: overriding a look that already exists, and being reused across more than one page or site. The body is untouched, so invoking it by name still gives you the whole system. Original file backed up at `~/.claude/skills/landing-page-design/.SKILL.md.orig`. **A repo update will overwrite this edit.**
 | `/firecrawl-website-design-clone` | Extracts a live site's design system into an agent-ready DESIGN.md. |
 | `/interface-design` | Dashboards, admin panels, SaaS apps, settings, data interfaces. |
 | `/efecto-web-design` | Build web pages/app UIs on the Efecto canvas with JSX + Tailwind. |
@@ -250,6 +254,10 @@ Don't start over. Name what happened and re-scope.
 ## Look packs (aesthetic systems)
 
 Complete design systems — colors, type, surfaces, components — in one voice.
+
+> **One pack, one project. Never reuse.** A look pack is a finished identity, not a starting point. Run the same pack twice and the two sites read as the same company, which is the exact thing your no-house-style rule exists to prevent. Before reaching for one, check the project's `DESIGN.md`, its `refs/` folder, and its existing code. If a direction is already there, build from it and skip the pack. If nothing is there, pick one you have not used before, or ask for two or three directions and choose. Keep a note of which pack went to which project so the second use never happens by accident.
+>
+> **Packs never override.** A pack applied to a project that already has a look will flatten it. If a look already exists, no pack runs. Say it was skipped and why.
 
 **Light / minimal**
 
@@ -357,6 +365,91 @@ The 10 Refactoring UI skills individually: `01-establish-visual-hierarchy` · `0
 | `/webgl-3d-object` | Real 3D WebGL object — mesh depth, PBR material, lighting. |
 | `/ascii-animation` | Terminal/CLI-style ASCII animations and intros. |
 
+### Canvas UI (external registry, not installed)
+
+**[canvasui.dev](https://canvasui.dev)** · free, open source, no API key, no package dependency. 33 WebGL effects that render your real HTML *inside* a canvas, so the content underneath stays interactive and selectable. Ships in React, Vue, Svelte, Solid, Preact, and vanilla TS, so it does not care about your stack.
+
+**Nothing here is installed.** This is a catalog so the options are known when a project actually calls for one. To pull a single component into a project:
+
+```
+npx shadcn@latest add @canvas-ui/liquid-react
+```
+
+Register it once per project in that project's `components.json`:
+
+```json
+{ "registries": { "@canvas-ui": "https://canvasui.dev/r/{name}.json" } }
+```
+
+There is also a shadcn MCP (`npx shadcn@latest mcp init --client claude`) that lets Claude browse and install these directly. Deliberately not set up, because it is one more thing that can auto-fire. Revisit if you find yourself reaching for these often.
+
+> **Read before shipping any of these.** They are built on the **html-in-canvas API, a Chrome origin trial**. Experimental, Chromium only, with Firefox partially supported on some components. Elsewhere the page degrades to plain HTML. Fine for a portfolio, a launch page, or a demo. Think hard before putting one in front of real users on unknown browsers. All are dependency free except the five **Object** components, which need three.js.
+>
+> **One effect, one project.** These are the most memorable things on this list, which makes them the fastest route to every site of yours looking related. Same rule as the look packs: use one, note it in that project's `DESIGN.md`, do not reach for it again.
+
+**Whole-page atmosphere** (covers the entire page)
+
+| Component | Effect |
+|---|---|
+| `asciify` | Page redrawn as live ASCII glyphs in a radius around the cursor. |
+| `canvas` | Page painted onto woven artist canvas: fiber, paper tint, grain, halftone. Text stays crisp. |
+| `cloth` | Page hung on fabric rippling in wind. Cursor strokes send waves across it. |
+| `clouds` | Procedural fog that blurs what it covers and parts at the cursor. |
+| `vhs` | Worn VHS playback: tape wave, head-switch noise, chroma bleed, grain. |
+| `glitch` | Broadcast glitch bursts, RGB splits, corrupted blocks, then settles clean. |
+| `frost` | Ice pane over the page. Hover melts a hole that freezes back over. |
+| `droplets` | Rain running down the screen, refracting the page behind. |
+| `blaze` | Fire, sparks, smoke, and heat distortion rising from the bottom edge. |
+| `glyph-rain` | Glowing glyph streams whose drop heads cast real light pools onto the page. |
+| `force-field` | Energy shield lattice. Cursor charges cells, clicks detonate shockwaves. |
+
+**Cursor lenses** (local, follows the pointer)
+
+| Component | Effect |
+|---|---|
+| `liquid` | Pointer-driven WebGL fluid simulation over the page. The signature one. |
+| `glass` | Glass lens refracting the live page, with crystal-ball zoom over targets. |
+| `magnify` | Sci-fi HUD scanner reticle, chromatic aberration, click ripples. |
+| `bubble` | Glassy metaball droplet trailing the cursor: dispersion, frost, iridescence. |
+| `retro-dither` | Lens that pixelates and quantizes the page around the cursor. |
+| `particle-reveal` | Page as fine grayscale dust, merging back into crisp UI at the cursor. |
+| `decrypt-reveal` | Page as ASCII cipher text, decoding behind a flickering wavefront. |
+
+**Page geometry** (deforms the layout itself)
+
+| Component | Effect |
+|---|---|
+| `grid` | Page split into 3D tiles rippling in waves around the cursor. |
+| `hex-float` | Live page on beveled hex tiles leaning in perspective, rising at the cursor. |
+| `shatter` | Page shatters into 3D glass shards that lift, tilt, and float. |
+| `displacement` | Displacement grid rippling from the cursor, chromatic fringing, film grain. |
+| `ripple` | Water ripples spreading from every click, with dispersion and crest glints. |
+| `peel` | Page peels back from a chosen edge, revealing a second layer underneath. |
+
+**Scroll-driven**
+
+| Component | Effect |
+|---|---|
+| `bend` | Top and bottom fold over virtual edges as you scroll, like a cube face. |
+| `particle-scroll` | Everything below a chosen line dissolves into sand, reassembling on scroll. |
+| `laser` | Glowing beam hides content below it. Scrolling prints new content in from behind. |
+
+**3D objects** (three.js, needs a GLB/glTF model, SVG, or image)
+
+| Component | Effect |
+|---|---|
+| `glass-object` | Liquid-glass object: real refraction, chromatic dispersion, frost, studio lighting. |
+| `liquid-object` | Object dragged through an invisible GPU fluid that swirls under the cursor. |
+| `particle-object` | Object rebuilt as a particle cloud the cursor pushes, swirls, and springs back. |
+| `ascii-object` | Object as ASCII characters chosen by shape, so glyphs trace its edges. |
+| `dithered-object` | Object through 1-bit Bayer, halftone, or Floyd-Steinberg dither. |
+
+**Element-scoped**
+
+| Component | Effect |
+|---|---|
+| `flame-wrap` | Wraps one element in an aligned fire border: rising flames, molten glow, sparks. |
+
 ---
 
 ## Animation
@@ -371,12 +464,21 @@ The 10 Refactoring UI skills individually: `01-establish-visual-hierarchy` · `0
 | `/interaction-design` | Microinteractions, transitions, user feedback patterns. |
 | `/to-spring-or-not-to-spring` | Springs vs easing — correct timing-function selection. |
 
+**Rebuild motion you've seen somewhere**
+
+| Skill | What it does |
+|---|---|
+| `/animation-reverse-engineering` | Video, GIF, or screen recording → frame-level dissection → production code, then verified back against the source frames. Measures easing, stagger order, and overlap instead of guessing them. Defaults to Framer Motion; the analysis is framework-agnostic. |
+
+> **Which of the two reference skills.** `/video-to-superprompt` watches a video and writes you a *description* to build from — fast, no dependencies, good enough when the motion is simple. `/animation-reverse-engineering` extracts the actual frames with `ffmpeg` and *measures* the curve, then screenshots your build and diffs it against the reference. Reach for it when a recreation came out subtly wrong and you can't say why — that's almost always easing or stagger feather, and those are exactly what eyeballing at 1× gets wrong. Needs `ffmpeg`; also `yt-dlp` for X/Twitter and YouTube sources (direct `.mp4`/`.gif` links and local files work without it).
+
 **Build it**
 
 | Skill | What it does |
 |---|---|
 | `/micro-interaction` | Hover/press effects, toggles, switches. |
-| `/transitions-dev` | Production CSS transitions — badges, dropdowns, modals. |
+| `/transitions-dev` | 27 drop-in CSS transitions, `t-*` namespaced with motion tokens. Badges, dropdowns, modals, toasts, tabs, accordions, toggles, skeletons, success checks. No framework, every snippet ships its own `prefers-reduced-motion` guard. [transitions.dev](https://transitions.dev) |
+| `/transitions-polish` | The **tuning** half. Does not add motion, it fixes motion that already exists: duration, distance, scale, blur, easing, open/close asymmetry, hover-in vs hover-out, stagger offsets, intent delays. Also scans a codebase for ad-hoc hardcoded durations and converts them to tokens. |
 | `/animation-on-scroll` | IntersectionObserver scroll triggers, Tailwind-friendly. |
 | `/page-transition-animation` | Page and route transitions. |
 | `/svg-animation` | Animate SVG, line-draw, stroke effects. |
@@ -386,6 +488,12 @@ The 10 Refactoring UI skills individually: `01-establish-visual-hierarchy` · `0
 | `/mastering-animate-presence` | Framer Motion / Motion `AnimatePresence` exit + layout animations. |
 | `/staggered-word-reveal` | Editorial word-by-word fade-and-rise reveals. |
 | `/masked-reveal` | Masked staggered word reveals on scroll (GSAP ScrollTrigger). |
+
+> **The two `transitions-*` skills are a pair, and they split cleanly.** `/transitions-dev` *adds* a transition that isn't there. `/transitions-polish` *tunes* one that is. If motion exists and feels wrong, reach for polish, not dev.
+>
+> **Where polish overlaps your other motion skills.** `/60fps-animation` and `/fixing-motion-performance` are about *jank*, dropped frames and layout thrash, a performance problem. `/transitions-polish` is about *taste*, timing that is technically smooth but feels sluggish or abrupt. `/review-animations` and `/improve-animations` audit broadly and hand back a list. Polish is the narrow one that aligns everything to a single token scale. Use one, not three.
+>
+> **There is a paid tier, `transitions-pro`.** More recipes plus React and TypeScript versions, unlocked with a browser sign-in at [transitions.dev/pro](https://transitions.dev/pro.html). Not installed, and Claude will not sign you up. If you want it, run `npx transitions-pro skill` yourself.
 
 **Review & fix**
 
@@ -534,6 +642,7 @@ Grouped by what you're producing.
 | `/stitched-full-page-capture` | Full-page screenshots of lazy-loaded, scroll-animated, Framer, or WebGL pages. |
 | `/html-to-interaction-prompts` | Screenshots + section crops + MP4 + prompts, assembled into an article. |
 | `/video-to-superprompt` | Reference video → detailed recreation prompt. |
+| `/animation-reverse-engineering` | Reference video → measured frame stacks → animation code. See [Animation](#animation) for when to use this over the above. |
 
 > **Gap worth knowing:** there's no general text-to-image skill here — nothing for "draw me an illustration of X." Everything above is either UI-shaped (`imagegen-*`), brand-shaped (`brandkit`), canvas-tool-driven (Efecto), or code-drawn (`canvas-design`, `algorithmic-art`). For a one-off illustration or photo, just ask directly — no skill needed.
 

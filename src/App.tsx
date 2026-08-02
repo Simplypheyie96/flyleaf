@@ -14,6 +14,7 @@ import SplashScreen from "./components/SplashScreen";
 import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
 import UpdateToast from "./components/UpdateToast";
 import BookJourney from "./routes/BookJourney";
+import CardLab from "./routes/CardLab";
 import Home from "./routes/Home";
 import Library from "./routes/Library";
 import Settings from "./routes/Settings";
@@ -61,7 +62,9 @@ function NavPills() {
    with a back affordance does not also need the map. */
 function Shell({ onAdd }: { onAdd: () => void }) {
   const { pathname } = useLocation();
-  if (pathname.startsWith("/book/")) return null;
+  // A journey is a room you go into and come back out of; the card gallery is
+  // a workbench. Neither wants the app's map painted over it.
+  if (pathname.startsWith("/book/") || pathname.startsWith("/lab/")) return null;
 
   return (
     <>
@@ -107,6 +110,7 @@ function App() {
         <Route path="/book/:id" element={<BookJourney />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/styleguide" element={<Styleguide />} />
+        <Route path="/lab/cards" element={<CardLab />} />
       </Routes>
 
       <Shell onAdd={() => setAdding(true)} />
