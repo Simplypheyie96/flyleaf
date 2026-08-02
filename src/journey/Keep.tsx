@@ -26,9 +26,9 @@ interface KeepProps {
 }
 
 function Keep({ keep, book, onMotif, onEdit, onDelete }: KeepProps) {
-  // `?dir=` redraws the whole thread from one set; `?ch=` and `?th=` swap in a
-  // fourth-drawing candidate for just that type. Absent — which is always, in
-  // the app — every keep is drawn as `CHOSEN` says.
+  // `?dir=` redraws the whole thread from one set; `?th=` swaps in a candidate
+  // for the one type still being decided. Absent — which is always, in the
+  // app — every keep gets its real drawing.
   const [params] = useSearchParams()
   const Card = cardFor(keep.type, params)
   const one = KIND[keep.type].one

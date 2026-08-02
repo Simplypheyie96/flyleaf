@@ -1,10 +1,10 @@
-/* THE FOURTH DRAWING — characters and plot threads
+/* DRAWN TO ORDER — the character card, and candidates for plot threads
 
-   Three candidates for each of the two types whose first three drawings were
-   turned down. They have to sit convincingly beside the five that are already
-   chosen, so this sheet copies the two things that make a Plates card a Plates
-   card — the solid paper tone and the tint re-pointing under `.card` — and
-   changes only what is above it.
+   The two types that are not drawn from one of the three sets. They have to
+   sit convincingly beside the five that are already chosen, so this sheet
+   copies the two things that make a Plates card a Plates card — the solid
+   paper tone and the tint re-pointing under `.card` — and changes only what is
+   above it.
 
    Everything directional is logical, so it mirrors without a second sheet. */
 
@@ -113,106 +113,35 @@
   display: none;
 }
 
-/* ══ CHARACTERS ═══════════════════════════════════════════════════════════
+/* ══ CHARACTER ════════════════════════════════════════════════════════════
 
-   All three sit on rose paper and all three end in prose, so all three take
-   the 32px bottom: 24 for the circles' reach and eight of air on top of it,
-   which is roughly a line. */
+   Rose paper, and the 32px bottom every card that ends in prose takes: 24 for
+   the verb circles' reach back up into the card, and eight of air on top of
+   it, which is roughly a line.
 
-.monogram,
-.calling,
-.tracked {
+   The card is one column on one edge. There is no grid, no inset object and no
+   hanging indent, because a device in the layout was what was wrong with all
+   six drawings before this one. Which leaves exactly two spacing decisions,
+   and they follow the ordinary rule: the gap inside a group is smaller than
+   the gap between groups. The name belongs to the cameo above it (16) more
+   loosely than the description belongs to the name (8), and the chip row is a
+   separate thing again (16, from `.foot`). */
+
+.person {
   --paper-tone: var(--card-character-solid);
   padding-block-end: var(--space-6);
 }
 
-/* ── A · Monogram ───────────────────────────────────────────────────────── */
-
-.mono {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: var(--space-4);
-  align-items: baseline;
-}
-
-/* Big enough to be the card's subject rather than an ornament beside the name,
-   which is the whole correction: the hero slot now holds the one mark that is
-   unarguably this person, instead of a likeness the app never had. Line-height
-   just under 1 so a descender still has somewhere to go. */
-.letter {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: 3.5rem;
-  line-height: 0.9;
-  letter-spacing: var(--track-display);
-  color: var(--color-character);
-}
-
-.named {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: var(--text-sm);
-  line-height: var(--leading-snug);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  color: var(--color-ink);
-  text-wrap: balance;
-}
-
-/* ── B · Calling card ───────────────────────────────────────────────────── */
-
-/* A small object, so it is sized like one and centred rather than filling the
-   keep. Everything you thought about the person stays outside it, on the
-   keep's own paper — the card was handed to you, the note under it is yours. */
-.callingCard {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-3);
-  max-inline-size: 15.625rem;
-  margin-inline: auto;
-  padding: var(--space-5) var(--space-4);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-sm);
-  background: var(--tint-reverse);
-}
-
-.rule {
-  inline-size: 2.75rem;
-  block-size: 1px;
-  background: color-mix(in oklab, var(--color-character) 55%, transparent);
-}
-
-/* Roman, letterspaced open, no weight: engraving has no bold. */
-.engravedName {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: var(--text-lg);
-  line-height: var(--leading-tight);
-  letter-spacing: 0.04em;
-  text-align: center;
-  text-wrap: balance;
-  color: var(--color-ink);
-}
-
-/* ── C · Tracked person ─────────────────────────────────────────────────── */
-
-.who {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-/* The cameo, demoted from hero to stamp. At 40 it is the size of a mark made
-   against a name in a record, not a portrait — which is the point of this
-   candidate: keep the drawing, lose the claim that it is a likeness. */
-.stamp {
-  flex: none;
+/* The mount the cameo sits in — `Avatar` draws a silhouette and no ground at
+   all, so without this the head floats on the paper with nothing under it.
+   56 is the size a portrait is kept at in a book: bigger than the 44 minimum
+   so the outline that distinguishes one cameo from another actually reads,
+   small enough that it is a picture on the card rather than the card. */
+.cameo {
   display: grid;
   place-items: center;
-  inline-size: 40px;
-  block-size: 40px;
+  inline-size: 56px;
+  block-size: 56px;
   border-radius: 50%;
   overflow: hidden;
   background: color-mix(in oklab, var(--color-character) 16%, var(--tint-reverse));
@@ -220,9 +149,8 @@
   color: var(--color-character);
 }
 
-.trackedName {
-  min-inline-size: 0;
-  margin: 0;
+.name {
+  margin: var(--space-4) 0 0;
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: var(--text-md);
@@ -230,25 +158,13 @@
   letter-spacing: var(--track-title);
   color: var(--color-ink);
   text-wrap: balance;
-}
-
-/* Indented to start exactly under the name — the stamp owns the leading
-   column, the words belong to the person beside it. 40 of stamp plus the 12
-   the row holds open. */
-.observed {
-  margin: var(--space-3) 0 0;
-  margin-inline-start: calc(40px + var(--space-3));
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  line-height: var(--leading-body);
-  color: var(--color-ink-soft);
   max-inline-size: var(--measure);
 }
 
-/* Shared by monogram and calling card: the description on the keep's own
-   paper, full width, under whatever names the person. */
+/* What you know about them. Same voice the note and the dossier use elsewhere,
+   starting on the same edge as everything above it. */
 .about {
-  margin: var(--space-4) 0 0;
+  margin: var(--space-2) 0 0;
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
