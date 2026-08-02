@@ -1,32 +1,28 @@
-/* THE FOURTH DRAWING — characters and plot threads
-   ════════════════════════════════════════════════
+/* DRAWN TO ORDER — the character card, and candidates for plot threads
+   ═══════════════════════════════════════════════════════════════════
 
-   Five of the seven types are settled. These two are not: all three of the
-   original directions were turned down for both, and re-picking from three
-   drawings that were already rejected is not a decision, it is a coin toss.
-   So this file holds three fresh candidates for each, to be looked at in the
-   real thread and chosen from.
+   Five of the seven types are drawn from one of the three sets. These two are
+   not.
 
-   Why each of them failed is worth stating, because it is what these are
-   built against.
+   CHARACTERS — settled, and this is it. Three set drawings were turned down,
+   then three fresh candidates after them: a monogram with no picture, a small
+   engraved calling card, and the cameo demoted to a stamp with the description
+   indented under the name. The answer to all six was the same and it was the
+   simplest possible one — an avatar, the words underneath, and no clever
+   spacing anywhere in the card. Every rejected version had a *device* in it:
+   a baseline-aligned grid, an inset card, a hanging indent. So this one has no
+   device. One column, one leading edge, the avatar at the top and the words
+   below it, and the only spacing decision left is which gap is bigger than
+   which.
 
-   CHARACTERS. All three led with a portrait — a cameo in an oval, a person
-   glyph, a plate with a name band. But the app has no portrait: it has a
-   silhouette the reader picked off a sheet. So each version put a stand-in
-   likeness in the hero slot of the card and then arranged everything else
-   around it, which is why the avatar kept reading wrong no matter how it was
-   drawn. The fault is hierarchy, not draughtsmanship. Two of the three below
-   remove the picture entirely; the third keeps it and demotes it.
-
-   PLOT THREADS. All three drew *how many times you have noticed it* — knots
-   on a cord, tally strokes, ticks struck off a ledger. Counting is a real
-   instinct and it is the wrong subject: a thread is a question you are
-   carrying, and the thing that moves over a book is not the count, it is how
-   sure you have become. All three below put the stance where the ticks were.
-
-   These are candidates, not a fourth complete set. `?ch=` and `?th=` on a
-   book's URL swap them in; nothing links to it and this whole file comes out
-   with the gallery once the two choices are made. */
+   PLOT THREADS — deferred. All three set drawings drew *how many times you
+   have noticed it* — knots on a cord, tally strokes, ticks struck off a
+   ledger. Counting is a real instinct and it is the wrong subject: a thread is
+   a question you are carrying, and the thing that moves over a book is not the
+   count, it is how sure you have become. The three candidates below all put
+   the stance where the ticks were. None has been picked; the live thread keeps
+   drawing threads from Pressed until one is, and `?th=a|b|c` swaps these in to
+   look at. They come out with the gallery once that choice is made. */
 
 import { Avatar } from '../avatars'
 import { STANCE, STANCES } from '../kinds'
@@ -35,72 +31,19 @@ import s from './redraw.module.css'
 
 const foot = { footClass: s.foot, chipClass: s.chip, stanceClass: s.stance }
 
-/* ══ CHARACTERS ═══════════════════════════════════════════════════════════ */
+/* ══ CHARACTER ════════════════════════════════════════════════════════════
+   The cameo on its mount, the name under it, what you know about them under
+   that. Nothing is centred, nothing is indented, nothing is aligned to
+   anything but the card's own leading edge. */
 
-/* ── A · Monogram ─────────────────────────────────────────────────────────
-   No portrait at all. The initial set very large in the display serif in the
-   character's own hue, the name in small caps beside it, the description
-   under both. The journey already opens on a drop cap — "Cracked the spine on
-   July 2" — so the move is native to the page rather than imported onto it,
-   and a letter is the one mark that is unarguably *this person* without
-   pretending to be their face. */
-
-export function CharacterMonogram({ keep, onMotif }: CardProps) {
-  // Grapheme-aware: `[...name][0]` keeps an emoji or an accented letter whole
-  // where `name[0]` would hand back half a surrogate pair.
-  const initial = [...(keep.name ?? '?').trim()][0] ?? '?'
+export function Character({ keep, onMotif }: CardProps) {
   return (
-    <article className={`${s.card} ${s.monogram}`}>
-      <div className={s.mono}>
-        <span className={s.letter} aria-hidden="true">
-          {initial}
-        </span>
-        <h3 className={s.named}>{keep.name}</h3>
-      </div>
+    <article className={`${s.card} ${s.person}`}>
+      <span className={s.cameo}>
+        <Avatar id={keep.avatar} size={56} />
+      </span>
+      <h3 className={s.name}>{keep.name}</h3>
       {keep.text && <p className={s.about}>{keep.text}</p>}
-      <Motifs keep={keep} onMotif={onMotif} {...foot} />
-    </article>
-  )
-}
-
-/* ── B · Calling card ─────────────────────────────────────────────────────
-   A small formal card inset into the keep: the name centred in the display
-   serif between two hairline rules, nothing else inside it. The description
-   sits below the card, on the keep's own paper, so the card stays an object
-   you were handed rather than a container everything lives in. Reads as being
-   introduced to someone instead of looking at their photograph. */
-
-export function CharacterCallingCard({ keep, onMotif }: CardProps) {
-  return (
-    <article className={`${s.card} ${s.calling}`}>
-      <div className={s.callingCard}>
-        <span className={s.rule} aria-hidden="true" />
-        <h3 className={s.engravedName}>{keep.name}</h3>
-        <span className={s.rule} aria-hidden="true" />
-      </div>
-      {keep.text && <p className={s.about}>{keep.text}</p>}
-      <Motifs keep={keep} onMotif={onMotif} {...foot} />
-    </article>
-  )
-}
-
-/* ── C · Tracked person ───────────────────────────────────────────────────
-   The one that keeps a face. The avatar drops to a 40px stamp on the leading
-   edge, level with the name, and the card becomes a running record: who, then
-   what you noticed, indented to begin exactly under the name the way an
-   observation is entered against one. The picture is still there and is no
-   longer the subject. */
-
-export function CharacterTracked({ keep, onMotif }: CardProps) {
-  return (
-    <article className={`${s.card} ${s.tracked}`}>
-      <header className={s.who}>
-        <span className={s.stamp}>
-          <Avatar id={keep.avatar} size={40} />
-        </span>
-        <h3 className={s.trackedName}>{keep.name}</h3>
-      </header>
-      {keep.text && <p className={s.observed}>{keep.text}</p>}
       <Motifs keep={keep} onMotif={onMotif} {...foot} />
     </article>
   )
