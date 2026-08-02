@@ -108,7 +108,7 @@
 }
 
 .heroAuthor {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -140,7 +140,7 @@
   display: flex;
   justify-content: space-between;
   gap: var(--space-3);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-2xs);
   letter-spacing: 0.06em;
   /* the page count and percentage both climb as you read; proportional digits
@@ -251,7 +251,7 @@
 /* Typewriter meta */
 .memoryType {
   display: block;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-2xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;

@@ -70,7 +70,8 @@
   border-radius: var(--radius-sm);
   background: var(--card-chip);
   color: var(--color-ink-soft);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
   font-size: var(--text-xs);
   letter-spacing: 0.03em;
   cursor: pointer;
@@ -115,7 +116,8 @@
   border-radius: var(--radius-sm);
   background: var(--color-ink);
   color: var(--color-bg);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
   font-size: var(--text-2xs);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
@@ -247,6 +249,7 @@
 .slabCaption {
   margin: var(--space-4) 0 0;
   font-family: var(--font-sans);
+  font-weight: var(--weight-card);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   color: color-mix(in oklch, var(--color-paper), transparent 14%);
@@ -284,15 +287,20 @@
   padding-block: var(--space-7);
   text-align: center;
   font-family: var(--font-sans);
+  font-weight: var(--weight-card);
   font-size: var(--text-sm);
   color: var(--color-ink-faint);
 }
 
+/* A caption, not a note. It used to be set in the hand, which put a fourth
+   face on a card that already had three and made a printed caption pretend to
+   be something the reader wrote. The hand is now the note card's alone. */
 .scrawl {
   margin-block-start: var(--space-4);
-  font-family: var(--font-hand);
-  font-size: var(--text-md);
-  line-height: 1.35;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
   color: var(--color-ink-soft);
   max-inline-size: var(--measure);
   text-wrap: pretty;
@@ -351,6 +359,7 @@
 .dossier {
   margin: var(--space-4) 0 0;
   font-family: var(--font-sans);
+  font-weight: var(--weight-card);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
@@ -426,6 +435,7 @@
 .lore {
   margin: 0;
   font-family: var(--font-sans);
+  font-weight: var(--weight-card);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
@@ -456,8 +466,8 @@
   flex: 1;
   min-inline-size: 0;
   margin: 0;
-  font-family: var(--font-mono);
-  font-weight: 500;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
   font-size: var(--text-xs);
   line-height: 1.4;
   letter-spacing: 0.08em;
@@ -501,6 +511,7 @@
 .working {
   margin: 0;
   font-family: var(--font-sans);
+  font-weight: var(--weight-card);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   color: var(--color-ink);

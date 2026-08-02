@@ -370,7 +370,15 @@
   --grain-opacity: 0.035;
 
   /* ---- Type ----
-     Four voices, split by who is speaking.
+     Three voices, split by who is speaking. Two of them do all the work; the
+     third only ever appears inside a note card. There was a fourth — a
+     monospace kept for short stamped labels — and it is gone. It was doing the
+     job of a *format*, not of a voice: every rule that asked for it was an
+     uppercase, letter-spaced label, and uppercase plus tracking is what made
+     those read as stamped, not the face. Six of them also wanted digits to
+     line up, and those already carry font-variant-numeric: tabular-nums, which
+     the sans honours. So the mono was a fourth typeface buying nothing, and a
+     screen holding four faces at once reads as an accident.
 
        serif  the book and the reader — titles, section heads, quotes, and
               any value worth reading as a value. Instrument Serif: a
@@ -386,18 +394,29 @@
        sans   the app — body copy, buttons, anything that runs to a sentence.
               Instrument Sans: a compact humanist grotesque, warm at the
               terminals, which stands beside a book serif instead of arguing
-              with it.
-       mono   the app again, but only its short uppercase labels — a date, a
-              page number, a side. IBM Plex Mono is a records face; these
-              labels are meant to read like something stamped on the corner
-              of a kept thing.
+              with it. It also sets every short uppercase label — a date, a
+              page number, a side — where the stamped quality comes from the
+              capitals and the tracking rather than from a second face.
        hand   note cards, and nowhere else. The only decorative thing on the
               screen, which is what makes it read as a note. Upright print,
               not cursive — a note exists to be reread, so legibility beats
               flourish. Deliberately unchanged.  */
+  /* Weight is the one axis the sans has and the serif does not, so it is the
+     only place emphasis inside a card can come from. Two steps, and no more —
+     a scale of five weights is how a system stops meaning anything.
+
+       card   450. One notch above the page's 400. Card text is short, sits on
+              a tinted fill rather than on the page's paper, and is read in
+              glances; 400 is tuned for a paragraph and reads thin here.
+       label  560. The small uppercase labels — a stance, a date, a filed-under.
+              At 11px, in capitals, on a pastel, these are the thinnest marks in
+              the app, and until now a monospace's even stroke was carrying
+              them. A proportional face has to be asked. */
+  --weight-card: 450;
+  --weight-label: 560;
+
   --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
   --font-sans: 'Instrument Sans Variable', system-ui, -apple-system, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
   --font-hand: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
 
   /* One step smaller nearly everywhere than it used to be. The scale below

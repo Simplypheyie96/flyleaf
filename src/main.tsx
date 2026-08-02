@@ -8,14 +8,13 @@ import { createRoot } from 'react-dom/client'
    long book title sit at a readable size instead of being shrunk to fit.
    Both faces are loaded — the italic carries every quote in the app, and
    without the real file the browser would slant the upright one. Instrument
-   Sans is the app's own voice and shares the family's skeleton.
-   IBM Plex Mono is only ever a small stamped label — dates, page numbers.
+   Sans is the app's own voice and shares the family's skeleton, which is why
+   it can also set the small stamped labels — dates, page numbers, counts —
+   that a monospace used to. Two families, three files, one skeleton.
    Patrick Hand is the reader's hand and is deliberately left alone. */
 import '@fontsource/instrument-serif/400.css'
 import '@fontsource/instrument-serif/400-italic.css'
 import '@fontsource-variable/instrument-sans'
-import '@fontsource/ibm-plex-mono/400.css'
-import '@fontsource/ibm-plex-mono/500.css'
 import '@fontsource/patrick-hand'
 import './styles/tokens.css'
 import './styles/motion.css'

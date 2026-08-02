@@ -27,24 +27,10 @@ const n2 = (v: number) => Math.round(v * 10) / 10
 
 type Pt = [number, number]
 
-/** A ridge line across the frame. Cubic with horizontal control handles: hills
-    that sit down rather than zig-zag, which is what separates a landscape from
-    a chart. */
-function crest(points: Pt[]) {
-  let d = `M ${n2(points[0][0])} ${n2(points[0][1])}`
-  for (let i = 1; i < points.length; i += 1) {
-    const [px, py] = points[i - 1]
-    const [x, y] = points[i]
-    const half = (x - px) / 2
-    d += ` C ${n2(px + half)} ${n2(py)}, ${n2(x - half)} ${n2(y)}, ${n2(x)} ${n2(y)}`
-  }
-  return d
-}
-
-/** The same ridge, closed down to its foot so it fills. */
-function ridge(points: Pt[], floor: number) {
-  const last = points[points.length - 1]
-  return `${crest(points)} L ${n2(last[0])} ${floor} L ${n2(points[0][0])} ${floor} Z`
+/** A run of straight segments through a list of corners. The map draws with
+    this; the survey draws with the pen below. */
+function ruled(pts: Pt[]) {
+  return pts.map(([x, y], i) => `${i ? 'L' : 'M'} ${n2(x)} ${n2(y)}`).join(' ')
 }
 
 /** One pen stroke between two marks, bowed off the straight line by a fraction
@@ -88,400 +74,204 @@ function loop(points: [number, number][]) {
   return `${d} Z`
 }
 
-/* ── A place ──────────────────────────────────────────────────────────────
-
-   What this replaces was a gradient sky, a soft disc and three filled humps,
-   and the only thing it said was "no image available, here is some scenery".
-   Nobody looks at somewhere they wrote down and pictures an abstract hill.
-
-   So this is a drawing of a place, built out of things that exist: a cottage
-   with a chimney and a lit window, or a tower, a barn, a row of houses, a
-   lighthouse, a bridge over water — with trees, a fence, a track coming up to
-   the door, birds, and a moon. Nothing in it is a texture or a gradient. Every
-   mark is a component of a scene, and the seed picks which components and
-   where they stand, so one keep is one place for ever and no two places match.
-
-   It is drawn by hand in the only sense a program can manage: there is not one
-   straight edge in it. Every segment is a quadratic bowed off the line by a
-   fraction of a unit, and the pale washes are laid in from a second pass that
-   does not quite agree with the outline it fills. That disagreement is the
-   whole difference between line art and a diagram.
-
-   Landscape, drawn to be cropped: 200×100 on a postcard and shallower in a
-   margin, one picture at two heights rather than two drawings. Everything that
-   matters lives between y 10 and y 96 so no crop can behead it. */
-
 interface Mark {
   d: string
   w: number
   o: number
 }
 
-export function Place({ seed, className }: { seed: number; className?: string }) {
+/* ── A place ──────────────────────────────────────────────────────────────
+
+   A map, from overhead, with a pin in it.
+
+   What this replaces was a hand-drawn scene — a cottage with a lit window, a
+   fence, birds, a moon, every segment bowed off the straight so that nothing
+   in it was a diagram. It was the better drawing and the worse answer. A keep
+   of this kind is a place inside a book: a house, a road, a country that does
+   not exist and that the reader has only ever seen in their own head. A
+   picture of it has to invent what it looks like, and it invents it wrong —
+   our cottage is not their cottage, and putting ours on the card writes over
+   theirs. A map is the one picture of a place that cannot contradict the book,
+   because it answers *where* and never claims to answer *what*.
+
+   So: a grid of survey dots, three roads, a piece of water, a few blocks, and
+   a pin. Not one mark of it is bowed. The scene was hand-drawn on the argument
+   that a diagram is cold, and the pin is the answer to that — the whole
+   drawing exists to carry one saturated mark meaning "this spot", and every
+   other mark on it is deliberately quiet enough to let that one be seen.
+
+   The seed moves the pin first and then lays the map around it, which is the
+   only order that works: a map whose subject has to dodge its own scenery is
+   drawn backwards. One keep is one map for ever, and no two match.
+
+   200 × 100 against a plate cut to 2:1, so the sheet is the window and there
+   is no crop to design around.
+
+   The marks are built apart from the component that draws them, because they
+   are wanted in two places that cannot share a React tree: the card draws them
+   live in `currentColor`, and a keep that arrives with a map already attached
+   needs that map baked into a standalone file with its colours in it. One
+   drawing, two renderers — the alternative is a second map written somewhere
+   else that drifts away from this one, which is exactly what was here before.
+
+   Which is why the list below carries the opacities and the stroke widths too,
+   and not only the path data. Handing back geometry alone would leave the
+   painting recipe written out twice, and a recipe written twice is a recipe
+   that is about to disagree with itself. Colour is the one thing left to the
+   renderer, because it is the one thing the two genuinely differ on. */
+
+export const PLACE_BOX = { w: 200, h: 100 }
+
+export interface PlaceMark {
+  d: string
+  /** Fill opacity. Present on filled marks only. */
+  fill?: number
+  /** Stroke opacity, with `w` for its width. Present on drawn marks only. */
+  stroke?: number
+  w?: number
+  evenodd?: boolean
+}
+
+export function placeMarks(seed: number): PlaceMark[] {
   const r = rng(seed)
-  const ink: Mark[] = []
-  const wash: { d: string; o: number }[] = []
-  const G = 80
 
-  const line = (pts: Pt[], w = 1.3, o = 0.7, bow = 1.1) =>
-    ink.push({ d: drawn(r, pts, false, bow), w, o })
-  const shape = (pts: Pt[], fill = 0, w = 1.3, o = 0.78, bow = 1) => {
-    const d = drawn(r, pts, true, bow)
-    if (fill) wash.push({ d: drawn(r, pts, true, bow), o: fill })
-    ink.push({ d, w, o })
-  }
-  const box = (x: number, y: number, bw: number, bh: number, fill = 0, o = 0.78) =>
-    shape(
-      [
-        [x, y + bh],
-        [x, y],
-        [x + bw, y],
-        [x + bw, y + bh],
-      ],
-      fill,
-      1.3,
-      o,
-      0.8,
-    )
-  /* Round things go through Catmull-Rom, not through the pen. A ring of
-     jittered points joined by pen strokes is a polygon however small the bow
-     is, and a nine-sided moon is the one shape on the card that announces it
-     was computed. The jitter still supplies the wobble; the spline only stops
-     it having corners. The wash re-rolls, so it sits a hair off its outline
-     like everything else here. */
-  const blob = (cx: number, cy: number, rad: number, sides: number) => {
-    const pts: Pt[] = []
-    for (let i = 0; i < sides; i += 1) {
-      const a = (i / sides) * Math.PI * 2
-      const rr = rad * (0.86 + r() * 0.28)
-      pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr])
-    }
-    return pts
-  }
-  const round = (cx: number, cy: number, rad: number, fill: number, w = 1.2, o = 0.7) => {
-    wash.push({ d: loop(blob(cx, cy, rad, 9)), o: fill })
-    ink.push({ d: loop(blob(cx, cy, rad, 9)), w, o })
-  }
+  /* The pin. Its tip is the point being named, so the tip is what gets placed
+     and the head hangs above it — 15 up, which is where a pin's weight sits.
+     Kept near the middle of the sheet: a pin in a corner reads as a thing the
+     map happened to include rather than as the thing the map is about. */
+  const px = 84 + r() * 32
+  const tip = 60 + r() * 8
+  const head = tip - 15
+  const R = 8.2
+  const EYE = 3.2
+  /* Tangents from the tip to the head, so the shoulders meet the circle
+     instead of crossing it. cos of the touch angle is R over the drop, which
+     puts the two touch points at ±6.87, 4.48 off the centre. */
+  const cos = R / (tip - head)
+  const sin = Math.sqrt(1 - cos * cos)
+  const pin =
+    `M ${n2(px)} ${n2(tip)}` +
+    ` L ${n2(px - R * sin)} ${n2(head + R * cos)}` +
+    ` A ${R} ${R} 0 1 1 ${n2(px + R * sin)} ${n2(head + R * cos)} Z` +
+    /* The eye, as a second subpath under evenodd, so it is a real hole and
+       the plate shows through it rather than a disc painted in a colour this
+       drawing has no way of knowing. */
+    ` M ${n2(px - EYE)} ${n2(head)}` +
+    ` A ${EYE} ${EYE} 0 1 0 ${n2(px + EYE)} ${n2(head)}` +
+    ` A ${EYE} ${EYE} 0 1 0 ${n2(px - EYE)} ${n2(head)} Z`
 
-  /* Land first, so everything else stands on it. Two ranges at most: a third
-     is haze, and haze is what the old drawing was made of. */
-  const ranges = 1 + Math.round(r())
-  for (let i = 0; i < ranges; i += 1) {
-    const base = G - 17 + i * 8
-    const pts: Pt[] = []
-    for (let x = -16; x <= 216; x += 40 + i * 12) pts.push([x, base - (7 + i * 3) * r()])
-    wash.push({ d: ridge(pts, G + 1), o: 0.08 + i * 0.05 })
-    ink.push({ d: crest(pts), w: 1, o: 0.26 + i * 0.1 })
-  }
-
-  /* The building, and the seed's one real decision. It stands a little off
-     centre because a house in the middle of the frame is a diagram of a house. */
-  const kind = Math.floor(r() * 6)
-  const ax = 76 + r() * 54
-  const aw = 30 + r() * 13
-  const ah = 24 + r() * 11
-  const x0 = ax - aw / 2
-
-  if (kind === 0) {
-    /* A cottage. Body, pitched roof, chimney on the near slope, a door and a
-       lit window — the five parts a child draws, which is exactly why it is
-       readable at thumb size. */
-    box(x0, G - ah, aw, ah, 0.1)
-    shape(
-      [
-        [x0 - 5, G - ah],
-        [ax, G - ah * 1.6],
-        [x0 + aw + 5, G - ah],
-      ],
-      0.2,
-      1.4,
-      0.82,
-      1.2,
-    )
-    box(ax + aw * 0.2, G - ah * 1.3, 5, ah * 0.44, 0.2)
-    box(ax - 3.5, G - 12, 7, 12, 0.26)
-    const wx = x0 + 5
-    const wy = G - ah + 6
-    box(wx, wy, 8, 8, 0.3)
-    line([[wx + 4, wy], [wx + 4, wy + 8]], 0.9, 0.55, 0.4)
-    line([[wx, wy + 4], [wx + 8, wy + 4]], 0.9, 0.55, 0.4)
-  } else if (kind === 1) {
-    /* A tower: tapered, capped, with a pennant. */
-    const tw = aw * 0.55
-    const th = Math.min(ah * 1.6, 44)
-    shape(
-      [
-        [ax - tw / 2 - 2, G],
-        [ax - tw / 2 + 1, G - th],
-        [ax + tw / 2 - 1, G - th],
-        [ax + tw / 2 + 2, G],
-      ],
-      0.1,
-    )
-    shape(
-      [
-        [ax - tw / 2 - 3.5, G - th],
-        [ax, G - th - 13],
-        [ax + tw / 2 + 3.5, G - th],
-      ],
-      0.22,
-      1.4,
-      0.82,
-      1.2,
-    )
-    line([[ax, G - th - 13], [ax, G - th - 21]], 1, 0.6, 0.3)
-    shape(
-      [
-        [ax, G - th - 21],
-        [ax + 9, G - th - 18.5],
-        [ax, G - th - 16],
-      ],
-      0.24,
-      1.1,
-      0.7,
-      0.6,
-    )
-    box(ax - 3, G - th + 8, 6, 9, 0.28)
-    line([[ax - tw / 2 - 1, G - th * 0.45], [ax + tw / 2 + 1, G - th * 0.45]], 1, 0.45)
-  } else if (kind === 2) {
-    /* A barn: gambrel roof, hayloft door, braced main doors. */
-    const bw = aw * 1.15
-    const bx = ax - bw / 2
-    box(bx, G - ah * 0.8, bw, ah * 0.8, 0.1)
-    shape(
-      [
-        [bx - 4, G - ah * 0.8],
-        [bx + bw * 0.22, G - ah * 1.12],
-        [ax, G - ah * 1.36],
-        [bx + bw * 0.78, G - ah * 1.12],
-        [bx + bw + 4, G - ah * 0.8],
-      ],
-      0.2,
-      1.4,
-      0.82,
-      1.1,
-    )
-    const dw = bw * 0.34
-    box(ax - dw / 2, G - ah * 0.55, dw, ah * 0.55, 0.26)
-    line([[ax - dw / 2, G], [ax + dw / 2, G - ah * 0.55]], 0.9, 0.5, 0.4)
-    line([[ax + dw / 2, G], [ax - dw / 2, G - ah * 0.55]], 0.9, 0.5, 0.4)
-    box(ax - 3, G - ah * 1.08, 6, 6, 0.28)
-  } else if (kind === 3) {
-    /* A terrace: three narrow houses shoulder to shoulder, uneven heights,
-       one front door between them. A row is a different kind of place from a
-       house alone, and the difference is worth one branch. */
-    let x = ax - aw * 0.78
-    ;[0.86, 1.06, 0.72].forEach((f, i) => {
-      const bw = aw * 0.46
-      const bh = ah * f
-      box(x, G - bh, bw, bh, 0.1)
-      line([[x - 2, G - bh], [x + bw + 2, G - bh]], 1.2, 0.66, 0.5)
-      box(x + bw * 0.26, G - bh + 5, bw * 0.48, 6, 0.3)
-      box(x + bw * 0.26, G - bh * 0.5, bw * 0.48, 6, 0.3)
-      if (i === 1) box(x + bw * 0.3, G - 11, bw * 0.4, 11, 0.26)
-      x += bw + 2.5
-    })
-  } else if (kind === 4) {
-    /* A lighthouse: banded, lantern-topped, two beams, rocks at the foot. */
-    const lh = Math.min(ah * 1.65, 46)
-    shape(
-      [
-        [ax - 9, G],
-        [ax - 4.5, G - lh],
-        [ax + 4.5, G - lh],
-        [ax + 9, G],
-      ],
-      0.1,
-    )
-    line([[ax - 7, G - lh * 0.4], [ax + 7, G - lh * 0.4]], 1.1, 0.5)
-    line([[ax - 5.6, G - lh * 0.7], [ax + 5.6, G - lh * 0.7]], 1.1, 0.5)
-    box(ax - 5, G - lh - 8, 10, 8, 0.26)
-    shape(
-      [
-        [ax - 6.5, G - lh - 8],
-        [ax, G - lh - 14],
-        [ax + 6.5, G - lh - 8],
-      ],
-      0.22,
-      1.3,
-      0.8,
-      0.9,
-    )
-    /* Two beams, short and thick. Long thin ones turned the lantern into an
-       aerial: three hairlines radiating off a mast is a transmitter, and the
-       whole point of this drawing is that it is not a diagram of anything. */
-    line([[ax + 7, G - lh - 6], [ax + 17, G - lh - 8.5]], 1.6, 0.3, 0.4)
-    line([[ax + 7, G - lh - 3.5], [ax + 18, G - lh - 2]], 1.6, 0.3, 0.4)
-    shape(
-      [
-        [ax - 21, G],
-        [ax - 15, G - 6],
-        [ax - 9, G - 2],
-        [ax - 4, G],
-      ],
-      0.14,
-      1.2,
-      0.6,
-      0.9,
-    )
-  } else {
-    /* A bridge over water: deck, railing, two arches, and the river running
-       out of both sides of the frame. */
-    const bw = aw * 1.9
-    const bx = ax - bw / 2
-    const deck = G - ah * 0.5
-    for (let i = 0; i < 4; i += 1) {
-      const y = G + 2 + i * 3
-      line([[bx - 14 + r() * 8, y], [bx + bw * 0.4, y]], 1, 0.24, 1.8)
-      line([[bx + bw * 0.6, y], [bx + bw + 16 - r() * 8, y]], 1, 0.24, 1.8)
-    }
-    ;[0.28, 0.72].forEach((f) => {
-      const cx = bx + bw * f
-      ink.push({
-        d: `M ${n2(cx - 13)} ${n2(G + 2)} Q ${n2(cx)} ${n2(deck - 16)} ${n2(cx + 13)} ${n2(G + 2)}`,
-        w: 1.3,
-        o: 0.68,
-      })
-    })
-    box(ax - 3, deck, 6, G + 2 - deck, 0.12)
-    line([[bx - 10, deck], [bx + bw + 10, deck]], 1.5, 0.8, 0.8)
-    line([[bx - 10, deck - 4.5], [bx + bw + 10, deck - 4.5]], 1.1, 0.5, 0.8)
-    for (let x = bx - 8; x < bx + bw + 10; x += 9) {
-      line([[x, deck], [x, deck - 4.5]], 0.9, 0.42, 0.25)
+  /* The ground: dots on a 12.5 grid, one path rather than a hundred and
+     twenty circles. Zero-length subpaths with a round cap are the cheapest
+     dot SVG has. The ones that would land inside the eye are dropped — a grid
+     dot showing through the hole reads as dirt on the screen, and the dots
+     behind the solid part of the pin cost nothing to leave in. */
+  let grid = ''
+  for (let x = 6.25; x < PLACE_BOX.w; x += 12.5) {
+    for (let y = 6.25; y < PLACE_BOX.h; y += 12.5) {
+      if (Math.hypot(x - px, y - head) < EYE + 1.6) continue
+      grid += `M ${x} ${y} l 0.01 0 `
     }
   }
 
-  /* Ground line, drawn after the building so it runs behind rather than
-     through it — except under the bridge, where the ground is water. */
-  if (kind !== 5) line([[-6, G], [206, G]], 1.4, 0.55, 2)
+  /* Roads. One that crosses the whole sheet with a dogleg, one running down
+     to meet it, one cutting up from the foot — three is where a set of lines
+     stops reading as lines and starts reading as a road network.
 
-  /* Trees, in slots along the edges the building does not occupy. */
-  const slots = [12, 184, 30, 168, 46, 154]
-  const trees = 2 + Math.floor(r() * 3)
-  for (let i = 0; i < trees; i += 1) {
-    const tx = slots[i % slots.length] + (r() - 0.5) * 9
-    if (Math.abs(tx - ax) < aw * 0.8 + 8) continue
-    const h = 17 + r() * 17
-    const form = Math.floor(r() * 3)
-    line([[tx, G], [tx - 1 + r() * 2, G - h * 0.5]], 1.6, 0.66, 0.5)
-    if (form === 0) {
-      for (let t = 0; t < 3; t += 1) {
-        const top = G - h * (0.56 + t * 0.2)
-        const half = h * (0.3 - t * 0.07)
-        shape(
-          [
-            [tx - half, top + h * 0.26],
-            [tx, top],
-            [tx + half, top + h * 0.26],
-          ],
-          0.14,
-          1.2,
-          0.7,
-          0.9,
-        )
-      }
-    } else if (form === 1) {
-      round(tx, G - h * 0.72, h * 0.34, 0.14, 1.2, 0.72)
-    } else {
-      line([[tx, G - h * 0.5], [tx, G - h]], 1.4, 0.66, 0.5)
-      for (let b = 0; b < 4; b += 1) {
-        const y = G - h * (0.62 + b * 0.11)
-        const reach = h * (0.3 - b * 0.05) * (b % 2 ? -1 : 1)
-        line([[tx, y], [tx + reach, y - h * 0.16]], 1, 0.6, 0.8)
-      }
-    }
+     Each is drawn twice: a wide pale band for the road itself and a hairline
+     down its middle. The band alone is a smear and the hairline alone is a
+     scratch; a map road is both, and it is the one place in this drawing
+     where two passes are worth the marks. */
+  const hA = 20 + r() * 8
+  const dropA = 16 + r() * 8
+  const vB = px + 32 + r() * 14
+  const roads = [
+    ruled([
+      [-8, hA],
+      [px - 52, hA],
+      [px - 28, hA + dropA],
+      [208, hA + dropA],
+    ]),
+    ruled([
+      [vB, -8],
+      [vB, hA + dropA],
+      [px + 22, 108],
+    ]),
+    ruled([
+      [-8, 86 + r() * 8],
+      [px - 40, 80],
+      [px + 6, 108],
+    ]),
+  ]
+
+  /* Water, in whichever half the pin left alone. Splined rather than penned:
+     a lake with corners is a polygon, and a lake bowed by hand would put the
+     one wobbling line on a sheet where nothing else wobbles. */
+  const wx = px > 100 ? 30 : 168
+  const wy = 22 + r() * 12
+  const shore: Pt[] = []
+  for (let i = 0; i < 8; i += 1) {
+    const a = (i / 8) * Math.PI * 2
+    const rr = 1 + (r() - 0.5) * 0.36
+    shore.push([wx + Math.cos(a) * 21 * rr, wy + Math.sin(a) * 12 * rr])
   }
+  const water = loop(shore)
 
-  /* A track up to the door, converging the way a track does — and closed, with
-     a wash in it, rather than left as two loose lines. Two lines meeting at a
-     building and nothing between them do not read as ground: under the tower
-     they read as legs, and the whole scene turns into a water tower on a
-     tripod. The fill is what makes them a surface, and because every wash is
-     laid down before any ink, it passes under the ground line and under the
-     building instead of over them.
-
-     It also splays much harder than a track really would. The card's window is
-     a letterbox and the drawing is sliced into it, so only about a dozen units
-     of foreground survive below the ground line — a track drawn at a realistic
-     angle shows up as two short verticals under the door and nothing else.
-     Fanning it to the frame's full width means the part that does survive is
-     already visibly widening, and reads as a path leaving the bottom edge. */
-  if (kind !== 5 && r() < 0.75) {
-    shape(
-      [
-        [58, 101],
-        [ax - 5, G],
-        [ax + 6, G],
-        [140, 101],
-      ],
-      0.15,
-      1.1,
-      0.34,
-      1.4,
-    )
-  }
-
-  /* A fence along whichever verge is emptier. Its span is remembered so the
-     grass can keep out of it: tufts drawn through the palings read as tally
-     marks scratched over the drawing rather than as grass. */
-  const fw = 62
-  let fx = -1
-  if (r() < 0.55) {
-    fx = ax > 100 ? 6 : 128
-    line([[fx, G - 5], [fx + fw, G - 6]], 1, 0.42, 0.8)
-    line([[fx, G - 1.5], [fx + fw, G - 2.5]], 1, 0.42, 0.8)
-    for (let x = fx; x <= fx + fw; x += 11) line([[x, G + 1], [x, G - 8]], 1, 0.5, 0.3)
-  }
-
-  /* A moon, on the side the building left free. */
-  if (r() < 0.75) {
-    const mx = ax > 100 ? 24 + r() * 24 : 152 + r() * 24
-    round(mx, 20 + r() * 7, 5.5 + r() * 3, 0.13, 1.1, 0.45)
-  }
-
-  /* Birds: two strokes each, the mark everyone reads as a bird and nothing
-     else. Never near the building, where they would read as smoke. */
-  if (r() < 0.7) {
-    const bx = ax > 100 ? 22 + r() * 34 : 132 + r() * 34
-    for (let i = 0; i < 2 + Math.floor(r() * 2); i += 1) {
-      const px = bx + i * 13 + r() * 5
-      const py = 28 + i * 7 + r() * 8
-      const w = 3 + r() * 1.6
-      ink.push({
-        d: `M ${n2(px - w * 2)} ${n2(py)} Q ${n2(px - w)} ${n2(py - w * 0.9)} ${n2(px)} ${n2(py)} Q ${n2(px + w)} ${n2(py - w * 0.9)} ${n2(px + w * 2)} ${n2(py)}`,
-        w: 1,
-        o: 0.42,
-      })
-    }
-  }
-
-  /* Grass, last, so it sits in front of the ground line. Three blades, not
-     two: two splayed strokes meeting at the ground is a tick, and a row of
-     ticks along the horizon reads as something marked off rather than as a
-     verge. The middle blade standing straight up is what makes it a tuft. */
+  /* Blocks — built ground, the thing that makes the rest of it a town rather
+     than open country. Any that would sit under the pin are dropped instead
+     of nudged: a map with a hole in exactly the shape of its own subject is
+     worse than a map with three blocks in it instead of five. */
+  const blocks: string[] = []
   for (let i = 0; i < 6; i += 1) {
-    const gx = 4 + r() * 192
-    if (Math.abs(gx - ax) < aw * 0.5) continue
-    if (fx >= 0 && gx > fx - 4 && gx < fx + fw + 4) continue
-    const gh = 4 + r() * 2.5
-    line([[gx - 0.6, G + 1], [gx - 2.4 - r(), G - gh * 0.7]], 0.8, 0.34, 0.6)
-    line([[gx, G + 1], [gx + 0.4 - r() * 0.8, G - gh]], 0.8, 0.38, 0.4)
-    line([[gx + 0.6, G + 1], [gx + 2.4 + r(), G - gh * 0.7]], 0.8, 0.34, 0.6)
+    const bw = 11 + r() * 15
+    const bh = 7 + r() * 8
+    const bx = px - 66 + r() * 128
+    const by = 26 + r() * 50
+    if (Math.abs(bx + bw / 2 - px) < 26 && Math.abs(by + bh / 2 - head) < 28) continue
+    if (Math.hypot(bx + bw / 2 - wx, by + bh / 2 - wy) < 26) continue
+    blocks.push(`M ${n2(bx)} ${n2(by)} h ${n2(bw)} v ${n2(bh)} h ${n2(-bw)} Z`)
   }
 
+  /* What stops the pin looking pasted on: something under it that agrees it is
+     standing on the map rather than lying on the glass. Two arcs rather than an
+     <ellipse>, so every mark in this drawing is the same kind of thing and both
+     renderers only ever need to know how to paint a path. */
+  const shadow =
+    `M ${n2(px - 5)} ${n2(tip)}` +
+    ` A 5 1.6 0 1 0 ${n2(px + 5)} ${n2(tip)}` +
+    ` A 5 1.6 0 1 0 ${n2(px - 5)} ${n2(tip)} Z`
+
+  /* Back to front. The grid is the ground, the water and the built blocks lie
+     on it, the roads run over both, and the pin stands on all of it. */
+  return [
+    { d: grid, stroke: 0.3, w: 1 },
+    { d: water, fill: 0.16 },
+    ...blocks.map((d) => ({ d, fill: 0.17 })),
+    ...roads.map((d, i) => ({ d, stroke: 0.1, w: i ? 5 : 7 })),
+    ...roads.map((d, i) => ({ d, stroke: i ? 0.24 : 0.3, w: i ? 0.9 : 1.1 })),
+    { d: shadow, fill: 0.2 },
+    { d: pin, fill: 1, evenodd: true },
+  ]
+}
+
+export function Place({ seed, className }: { seed: number; className?: string }) {
   return (
     <svg
       className={className}
-      viewBox="0 0 200 100"
+      viewBox={`0 0 ${PLACE_BOX.w} ${PLACE_BOX.h}`}
       preserveAspectRatio="xMidYMid slice"
       role="presentation"
     >
-      {wash.map((m, i) => (
-        <path key={`w${i}`} d={m.d} fill="currentColor" fillOpacity={m.o} stroke="none" />
-      ))}
-      <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-        {ink.map((m, i) => (
-          <path key={`i${i}`} d={m.d} strokeWidth={m.w} strokeOpacity={m.o} />
+      <g stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+        {placeMarks(seed).map((m, i) => (
+          <path
+            key={i}
+            d={m.d}
+            fill={m.fill === undefined ? 'none' : 'currentColor'}
+            fillOpacity={m.fill}
+            fillRule={m.evenodd ? 'evenodd' : undefined}
+            strokeWidth={m.w}
+            strokeOpacity={m.stroke ?? 0}
+          />
         ))}
       </g>
     </svg>

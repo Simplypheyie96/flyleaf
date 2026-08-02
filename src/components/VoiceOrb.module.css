@@ -193,7 +193,7 @@
 .elapsed {
   flex: 0 0 auto;
   margin: 0;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
   /* The figure counts up a second at a time while playing; proportional
      digits would shuffle the trace beside it on every tick. */

@@ -25,7 +25,7 @@
    or delete this file and the one `seedLibrary()` call in main.tsx. The
    define in vite.config.ts goes with it. */
 
-import { SURVEY_BOX, surveyMarks } from '../journey/cards/art'
+import { PLACE_BOX, placeMarks } from '../journey/cards/art'
 import db, { type Book, type Entry } from './db'
 
 declare const __PREVIEW_SEED__: boolean
@@ -324,51 +324,52 @@ function previewPhoto() {
   return new Blob([svg], { type: 'image/svg+xml' })
 }
 
-/** A drawn map for the place that has one, so the picture across the top of a
-    place card can be reviewed with real cartography in it and not only with
-    the horizon the card draws for itself when nothing is pinned.
+/** A map for the place that arrives with one pinned, so a place card can be
+    reviewed carrying a real file and not only with the map it draws for itself
+    when nothing is attached.
 
-    This used to be its own drawing and it was the weakest picture in the app:
-    five wavy strokes, a river and a dashed track, on a window this wide it read
-    as a smudge, and there was nothing in it a reader could name. It is now the
-    app's own survey — a lake with its shore shaded, the lane, a hamlet with a
-    church, a wood of separate trees — baked to fixed colours, which is the one
-    thing a pinned file has to be: a blob in an <img> cannot reach a custom
-    property, so `currentColor` has to be resolved here instead.
+    It is the app's own map — the same dot grid, roads, water and pin the card
+    draws — baked to fixed colours, which is the one thing a pinned file has to
+    be: a blob in an <img> cannot reach a custom property, so `currentColor` has
+    to be resolved here instead. Two versions of this have now been thrown away
+    for the same reason. The first was its own drawing, five wavy strokes and a
+    dashed track, and read as a smudge. The second was the app's hand-drawn
+    survey, which was a good picture of the wrong thing and went when the card
+    itself did. Baking whatever the card is currently drawing is the only
+    arrangement where this file cannot fall behind again.
 
-    Ink and paper are the daylight ends of the place hue and the card reverse.
-    They do not flip after dark, and that is correct rather than an oversight:
-    what a reader pins is a picture of a thing, and a photograph on the table
-    does not turn its own lights down at night. */
+    Ink and paper are the daylight place hue and the tint the card's own window
+    is filled with. They do not flip after dark, and that is correct rather than
+    an oversight: what a reader pins is a picture of a thing, and a photograph
+    on the table does not turn its own lights down at night.
+
+    No crop, either. The map is drawn 2:1 and the window it goes in is cut to
+    2:1, so `object-fit: cover` has nothing left to take. The survey needed a
+    hand-chosen band because it was drawn upright for a tall plate and the
+    browser was slicing its north point in half; this one is drawn for the
+    window it lives in. */
 function previewMap() {
-  const paper = '#eee7d8'
-  const ink = '#3d6a72'
-  const { w } = SURVEY_BOX
-
-  /* The survey is drawn upright, for the tall window on a plate. The postcard's
-     window is a letterbox two and a third times as wide as it is high, so
-     something has to go — and leaving that to `object-fit: cover` meant the
-     browser took an equal bite off the top and the bottom and sliced the field
-     boundaries and the north point in half on the way through. A map with
-     half a compass rose on its top edge looks like a rendering fault.
-
-     So the crop is chosen here instead of discovered there: the band from 36
-     down is 200×84, which is the window's own proportion to within a pixel, and
-     it holds the lane, the hamlet, the church, the lake and the whole wood with
-     nothing cut through. The lane still runs off the top edge, which is what
-     lanes do on maps. */
-  const band = { y: 36, h: 84 }
-  const { ink: strokes, wash } = surveyMarks(707182)
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w * 5}" height="${band.h * 5}" viewBox="0 ${band.y} ${w} ${band.h}">
-    <rect x="-4" y="-4" width="${w + 8}" height="${SURVEY_BOX.h + 8}" fill="${paper}"/>
-    ${wash
-      .map((m) => `<path d="${m.d}" fill="${ink}" fill-opacity="${m.o}"/>`)
-      .join('')}
-    <g fill="none" stroke="${ink}" stroke-linecap="round" stroke-linejoin="round">
-      ${strokes
-        .map((m) => `<path d="${m.d}" stroke-width="${m.w}" stroke-opacity="${m.o}"/>`)
-        .join('')}
-    </g>
+  const paper = '#d5eaea'
+  const ink = '#387e7e'
+  const { w, h } = PLACE_BOX
+  const marks = placeMarks(707182)
+    .map((m) => {
+      const fill =
+        m.fill === undefined
+          ? 'fill="none"'
+          : `fill="${ink}" fill-opacity="${m.fill}"${m.evenodd ? ' fill-rule="evenodd"' : ''}`
+      /* stroke-opacity is written on every mark, including the filled ones.
+         The group sets the stroke colour, so a filled path that says nothing
+         about its own stroke inherits that colour at SVG's default width of 1
+         and full opacity — which outlines the water and every block in a
+         hairline the card itself does not draw. */
+      const stroke = ` stroke-width="${m.w ?? 0}" stroke-opacity="${m.stroke ?? 0}"`
+      return `<path d="${m.d}" ${fill}${stroke}/>`
+    })
+    .join('')
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w * 5}" height="${h * 5}" viewBox="0 0 ${w} ${h}">
+    <rect width="${w}" height="${h}" fill="${paper}"/>
+    <g stroke="${ink}" stroke-linecap="round" stroke-linejoin="round">${marks}</g>
   </svg>`
   return new Blob([svg], { type: 'image/svg+xml' })
 }

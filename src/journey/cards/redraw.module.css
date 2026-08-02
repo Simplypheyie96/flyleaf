@@ -137,6 +137,7 @@
 .about {
   margin: var(--space-3) 0 0;
   font-family: var(--font-sans);
+  font-weight: var(--weight-card);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
@@ -149,28 +150,33 @@
    drawing put its difference *inside* the rectangle — a cord down the gutter,
    a row of pips, a status strip — which meant that from two feet away it was
    the same card as a note with a decoration on it. This one changes the
-   outline instead, twice, and the outline is the only thing that reads from
-   two feet away.
+   outline instead, and the outline is the only thing that reads from two feet
+   away.
 
-   First the border is dashed rather than drawn. Every other keep on the thread
-   is a closed rectangle, so an edge that is not continuous is a different kind
-   of object before a word is read — and it happens to be the truth, since a
+   The border is dashed rather than drawn. Every other keep on the thread is a
+   closed rectangle, so an edge that is not continuous is a different kind of
+   object before a word is read — and it happens to be the truth, since a
    thread is the one keep that is not finished.
 
-   Then the seal breaks that edge. It is hung on the leading rule with its
-   centre exactly on it, half in and half out, which nothing else in the app
-   does. Its ring is where the stance went: a third of the way round for a
-   hunch, two thirds for a suspicion, closed for something certain. The tab it
-   replaces was a word you had to read to learn a thing the card could simply
-   have been. */
+   The stance is a tab on the top corner, which is where a filed thing carries
+   its label. It was a ring for a while — a seal hung half off the leading rule,
+   filled a third of the way round for a hunch and closed for something certain
+   — on the argument that a card should *be* a thing rather than say it. The
+   argument was better than the object: a ring reports a value out of three that
+   nothing on screen gives you a scale for, so it was a word you had to already
+   know to read, sitting where the card's own name should be. The word says it,
+   and the tab is a shape only this card has. */
 
 .dossier {
   --paper-tone: var(--card-thread-solid);
-  /* Hairline in the thread's own hue, broken. Mixed to 55% rather than drawn
-     at full strength: a dashed rule reads heavier than a solid one of the same
-     colour because the eye joins the gaps, and at full strength it fenced the
-     card in instead of leaving it open. */
-  border: 1px dashed color-mix(in oklab, var(--color-thread) 55%, transparent);
+  /* Broken, in the thread's own hue, and drawn to be seen. This was a 1px
+     hairline mixed down to 55% on the argument that the eye joins the gaps and
+     a dashed rule therefore reads heavier than a solid one — true, but it was
+     compensating for a problem it did not have. At 1px the dashes are around
+     two pixels long and they read as a rendering artefact rather than as a
+     deliberate edge. Two pixels doubles the dash length with them, which is
+     what makes the interruption legible as an interruption. */
+  border: 2px dashed color-mix(in oklab, var(--color-thread) 72%, transparent);
   /* 32 at the foot rather than 24. The strand names are 11px of text carrying
      a 44px target, so each one reaches ~14 below its own line; the verb
      circles hang off the card and reach 29 back up including their own margin.
@@ -178,77 +184,44 @@
   padding-block-end: var(--space-6);
 }
 
-/* Centred on the leading rule, so exactly half of it is outside the card.
+/* The stance, cut into the top-leading corner.
 
-   34 across, sitting 17 out — which puts its rim 5px clear of the journey's
-   own thread in the gutter (26 of column, 8 of gap, the line down the middle
-   of the column). Near enough that the seal reads as tied to the thread, far
-   enough that it does not read as strung on it. Inside, 7px of clearance
-   before the first character of the card's own text.
+   box-sizing is border-box across the whole app, so pulling the tab back by
+   one padding step lands its two outer edges exactly on the padding box —
+   hard against the dashed rule without covering it. That is the difference
+   between a tab and a chip: a chip sits on the card, a tab is a piece of the
+   card's own edge.
 
-   Vertically it is centred on the stance line rather than the title: 16 down
-   the padding box puts its middle within two pixels of that line's middle, and
-   the pair reads as one mark and its caption. */
-.seal {
-  position: absolute;
-  inset-block-start: var(--space-4);
-  inset-inline-start: -17px;
-  display: grid;
-  place-items: center;
-  inline-size: 34px;
-  block-size: 34px;
-  /* The ring is the border, and the border is transparent so the background
-     under it shows through — the arc below is painted into the border box and
-     the paper disc is clipped to the padding box, which is how one element
-     draws a filling ring around a solid face without a second box. */
-  border: 3px solid transparent;
-  border-radius: 50%;
-  --arc: 33%;
-  background:
-    linear-gradient(var(--tint-reverse), var(--tint-reverse)) padding-box,
-    conic-gradient(
-        var(--color-thread) var(--arc),
-        color-mix(in oklab, var(--color-thread) 18%, var(--paper-tone)) 0
-      )
-      border-box;
-}
+   Its inline padding is not symmetric on purpose. 20 at the leading side is
+   the card's own padding, which puts the first character of the tab on the
+   same vertical as the first character of the title below it; 16 at the
+   trailing side keeps the word from sitting dead centre in a box that has no
+   reason to be centred.
 
-/* The face carries a dot and nothing else.
-
-   It carried the thread glyph first, and that was wrong for a reason no amount
-   of drawing would have fixed: the knot standing in the gutter twenty pixels
-   away carries that same glyph, so the row had two circles and one mark
-   between them. The knot names the kind; the seal measures the stance; a dot
-   is a centre for the ring to be a ring around, and it is nothing you could
-   mistake for the knot. */
-.seal::before {
-  content: '';
-  inline-size: 10px;
-  block-size: 10px;
-  border-radius: 50%;
-  /* Same deepened mallow the strands are set in — on paper this pale it is
-     well past 3:1 in both themes, and it keeps the mark saying "thread". */
-  background: color-mix(in oklab, var(--color-thread) 68%, var(--color-ink));
-}
-
-.dossier[data-stance='suspicion'] .seal {
-  --arc: 66%;
-}
-
-.dossier[data-stance='certain'] .seal {
-  --arc: 100%;
-}
-
-/* The word for the ring, for anyone who cannot see how full it is — and the
-   card's smallest line, so the title below it is unambiguously the heading. */
+   Two corners are rounded and two are square. The leading one takes the
+   card's radius less the 2px of border it now nests inside, so the tab
+   follows the corner it is cut into rather than fighting it; the free corner
+   diagonally opposite takes the small radius so the shape tapers back into
+   the card. The other two sit on the card's own edges and a radius there
+   would lift the tab off them. */
 .standing {
-  margin: 0;
-  font-family: var(--font-mono);
+  margin: calc(-1 * var(--space-5)) 0 0 calc(-1 * var(--space-5));
+  inline-size: fit-content;
+  padding: var(--space-2) var(--space-4) var(--space-2) var(--space-5);
+  border-start-start-radius: calc(var(--radius-md) - 2px);
+  border-end-end-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
   font-size: var(--text-2xs);
   line-height: var(--leading-tight);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
-  color: color-mix(in oklab, var(--color-thread) 68%, var(--color-ink));
+  /* The same deepened mallow the strand names are set in, filled rather than
+     drawn, with the card's own paper reversed out of it. --tint-reverse and
+     not --color-bg: the thread card stays a pale mallow in both themes, so
+     the text that sits on this fill has to be light in both themes too. */
+  background: color-mix(in oklab, var(--color-thread) 68%, var(--color-ink));
+  color: var(--tint-reverse);
 }
 
 /* One line, always. A thread's name is a question you are carrying around, not
@@ -256,8 +229,11 @@
    different height for a reason the reader cannot act on. The full text is on
    the element's `title` and in the entry itself.
 
-   Bound to the stance line above it at 8 — half of every other gap on the
-   card — because the label and the thing it labels are one group.
+   16 below the tab. It was 8 when the stance was a line of text directly
+   above — half of every other gap on the card, because a label and the thing
+   it labels are one group. The stance is a shape on the edge now rather than
+   a line in the column, so the title is the first thing in the column and
+   takes the column's own spacing.
 
    This used to be set heavier than the other card titles, on the argument
    that a question the reader is still holding open deserves the emphasis.
@@ -266,7 +242,7 @@
    other keep, and a heading does not have to carry a distinction the whole
    object is already making. Same 20 as the character name. */
 .asked {
-  margin: var(--space-2) 0 0;
+  margin: var(--space-4) 0 0;
   max-inline-size: 100%;
   font-family: var(--font-serif);
   font-weight: 400;
@@ -284,6 +260,7 @@
 .working {
   margin: var(--space-4) 0 0;
   font-family: var(--font-sans);
+  font-weight: var(--weight-card);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
@@ -309,7 +286,8 @@
    mono micro-caps as the strands but in plain ink, so the coloured words are
    visibly the pressable half of the line and this half is visibly not. */
 .filedUnder {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
   font-size: var(--text-2xs);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
@@ -321,7 +299,8 @@
   padding: 0;
   border: 0;
   background: none;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
   font-size: var(--text-2xs);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
@@ -444,7 +423,8 @@
 
 .elapsed {
   flex: none;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
   font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
@@ -456,6 +436,7 @@
 .said {
   margin: var(--space-4) 0 0;
   font-family: var(--font-sans);
+  font-weight: var(--weight-card);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
