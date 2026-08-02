@@ -19,6 +19,7 @@ import type { CardProps } from './shared'
 import * as pressed from './pressed'
 import * as marginalia from './marginalia'
 import * as plates from './plates'
+import * as redraw from './redraw'
 
 export type Direction = 'pressed' | 'marginalia' | 'plates'
 
@@ -85,19 +86,56 @@ export const CHOSEN: Record<EntryType, Direction> = {
   thread: 'pressed', // holding — rejected, awaiting a fourth drawing
 }
 
-/* A whole journey, drawn in one direction throughout.
+/* The fourth drawing, for the two types that have not got one yet.
+
+   Characters and threads are not part of any set: all three of their drawings
+   were turned down, so `redraw.tsx` holds three fresh candidates for each,
+   lettered rather than named because they are not directions and none of them
+   is going to become one. Whichever is picked moves into the set it belongs
+   beside and this table goes. */
+const CANDIDATES: Partial<Record<EntryType, Record<string, ComponentType<CardProps>>>> = {
+  character: {
+    a: redraw.CharacterMonogram,
+    b: redraw.CharacterCallingCard,
+    c: redraw.CharacterTracked,
+  },
+  thread: {
+    a: redraw.ThreadQuestion,
+    b: redraw.ThreadGauge,
+    c: redraw.ThreadOpenFile,
+  },
+}
+
+/** Which query parameter swaps a candidate in, per type. */
+const HANDLE: Partial<Record<EntryType, string>> = { character: 'ch', thread: 'th' }
+
+/* A whole journey, drawn as something other than `CHOSEN` says.
 
    The gallery shows three keeps of one type at a time, which is enough to
    judge a drawing and not enough to judge a page: what a set actually feels
    like is thirteen keeps of seven different types running down one thread,
-   with the dividers and the ties between them. `?dir=marginalia` on a book's
-   own URL redraws every card from that set without touching `CHOSEN`, so the
-   three can be looked at as pages rather than as swatches.
+   with the dividers and the ties between them. Two handles do that here.
+   `?dir=marginalia` redraws every card from one set. `?ch=b&th=a` swaps in a
+   fourth-drawing candidate for just those two types and leaves the five that
+   are settled exactly as the app draws them, which is the only way to judge a
+   character card — beside the quotes and notes it will actually live with.
 
-   A preview handle, not a product feature. Nothing links to it, an unknown
-   value falls straight back to `CHOSEN`, and it comes out with the gallery
-   once the seven choices are made. */
-export function cardFor(type: EntryType, preview?: string | null): ComponentType<CardProps> {
-  const dir = preview && preview in SETS ? (preview as Direction) : CHOSEN[type]
-  return SETS[dir][type]
+   The per-type handle wins where both are given, since it is the more specific
+   request. Preview handles, not product features: nothing links to either, an
+   unknown value falls straight back to `CHOSEN`, and both come out with the
+   gallery once the seven choices are made. */
+export function cardFor(
+  type: EntryType,
+  preview?: URLSearchParams | null,
+): ComponentType<CardProps> {
+  if (preview) {
+    const handle = HANDLE[type]
+    const pick = handle ? preview.get(handle)?.trim().toLowerCase() : undefined
+    const candidate = pick ? CANDIDATES[type]?.[pick] : undefined
+    if (candidate) return candidate
+
+    const dir = preview.get('dir')
+    if (dir && dir in SETS) return SETS[dir as Direction][type]
+  }
+  return SETS[CHOSEN[type]][type]
 }
