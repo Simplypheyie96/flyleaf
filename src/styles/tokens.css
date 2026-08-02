@@ -373,12 +373,16 @@
      Four voices, split by who is speaking.
 
        serif  the book and the reader — titles, section heads, quotes, and
-              any value worth reading as a value. Newsreader: a text serif
-              built for screens, with a genuine 200–800 range and a true
-              italic. The range is the point. The old face had one weight and
-              no bold, so hierarchy could only be made out of size, and that
-              is the whole reason every heading in this app had grown
-              oversized. A title can now be a title at 24px.
+              any value worth reading as a value. Instrument Serif: a
+              high-contrast display serif that sets about a quarter narrower
+              than a text serif at the same size. Narrow is the point. A book
+              title is the longest string in the app and the only one we are
+              not allowed to shorten, so the face has to earn its room back
+              horizontally rather than by shrinking until nobody can read it.
+              It ships 400 and no bold, which means hierarchy here is made out
+              of size and never out of weight — ask for a heavier one and the
+              browser synthesises it, and on strokes this fine that smears
+              rather than thickens. Every serif rule states 400 explicitly.
        sans   the app — body copy, buttons, anything that runs to a sentence.
               Instrument Sans: a compact humanist grotesque, warm at the
               terminals, which stands beside a book serif instead of arguing
@@ -391,7 +395,7 @@
               screen, which is what makes it read as a note. Upright print,
               not cursive — a note exists to be reread, so legibility beats
               flourish. Deliberately unchanged.  */
-  --font-serif: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
   --font-sans: 'Instrument Sans Variable', system-ui, -apple-system, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
   --font-hand: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;

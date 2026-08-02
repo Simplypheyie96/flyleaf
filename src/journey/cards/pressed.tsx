@@ -17,6 +17,7 @@
 import { Avatar } from '../avatars'
 import { keptLabel } from '../lexicon'
 import { STANCE } from '../kinds'
+import { PlaceIcon } from '../../components/TabIcons'
 import { Place, waveBars } from './art'
 import { Motifs, clock, useObjectUrl, usePlayback, type CardProps } from './shared'
 import s from './pressed.module.css'
@@ -151,30 +152,45 @@ export function Character({ keep, onMotif }: CardProps) {
 }
 
 /* ── Location & lore ──────────────────────────────────────────────────────
-   A postcard. The view is drawn from the keep's own id, so no two places look
-   alike and one place looks the same for ever; the back is franked, with the
-   name written across the address side and the lore under it. A reader who
-   pinned a real map gets that in the view instead. */
 
-export function Location({ keep, onMotif }: CardProps) {
+   A plate from a survey. The drawing is still the first thing, because a
+   location is a picture of somewhere before it is a paragraph — but it is
+   mounted rather than printed: inset from the card's edge on all four sides,
+   sitting on a survey grid, with a neat line ruled inside it. A picture that
+   runs to the card's own edges is a photograph, and these are drawings.
+
+   The name is a caption above the plate, not a title on a card: the mark in
+   the place hue, then the words in mono caps, the way a plate in a field
+   guide is captioned. Underneath, the note runs the full width with nothing
+   reserved beside it.
+
+   Nothing here invents a fact. There is no coordinate line, because the app
+   never asked the reader for one and a made-up latitude reads as real. There
+   is no instrument icon in the corner either — the three verb circles hang
+   under every card already, and a fourth control that does nothing is exactly
+   the noise this redraw was for. */
+
+export function Location({ keep }: CardProps) {
   const url = useObjectUrl(keep.media)
   return (
-    <article className={`${s.sheet} ${s.postcard}`}>
-      <div className={s.view}>
+    <article className={`${s.sheet} ${s.mapped}`}>
+      {keep.name && (
+        <h3 className={s.marked}>
+          <span className={s.pin} aria-hidden="true">
+            <PlaceIcon size={14} />
+          </span>
+          {keep.name}
+        </h3>
+      )}
+      <div className={s.field}>
         {url ? (
-          <img className={s.pinned} src={url} alt={`A map of ${keep.name ?? 'this location'}`} />
+          <img className={s.terrain} src={url} alt={`A map of ${keep.name ?? 'this location'}`} />
         ) : (
-          <Place seed={keep.id} className={s.horizon} />
+          <Place seed={keep.id} className={s.terrain} />
         )}
+        <span className={s.neat} aria-hidden="true" />
       </div>
-      <div className={s.back}>
-        <span className={s.frank} aria-hidden="true">
-          <span className={s.postmark} />
-        </span>
-        {keep.name && <h3 className={s.addressed}>{keep.name}</h3>}
-        {keep.text && <p className={s.lore}>{keep.text}</p>}
-        <Motifs keep={keep} onMotif={onMotif} {...foot} />
-      </div>
+      {keep.text && <p className={s.lore}>{keep.text}</p>}
     </article>
   )
 }

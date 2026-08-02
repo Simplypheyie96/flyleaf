@@ -662,31 +662,75 @@
   margin-block-start: 0;
 }
 
-/* ── 6. Location & lore — a postcard ──────────────────────────────────────
-   A drawn view across the front, franked on the back, the name written across
-   the address side. This is the card that had to stop being a generic
-   rectangle: a location is a picture of somewhere before it is a paragraph. */
+/* ── 6. Location & lore — a surveyed plate ────────────────────────────────
 
-.postcard {
+   The postcard is gone. Two things were wrong with it. It franked the back
+   with a stamp box in the trailing corner, and that stamp had to be paid for
+   twice — 52px of padding reserved on the name *and* on the note under it —
+   which is exactly the dead space beside the text that kept getting pointed
+   at. And it ran the drawing edge to edge across the top of the card, which
+   is what a photograph does; these are drawings, and a drawing that bleeds
+   off its own sheet stops looking drawn.
+
+   So the view is mounted rather than printed. It is inset from the card on
+   all four sides, which is the whole difference between a picture the card
+   was cropped to and a plate somebody put there. Under it is a survey grid,
+   showing through the drawing's own washes so the two read as one sheet.
+   Inside its edge is a neat line — the rule a surveyor draws to say where the
+   survey stops — laid over the drawing rather than under it, because it
+   belongs to the sheet and not to the view.
+
+   The name is a caption, not a title: the mark in the place hue, then the
+   words in mono caps, set above the plate the way a field guide captions one.
+   The note then runs the full width of the card underneath. */
+
+.mapped {
   --paper-tone: var(--card-place-solid);
-  padding: 0;
-  overflow: hidden;
-  border-radius: var(--radius-sm);
-  box-shadow:
-    inset 0 1px 0 var(--card-edge-light),
-    inset 0 0 0 1px var(--card-border);
+  /* Ends in prose like the quote and the note do, so it takes the same 32 at
+     the foot that keeps the verb circles off the last line. */
+  padding-block-end: var(--space-6);
 }
 
-.view {
+.marked {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--text-2xs);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  /* Mixed toward ink so the words are read as words. The mark beside them is
+     not mixed, so the hue lands once and lands on the glyph. */
+  color: color-mix(in oklab, var(--color-place) 62%, var(--color-ink));
+}
+
+.pin {
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--color-place);
+}
+
+.field {
   position: relative;
-  block-size: 136px;
   overflow: hidden;
-  border-block-end: 1px solid var(--card-border);
-  background: color-mix(in oklch, var(--color-place), transparent 88%);
+  /* The drawing's own viewBox is 200 × 100, so a 2:1 plate holds all of it —
+     nothing is cropped, and a pinned photograph gets the same proportion so
+     the two never change the card's height between them. */
+  aspect-ratio: 2 / 1;
+  border: 1px solid color-mix(in oklab, var(--color-place) 34%, transparent);
+  border-radius: var(--radius-sm);
+  /* Only ever seen behind a pinned photograph that has not decoded yet — the
+     drawing already fills the plate with its own ground, and rules its own
+     survey grid across it, so a second grid under an opaque one would be a
+     token that never paints. */
+  background-color: color-mix(in oklab, var(--color-place) 8%, var(--paper-tone));
 }
 
-.horizon,
-.pinned {
+.terrain {
   display: block;
   inline-size: 100%;
   block-size: 100%;
@@ -694,69 +738,18 @@
   color: var(--color-place);
 }
 
-.back {
-  position: relative;
-  padding: var(--space-5);
-}
-
-/* The franking: a perforated stamp box with a postmark struck across it. No
-   words in it — a stamp that said "PLACE" would be a tag by another name. */
-.frank {
+.neat {
   position: absolute;
-  inset-block-start: var(--space-5);
-  inset-inline-end: var(--space-5);
-  display: grid;
-  place-items: center;
-  inline-size: 38px;
-  block-size: 46px;
-  rotate: 3deg;
-  border: 1px dashed color-mix(in oklch, var(--color-place), transparent 45%);
-  border-radius: 2px;
-  background: color-mix(in oklch, var(--color-place), transparent 90%);
+  inset: 5px;
+  border: 1px solid color-mix(in oklab, var(--color-place) 20%, transparent);
+  border-radius: 4px;
   pointer-events: none;
 }
 
-.postmark {
-  inline-size: 30px;
-  block-size: 30px;
-  border-radius: 50%;
-  rotate: -14deg;
-  background:
-    radial-gradient(
-      circle,
-      transparent 0 8px,
-      color-mix(in oklch, var(--color-place), transparent 40%) 8px 9px,
-      transparent 9px 12px,
-      color-mix(in oklch, var(--color-place), transparent 55%) 12px 13px,
-      transparent 13px
-    ),
-    linear-gradient(
-      to bottom,
-      transparent 46%,
-      color-mix(in oklch, var(--color-place), transparent 55%) 46% 50%,
-      transparent 50%
-    );
-}
-
-.addressed {
-  margin: 0;
-  /* Clear of the stamp box, so a long location name never runs under it. */
-  padding-inline-end: 52px;
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: var(--text-md);
-  line-height: var(--leading-tight);
-  color: var(--color-ink);
-  text-wrap: balance;
-}
-
-/* Kept clear of the stamp too, not just the name above it: the frank is 46px
-   tall and the name is one line, so the first two lines of the note were
-   running straight under it. A postcard's message column is narrower than the
-   card anyway — that is where the address goes. */
+/* Full width, both ends. Nothing hangs in the corner any more, so nothing is
+   reserved for it. */
 .lore {
-  margin: var(--space-3) 0 0;
-  padding-inline-end: 52px;
+  margin: var(--space-4) 0 0;
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   line-height: var(--leading-body);

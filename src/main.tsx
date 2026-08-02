@@ -3,13 +3,16 @@ import { createRoot } from 'react-dom/client'
 /* Self-hosted so the archive still reads with no network, and so the share
    canvas can draw with them without tainting.
 
-   Newsreader is the reading voice: a text serif with a real 200–800 range and
-   a true italic, which is what lets a title be a title at 24px instead of
-   needing 38px to look like one. Instrument Sans is the app's own voice.
+   Instrument Serif is the book's voice: one weight, one italic, and about a
+   quarter narrower than a text serif at the same size, which is what lets a
+   long book title sit at a readable size instead of being shrunk to fit.
+   Both faces are loaded — the italic carries every quote in the app, and
+   without the real file the browser would slant the upright one. Instrument
+   Sans is the app's own voice and shares the family's skeleton.
    IBM Plex Mono is only ever a small stamped label — dates, page numbers.
    Patrick Hand is the reader's hand and is deliberately left alone. */
-import '@fontsource-variable/newsreader'
-import '@fontsource-variable/newsreader/wght-italic.css'
+import '@fontsource/instrument-serif/400.css'
+import '@fontsource/instrument-serif/400-italic.css'
 import '@fontsource-variable/instrument-sans'
 import '@fontsource/ibm-plex-mono/400.css'
 import '@fontsource/ibm-plex-mono/500.css'

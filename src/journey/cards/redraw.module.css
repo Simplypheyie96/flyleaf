@@ -46,51 +46,96 @@
    the verb circles' reach back up into the card, and eight of air on top of
    it, which is roughly a line.
 
-   The card is one column on one edge. There is no grid, no inset object and no
-   hanging indent, because a device in the layout was what was wrong with all
-   six drawings before this one. Which leaves exactly two spacing decisions,
-   and they follow the ordinary rule: the gap inside a group is smaller than
-   the gap between groups. The name belongs to the cameo above it (16) more
-   loosely than the description belongs to the name (8). */
+   A page from a dramatis personae: who they are on a band across the top, what
+   you know about them underneath it. Two groups, one rule between them.
+
+   The version before this stacked all three parts down the leading edge —
+   cameo, then name, then account — and it had two faults that were the same
+   fault. The cameo was a 56px circle on a 272px row, so two thirds of the top
+   of the card was empty paper with nothing in it, which is the dead space
+   beside the picture. And with the portrait alone on its line, the name and
+   the account were two left-aligned paragraphs a few points apart in size,
+   which is not a hierarchy, it is a size difference. The card read as blank.
+
+   Putting the name beside the portrait fixes both at once. The row now has
+   something in it all the way across, and the portrait and the name become one
+   thing — this is who — against the account below, which is what is known. The
+   rule is what says they are two things and not four; it is the only
+   horizontal rule on any card in the set, which is also what makes this card
+   recognisable from across the room without anything being added to it.
+
+   The account then runs the full width of the card, both ends, with nothing
+   indented under the portrait. */
 
 .person {
   --paper-tone: var(--card-character-solid);
   padding-block-end: var(--space-6);
 }
 
+/* The band. Ruled underneath in the character's own hue rather than the
+   neutral border, so the line belongs to the card instead of looking like the
+   edge of something. */
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block-end: var(--space-4);
+  border-block-end: 1px solid color-mix(in oklab, var(--color-character) 24%, transparent);
+}
+
 /* The mount the cameo sits in — `Avatar` draws a silhouette and no ground at
    all, so without this the head floats on the paper with nothing under it.
-   56 is the size a portrait is kept at in a book: bigger than the 44 minimum
-   so the outline that distinguishes one cameo from another actually reads,
-   small enough that it is a picture on the card rather than the card. */
+   52 rather than 56: on its own line it was the only object on the card and
+   could afford the size, but beside a name it has to be the smaller half of
+   the pair or it takes the row over. */
 .cameo {
   display: grid;
   place-items: center;
-  inline-size: 56px;
-  block-size: 56px;
+  flex: none;
+  inline-size: 52px;
+  block-size: 52px;
   border-radius: 50%;
   overflow: hidden;
   background: color-mix(in oklab, var(--color-character) 16%, var(--tint-reverse));
-  box-shadow: inset 0 0 0 1px var(--card-border);
+  /* Two rings, not one: the hairline that keeps the silhouette off the paper,
+     then the paper itself, then the mount. A cameo is a portrait *set into*
+     something, and one ring drew a generic avatar bubble. */
+  box-shadow:
+    inset 0 0 0 1px var(--card-border),
+    0 0 0 3px var(--paper-tone),
+    0 0 0 4px color-mix(in oklab, var(--color-character) 28%, transparent);
   color: var(--color-character);
 }
 
+/* Size carries the step, because with this face nothing else can. At 17
+   against the account's 14 the two read as one block, and the 560 that used
+   to separate them is a weight Instrument Serif does not own.
+
+   20 against 14 is the step instead, and it costs the card almost nothing:
+   this face at 20 sets narrower than the old one did at 17, so the name gains
+   its heading back horizontally and spends only the four pixels of extra line
+   box vertically. */
 .name {
-  margin: var(--space-4) 0 0;
+  margin: 0;
+  min-inline-size: 0;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: var(--text-md);
+  font-size: var(--text-lg);
   line-height: var(--leading-snug);
   letter-spacing: var(--track-title);
   color: var(--color-ink);
   text-wrap: balance;
-  max-inline-size: var(--measure);
 }
 
 /* What you know about them. Same voice the note and the dossier use elsewhere,
-   starting on the same edge as everything above it. */
+   starting on the same edge as everything above it.
+
+   12 against the band's 16, so the rule sits centred between them: body text
+   at 1.6 carries about four pixels of half-leading above its first cap, and
+   12 + 4 is the 16 on the other side. Matching the numbers would have put the
+   rule visibly high. */
 .about {
-  margin: var(--space-2) 0 0;
+  margin: var(--space-3) 0 0;
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
@@ -100,84 +145,132 @@
 
 /* ══ PLOT THREAD ══════════════════════════════════════════════════════════
 
-   A folder with a tab, and the tab is the whole argument. Every rejected
-   thread drawing put its difference *inside* the rectangle — a cord down the
-   gutter, a row of pips, a status strip — which meant that from two feet away
-   it was the same card as a note with a decoration on it. This one changes the
-   outline instead, and the outline is the only thing that reads from two feet
-   away.
+   An open case, and the outline is the whole argument. Every rejected thread
+   drawing put its difference *inside* the rectangle — a cord down the gutter,
+   a row of pips, a status strip — which meant that from two feet away it was
+   the same card as a note with a decoration on it. This one changes the
+   outline instead, twice, and the outline is the only thing that reads from
+   two feet away.
 
-   The tab is the card's own paper. Not a chip, not a badge, not a fill in a
-   second colour: the same mallow tone as the folder, rising off the leading
-   corner, so it is a shape the card is *made of* rather than a thing stuck on
-   it. That distinction is the difference between a folder and a tag, and a tag
-   is what was being turned down. */
+   First the border is dashed rather than drawn. Every other keep on the thread
+   is a closed rectangle, so an edge that is not continuous is a different kind
+   of object before a word is read — and it happens to be the truth, since a
+   thread is the one keep that is not finished.
 
-.filed {
+   Then the seal breaks that edge. It is hung on the leading rule with its
+   centre exactly on it, half in and half out, which nothing else in the app
+   does. Its ring is where the stance went: a third of the way round for a
+   hunch, two thirds for a suspicion, closed for something certain. The tab it
+   replaces was a word you had to read to learn a thing the card could simply
+   have been. */
+
+.dossier {
   --paper-tone: var(--card-thread-solid);
-  /* The article is now only the stack that holds the two painted pieces, so it
-     gives up the paper and padding `.card` hands out and lets them do it. */
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 0;
-  background: none;
-  box-shadow: none;
+  /* Hairline in the thread's own hue, broken. Mixed to 55% rather than drawn
+     at full strength: a dashed rule reads heavier than a solid one of the same
+     colour because the eye joins the gaps, and at full strength it fenced the
+     card in instead of leaving it open. */
+  border: 1px dashed color-mix(in oklab, var(--color-thread) 55%, transparent);
+  /* 32 at the foot rather than 24. The strand names are 11px of text carrying
+     a 44px target, so each one reaches ~14 below its own line; the verb
+     circles hang off the card and reach 29 back up including their own margin.
+     12 of foot margin and 32 of padding is the 44 that keeps the two apart. */
+  padding-block-end: var(--space-6);
 }
 
-/* Fused to the folder by a one-pixel overlap and a stacking order: the tab's
-   own paper covers the folder's top edge highlight for exactly its own width,
-   and the highlight carries on past it. A tab drawn as a separate rectangle
-   sitting on top of a card has a seam at that join, and the seam is the tell
-   that it was added rather than cut. */
-.tab {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  min-block-size: 26px;
-  margin-block-end: -1px;
-  padding-inline: var(--space-3);
-  border-start-start-radius: var(--radius-sm);
-  border-start-end-radius: var(--radius-sm);
-  background: var(--paper-tone);
-  box-shadow: inset 0 1px 0 var(--card-edge-light);
+/* Centred on the leading rule, so exactly half of it is outside the card.
+
+   34 across, sitting 17 out — which puts its rim 5px clear of the journey's
+   own thread in the gutter (26 of column, 8 of gap, the line down the middle
+   of the column). Near enough that the seal reads as tied to the thread, far
+   enough that it does not read as strung on it. Inside, 7px of clearance
+   before the first character of the card's own text.
+
+   Vertically it is centred on the stance line rather than the title: 16 down
+   the padding box puts its middle within two pixels of that line's middle, and
+   the pair reads as one mark and its caption. */
+.seal {
+  position: absolute;
+  inset-block-start: var(--space-4);
+  inset-inline-start: -17px;
+  display: grid;
+  place-items: center;
+  inline-size: 34px;
+  block-size: 34px;
+  /* The ring is the border, and the border is transparent so the background
+     under it shows through — the arc below is painted into the border box and
+     the paper disc is clipped to the padding box, which is how one element
+     draws a filling ring around a solid face without a second box. */
+  border: 3px solid transparent;
+  border-radius: 50%;
+  --arc: 33%;
+  background:
+    linear-gradient(var(--tint-reverse), var(--tint-reverse)) padding-box,
+    conic-gradient(
+        var(--color-thread) var(--arc),
+        color-mix(in oklab, var(--color-thread) 18%, var(--paper-tone)) 0
+      )
+      border-box;
+}
+
+/* The face carries a dot and nothing else.
+
+   It carried the thread glyph first, and that was wrong for a reason no amount
+   of drawing would have fixed: the knot standing in the gutter twenty pixels
+   away carries that same glyph, so the row had two circles and one mark
+   between them. The knot names the kind; the seal measures the stance; a dot
+   is a centre for the ring to be a ring around, and it is nothing you could
+   mistake for the knot. */
+.seal::before {
+  content: '';
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 50%;
+  /* Same deepened mallow the strands are set in — on paper this pale it is
+     well past 3:1 in both themes, and it keeps the mark saying "thread". */
+  background: color-mix(in oklab, var(--color-thread) 68%, var(--color-ink));
+}
+
+.dossier[data-stance='suspicion'] .seal {
+  --arc: 66%;
+}
+
+.dossier[data-stance='certain'] .seal {
+  --arc: 100%;
+}
+
+/* The word for the ring, for anyone who cannot see how full it is — and the
+   card's smallest line, so the title below it is unambiguously the heading. */
+.standing {
+  margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
+  line-height: var(--leading-tight);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
-  /* The thread's own mallow carried a third of the way into the ink. At 11px
-     on mallow paper the hue at full strength measured 4.2 in daylight and 4.27
-     after dark — close enough to look deliberate and not close enough to be
-     legible. Deepening it keeps the colour saying "thread" and clears 4.5 in
-     both. */
   color: color-mix(in oklab, var(--color-thread) 68%, var(--color-ink));
 }
 
-/* 32 at the foot rather than 24. The strand names are 11px of text carrying a
-   44px target, so each one reaches ~14 below its own line; the verb circles
-   hang off the card and reach 29 back up including their own margin. 12 of
-   foot margin and 32 of padding is the 44 that keeps the two apart. */
-.folder {
-  align-self: stretch;
-  padding: var(--space-5) var(--space-5) var(--space-6);
-  border-start-end-radius: var(--radius-md);
-  border-end-end-radius: var(--radius-md);
-  border-end-start-radius: var(--radius-md);
-  background: var(--paper-tone);
-  box-shadow: inset 0 1px 0 var(--card-edge-light);
-}
-
 /* One line, always. A thread's name is a question you are carrying around, not
-   a paragraph, and a name allowed to wrap makes every folder in the journey a
+   a paragraph, and a name allowed to wrap makes every case in the journey a
    different height for a reason the reader cannot act on. The full text is on
-   the element's `title` and in the entry itself. */
+   the element's `title` and in the entry itself.
+
+   Bound to the stance line above it at 8 — half of every other gap on the
+   card — because the label and the thing it labels are one group.
+
+   This used to be set heavier than the other card titles, on the argument
+   that a question the reader is still holding open deserves the emphasis.
+   The face has one weight now, so that argument has nowhere to go, and the
+   card does not miss it: since it was redrawn it shares no shape with any
+   other keep, and a heading does not have to carry a distinction the whole
+   object is already making. Same 20 as the character name. */
 .asked {
-  margin: 0;
+  margin: var(--space-2) 0 0;
   max-inline-size: 100%;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: var(--text-md);
+  font-size: var(--text-lg);
   line-height: var(--leading-snug);
   letter-spacing: var(--track-title);
   color: var(--color-ink);
@@ -197,12 +290,12 @@
   max-inline-size: var(--measure);
 }
 
-/* What it is filed under, written along the bottom of the folder the way you
-   would write it on a real one. These are still the only way into the motif
-   filter, so they have to stay pressable — but a row of filled lozenges under
-   every thread was the "random tag" look, and a folder has its own place for
-   this. Bare words, spaced far enough apart that two 44px targets never touch:
-   16 of gap, and the narrowest strand still paints ~40 wide. */
+/* What it is filed under, written along the bottom of the card the way you
+   would write it on a real case file. These are still the only way into the
+   motif filter, so they have to stay pressable — but a row of filled lozenges
+   under every thread was the "random tag" look, and a case file has its own
+   place for this. Bare words, spaced far enough apart that two 44px targets
+   never touch: 16 of gap, and the narrowest strand still paints ~40 wide. */
 .filing {
   display: flex;
   flex-wrap: wrap;
