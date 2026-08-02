@@ -47,8 +47,19 @@
   box-shadow: var(--elevation-1);
 }
 
-/* The header variant: word-only micro chips, the way a reference dust jacket
-   lists its editions. Same control, same toggling, a quarter of the ink.
+/* The header variant: icon-only micro chips. Same control, same toggling, a
+   quarter of the ink.
+
+   It set the three formats as words, which is the right call in a sheet and
+   the wrong one in a header: PHYSICAL DIGITAL AUDIO in mono caps runs 217px,
+   and the head's whole line is 312. Two thirds of the room the book's name,
+   its byline and its dates have to share, spent on three labels that never
+   change. As marks they run 142 and the column can breathe.
+
+   42 × 28 — a lozenge, not a square, because the row beneath it is a pill and
+   these have to read as the same family of control. The drawing is 18px, so
+   the 12px either side is the chip's own air rather than padding chosen to
+   reach a number.
 
    This is the only place the small row is used — the book journey's head —
    and there it stands on the open sky between the date pill and the filter
@@ -57,21 +68,22 @@
 .row[data-small] .chip {
   min-height: 28px;
   min-width: 0;
-  padding-inline: var(--space-2);
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  font-weight: 400;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
+  padding-inline: var(--space-3);
   box-shadow: none;
 }
 
-/* The full row draws its own 44px; this one draws 28 and has to find the rest.
-   Growing the pill is not the answer — the head is already the part of the
-   journey page that takes too much of the screen, and these two words are the
+/* The full row draws its own 44px; this one draws 42 × 28 and has to find the
+   rest. Growing the pill is not the answer — the head is already the part of
+   the journey page that takes too much of the screen, and these marks are the
    quietest thing on it by design. So the target is extended instead, into head
-   air that holds nothing else. Inline stays at 0 so PRINT's target never
-   reaches over AUDIO's.
+   air that holds nothing else.
+
+   Inline it reaches 1px past the chip on each side to make the 44, and the
+   chips stand 8 apart, so no chip's target reaches over its neighbour's. That
+   1px is the whole reason the drawings get 12px of air rather than 8: at 8 the
+   chip would draw 34, the target would overhang 5 a side, and two of those
+   across an 8px gap overlap by two. Same tap arithmetic the record column runs
+   vertically, run across a row instead.
 
    The height is stated rather than reached by insetting eight a side. An inset
    resolves against the padding box, so with the chip's hairline "28 + 8 + 8"
@@ -94,7 +106,7 @@
    off that ink, which meant the head carried two nearly-identical blacks doing
    the same job — the kind of difference nobody names and everybody feels. */
 .row[data-small] .chip[aria-pressed='true'] {
-  padding-inline: var(--space-2);
+  padding-inline: var(--space-3);
   border-color: transparent;
   background: var(--color-action);
   color: var(--color-on-action);

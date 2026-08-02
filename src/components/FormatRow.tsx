@@ -23,8 +23,8 @@ export const FORMATS: { value: BookFormat; label: string; Icon: typeof BookIcon 
 interface Props {
   value: BookFormat[]
   onChange: (next: BookFormat[]) => void
-  /** Word-only micro chips, for a header that has to stay small. The add
-      sheet keeps the full-size icon pills. */
+  /** Icon-only micro chips, for a header that has to stay small. The add
+      sheet keeps the full-size pills, where there is room to name them. */
   small?: boolean
 }
 
@@ -59,10 +59,14 @@ function FormatRow({ value, onChange, small = false }: Props) {
             title={label}
             onClick={() => toggle(format)}
           >
-            {/* Small chips are words, not icons: at micro size the words are
-                narrower than the drawings and read faster. */}
-            {!small && <Icon size={20} />}
-            {small ? <span>{label}</span> : on && <span>{label}</span>}
+            {/* The head's chips are the drawing alone. Three words set in mono
+                caps cost 217px of a 312px line, which is most of the room the
+                book's own name and dates have to share; the same three formats
+                as marks cost 142 and say it faster. Nothing is lost by it —
+                the name is on the button either way, for a screen reader and
+                for a hover, it is simply no longer painted. */}
+            <Icon size={small ? 18 : 20} />
+            {!small && on && <span>{label}</span>}
           </button>
         )
       })}
