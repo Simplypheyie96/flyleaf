@@ -10,16 +10,19 @@
    anywhere. Six versions before this one all had a device: a baseline grid, an
    inset card, a hanging indent. This one has none.
 
-   PLOT THREADS — a tabbed folder. All three set drawings drew *how many times
-   you have noticed it* — knots on a cord, tally strokes, ticks struck off a
-   ledger — and then three candidates after them moved the stance to where the
-   count had been, which fixed the subject and not the shape. The objection
-   that closed it was about the shape: a line with nodes threaded down the
-   inside of a rectangle is not a different card, it is the same card with
-   something drawn on it. So the difference is in the outline now. A thread is
-   the one kind that stays open across a whole book, which is what a folder is
-   for, and the tab is the card's own paper — same tone, fused, no second fill
-   and no border of its own — carrying how sure you have got.
+   PLOT THREADS — an open case, marked with a seal. Every drawing before this
+   one put its difference *inside* the rectangle — knots on a cord, tally
+   strokes, a status strip — which from two feet away is the same card as a
+   note with something drawn on it. So the difference is the outline, twice
+   over: the border is dashed rather than drawn, because a thread is the one
+   kind that is not settled yet and a broken line is what provisional looks
+   like; and a seal hangs off the leading edge, breaking that outline, which no
+   other card in the set does. Both are visible before a word is read.
+
+   The seal is also where the stance went. It used to be a word on a tab; it is
+   now the ring around the seal, filling as the reader moves from a hunch to
+   something they are sure of — one shape carrying one fact, instead of a
+   second label to read.
 
    VOICE — an instrument. It is the only keep on the page you *operate* rather
    than read, and the drawing has to say so before anything else does: a filled
@@ -34,17 +37,26 @@ import { clock, usePlayback, type CardProps } from './shared'
 import s from './redraw.module.css'
 
 /* ══ CHARACTER ════════════════════════════════════════════════════════════
-   The cameo on its mount, the name under it, what you know about them under
-   that. Nothing is centred, nothing is indented, nothing is aligned to
-   anything but the card's own leading edge. */
+
+   A page from a dramatis personae. The cameo and the name share a band across
+   the top — one thing, *who this is* — and what you know about them runs the
+   full width underneath, on the other side of the rule.
+
+   The cameo used to sit alone on its own line with the name beneath it, and
+   that left two thirds of the top of the card as empty paper. It also left the
+   name and the account as two paragraphs three points apart, which is a size
+   difference rather than a hierarchy. One row does both jobs: it fills, and it
+   pairs. */
 
 export function Character({ keep }: CardProps) {
   return (
     <article className={`${s.card} ${s.person}`}>
-      <span className={s.cameo}>
-        <Avatar id={keep.avatar} size={56} />
-      </span>
-      <h3 className={s.name}>{keep.name}</h3>
+      <div className={s.who}>
+        <span className={s.cameo}>
+          <Avatar id={keep.avatar} size={52} />
+        </span>
+        <h3 className={s.name}>{keep.name}</h3>
+      </div>
       {keep.text && <p className={s.about}>{keep.text}</p>}
     </article>
   )
@@ -52,22 +64,31 @@ export function Character({ keep }: CardProps) {
 
 /* ══ PLOT THREAD ══════════════════════════════════════════════════════════
 
-   A folder with a tab. Three things follow from that and nothing else was
-   added on top of them.
+   An open case, broken outline and all. Two shapes do the work and nothing
+   was added on top of them.
 
-   The tab holds the stance, so how sure you are is legible from the card's
-   outline before a word is read — which is the job the cord and its knots were
-   failing at from *inside* the rectangle.
+   The dashed border says provisional. Every other card in the journey is a
+   closed rectangle, so a card whose edge is not continuous is legible as a
+   different kind of object from across the room — and it happens to be exactly
+   what the type means, since a thread is the one keep that is still running.
+
+   The seal breaks that edge. It hangs half outside the leading rule, and its
+   ring fills as the stance hardens: a third of the way round for a hunch, two
+   thirds for a suspicion, closed for something certain. One shape, one fact.
+   The stance used to be a word on a tab, which meant reading a label to learn
+   something the card could have shown. The seal carries no glyph, because the
+   knot standing in the gutter beside it already carries the one this type
+   would have used.
 
    The question is one line. A thread's name is a thing you are carrying
-   around, not a paragraph, and a name that wraps turns every folder in the
+   around, not a paragraph, and a name that wraps turns every card in the
    journey a different height for no reason a reader can act on. The full text
    stays reachable on hover and in the entry itself.
 
    The strands are a filing line, not chips. They are still the only way into
    the motif filter, so they cannot go — but a row of filled lozenges under
-   every thread was the "random tag" look, and a folder already has somewhere
-   for that: the line you write along the bottom of one. Named as the
+   every thread was the "random tag" look, and a case file already has
+   somewhere for that: the line you write along the bottom of one. Named as the
    relationship it is, too, rather than left as a bare word — "filed under the
    house" is a fact about where this sits, where "the house" on its own is
    indistinguishable from a tag somebody stuck on. */
@@ -76,32 +97,46 @@ export function Thread({ keep, onMotif }: CardProps) {
   const stance = keep.stance ?? 'hunch'
   const strands = keep.motifs ?? []
   return (
-    <article className={`${s.card} ${s.filed}`}>
-      <span className={s.tab}>{STANCE[stance].label}</span>
-      <div className={s.folder}>
-        <h3 className={s.asked} title={keep.name}>
-          {keep.name}
-        </h3>
-        {keep.text && <p className={s.working}>{keep.text}</p>}
-        {/* Only when there is something filed under. An empty line is 28px of
-            dead air at the bottom of the card, and on a folder that reads as a
-            mistake rather than as space. */}
-        {strands.length > 0 && (
-          <p className={s.filing}>
-            <span className={s.filedUnder}>Filed under</span>
-            {strands.map((strand) => (
-              <button
-                key={strand}
-                type="button"
-                className={s.strand}
-                onClick={() => onMotif(strand)}
-              >
-                {strand}
-              </button>
-            ))}
-          </p>
-        )}
-      </div>
+    <article className={`${s.card} ${s.dossier}`} data-stance={stance}>
+      {/* Hung on the leading edge, half outside the dashed rule it breaks. It
+          clears the journey's own thread in the gutter by a few pixels on
+          purpose: near enough to read as tied to it, not so near that it looks
+          strung on it.
+
+          Empty on purpose. The first version carried the thread glyph, and the
+          knot standing in the gutter twenty pixels away carries that same
+          glyph — two circles with one mark between them, which is the exact
+          noise this card was supposed to stop making. The knot says *what kind
+          of keep*; the seal says *how sure*, and it says it with the one thing
+          the knot has no version of: a ring that fills. */}
+      <span className={s.seal} aria-hidden="true" />
+
+      {/* The word for the ring. Anyone who cannot see how full the seal is
+          reads the stance here instead, and nobody reads it twice. */}
+      <p className={s.standing}>{STANCE[stance].label}</p>
+
+      <h3 className={s.asked} title={keep.name}>
+        {keep.name}
+      </h3>
+      {keep.text && <p className={s.working}>{keep.text}</p>}
+      {/* Only when there is something filed under. An empty line is 28px of
+          dead air at the bottom of the card, and that reads as a mistake
+          rather than as space. */}
+      {strands.length > 0 && (
+        <p className={s.filing}>
+          <span className={s.filedUnder}>Filed under</span>
+          {strands.map((strand) => (
+            <button
+              key={strand}
+              type="button"
+              className={s.strand}
+              onClick={() => onMotif(strand)}
+            >
+              {strand}
+            </button>
+          ))}
+        </p>
+      )}
     </article>
   )
 }

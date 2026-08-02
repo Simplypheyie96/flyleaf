@@ -133,6 +133,29 @@
   white-space: nowrap;
 }
 
+/* The mark on the row you are already on.
+
+   A tick at the trailing edge rather than a filled row or a heavier weight:
+   the rows are a list of four sentences, and shading one of them makes the
+   other three look disabled. The tick is the only thing in the list that is
+   not text, so the eye finds it before it reads anything, which is the whole
+   job — a reader opening this sheet wants to know where they are standing
+   before they decide where to go.
+
+   `.row svg` paints every glyph in a row soft grey, which is right for a
+   leading icon that labels an action and wrong for the one mark that answers
+   the question. Scoped a class deeper so it wins on specificity rather than on
+   bundle order. */
+.tick {
+  margin-inline-start: auto;
+  flex: none;
+  display: inline-flex;
+}
+
+.row .tick svg {
+  color: var(--color-action);
+}
+
 /* The one row in the app that takes something away. Set apart by real space
    above it rather than by shouting, and worded plainly — "Delete", never a
    word from the lexicon. A reader about to lose something reads the sentence

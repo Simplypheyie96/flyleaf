@@ -27,10 +27,13 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import BookCover from '../components/BookCover'
 import FormatRow from '../components/FormatRow'
 import GlassSurface from '../components/GlassSurface'
+import Mascot from '../components/Mascot'
 import Sheet from '../components/Sheet'
+import Sparkle from '../components/Sparkle'
 import CalendarPicker from '../components/date/CalendarPicker'
 import { shortDate, spanPair, todayISO } from '../components/date/dates'
 import {
+  CheckIcon,
   ChevronIcon,
   CloseIcon,
   FairCopyIcon,
@@ -75,9 +78,9 @@ interface Undo {
   restore: () => Promise<void>
 }
 
-/* The sort control cycles rather than opening a sheet: four orders is a loop
-   a thumb can walk, and the reference draws it exactly this way — one small
-   typewritten word with a glyph. */
+/* The order, in the fewest words that still name it. Used on the control
+   itself, where there is only ever room for a phrase — the sheet behind it is
+   where the orders get their full sentence. */
 const SORT_SHORT: Record<Order, string> = {
   kept: 'as kept',
   newest: 'newest',
@@ -93,12 +96,15 @@ interface NotchProps {
   keep: Entry
   book: Book
   tie?: Tie
+  /* False once every visible keep is the same substance — see `showSide` at
+     the call site. */
+  showSide: boolean
   onMotif: (motif: string) => void
   onEdit: (keep: Entry) => void
   onDelete: (keep: Entry) => void
 }
 
-function Notch({ keep, book, tie, onMotif, onEdit, onDelete }: NotchProps) {
+function Notch({ keep, book, tie, showSide, onMotif, onEdit, onDelete }: NotchProps) {
   const { Icon, hue, side } = KIND[keep.type]
   return (
     <li
@@ -135,13 +141,18 @@ function Notch({ keep, book, tie, onMotif, onEdit, onDelete }: NotchProps) {
             the line's space-between actually has two things to push apart and
             the substance lands on the trailing edge — the date holds the left
             margin the card's text already holds, the whisper holds the right,
-            and the empty middle is what makes the row read as balanced. */}
+            and the empty middle is what makes the row read as balanced.
+
+            And it leaves when it stops being a contrast: with one substance on
+            screen the trailing edge is the same two words thirteen times, and
+            the empty middle stops reading as balance and starts reading as a
+            phrase adrift. */}
         <p className={styles.when}>
           <span className={styles.whenDay}>
             {keptLabel(keep.keptOn)}
             {keep.page !== undefined && ` · p. ${keep.page}`}
           </span>
-          <em className={styles.whenSide}>{SIDE[side].word}</em>
+          {showSide && <em className={styles.whenSide}>{SIDE[side].word}</em>}
         </p>
         <Keep keep={keep} book={book} onMotif={onMotif} onEdit={onEdit} onDelete={onDelete} />
       </div>
@@ -179,6 +190,7 @@ function BookJourney() {
   const [adding, setAdding] = useState<EntryType | null>(null)
   const [editing, setEditing] = useState<Entry | null>(null)
   const [picking, setPicking] = useState<'opened' | 'closed' | null>(null)
+  const [ordering, setOrdering] = useState(false)
   const [keepsakeOpen, setKeepsakeOpen] = useState(false)
   const [fairOpen, setFairOpen] = useState(false)
   const [bookOpen, setBookOpen] = useState(false)
@@ -222,6 +234,20 @@ function BookJourney() {
 
   const keeps = useMemo(() => entries ?? [], [entries])
   const rows: Row[] = useMemo(() => arrange(keeps, sift), [keeps, sift])
+
+  /* The substance word is a contrast, not a caption.
+
+     Down the whole thread some cards say "a whisper" and some say "your own
+     ink", and the difference between two adjacent lines is the entire
+     information. Filter to one kind — or to any set that happens to be all one
+     substance — and every card repeats the same two words at the far trailing
+     edge of its meta line, with nothing to be different from. At that point it
+     has stopped labelling anything and is just a phrase floating on the right
+     of the page, which is exactly what it looks like. */
+  const showSide = useMemo(
+    () => new Set(rows.map((row) => KIND[row.keep.type].side)).size > 1,
+    [rows],
+  )
 
   /* The undo clears itself. Kept in an effect rather than a timeout set at the
      call site, so that deleting a second keep before the first bar expires
@@ -287,7 +313,20 @@ function BookJourney() {
             {opening.on ? keptLabel(opening.on) : 'undated'} · day one
           </span>
         </p>
-        <p className={styles.openLine}>{opening.line}</p>
+        {/* The accent on the initial. It hangs at the letter's leading
+            shoulder rather than beside the words, because the initial is the
+            thing being marked — and it is the app's own star, the one on the
+            Home and Library mastheads, so the inscription is decorated with
+            something the reader has already met rather than with an ornament
+            invented for one line.
+
+            It has to come *after* the text and be lifted out of flow: an
+            inline element ahead of the words means there is no first letter
+            for `::first-letter` to raise, and the initial silently disappears. */}
+        <p className={styles.openLine}>
+          {opening.line}
+          <Sparkle size={12} className={styles.openSpark} />
+        </p>
         {opening.hint && <p className={styles.openHint}>{opening.hint}</p>}
       </div>
     </li>
@@ -408,24 +447,28 @@ function BookJourney() {
               book and with nothing in the column of writing above them —
               three edges to read where there should have been two. */}
           <div className={styles.about}>
-            {/* Two groups, not four things.
+            {/* One column with one rhythm, and exactly one thing bound tighter
+                than the rest.
 
-                Four items down one column need three different joins if each
-                one is spaced against its neighbour, and three numbers picked
-                one at a time is how this column kept drifting out of rhythm:
-                4 above the byline, 16 above the formats, 20 above the dates,
-                none of them meaning anything. They are really two groups —
-                what the book *is*, which nobody can edit, and what you can
-                change about it — so the column is written as two, each with
-                one gap inside it and one seam between them. There is no third
-                number to get wrong, and no element that can be nudged out of
-                step on its own. */}
+                It used to be two groups held apart by a seam, and the seam was
+                where the head went wrong: the record's floor came off the
+                cover's 2:3, `space-between` pushed every spare pixel into that
+                one join, and a short title turned it into a band of dead air
+                under the byline that belonged to nothing. The join was doing
+                the work of the leftover space.
+
+                Now the column is even — 16 down its whole length — and the
+                grouping is carried by the one gap that is *tighter*: the title
+                and its byline sit at 8, half of everything else, which is the
+                whole of the 2× the grouping needs. Spare height falls to the
+                foot of the column, where a cover taller than its own caption
+                is just what a book beside a paragraph looks like. */}
             <div className={styles.identity}>
-              {/* One line, always. A title that wraps pushes the byline, the
-                  formats and the dates down with it, so the head's height came
-                  out of how long the book's name happened to be. The full name
-                  is still here for anyone who wants it — on the element, and in
-                  the bar the head folds down into. */}
+              {/* Up to two lines. One line was a height rule — it kept the
+                  pinned head the same size per book — but it also truncated
+                  most real titles at this width, and the space it saved was
+                  the space that opened under the byline. Two lines spends it
+                  on the name instead. The full text stays on the element. */}
               <h1 className={styles.title} title={book.title}>
                 {book.title}
               </h1>
@@ -434,73 +477,76 @@ function BookJourney() {
               </p>
             </div>
 
-            <div className={styles.controls}>
-              {/* No wrapper. The row used to sit in a div whose only job was to
-                  carry a top margin, and that margin was one of the three
-                  hand-placed numbers this column was rebuilt to get rid of. */}
-              <FormatRow
-                small
-                value={formatsOf(book)}
-                onChange={(next) => void setFormats(book.id, next)}
-              />
+            {/* No wrapper. The row used to sit in a div whose only job was to
+                carry a top margin, and that margin was one of the three
+                hand-placed numbers this column was rebuilt to get rid of. */}
+            <FormatRow
+              small
+              value={formatsOf(book)}
+              onChange={(next) => void setFormats(book.id, next)}
+            />
 
-              {/* The reading span: one pill, two tappable ends, an arrow between.
+            {/* The reading span: one pill, two tappable ends, an arrow between.
 
-                  A date, an arrow and a second date is already a sentence, so
-                  there are no labels — nobody reads "Jul 2 → still reading" and
-                  wonders which end is which. The two ends are formatted together
-                  rather than one at a time, which is what stops the same year
-                  being printed twice inside one pill.
+                A date, an arrow and a second date is already a sentence, so
+                there are no labels — nobody reads "Jul 2 → still reading" and
+                wonders which end is which. The two ends are formatted together
+                rather than one at a time, which is what stops the same year
+                being printed twice inside one pill.
 
-                  Each end is its own button and the arrow is neither of them. */}
-              {book.startedOn || book.finishedOn ? (
-                <div className={styles.span}>
-                  <button
-                    type="button"
-                    className={styles.spanEnd}
-                    data-unset={!book.startedOn || undefined}
-                    onClick={() => setPicking('opened')}
-                    aria-label={
-                      book.startedOn
-                        ? `Started ${shortDate(book.startedOn)}. Change the day.`
-                        : 'No start date yet. Set one.'
-                    }
-                  >
-                    {/* The label carries its own clipping so the button does not.
-                        `overflow: hidden` on the button would crop its own 44px
-                        tap pseudo back to the 33 it paints. */}
-                    <span className={styles.spanText}>{span.start ?? 'no start date'}</span>
-                  </button>
-                  <span className={styles.spanArrow} aria-hidden="true">
-                    →
-                  </span>
-                  <button
-                    type="button"
-                    className={styles.spanEnd}
-                    data-unset={!book.finishedOn || undefined}
-                    onClick={() => setPicking('closed')}
-                    aria-label={
-                      book.finishedOn
-                        ? `Finished ${shortDate(book.finishedOn)}. Change the day.`
-                        : 'Still reading. Set the day you finished.'
-                    }
-                  >
-                    <span className={styles.spanText}>{span.finish ?? 'still reading'}</span>
-                  </button>
-                </div>
-              ) : (
-                <div className={styles.span}>
-                  <button
-                    type="button"
-                    className={styles.spanEnd}
-                    onClick={() => setPicking('opened')}
-                  >
-                    <span className={styles.spanText}>Add reading dates</span>
-                  </button>
-                </div>
-              )}
-            </div>
+                Each end is its own button and the arrow is neither of them. */}
+            {book.startedOn || book.finishedOn ? (
+              <div className={styles.span}>
+                <button
+                  type="button"
+                  className={styles.spanEnd}
+                  data-unset={!book.startedOn || undefined}
+                  onClick={() => setPicking('opened')}
+                  aria-label={
+                    book.startedOn
+                      ? `Started ${shortDate(book.startedOn)}. Change the day.`
+                      : 'No start date yet. Set one.'
+                  }
+                >
+                  {/* The label carries its own clipping so the button does not.
+                      `overflow: hidden` on the button would crop its own 44px
+                      tap pseudo back to the 33 it paints. */}
+                  <span className={styles.spanText}>{span.start ?? 'no start date'}</span>
+                </button>
+                <span className={styles.spanArrow} aria-hidden="true">
+                  →
+                </span>
+                <button
+                  type="button"
+                  className={styles.spanEnd}
+                  data-unset={!book.finishedOn || undefined}
+                  onClick={() => setPicking('closed')}
+                  aria-label={
+                    book.finishedOn
+                      ? `Finished ${shortDate(book.finishedOn)}. Change the day.`
+                      : 'Still reading. Set the day you finished.'
+                  }
+                >
+                  <span className={styles.spanText}>{span.finish ?? 'still reading'}</span>
+                </button>
+              </div>
+            ) : (
+              <div className={styles.span}>
+                <button
+                  type="button"
+                  className={styles.spanEnd}
+                  onClick={() => setPicking('opened')}
+                >
+                  <span className={styles.spanText}>Add reading dates</span>
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* The head's own star — see `.headSpark`. Last child on purpose: it
+              is lifted out of flow, so its only job in the markup is to be
+              somewhere it can never take part in the row's layout. */}
+          <Sparkle size={15} className={styles.headSpark} />
         </div>
         </div>
         </div>
@@ -550,17 +596,26 @@ function BookJourney() {
               It used to be its own label, its own glyph and its own hit area
               welded into one shape — two pieces of text and a control, which
               is not a button on this phone or any other. One round control the
-              size of every other round control in the app, and the order it is
-              currently in is what it says when you ask it. */}
+              size of every other round control in the app.
+
+              And it used to cycle. Four orders is a loop a thumb can walk, but
+              walking it is the only way to find out what the loop contains:
+              every tap silently rearranged thirteen cards and named neither
+              what had just been applied nor what was coming next, so the
+              reader was left inferring the rule from the result. Sorting is a
+              choice among four, and a choice among four is a list you can
+              read. The sheet says what is being ordered, spells out all four
+              orders, and marks the one already in force — one tap to look,
+              one tap to change, and no tap that changes something by accident.
+
+              A label beside the glyph would have been the cheap fix and the
+              wrong one: it would say where you are and still never say where
+              you could go. */}
           <button
             type="button"
             className={styles.sortBtn}
-            onClick={() =>
-              setSift((s) => {
-                const at = ORDERS.findIndex((o) => o.value === s.order)
-                return { ...s, order: ORDERS[(at + 1) % ORDERS.length].value }
-              })
-            }
+            onClick={() => setOrdering(true)}
+            aria-haspopup="dialog"
             aria-label={`Order: ${SORT_SHORT[sift.order]}. Change the order.`}
             title={`Order: ${SORT_SHORT[sift.order]}`}
           >
@@ -581,6 +636,7 @@ function BookJourney() {
                   keep={keep}
                   book={book}
                   tie={tie}
+                  showSide={showSide}
                   onMotif={(motif) =>
                     setSift((s) => ({ ...s, motif: s.motif === motif ? null : motif }))
                   }
@@ -598,6 +654,7 @@ function BookJourney() {
               bare sentence floating in the dark. */}
           {rows.length === 0 && keeps.length > 0 && (
             <div className={styles.nothing}>
+              <Mascot size={54} />
               <span>Nothing of that kind on this thread yet.</span>
               <button
                 type="button"
@@ -611,6 +668,7 @@ function BookJourney() {
 
           {keeps.length === 0 && (
             <div className={styles.nothing}>
+              <Mascot size={54} />
               <span>
                 Nothing on this thread yet. Whatever this book whispers to you,
                 and whatever you put down in your own ink, will hang right here.
@@ -621,11 +679,17 @@ function BookJourney() {
           {/* ── The end of the thread ─────────────────────────────────── */}
           <div className={styles.ending}>
             <span className={styles.tail} aria-hidden="true" />
-            <p className={styles.endLine}>
-              {book.finishedOn
-                ? 'That is the whole of this one.'
-                : 'The thread is still running.'}
-            </p>
+            {/* The bed is the sentence's own box, and it is the creature's
+                whole world — see `.endBed`. */}
+            <div className={styles.endBed}>
+              <p className={styles.endLine}>
+                {book.finishedOn
+                  ? 'That is the whole of this one.'
+                  : 'The thread is still running.'}
+                <Sparkle size={13} className={styles.endSpark} />
+              </p>
+              <Mascot size={52} />
+            </div>
           </div>
 
           {/* ── The undo bar ──────────────────────────────────────────── */}
@@ -675,6 +739,67 @@ function BookJourney() {
         editing={editing ?? undefined}
         start={adding ?? 'quote'}
       />
+
+      {/* The four orders, named.
+
+          Four rows and nothing else on the sheet — no apply button, no second
+          section, no "reverse" switch to double it into eight. Tapping a row
+          is the decision, so the sheet closes on the tap and the reader sees
+          the thread rearrange behind it; asking them to choose and then
+          confirm would be two taps for one thought.
+
+          The hints are the reason this exists rather than a menu of four bare
+          labels: "Book order" is not self-explanatory on a page that also has
+          a date on every card, and "by page, the way the book runs" is. They
+          come from ORDERS, so the sheet and the rest of the app cannot drift
+          into describing the same four orders differently. */}
+      <Sheet
+        open={ordering}
+        onClose={() => setOrdering(false)}
+        label="Order the thread"
+        name="journey-order"
+      >
+        <header className={sheet.head}>
+          <h2 className={sheet.title}>Order the thread</h2>
+          <button
+            type="button"
+            className={sheet.iconButton}
+            onClick={() => setOrdering(false)}
+            aria-label="Close"
+          >
+            <CloseIcon size={20} />
+          </button>
+        </header>
+        <div className={sheet.body}>
+          <div className={sheet.rows} role="group" aria-label="Order">
+            {ORDERS.map(({ value, label, hint }) => {
+              const on = sift.order === value
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  className={sheet.row}
+                  aria-pressed={on}
+                  onClick={() => {
+                    setSift((s) => ({ ...s, order: value }))
+                    setOrdering(false)
+                  }}
+                >
+                  <span className={sheet.rowText}>
+                    <span>{label}</span>
+                    <span className={sheet.rowHint}>{hint}</span>
+                  </span>
+                  {on && (
+                    <span className={sheet.tick}>
+                      <CheckIcon size={19} />
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </Sheet>
 
       {/* The calendar, as a sheet. In the head it would grow the pinned zone
           and shove the thread; here it floats over it. */}

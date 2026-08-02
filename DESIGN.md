@@ -12,6 +12,7 @@
 |---|---|---|
 | Every colour, surface, material, shadow, radius | **`src/styles/tokens.css`** (772 lines) | **Single source of truth.** Declared as such in `CLAUDE.md`. Already OKLCH. No hard-coded colour may exist outside it. |
 | Motion values and reduced-motion behaviour | **`src/styles/motion.css`** + `src/motion/` | Authority for timing/easing |
+| Typefaces, type scale, tracking | **`src/styles/tokens.css`** (the `---- Type ----` block) and **`src/main.tsx`** for what is actually loaded | Single source of truth. Four voices: serif / sans / mono / hand |
 | Direction, guardrails, negative prompt, IA, per-screen skill routing | **`CLAUDE.md`** (212 lines) | Standing brief for the whole project |
 | Texture, rhythm, chrome polish — **qualities only** | **`refs/inspirations/`**, `refs/journey-references.md` | Strictly scoped; see the guardrail below |
 | Per-screen build specs | `01-…md` through `12-…md` | Fed one at a time |
@@ -36,6 +37,12 @@ at the cost of contrast.
 - **References are for qualities only.** Never surface a reference's names, branding,
   logos, book titles, author names, or colour identity. `orbs.jakubantalik.com` informs
   the voice orb *only*. Run `audit-reference-originality` before shipping.
+- **The serif has exactly one weight.** `--font-serif` is Instrument Serif: 400, a true
+  italic, and nothing else — chosen because it sets about a quarter narrower than a text
+  serif, and a book title is the longest string in the app. Never ask it for a bold. The
+  browser will synthesise one, and on strokes this fine that smears them instead of
+  thickening them. Hierarchy in the serif is made out of **size**, and every serif rule
+  states `font-weight: 400` rather than inheriting — an `h1` defaults to bold otherwise.
 - **AA+ in both themes, always.** The token sheet's comments record the measurements
   behind specific values — read the comment before changing a number, because several
   were tuned to clear a measured failure.
