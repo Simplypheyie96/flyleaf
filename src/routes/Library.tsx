@@ -605,20 +605,36 @@ function Library() {
   return (
     <main className={pageStyles.page}>
       <div className={`${pageStyles.column} ${styles.shelfColumn}`}>
+        {/* The name gets the whole line — no control shares a row with a
+            display serif on a phone, which is the only way "The Library" is
+            never allowed to wrap. */}
         <header className={styles.masthead}>
-          <div className={styles.mastheadText}>
-            <h1 className={styles.title}>
-              The Library <Sparkle size={15} className={styles.spark} />
-            </h1>
-            <p className={styles.subtitle}>every book you keep</p>
-          </div>
+          <h1 className={styles.title}>
+            The Library <Sparkle size={15} className={styles.spark} />
+          </h1>
+          <p className={styles.subtitle}>every book you keep</p>
+        </header>
 
-          {/* Three ways to look at nothing is not a choice, and a search field
-              over an empty shelf is a promise the screen cannot keep. Both
-              arrive with the first book, on the same condition as the count at
-              the foot — including while Dexie is still answering, so a reader
-              who does have books never sees the controls appear twice. */}
-          {hasBooks && (
+        {/* One toolbar: search flexes, the view switcher holds its corner.
+            They share a row because they are the same kind of thing — chrome
+            over the shelf — and neither arrives until there are books; a
+            search field over an empty shelf is a promise the screen cannot
+            keep. */}
+        {hasBooks && (
+          <div className={styles.toolbar}>
+            <GlassSurface className={styles.search}>
+              <div className={styles.searchInner}>
+                <SearchIcon size={18} />
+                <input
+                  type="search"
+                  className={styles.searchInput}
+                  placeholder="Search"
+                  aria-label="Search your books and memories"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </div>
+            </GlassSurface>
             <GlassSurface className={styles.switcher}>
               <div
                 className={styles.switcherInner}
@@ -640,23 +656,7 @@ function Library() {
                 ))}
               </div>
             </GlassSurface>
-          )}
-        </header>
-
-        {hasBooks && (
-          <GlassSurface className={styles.search}>
-            <div className={styles.searchInner}>
-              <SearchIcon size={18} />
-              <input
-                type="search"
-                className={styles.searchInput}
-                placeholder="Search books and memories"
-                aria-label="Search your books and memories"
-                autoComplete="off"
-                spellCheck={false}
-              />
-            </div>
-          </GlassSurface>
+          </div>
         )}
 
         {/* `data-shelf` is how the add sheet knows there is somewhere for a

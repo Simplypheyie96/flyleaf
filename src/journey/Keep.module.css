@@ -20,7 +20,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  margin-block-start: var(--space-4);
+  margin-block-start: var(--space-3);
 }
 
 .motif {
@@ -42,40 +42,45 @@
   color: var(--color-accent-text);
 }
 
-/* The three verbs: round raised buttons riding the card's bottom trailing
-   corner, half off the paper, the way the reference draws them. Positioned
-   against the notch's own hang (the journey sets it relative), so they work
-   the same on every one of the seven cards — including the two that clip
-   their own overflow. */
+/* The three verbs, in one pill riding the card's bottom trailing corner —
+   more than one button together shares one container. Positioned against the
+   notch's own hang (the journey sets it relative), so it works the same on
+   every one of the seven cards, including the two that clip their own
+   overflow. */
 .acts {
   position: absolute;
-  inset-block-end: calc(-1 * var(--space-3));
+  inset-block-end: calc(-1 * var(--space-2) - 2px);
   inset-inline-end: var(--space-4);
   z-index: 2;
   display: flex;
-  gap: var(--space-2);
+  align-items: center;
+  padding: 2px;
+  border: var(--border-hairline) solid var(--card-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  box-shadow: var(--elevation-1);
 }
 
 .act {
   flex: none;
   display: grid;
   place-items: center;
-  inline-size: 40px;
-  block-size: 40px;
+  inline-size: 32px;
+  block-size: 32px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
-  background: var(--color-paper);
-  box-shadow: var(--elevation-2);
+  border-radius: var(--radius-pill);
+  background: none;
   color: var(--color-ink-soft);
   cursor: pointer;
   transition:
     color var(--dur-press) var(--ease-out),
-    transform var(--dur-press) var(--ease-out);
+    background-color var(--dur-press) var(--ease-out);
 }
 
 .act:hover {
   color: var(--color-ink);
+  background: var(--card-chip);
 }
 
 .act:active {
@@ -109,8 +114,10 @@
 /* Stated rather than inherited: the hung mark below reaches --space-4 back into
    the card's padding, and it can only do that if the padding is known to be
    bigger than that. */
+/* Pad comes from the journey (--paper-pad on the hang); the hung mark below
+   reaches --space-3 back into it. */
 .quote {
-  --paper-pad: var(--space-5);
+  --paper-pad: var(--space-4);
 }
 
 .line {
@@ -128,7 +135,7 @@
 .line::before {
   content: '\201C';
   position: absolute;
-  inset-inline-start: calc(var(--space-4) * -1);
+  inset-inline-start: calc(var(--space-3) * -1);
   inset-block-start: -0.12em;
   font-size: var(--text-2xl);
   line-height: 1;
@@ -152,7 +159,7 @@
 
 .note {
   --rule-pitch: 1.75rem;
-  --paper-pad: var(--space-5);
+  --paper-pad: var(--space-4);
   /* So the folded corner is clipped to the card's own rounded corner instead
      of poking a square past it. */
   overflow: hidden;
@@ -186,8 +193,8 @@
   position: absolute;
   inset-block-end: 0;
   inset-inline-end: 0;
-  inline-size: 26px;
-  block-size: 26px;
+  inline-size: 22px;
+  block-size: 22px;
   pointer-events: none;
   background:
     linear-gradient(
@@ -240,7 +247,7 @@
 
 .voice {
   position: relative;
-  padding: var(--space-4) var(--space-5) var(--space-5);
+  padding: var(--space-3) var(--space-4) var(--space-4);
   border-radius: var(--radius-md);
   background: var(--color-ink);
   color: var(--color-paper);
@@ -354,8 +361,8 @@
   flex: none;
   display: grid;
   place-items: center;
-  inline-size: 56px;
-  block-size: 56px;
+  inline-size: 46px;
+  block-size: 46px;
   border-radius: 50%;
   background: var(--color-paper);
   box-shadow: inset 0 0 0 1px var(--card-border);
@@ -385,7 +392,7 @@
 
 .plate {
   position: relative;
-  block-size: 132px;
+  block-size: 116px;
   overflow: hidden;
   border-block-end: 1px solid var(--card-border);
   background-color: color-mix(in oklch, var(--color-place), transparent 88%);
@@ -421,7 +428,7 @@
 }
 
 .placeBody {
-  padding: var(--space-5);
+  padding: var(--paper-pad, var(--space-4));
 }
 
 .lore {
@@ -493,7 +500,7 @@
   margin: 0;
   font-family: var(--font-mono);
   font-weight: 500;
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
   line-height: var(--leading-tight);
   letter-spacing: 0.04em;
   text-transform: uppercase;

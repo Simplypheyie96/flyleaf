@@ -39,7 +39,6 @@ import {
   FairCopyIcon,
   OpeningIcon,
   PlusIcon,
-  ShareIcon,
   SortIcon,
   TrashIcon,
 } from '../components/TabIcons'
@@ -51,13 +50,14 @@ import ColophonSheet from '../journey/ColophonSheet'
 import FairCopySheet from '../journey/FairCopySheet'
 import BookMenu from '../journey/BookMenu'
 import { KIND, KINDS } from '../journey/kinds'
-import { count, epigraph, keptLabel } from '../journey/lexicon'
+import { epigraph, keptLabel } from '../journey/lexicon'
 import { finish, removeKeep, setDates, setFormats } from '../journey/keeps'
 import {
   ALL,
   ORDERS,
   arrange,
   runsForward,
+  toggleType,
   type Order,
   type Row,
   type Sift,
@@ -166,11 +166,9 @@ function BookJourney() {
   const [adding, setAdding] = useState<EntryType | null>(null)
   const [editing, setEditing] = useState<Entry | null>(null)
   const [picking, setPicking] = useState<'opened' | 'closed' | null>(null)
-  const [shareOpen, setShareOpen] = useState(false)
   const [colophonOpen, setColophonOpen] = useState(false)
   const [fairOpen, setFairOpen] = useState(false)
   const [bookOpen, setBookOpen] = useState(false)
-  const [armed, setArmed] = useState(false)
   const [undo, setUndo] = useState<Undo | null>(null)
 
   const keeps = useMemo(() => entries ?? [], [entries])
@@ -214,7 +212,10 @@ function BookJourney() {
 
   const opening = epigraph(book, keeps)
   const forward = runsForward(sift.order)
-  const facts = count(keeps.length, { one: 'keep', many: 'keeps' })
+  /* Digits, not words: this is a data line, and "ten" makes a number harder
+     to find than "10". The spelled-out counts stay in the prose surfaces
+     (the colophon), where they belong. */
+  const facts = `${keeps.length} ${keeps.length === 1 ? 'keep' : 'keeps'}`
 
   /* The first notch, and the only one Flyleaf writes itself. Not a card: it is
      an inscription on the page, named on its meta line like every other notch
@@ -252,33 +253,39 @@ function BookJourney() {
               <ChevronIcon size={19} dir="left" />
             </Link>
           </GlassSurface>
-          {/* The book's own two verbs, together at the trailing edge: share
-              the journey, delete the book. The delete sheet still asks. */}
-          <div className={styles.chromeGroup}>
-            <GlassSurface className={styles.capsule}>
+          {/* The book's three verbs share one pill — more than one button
+              together lives in one container. The delete sheet still asks. */}
+          <GlassSurface className={styles.capsule}>
+            <div className={styles.chromeSet}>
               <button
                 type="button"
                 className={styles.chromeAction}
-                onClick={() => setShareOpen(true)}
-                aria-label="Share this journey"
+                onClick={() => setColophonOpen(true)}
+                aria-label="Share a summary card — the whole journey, set small"
+                title="Share a summary card"
               >
-                <ShareIcon size={18} />
+                <ColophonIcon size={18} />
               </button>
-            </GlassSurface>
-            <GlassSurface className={styles.capsule}>
+              <button
+                type="button"
+                className={styles.chromeAction}
+                onClick={() => setFairOpen(true)}
+                aria-label="Draft my review — everything you wrote, gathered to edit"
+                title="Draft my review"
+              >
+                <FairCopyIcon size={18} />
+              </button>
               <button
                 type="button"
                 className={`${styles.chromeAction} ${styles.chromeDanger}`}
-                onClick={() => {
-                  setArmed(true)
-                  setBookOpen(true)
-                }}
+                onClick={() => setBookOpen(true)}
                 aria-label="Delete this book"
+                title="Delete this book"
               >
                 <TrashIcon size={18} />
               </button>
-            </GlassSurface>
-          </div>
+            </div>
+          </GlassSurface>
         </div>
 
         {/* Everything about the book lives beside its cover — name, author,
@@ -320,19 +327,6 @@ function BookJourney() {
                   {book.finishedOn ? shortDate(book.finishedOn) : 'In progress'}
                 </span>
               </button>
-              <button
-                type="button"
-                className={styles.dateCol}
-                onClick={() => {
-                  setArmed(false)
-                  setBookOpen(true)
-                }}
-              >
-                <span className={styles.dateLabel}>Bookmark</span>
-                <span className={styles.dateVal}>
-                  {book.pagesRead ? `p. ${book.pagesRead}` : 'Set one'}
-                </span>
-              </button>
             </div>
           </div>
         </div>
@@ -348,19 +342,17 @@ function BookJourney() {
             >
               Journey
             </button>
+            {/* Each kind toggles on its own, so "quotes and notes together,
+                nothing else" is two taps — Journey is the way back to all. */}
             {KINDS.map((t) => (
               <button
                 key={t}
                 type="button"
                 className={styles.tab}
-                data-on={sift.types.length === 1 && sift.types[0] === t ? '' : undefined}
+                aria-pressed={sift.types.includes(t)}
+                data-on={sift.types.includes(t) || undefined}
                 style={{ '--kind': `var(${KIND[t].hue})` } as CSSProperties}
-                onClick={() =>
-                  setSift((s) => ({
-                    ...s,
-                    types: s.types.length === 1 && s.types[0] === t ? [] : [t],
-                  }))
-                }
+                onClick={() => setSift((s) => toggleType(s, t))}
               >
                 {KIND[t].many}
               </button>
@@ -518,62 +510,6 @@ function BookJourney() {
         </div>
       </Sheet>
 
-      {/* Two ways out, in plain words. The pretty names live inside. */}
-      <Sheet
-        open={shareOpen}
-        onClose={() => setShareOpen(false)}
-        label="Share this journey"
-        name="journey-share"
-      >
-        <header className={sheet.head}>
-          <h2 className={sheet.title}>Share this journey</h2>
-          <button
-            type="button"
-            className={sheet.iconButton}
-            onClick={() => setShareOpen(false)}
-            aria-label="Close"
-          >
-            <CloseIcon size={20} />
-          </button>
-        </header>
-        <div className={sheet.body}>
-          <div className={sheet.rows}>
-            <button
-              type="button"
-              className={sheet.row}
-              onClick={() => {
-                setShareOpen(false)
-                setColophonOpen(true)
-              }}
-            >
-              <ColophonIcon size={20} />
-              <span className={sheet.rowText}>
-                A summary card
-                <span className={sheet.rowHint}>
-                  The whole journey, set small on one beautiful card
-                </span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={sheet.row}
-              onClick={() => {
-                setShareOpen(false)
-                setFairOpen(true)
-              }}
-            >
-              <FairCopyIcon size={20} />
-              <span className={sheet.rowText}>
-                Draft my review
-                <span className={sheet.rowHint}>
-                  Everything you wrote, gathered into a review you can edit
-                </span>
-              </span>
-            </button>
-          </div>
-        </div>
-      </Sheet>
-
       <ColophonSheet
         open={colophonOpen}
         onClose={() => setColophonOpen(false)}
@@ -593,7 +529,6 @@ function BookJourney() {
         onClose={() => setBookOpen(false)}
         book={book}
         keeps={keeps}
-        armed={armed}
         onRemoved={() => {
           setBookOpen(false)
           navigate('/library')
