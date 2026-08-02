@@ -45,3 +45,26 @@
   color: var(--color-ink);
   box-shadow: var(--elevation-1);
 }
+
+/* The header variant: word-only micro chips, the way a reference dust jacket
+   lists its editions. Same control, same toggling, a quarter of the ink. */
+.row[data-small] .chip {
+  min-height: 28px;
+  min-width: 0;
+  padding-inline: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: none;
+}
+
+.row[data-small] .chip[aria-pressed='true'] {
+  padding-inline: var(--space-2);
+}
+
+.row[data-small] .chip[aria-pressed='false'] {
+  background: transparent;
+  border-color: var(--field-border);
+}

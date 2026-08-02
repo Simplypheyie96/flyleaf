@@ -11,30 +11,9 @@
    Everything directional is logical (inline-start / inline-end), so the whole
    set mirrors correctly without a second stylesheet. */
 
-/* ── Shared: the rail and the foot ────────────────────────────────────────
-   The only two pieces every card has in common. Both are deliberately quiet:
-   they are the frame, and the frame is not the picture. */
-
-.rail {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  /* Clears the head of the card without pushing the body down a whole step —
-     the rail is a caption, not a section. */
-  margin-block-end: var(--space-3);
-}
-
-/* Every fact in the app wears the same clothes: mono, caps, tracked out. */
-.lead {
-  margin-inline-end: auto;
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  line-height: var(--leading-tight);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-ink-faint);
-  font-variant-numeric: tabular-nums;
-}
+/* ── Shared: the foot and the verbs ───────────────────────────────────────
+   The motif chips are the one piece of furniture the cards still share; the
+   date, page and kind live in the journey's meta line above the card. */
 
 .foot {
   display: flex;
@@ -42,16 +21,6 @@
   align-items: center;
   gap: var(--space-2);
   margin-block-start: var(--space-4);
-}
-
-.where {
-  margin-inline-end: auto;
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--color-ink-faint);
-  /* Page numbers change from card to card; proportional digits would make a
-     column of them look drunk. */
-  font-variant-numeric: tabular-nums;
 }
 
 .motif {
@@ -73,42 +42,52 @@
   color: var(--color-accent-text);
 }
 
-/* The three verbs, on the card itself. No menu: a menu was a fourth tap in
-   front of three. Trailing in the foot, quiet until wanted — and each target
-   is the full 44px even though the drawn circle is smaller, with the excess
-   pulled back out of the layout so the row costs the card no extra air. */
+/* The three verbs: round raised buttons riding the card's bottom trailing
+   corner, half off the paper, the way the reference draws them. Positioned
+   against the notch's own hang (the journey sets it relative), so they work
+   the same on every one of the seven cards — including the two that clip
+   their own overflow. */
 .acts {
+  position: absolute;
+  inset-block-end: calc(-1 * var(--space-3));
+  inset-inline-end: var(--space-4);
+  z-index: 2;
   display: flex;
-  align-items: center;
-  margin-inline-start: auto;
-  margin-block: calc((var(--tap-min) - 24px) / -2);
-  margin-inline-end: calc(var(--space-2) * -1);
+  gap: var(--space-2);
 }
 
 .act {
   flex: none;
   display: grid;
   place-items: center;
-  inline-size: var(--tap-min);
-  block-size: var(--tap-min);
+  inline-size: 40px;
+  block-size: 40px;
   padding: 0;
   border: 0;
-  background: none;
-  color: var(--color-ink-faint);
-  border-radius: var(--radius-pill);
+  border-radius: 50%;
+  background: var(--color-paper);
+  box-shadow: var(--elevation-2);
+  color: var(--color-ink-soft);
   cursor: pointer;
   transition:
     color var(--dur-press) var(--ease-out),
-    background-color var(--dur-press) var(--ease-out);
+    transform var(--dur-press) var(--ease-out);
 }
 
 .act:hover {
   color: var(--color-ink);
-  background: var(--card-chip);
 }
 
 .act:active {
-  translate: 0 var(--press);
+  transform: translateY(var(--press));
+}
+
+.actDanger {
+  color: var(--color-danger);
+}
+
+.actDanger:hover {
+  color: var(--color-danger);
 }
 
 /* Three cards name something. One face, one size, one weight — the serif has
@@ -158,8 +137,11 @@
   opacity: 0.55;
 }
 
+/* Rides the top trailing corner now that the card has no header row. */
 .sparkle {
-  flex: none;
+  position: absolute;
+  inset-block-start: var(--space-4);
+  inset-inline-end: var(--space-4);
   color: var(--color-quote);
 }
 
@@ -517,6 +499,12 @@
   text-transform: uppercase;
   color: var(--color-ink);
   text-wrap: balance;
+}
+
+.stanceRow {
+  display: flex;
+  align-items: center;
+  margin-block-end: var(--space-3);
 }
 
 .stance {

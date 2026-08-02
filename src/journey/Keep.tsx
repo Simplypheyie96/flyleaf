@@ -1,19 +1,19 @@
-/* One keep — a card, and only a card. The thread and the knot beside it belong
-   to the journey; this file draws the thing hanging off it.
+/* One keep — a card, and only a card. The thread, the knot, and the meta line
+   above the card (its date, page and kind) belong to the journey; this file
+   draws the thing hanging off it.
 
    The rule the whole screen turns on: **a card is told apart by its structure,
-   not by its tint.** A quote is a ruled rail with a hung quotation mark and a
-   line of italic serif. A note is a leaf torn off a spiral pad, rules, holes,
-   folded corner and all. A voice memo is the one object on the page reversed
-   out of the background. A picture is a print in a mount. A character is a
-   medallion and a dossier. A place is a plate with the map across the top. A
-   plot thread is a pinned case card with a typewritten heading. Turn the
-   colour off and you can still name all seven, which is the test each of them
-   had to pass.
+   not by its tint.** A quote is italic serif with a hung mark. A note is a
+   leaf torn off a spiral pad, rules, holes, folded corner and all. A voice
+   memo is the one object on the page reversed out of the background. A
+   picture is a print in a mount. A character is a medallion and a dossier. A
+   place is a plate with the map across the top. A plot thread is a pinned
+   case card with a typewritten heading. Turn the colour off and you can still
+   name all seven, which is the test each of them had to pass.
 
-   Everything that can be done to a keep is done *on* the keep: the date it was
-   kept, and the share/edit/delete controls, live in the card's own foot. There
-   is no menu — a menu was one more tap between the reader and three verbs. */
+   The three verbs — share, edit, delete — are round buttons riding the
+   card's own bottom corner, half off the paper the way the reference draws
+   them. No menu anywhere. */
 
 import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
@@ -44,86 +44,17 @@ function useObjectUrl(blob: Blob | undefined) {
   return url
 }
 
-/* ── Shared furniture ─────────────────────────────────────────────────────
-   Two pieces, and only two: the rail across the head of a card and the foot
-   under it. Everything else about a card is its own. */
-
-interface RailProps {
-  /** Mono micro-caps, leading. The fact the card is about — its kind, and its
-      page where it has one. */
-  lead: string
-  /** A small drawn mark at the trailing edge. */
-  mark?: React.ReactNode
-}
-
-function Rail({ lead, mark }: RailProps) {
-  return (
-    <div className={styles.rail}>
-      <span className={styles.lead}>{lead}</span>
-      {mark}
-    </div>
-  )
-}
-
-interface FootProps {
-  keep: Entry
-  book: Book
-  onMotif: (m: string) => void
-  onEdit: () => void
-  onDelete: () => void
-}
-
-/** The card's own foot: when it was kept and where in the book, the motifs,
-    and the three verbs. The verbs are here rather than behind a menu because
-    a menu was a fourth tap standing in front of three; and they are quiet
-    icons rather than labelled buttons because they appear on every card and
-    seven rows of "Share · Edit · Delete" would be the loudest thing on the
-    page. */
-function Foot({ keep, book, onMotif, onEdit, onDelete }: FootProps) {
-  const one = KIND[keep.type].one
-  const where = [
-    keptLabel(keep.keptOn),
-    keep.chapter,
-    keep.page !== undefined ? `p. ${keep.page}` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ')
+/** The motif chips, when a keep carries any. The only shared furniture the
+    cards have left — everything else about a card is its own. */
+function Foot({ keep, onMotif }: { keep: Entry; onMotif: (m: string) => void }) {
+  if (!keep.motifs?.length) return null
   return (
     <footer className={styles.foot}>
-      <span className={styles.where}>{where}</span>
-      {keep.motifs?.map((motif) => (
+      {keep.motifs.map((motif) => (
         <button key={motif} type="button" className={styles.motif} onClick={() => onMotif(motif)}>
           {motif}
         </button>
       ))}
-      <span className={styles.acts}>
-        {shareable(keep) && (
-          <button
-            type="button"
-            className={styles.act}
-            onClick={() => void shareKeep(keep, book)}
-            aria-label={`Share this ${one}`}
-          >
-            <ShareIcon size={16} />
-          </button>
-        )}
-        <button
-          type="button"
-          className={styles.act}
-          onClick={onEdit}
-          aria-label={`Change this ${one}`}
-        >
-          <EditIcon size={16} />
-        </button>
-        <button
-          type="button"
-          className={styles.act}
-          onClick={onDelete}
-          aria-label={`Delete this ${one} — you can undo straight afterwards`}
-        >
-          <TrashIcon size={16} />
-        </button>
-      </span>
     </footer>
   )
 }
@@ -187,43 +118,36 @@ function Survey({ seed }: { seed: number }) {
 
 interface CardProps {
   keep: Entry
-  book: Book
   onMotif: (motif: string) => void
-  onEdit: () => void
-  onDelete: () => void
 }
 
-function QuoteCard({ keep, ...foot }: CardProps) {
+function QuoteCard({ keep, onMotif }: CardProps) {
   return (
     <PaperSurface as="article" tone="quote" className={styles.quote}>
-      <Rail
-        lead={keep.page !== undefined ? `Page ${keep.page} · Quote` : 'Quote'}
-        mark={<Sparkle />}
-      />
+      <Sparkle />
       {/* The opening mark is drawn hung in the margin by the stylesheet rather
           than typed into the text, so the first letter of the line still sits
           on the card's own leading edge. */}
       <blockquote className={styles.line}>{keep.text}</blockquote>
-      <Foot keep={{ ...keep, page: undefined }} {...foot} />
+      <Foot keep={keep} onMotif={onMotif} />
     </PaperSurface>
   )
 }
 
-function NoteCard({ keep, ...foot }: CardProps) {
+function NoteCard({ keep, onMotif }: CardProps) {
   return (
     <PaperSurface as="article" tone="note" className={styles.note}>
       {/* The spine: a row of punched holes along the head of the sheet, so the
           note reads as a leaf torn off a spiral pad rather than as one more
           card. Drawn, not an image — the holes punch through to the page. */}
       <span className={styles.spine} aria-hidden="true" />
-      <Rail lead="Note" />
       {/* Ruled like a notebook, and the hand actually sits on the rules: the
           pitch of the lines and the line-height of the text are the same
           number, set once in the stylesheet. */}
       <div className={styles.ruled}>
         <p className={styles.hand}>{keep.text}</p>
       </div>
-      <Foot keep={keep} {...foot} />
+      <Foot keep={keep} onMotif={onMotif} />
       {/* The flip: a folded corner, bottom trailing, the way a page that has
           been turned back holds the crease. */}
       <span className={styles.fold} aria-hidden="true" />
@@ -238,10 +162,9 @@ function NoteCard({ keep, ...foot }: CardProps) {
     both ways round, so by day it is a dark bar on a pale page and after dark a
     pale bar on a dark one — inverted relative to the page, always, which is
     what makes it findable in a long scroll. */
-function VoiceCard({ keep, ...foot }: CardProps) {
+function VoiceCard({ keep, onMotif }: CardProps) {
   return (
     <article className={styles.voice}>
-      <Rail lead="Voice memo" />
       <VoiceOrb
         media={keep.media}
         duration={keep.duration}
@@ -249,16 +172,15 @@ function VoiceCard({ keep, ...foot }: CardProps) {
         label={`the voice memo kept ${keptLabel(keep.keptOn)}`}
       />
       {keep.text && <p className={styles.slabCaption}>{keep.text}</p>}
-      <Foot keep={keep} {...foot} />
+      <Foot keep={keep} onMotif={onMotif} />
     </article>
   )
 }
 
-function ImageCard({ keep, ...foot }: CardProps) {
+function ImageCard({ keep, onMotif }: CardProps) {
   const url = useObjectUrl(keep.media)
   return (
     <PaperSurface as="figure" tone="image" className={styles.print}>
-      <Rail lead="Picture" />
       <div className={styles.mount}>
         {url ? (
           /* The caption is the alt text when there is one. A reader writing
@@ -274,15 +196,14 @@ function ImageCard({ keep, ...foot }: CardProps) {
         )}
       </div>
       {keep.text && <figcaption className={styles.caption}>{keep.text}</figcaption>}
-      <Foot keep={keep} {...foot} />
+      <Foot keep={keep} onMotif={onMotif} />
     </PaperSurface>
   )
 }
 
-function CharacterCard({ keep, ...foot }: CardProps) {
+function CharacterCard({ keep, onMotif }: CardProps) {
   return (
     <PaperSurface as="article" tone="character" className={styles.person}>
-      <Rail lead="Character" />
       <div className={styles.who}>
         <span className={styles.medallion}>
           <Avatar id={keep.avatar} size={46} />
@@ -290,12 +211,12 @@ function CharacterCard({ keep, ...foot }: CardProps) {
         <h3 className={styles.name}>{keep.name}</h3>
       </div>
       {keep.text && <p className={styles.dossier}>{keep.text}</p>}
-      <Foot keep={keep} {...foot} />
+      <Foot keep={keep} onMotif={onMotif} />
     </PaperSurface>
   )
 }
 
-function PlaceCard({ keep, ...foot }: CardProps) {
+function PlaceCard({ keep, onMotif }: CardProps) {
   const url = useObjectUrl(keep.media)
   return (
     /* Padding off, because the plate runs to the card's own edges. Every other
@@ -314,10 +235,9 @@ function PlaceCard({ keep, ...foot }: CardProps) {
         )}
       </div>
       <div className={styles.placeBody}>
-        <Rail lead="Place & lore" />
         {keep.name && <h3 className={styles.name}>{keep.name}</h3>}
         {keep.text && <p className={styles.lore}>{keep.text}</p>}
-        <Foot keep={keep} {...foot} />
+        <Foot keep={keep} onMotif={onMotif} />
       </div>
     </PaperSurface>
   )
@@ -328,7 +248,7 @@ function PlaceCard({ keep, ...foot }: CardProps) {
     framed or typewritten, so a thread cannot be mistaken for a quote even at
     a squint. The pin and the frame get their colour from the stance, and the
     tag says it in words. */
-function ThreadCard({ keep, ...foot }: CardProps) {
+function ThreadCard({ keep, onMotif }: CardProps) {
   const stance = STANCE[keep.stance ?? 'hunch']
   return (
     <PaperSurface
@@ -338,7 +258,7 @@ function ThreadCard({ keep, ...foot }: CardProps) {
       data-stance={keep.stance ?? 'hunch'}
     >
       <span className={styles.pin} aria-hidden="true" />
-      <div className={styles.rail}>
+      <div className={styles.stanceRow}>
         {/* The stance is the card's headline fact, so it is a tag rather than
             a word: outlined for a hunch, heavier for a suspicion, filled for a
             certainty. The reader can see how sure they were from across the
@@ -347,7 +267,7 @@ function ThreadCard({ keep, ...foot }: CardProps) {
       </div>
       {keep.name && <h3 className={styles.case}>{keep.name}</h3>}
       {keep.text && <p className={styles.said}>{keep.text}</p>}
-      <Foot keep={keep} {...foot} />
+      <Foot keep={keep} onMotif={onMotif} />
     </PaperSurface>
   )
 }
@@ -372,14 +292,42 @@ interface KeepProps {
 
 function Keep({ keep, book, onMotif, onEdit, onDelete }: KeepProps) {
   const Card = CARD[keep.type]
+  const one = KIND[keep.type].one
   return (
-    <Card
-      keep={keep}
-      book={book}
-      onMotif={onMotif}
-      onEdit={() => onEdit(keep)}
-      onDelete={() => onDelete(keep)}
-    />
+    <>
+      <Card keep={keep} onMotif={onMotif} />
+      {/* The verbs ride the card's bottom corner, half off the paper — round,
+          raised, and impossible to mistake for content. Delete wears the
+          danger colour; there is an undo waiting behind it. */}
+      <span className={styles.acts}>
+        {shareable(keep) && (
+          <button
+            type="button"
+            className={styles.act}
+            onClick={() => void shareKeep(keep, book)}
+            aria-label={`Share this ${one}`}
+          >
+            <ShareIcon size={16} />
+          </button>
+        )}
+        <button
+          type="button"
+          className={styles.act}
+          onClick={() => onEdit(keep)}
+          aria-label={`Change this ${one}`}
+        >
+          <EditIcon size={16} />
+        </button>
+        <button
+          type="button"
+          className={`${styles.act} ${styles.actDanger}`}
+          onClick={() => onDelete(keep)}
+          aria-label={`Delete this ${one} — you can undo straight afterwards`}
+        >
+          <TrashIcon size={16} />
+        </button>
+      </span>
+    </>
   )
 }
 

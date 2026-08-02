@@ -11,20 +11,15 @@
   container-type: inline-size;
 }
 
-/* The switcher is chrome that belongs to the shelf below it, so it sits with
-   the shelf's name rather than floating in the content as a row of buttons.
-
-   It gets its own line on a phone. Four tap-minimum pills are 190px of the
-   ~358px a phone gives us; sharing a line with the title left the title about
-   150px, which is not enough for two words at the display size, so "Your
-   library" broke across two lines and the whole masthead read as a mistake.
-   The control drops under the text and aligns to the trailing edge, which is
-   the same shape the platform uses for a large title with a segmented control
-   beneath it — and the title gets the full column back. */
+/* One row, always: the shelf's name at the leading edge, the view switcher at
+   the trailing one. The pills are 40px wide (heights stay at the 44px tap
+   minimum) so that four of them and a two-word display title genuinely share
+   a phone's column instead of one of them wrapping under the other. */
 .masthead {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   padding-inline: var(--space-2);
 }
 
@@ -41,18 +36,6 @@
   vertical-align: super;
   color: var(--color-voice);
   opacity: 0.55;
-}
-
-/* Once the column is wide enough to hold the pills and the title without
-   squeezing either, they go back onto one line. Measured on the content box
-   rather than the viewport: this column is capped well below the window. */
-@container (min-width: 420px) {
-  .masthead {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-  }
 }
 
 /* Matches Home: one display serif per screen, at the scale's page-title step
@@ -111,7 +94,6 @@
 .switcher {
   --glass-pad: 0;
   --glass-radius: var(--radius-pill);
-  align-self: flex-end;
   flex-shrink: 0;
 }
 
@@ -126,10 +108,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* Both axes on the tap minimum. At 42px wide these cleared the height rule
-     and quietly failed the width one — an icon-only control has no label to
-     grow it, so the floor has to be stated on both sides. */
-  min-width: var(--tap-min);
+  /* Height holds the 44px tap minimum; width gives up 4px so the whole
+     switcher shares one row with the title on a phone. */
+  min-width: 40px;
   min-height: var(--tap-min);
   /* The border is always here and only its colour changes — a border that
      appears on selection would nudge the other two icons sideways. */

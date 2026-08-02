@@ -50,7 +50,9 @@ function Bars({ bars, className }: { bars: number[]; className: string }) {
         <span
           key={i}
           className={styles.bar}
-          style={{ '--h': `${Math.round(height * 100)}%` } as CSSProperties}
+          /* The index rides along so a playing trace can ripple: each bar's
+             bob is offset from its neighbour's by a beat. */
+          style={{ '--h': `${Math.round(height * 100)}%`, '--i': i } as CSSProperties}
         />
       ))}
     </div>
