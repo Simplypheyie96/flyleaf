@@ -9,6 +9,7 @@
    The three verbs — share, edit, delete — are round buttons riding the card's
    own bottom corner, half off the paper. No menu anywhere. */
 
+import { useSearchParams } from 'react-router-dom'
 import type { Book, Entry } from '../data/db'
 import { EditIcon, ShareIcon, TrashIcon } from '../components/TabIcons'
 import { KIND } from './kinds'
@@ -25,7 +26,10 @@ interface KeepProps {
 }
 
 function Keep({ keep, book, onMotif, onEdit, onDelete }: KeepProps) {
-  const Card = cardFor(keep.type)
+  // `?dir=` redraws the whole thread from one set so the three directions can
+  // be judged as pages. Absent — which is always, in the app — it is `CHOSEN`.
+  const [params] = useSearchParams()
+  const Card = cardFor(keep.type, params.get('dir'))
   const one = KIND[keep.type].one
   return (
     <>

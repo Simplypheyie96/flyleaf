@@ -303,9 +303,15 @@
    the foot of the portrait, the way a plate in an illustrated edition is
    captioned. */
 
+/* Sixteen all round would frame the portrait evenly and then hand the verb
+   circles the last line of the description to sit on: they reach 24px up into
+   the plate and the dossier was ending at 16. The foot is the one edge that is
+   not decoration — it is the strip the three verbs ride — so it gets 32,
+   which clears them whether the plate ends in a paragraph or in the name
+   band itself. */
 .portrait {
   --paper-tone: var(--card-character-solid);
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-4) var(--space-6);
 }
 
 .ground {
