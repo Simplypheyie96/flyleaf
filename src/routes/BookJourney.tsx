@@ -408,81 +408,98 @@ function BookJourney() {
               book and with nothing in the column of writing above them —
               three edges to read where there should have been two. */}
           <div className={styles.about}>
-            {/* One line, always. A title that wraps pushes the byline, the
-                formats and the dates down with it, so the head's height came
-                out of how long the book's name happened to be. The full name
-                is still here for anyone who wants it — on the element, and in
-                the bar the head folds down into. */}
-            <h1 className={styles.title} title={book.title}>
-              {book.title}
-            </h1>
-            <p className={styles.author}>
-              {book.author} · {facts}
-            </p>
+            {/* Two groups, not four things.
 
-            <div className={styles.formats}>
+                Four items down one column need three different joins if each
+                one is spaced against its neighbour, and three numbers picked
+                one at a time is how this column kept drifting out of rhythm:
+                4 above the byline, 16 above the formats, 20 above the dates,
+                none of them meaning anything. They are really two groups —
+                what the book *is*, which nobody can edit, and what you can
+                change about it — so the column is written as two, each with
+                one gap inside it and one seam between them. There is no third
+                number to get wrong, and no element that can be nudged out of
+                step on its own. */}
+            <div className={styles.identity}>
+              {/* One line, always. A title that wraps pushes the byline, the
+                  formats and the dates down with it, so the head's height came
+                  out of how long the book's name happened to be. The full name
+                  is still here for anyone who wants it — on the element, and in
+                  the bar the head folds down into. */}
+              <h1 className={styles.title} title={book.title}>
+                {book.title}
+              </h1>
+              <p className={styles.author}>
+                {book.author} · {facts}
+              </p>
+            </div>
+
+            <div className={styles.controls}>
+              {/* No wrapper. The row used to sit in a div whose only job was to
+                  carry a top margin, and that margin was one of the three
+                  hand-placed numbers this column was rebuilt to get rid of. */}
               <FormatRow
                 small
                 value={formatsOf(book)}
                 onChange={(next) => void setFormats(book.id, next)}
               />
+
+              {/* The reading span: one pill, two tappable ends, an arrow between.
+
+                  A date, an arrow and a second date is already a sentence, so
+                  there are no labels — nobody reads "Jul 2 → still reading" and
+                  wonders which end is which. The two ends are formatted together
+                  rather than one at a time, which is what stops the same year
+                  being printed twice inside one pill.
+
+                  Each end is its own button and the arrow is neither of them. */}
+              {book.startedOn || book.finishedOn ? (
+                <div className={styles.span}>
+                  <button
+                    type="button"
+                    className={styles.spanEnd}
+                    data-unset={!book.startedOn || undefined}
+                    onClick={() => setPicking('opened')}
+                    aria-label={
+                      book.startedOn
+                        ? `Started ${shortDate(book.startedOn)}. Change the day.`
+                        : 'No start date yet. Set one.'
+                    }
+                  >
+                    {/* The label carries its own clipping so the button does not.
+                        `overflow: hidden` on the button would crop its own 44px
+                        tap pseudo back to the 33 it paints. */}
+                    <span className={styles.spanText}>{span.start ?? 'no start date'}</span>
+                  </button>
+                  <span className={styles.spanArrow} aria-hidden="true">
+                    →
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.spanEnd}
+                    data-unset={!book.finishedOn || undefined}
+                    onClick={() => setPicking('closed')}
+                    aria-label={
+                      book.finishedOn
+                        ? `Finished ${shortDate(book.finishedOn)}. Change the day.`
+                        : 'Still reading. Set the day you finished.'
+                    }
+                  >
+                    <span className={styles.spanText}>{span.finish ?? 'still reading'}</span>
+                  </button>
+                </div>
+              ) : (
+                <div className={styles.span}>
+                  <button
+                    type="button"
+                    className={styles.spanEnd}
+                    onClick={() => setPicking('opened')}
+                  >
+                    <span className={styles.spanText}>Add reading dates</span>
+                  </button>
+                </div>
+              )}
             </div>
-
-            {/* The reading span: one pill, two tappable ends, an arrow between.
-
-                A date, an arrow and a second date is already a sentence, so
-                there are no labels — nobody reads "Jul 2 → still reading" and
-                wonders which end is which. The two ends are formatted together
-                rather than one at a time, which is what stops the same year
-                being printed twice inside one pill.
-
-                Each end is its own button and the arrow is neither of them. */}
-            {book.startedOn || book.finishedOn ? (
-              <div className={styles.span}>
-                <button
-                  type="button"
-                  className={styles.spanEnd}
-                  data-unset={!book.startedOn || undefined}
-                  onClick={() => setPicking('opened')}
-                  aria-label={
-                    book.startedOn
-                      ? `Started ${shortDate(book.startedOn)}. Change the day.`
-                      : 'No start date yet. Set one.'
-                  }
-                >
-                  {/* The label carries its own clipping so the button does not.
-                      `overflow: hidden` on the button would crop its own 44px
-                      tap pseudo back to the 33 it paints. */}
-                  <span className={styles.spanText}>{span.start ?? 'no start date'}</span>
-                </button>
-                <span className={styles.spanArrow} aria-hidden="true">
-                  →
-                </span>
-                <button
-                  type="button"
-                  className={styles.spanEnd}
-                  data-unset={!book.finishedOn || undefined}
-                  onClick={() => setPicking('closed')}
-                  aria-label={
-                    book.finishedOn
-                      ? `Finished ${shortDate(book.finishedOn)}. Change the day.`
-                      : 'Still reading. Set the day you finished.'
-                  }
-                >
-                  <span className={styles.spanText}>{span.finish ?? 'still reading'}</span>
-                </button>
-              </div>
-            ) : (
-              <div className={styles.span}>
-                <button
-                  type="button"
-                  className={styles.spanEnd}
-                  onClick={() => setPicking('opened')}
-                >
-                  <span className={styles.spanText}>Add reading dates</span>
-                </button>
-              </div>
-            )}
           </div>
         </div>
         </div>

@@ -201,55 +201,103 @@
    line below both columns, so their leading edge lined up with the book and
    with none of the writing they belong to.
 
-   The board is 72px wide, which at 2:3 stands 108px tall; the column beside
-   it runs a little past that, and it is *meant* to be the taller of the two.
-   Boards are a fixed shape and records are not, so the one that has to be
-   free to grow is the writing. */
+   The two columns are the same height, and that is `stretch` doing it rather
+   than a number that happens to match. It was written the other way — a fixed
+   72px board standing 108 at 2:3, with the record free to run past it — and
+   the record ran 143, so the book finished 35px short of the writing beside
+   it and the head read as one tall thing next to one small one. Sizing the
+   board to the record by hand is what produced that: the moment either column
+   changed, the pair stopped matching, and there was nothing in the stylesheet
+   to notice.
+
+   So the row makes them equal instead. The board is the cross-stretched item,
+   the record sets the height, and no content in either column can pull them
+   apart. The 2:3 comes back through the floor below, which is the one number
+   still worth stating. */
 .headTop {
-  --board: 72px;
+  --board: 104px;
   align-self: stretch;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: var(--space-4);
 }
 
-.cover {
+/* Scoped through the row on purpose: the cover component states its own
+   `aspect-ratio: 2 / 3`, and a ratio plus a definite width is a definite
+   height, which is exactly the thing `stretch` is not allowed to override.
+   One class each would leave which rule wins to bundle order. */
+.headTop .cover {
   flex: none;
+  align-self: stretch;
   inline-size: var(--board);
+  block-size: auto;
+  aspect-ratio: auto;
   border-radius: var(--radius-sm);
   box-shadow: var(--elevation-2);
 }
 
-/* The record: name, byline, formats, dates, in that order down one edge.
+/* The record: what the book is, then what you can change about it.
 
-   No `justify-content: space-between` and no gap doing the work of four
-   different joins. Distributing the column against the board's height meant
-   the spacing between these four things was decided by *the cover*, so a
-   short title opened a band of dead air under the byline that belonged to
-   nothing. The rhythm is written down instead, tightest where the tie is
-   closest — title to byline is one unit, the two controls stand apart — and
-   the floor only keeps the record from ever finishing above the book. */
+   Two groups, and every gap in the column comes from a container rather than
+   from the thing sitting in it. That is the whole repair. It used to be a
+   base gap of 4 with a 12 hung on the formats and a 16 hung on the dates, so
+   the column measured 4, 16, 20 down its length — three unrelated numbers,
+   each one nudged into place on its own, none of them saying anything about
+   which of these four things belong together. Any later edit to any single
+   element could put it back out of step, and did.
+
+   Now there are three, and each one is a group's own: 8 inside the identity,
+   16 inside the controls, and at least 24 at the seam. The seam has to be at
+   least twice the widest gap inside a group or the grouping reads as noise
+   rather than as structure, and 16 is the floor on the controls (see below),
+   so the seam's real minimum is 32.
+
+   It gets there from the board. The floor is the board's own 2:3 height, so
+   the record can never finish shorter than a proper book, and `space-between`
+   puts every pixel the floor adds into the seam — the one join in this column
+   that is allowed to be loose. 104 × 1.5 = 156, the parts come to 124, and
+   the 32 that is left is exactly the number the grouping needed. Growing the
+   board is therefore how you loosen the seam, which is the right handle: it
+   is the one that keeps the two columns the same height while it moves.
+
+   The old version distributed against the cover with no floor and no groups,
+   which is how a short title opened a band of dead air under the byline that
+   belonged to nothing. */
 .about {
   min-inline-size: 0;
   flex: 1;
   min-block-size: calc(var(--board) * 1.5);
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+/* Both groups run the full width of the record so the title and the byline
+   have something to be clipped against. Their contents do not: the controls
+   inside are shrink-to-fit, which is why the alignment is set on them and not
+   inherited from here. */
+.identity,
+.controls {
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-1);
 }
 
-/* The two controls carry their own leading air, and it has to clear the tap
-   targets above them, not just the ink: the format chips draw 28px and reach
-   44, so they already extend 8px past their own paper. 12 and 16 leave the
-   date pill's own 5px of reach a margin either way — the 5+5 rule, applied
-   down the column instead of across a row. */
-.formats {
-  margin-block-start: var(--space-3);
+/* Name and byline are one fact in two lines, so they sit at the tightest gap
+   in the head. */
+.identity {
+  gap: var(--space-2);
 }
 
-.about .span {
-  margin-block-start: var(--space-4);
+/* The two controls stand apart, and the number is not a taste call: the
+   format chips draw 28 and reach 44, so they overhang 8 below their own
+   paper, and the date pill draws 34 and reaches 44, so it overhangs 5 above
+   its own. 13 is the point at which the two targets stop overlapping. 16 is
+   the step above it. */
+.controls {
+  gap: var(--space-4);
 }
 
 /* The title, at 20px, and it reads as the title of the page at 20px.
@@ -283,11 +331,18 @@
 }
 
 /* Author and count on one mono caps line, the way a reference jacket sets a
-   byline. */
+   byline.
+
+   Snug rather than body leading, because it is one line and will always be
+   one line. At 1.6 an 11px label carries 3px of empty box under it that no
+   ink ever reaches, which read as three more pixels of gap under the title
+   and made the 8 above it look like 11 — invisible in the stylesheet, plainly
+   visible on the screen. */
 .author {
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--t-micro);
+  line-height: var(--leading-snug);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
@@ -1141,11 +1196,11 @@
     margin-block-end: var(--space-4);
   }
 
-  /* A bigger board for a bigger title: 88 × 1.5 = 132, and the record comes
-     to a shade over that once the display size goes up a step, so the writing
-     stays the taller column here too. */
+  /* A bigger board for a bigger title. Only the floor moves: the two columns
+     are the same height at every width because the row makes them so, and
+     this just decides how tall a book that is. */
   .headTop {
-    --board: 88px;
+    --board: 108px;
     gap: var(--space-5);
   }
 }
