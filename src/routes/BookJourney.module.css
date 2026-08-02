@@ -211,7 +211,8 @@
   min-inline-size: 0;
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
+  padding-block: var(--space-1);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -220,42 +221,38 @@
   display: none;
 }
 
+/* Toggle chips, the app's own selectable-pill everywhere else. A chosen kind
+   fills with its own tint — the same hue its knots wear on the thread. */
 .tab {
-  position: relative;
   flex: none;
-  min-block-size: 40px;
-  padding: 0 var(--space-2) var(--space-2);
-  border: 0;
-  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: 32px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-pill);
+  background: transparent;
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   text-transform: capitalize;
-  color: var(--color-ink-faint);
+  color: var(--color-ink-soft);
+  white-space: nowrap;
   cursor: pointer;
-  transition: color var(--dur-quick) var(--ease-out);
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
 }
 
 .tab:hover {
-  color: var(--color-ink-soft);
+  color: var(--color-ink);
 }
 
 .tab[data-on] {
+  background: color-mix(in oklab, var(--kind, var(--color-accent)) 16%, var(--color-paper));
+  border-color: color-mix(in oklab, var(--kind, var(--color-accent)) 45%, transparent);
   color: var(--color-ink);
-  font-weight: 620;
-}
-
-/* The chosen tab is marked with the kind's own dot — the same hue its knots
-   wear on the thread below. */
-.tab[data-on]::after {
-  content: '';
-  position: absolute;
-  inset-block-end: 4px;
-  inset-inline-start: 50%;
-  translate: -50% 0;
-  inline-size: 5px;
-  block-size: 5px;
-  border-radius: 50%;
-  background: var(--kind, var(--color-accent));
 }
 
 .sortBtn {
@@ -263,8 +260,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  min-block-size: 40px;
-  padding: 0 var(--space-2) var(--space-2);
+  min-block-size: 32px;
+  padding: 0 var(--space-2);
   border: 0;
   background: none;
   font-family: var(--font-mono);
@@ -411,14 +408,10 @@
   );
 }
 
-/* …and the cards themselves are strung together: a second line, in the
-   thread's own colour, runs card to card through the gap between them. This
-   is the one the eye reads as "these belong to each other" — the gutter alone
-   was too far from the cards to say it. */
-.notch[data-tie] .hang {
-  position: relative;
-}
-
+/* …and the cards themselves are strung together: a clean run of the
+   thread's own colour from one card straight into the next. No beads, no
+   ornament — the line is the statement, and it thickens as the reader gets
+   surer. */
 .notch[data-tie][data-down] .hang::after {
   content: '';
   position: absolute;
@@ -427,20 +420,7 @@
   inset-inline-start: var(--space-5);
   inline-size: 0;
   border-inline-start: calc(1px + var(--weight, 1) * 1px) solid
-    color-mix(in oklab, var(--kind) 55%, transparent);
-}
-
-/* A bead where the string meets each card, so the run reads as knotted on
-   rather than drawn over. */
-.notch[data-tie][data-down] .hang::before {
-  content: '';
-  position: absolute;
-  inset-block-start: calc(100% - 3px);
-  inset-inline-start: calc(var(--space-5) - 3px);
-  inline-size: 7px;
-  block-size: 7px;
-  border-radius: 50%;
-  background: var(--kind);
+    color-mix(in oklab, var(--kind) 62%, transparent);
 }
 
 .hang {
@@ -514,24 +494,38 @@
 
 /* ── Nothing matched ────────────────────────────────────────────────────── */
 
+/* An empty stretch of thread is still part of the scrapbook: a loose,
+   dashed-edged leaf with a serif line on it, not a bare sentence floating in
+   the void. Used both when a filter comes up empty and when nothing has been
+   kept yet. */
 .nothing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
   margin: 0;
-  font-family: var(--font-sans);
-  font-size: var(--t-read);
+  padding: var(--space-6) var(--space-5);
+  border: 1px dashed color-mix(in oklab, var(--color-ink) 24%, transparent);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-md);
   line-height: var(--leading-body);
   text-wrap: pretty;
   color: var(--color-ink-soft);
 }
 
 .clear {
-  padding: 0;
+  min-block-size: 36px;
+  padding-inline: var(--space-4);
   border: 0;
-  background: none;
-  font: inherit;
+  border-radius: var(--radius-pill);
+  background: var(--color-chip-active);
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: var(--text-sm);
   color: var(--color-accent-text);
-  text-decoration: underline;
-  text-decoration-thickness: from-font;
-  text-underline-offset: 3px;
   cursor: pointer;
 }
 

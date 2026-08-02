@@ -380,9 +380,20 @@ export async function seedLibrary() {
     await db.books.bulkAdd(PREVIEW_SHELF)
   })
 
+  /* The journey fixtures have been revised since the first preview went out
+     (the original ten were mostly quotes; the showcase is now thirteen across
+     all seven kinds). A device that seeded the old set keeps it for ever
+     unless the version says otherwise — so the version says otherwise. Only
+     the invented book's own rows are ever touched; a reader's real keeps
+     never carry this book's id. */
+  const SEED_V = 'flyleaf-seed-v'
+  const CURRENT = '2'
   await db.transaction('rw', db.books, db.entries, async () => {
     if (!(await db.books.get(JOURNEY_BOOK))) return
-    if ((await db.entries.where('bookId').equals(JOURNEY_BOOK).count()) > 0) return
+    const have = await db.entries.where('bookId').equals(JOURNEY_BOOK).count()
+    if (have > 0 && localStorage.getItem(SEED_V) === CURRENT) return
+    await db.entries.where('bookId').equals(JOURNEY_BOOK).delete()
     await db.entries.bulkAdd(withMedia as Entry[])
+    localStorage.setItem(SEED_V, CURRENT)
   })
 }

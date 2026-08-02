@@ -333,30 +333,37 @@ function BookJourney() {
 
         {/* ── Filter and sort, separated ────────────────────────────────── */}
         <div className={styles.tabsRow}>
+          {/* The same toggle-chip language as everywhere else in the app —
+              formats, days, views — so it is obviously a set of buttons and
+              obviously stackable: quotes and notes together is two taps, and
+              All is the way back. */}
           <div className={styles.tabs} role="group" aria-label="Show only">
             <button
               type="button"
               className={styles.tab}
+              aria-pressed={sift.types.length === 0}
               data-on={sift.types.length === 0 || undefined}
               onClick={() => setSift((s) => ({ ...s, types: [], motif: null }))}
             >
-              Journey
+              All
             </button>
-            {/* Each kind toggles on its own, so "quotes and notes together,
-                nothing else" is two taps — Journey is the way back to all. */}
-            {KINDS.map((t) => (
-              <button
-                key={t}
-                type="button"
-                className={styles.tab}
-                aria-pressed={sift.types.includes(t)}
-                data-on={sift.types.includes(t) || undefined}
-                style={{ '--kind': `var(${KIND[t].hue})` } as CSSProperties}
-                onClick={() => setSift((s) => toggleType(s, t))}
-              >
-                {KIND[t].many}
-              </button>
-            ))}
+            {KINDS.map((t) => {
+              const { Icon, many } = KIND[t]
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  className={styles.tab}
+                  aria-pressed={sift.types.includes(t)}
+                  data-on={sift.types.includes(t) || undefined}
+                  style={{ '--kind': `var(${KIND[t].hue})` } as CSSProperties}
+                  onClick={() => setSift((s) => toggleType(s, t))}
+                >
+                  <Icon size={14} />
+                  {many}
+                </button>
+              )
+            })}
           </div>
           <button
             type="button"
@@ -398,17 +405,30 @@ function BookJourney() {
             {!forward && seal}
           </ol>
 
+          {/* Two empty states, one leaf. A filter that comes up dry offers
+              the way back; a journey with nothing kept yet says what will
+              live here — in the book's own serif, on a dashed leaf, not as a
+              bare sentence floating in the dark. */}
           {rows.length === 0 && keeps.length > 0 && (
-            <p className={styles.nothing}>
-              Nothing on this thread matches that.{' '}
+            <div className={styles.nothing}>
+              <span>Nothing of that kind on this thread yet.</span>
               <button
                 type="button"
                 className={styles.clear}
                 onClick={() => setSift({ ...ALL, order: sift.order })}
               >
-                Show all kinds
+                Show everything
               </button>
-            </p>
+            </div>
+          )}
+
+          {keeps.length === 0 && (
+            <div className={styles.nothing}>
+              <span>
+                Nothing kept yet. The first quote, note, voice memo or picture
+                you keep will hang right here on the thread.
+              </span>
+            </div>
           )}
 
           {/* ── The end of the thread ─────────────────────────────────── */}

@@ -155,22 +155,24 @@ function grouped(chrono: Entry[], keysOf: (e: Entry) => string[]): Row[] {
   return rows
 }
 
-/* The tie is drawn only when plot threads are the *only* thing on screen.
-   Mixed in with quotes and pictures, a line joining rows three apart would be
-   a line drawn over unrelated things; alone, the rows are consecutive and the
-   line means exactly what it looks like. A divider breaks it, because two
+/* Two plot threads that stand next to each other are tied to each other —
+   whatever the current filter is. Filtered down to threads alone, every row
+   is a thread, so the whole argument strings together; on the full journey a
+   tie only appears when two threads happen to be neighbours, which is the
+   honest version of the same statement. A divider breaks it, because two
    motifs are two arguments. */
-function tie(rows: Row[], sift: Sift): Row[] {
-  const only = sift.types.length === 1 && sift.types[0] === 'thread'
-  if (!only) return rows
-  return rows.map((row, i) => ({
-    ...row,
-    tie: {
-      up: i > 0 && !row.divider,
-      down: i < rows.length - 1 && !rows[i + 1].divider,
-      weight: STANCE[row.keep.stance ?? 'hunch'].weight,
-    },
-  }))
+function tie(rows: Row[], _sift: Sift): Row[] {
+  const thread = (row?: Row) => row?.keep.type === 'thread'
+  return rows.map((row, i) => {
+    if (!thread(row)) return row
+    const up = i > 0 && !row.divider && thread(rows[i - 1])
+    const down = i < rows.length - 1 && !rows[i + 1].divider && thread(rows[i + 1])
+    if (!up && !down) return row
+    return {
+      ...row,
+      tie: { up, down, weight: STANCE[row.keep.stance ?? 'hunch'].weight },
+    }
+  })
 }
 
 /** Every motif used in this book, commonest first — the filter list. */
