@@ -69,15 +69,20 @@ export const SETS: Record<Direction, Record<EntryType, ComponentType<CardProps>>
   plates: setOf(plates),
 }
 
-/** The live journey. One line per type; nothing else has to change. */
+/* The live journey. One line per type; nothing else has to change.
+
+   Five of the seven are settled. Characters and threads are not: all three
+   drawings were turned down for both, so their lines below are a holding
+   value and not a choice — they stay on Pressed only so the thread renders
+   while the two are redrawn. Do not read them as decided. */
 export const CHOSEN: Record<EntryType, Direction> = {
-  quote: 'pressed',
+  quote: 'plates',
   note: 'pressed',
-  voice: 'pressed',
-  image: 'pressed',
-  character: 'pressed',
+  voice: 'plates',
+  image: 'plates',
+  character: 'pressed', // holding — rejected, awaiting a fourth drawing
   place: 'pressed',
-  thread: 'pressed',
+  thread: 'pressed', // holding — rejected, awaiting a fourth drawing
 }
 
 /* A whole journey, drawn in one direction throughout.
