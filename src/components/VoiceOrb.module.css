@@ -177,6 +177,24 @@
   background: currentColor;
 }
 
+/* While a memo is talking the trace ripples: each bar bobs on a scale of its
+   own height, offset a beat from its neighbour, so the wave reads as sound
+   moving through the bubble. Transform only — no layout, no paint storm —
+   and nothing moves until the reader presses play. */
+.memo[data-playing] .bar {
+  transform-origin: center;
+  animation: bob 860ms var(--ease-move) calc(var(--i, 0) * -70ms) infinite alternate;
+}
+
+@keyframes bob {
+  from {
+    transform: scaleY(0.55);
+  }
+  to {
+    transform: scaleY(1.12);
+  }
+}
+
 .bars {
   color: color-mix(in oklch, var(--orb-wave), transparent 72%);
 }
@@ -209,7 +227,8 @@
    not decoration, it is the position in the recording. */
 @media (prefers-reduced-motion: reduce) {
   .memo[data-playing] .orb,
-  .memo[data-playing] .halo {
+  .memo[data-playing] .halo,
+  .memo[data-playing] .bar {
     animation: none;
   }
   .orb:not(:disabled):active {

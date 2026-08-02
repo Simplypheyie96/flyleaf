@@ -47,11 +47,10 @@ import { formatsOf, type Book, type Entry, type EntryType } from '../data/db'
 import { useBook, useEntries } from '../data/useBook'
 import Keep from '../journey/Keep'
 import KeepSheet from '../journey/KeepSheet'
-import SiftSheet from '../journey/SiftSheet'
 import ColophonSheet from '../journey/ColophonSheet'
 import FairCopySheet from '../journey/FairCopySheet'
 import BookMenu from '../journey/BookMenu'
-import { KIND } from '../journey/kinds'
+import { KIND, KINDS } from '../journey/kinds'
 import { count, epigraph, keptLabel } from '../journey/lexicon'
 import { finish, removeKeep, setDates, setFormats } from '../journey/keeps'
 import {
@@ -59,7 +58,7 @@ import {
   ORDERS,
   arrange,
   runsForward,
-  sifting,
+  type Order,
   type Row,
   type Sift,
   type Tie,
@@ -78,6 +77,16 @@ interface Undo {
   restore: () => Promise<void>
 }
 
+/* The sort control cycles rather than opening a sheet: four orders is a loop
+   a thumb can walk, and the reference draws it exactly this way — one small
+   typewritten word with a glyph. */
+const SORT_SHORT: Record<Order, string> = {
+  kept: 'as kept',
+  newest: 'newest',
+  book: 'by page',
+  motif: 'by motif',
+}
+
 /* ── One notch ────────────────────────────────────────────────────────────
    The gutter holds the thread and the knot; the card hangs off it. The card
    carries its own date in its foot, so the notch adds nothing but the knot. */
@@ -92,7 +101,7 @@ interface NotchProps {
 }
 
 function Notch({ keep, book, tie, onMotif, onEdit, onDelete }: NotchProps) {
-  const { Icon, hue } = KIND[keep.type]
+  const { Icon, hue, one } = KIND[keep.type]
   return (
     <li
       className={styles.notch}
@@ -112,6 +121,15 @@ function Notch({ keep, book, tie, onMotif, onEdit, onDelete }: NotchProps) {
         </span>
       </span>
       <div className={styles.hang}>
+        {/* The meta line: when and where at the leading edge, what at the
+            trailing one — every notch on the thread is named the same way. */}
+        <p className={styles.when}>
+          <span className={styles.whenDay}>
+            {keptLabel(keep.keptOn)}
+            {keep.page !== undefined && ` · p. ${keep.page}`}
+          </span>
+          <span className={styles.whenKind}>{one}</span>
+        </p>
         <Keep keep={keep} book={book} onMotif={onMotif} onEdit={onEdit} onDelete={onDelete} />
       </div>
     </li>
@@ -148,7 +166,6 @@ function BookJourney() {
   const [adding, setAdding] = useState<EntryType | null>(null)
   const [editing, setEditing] = useState<Entry | null>(null)
   const [picking, setPicking] = useState<'opened' | 'closed' | null>(null)
-  const [siftOpen, setSiftOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [colophonOpen, setColophonOpen] = useState(false)
   const [fairOpen, setFairOpen] = useState(false)
@@ -197,24 +214,14 @@ function BookJourney() {
 
   const opening = epigraph(book, keeps)
   const forward = runsForward(sift.order)
-  const order = ORDERS.find((o) => o.value === sift.order) ?? ORDERS[0]
-  const only = sift.types.length
-    ? sift.types.map((t) => KIND[t].many).join(' · ')
-    : 'All kinds'
-  const facts = [
-    book.year ? `${book.year}` : null,
-    book.pages ? `${book.pages} pages` : null,
-    count(keeps.length, { one: 'keep', many: 'keeps' }),
-  ]
-    .filter(Boolean)
-    .join(' · ')
+  const facts = count(keeps.length, { one: 'keep', many: 'keeps' })
 
   /* The first notch, and the only one Flyleaf writes itself. Not a card: it is
-     an inscription on the page, the way a book's own epigraph is set on the
-     paper rather than pinned to it. Never filtered out — it is where the
-     thread is tied on — and which end it sits at follows the order, because
-     "the day you opened it" at the top of a newest-first list would look like
-     the latest news. */
+     an inscription on the page, named on its meta line like every other notch
+     — "day one" at the leading edge, "the beginning" at the trailing one.
+     Never filtered out — it is where the thread is tied on — and which end it
+     sits at follows the order, because "the day you opened it" at the top of
+     a newest-first list would look like the latest news. */
   const seal = (
     <li className={styles.notch} data-opening="" key="opening">
       <span className={styles.gutter} aria-hidden="true">
@@ -225,11 +232,10 @@ function BookJourney() {
       <div className={styles.hang}>
         <p className={styles.when}>
           <span className={styles.whenDay}>
-            {opening.on ? keptLabel(opening.on) : 'undated'}
+            {opening.on ? keptLabel(opening.on) : 'undated'} · day one
           </span>
-          <span className={styles.whenKind}>day one</span>
+          <span className={styles.whenKind}>the beginning</span>
         </p>
-        <h2 className={styles.openTitle}>The beginning</h2>
         <p className={styles.openLine}>{opening.line}</p>
         {opening.hint && <p className={styles.openHint}>{opening.hint}</p>}
       </div>
@@ -246,109 +252,134 @@ function BookJourney() {
               <ChevronIcon size={19} dir="left" />
             </Link>
           </GlassSurface>
-          {/* Delete lives up here, where iOS puts a screen's own rare verbs —
-              not in the head's face. The sheet it opens still asks first. */}
-          <GlassSurface className={styles.capsule}>
-            <button
-              type="button"
-              className={styles.chromeAction}
-              onClick={() => {
-                setArmed(true)
-                setBookOpen(true)
-              }}
-              aria-label="Delete this book"
-            >
-              <TrashIcon size={18} />
-            </button>
-          </GlassSurface>
-        </div>
-
-        <div className={styles.headTop}>
-          <BookCover
-            title={book.title}
-            author={book.author}
-            covers={book.covers}
-            width={88}
-            size="small"
-            className={styles.cover}
-          />
-          <div className={styles.about}>
-            <h1 className={styles.title}>
-              {book.title} <Sparkle size={14} className={styles.spark} />
-            </h1>
-            <p className={styles.author}>{book.author}</p>
-            <p className={styles.facts}>{facts}</p>
-          </div>
-        </div>
-
-        <div className={styles.meta}>
-          <FormatRow
-            value={formatsOf(book)}
-            onChange={(next) => void setFormats(book.id, next)}
-          />
-
-          {/* The reading span, one line: opened, an arrow, closed (or still
-              going), and the bookmark. Each piece is its own quiet button —
-              the dotted underline is the "you can change this" cue — and the
-              calendar opens as a sheet so the pinned head never changes
-              height under the reader's thumb. */}
-          <div className={styles.span}>
-            <button type="button" className={styles.day} onClick={() => setPicking('opened')}>
-              Opened <strong>{book.startedOn ? shortDate(book.startedOn) : 'one day'}</strong>
-            </button>
-            <span className={styles.spanArrow} aria-hidden="true">
-              →
-            </span>
-            <button type="button" className={styles.day} onClick={() => setPicking('closed')}>
-              {book.finishedOn ? (
-                <>
-                  Closed <strong>{shortDate(book.finishedOn)}</strong>
-                </>
-              ) : (
-                <em>still reading</em>
-              )}
-            </button>
-            <button
-              type="button"
-              className={styles.bookmark}
-              onClick={() => {
-                setArmed(false)
-                setBookOpen(true)
-              }}
-            >
-              {book.pagesRead ? `p. ${book.pagesRead}` : 'bookmark'}
-            </button>
-          </div>
-        </div>
-
-        {/* ── The rail: sift, count, share ──────────────────────────────── */}
-        <div className={styles.rail}>
-          <GlassSurface className={styles.railGlass}>
-            <div className={styles.railRow}>
+          {/* The book's own two verbs, together at the trailing edge: share
+              the journey, delete the book. The delete sheet still asks. */}
+          <div className={styles.chromeGroup}>
+            <GlassSurface className={styles.capsule}>
               <button
                 type="button"
-                className={styles.sift}
-                data-on={sifting(sift) || sift.order !== 'kept' || undefined}
-                onClick={() => setSiftOpen(true)}
-              >
-                <SortIcon size={17} />
-                <span className={styles.siftWhat}>{only}</span>
-                <span className={styles.siftHow}>{order.label}</span>
-              </button>
-              <span className={styles.count}>
-                {rows.length}
-                {sifting(sift) && <span className={styles.of}>/{keeps.length}</span>}
-              </span>
-              <button
-                type="button"
-                className={styles.shareBtn}
+                className={styles.chromeAction}
                 onClick={() => setShareOpen(true)}
                 aria-label="Share this journey"
               >
                 <ShareIcon size={18} />
               </button>
+            </GlassSurface>
+            <GlassSurface className={styles.capsule}>
+              <button
+                type="button"
+                className={`${styles.chromeAction} ${styles.chromeDanger}`}
+                onClick={() => {
+                  setArmed(true)
+                  setBookOpen(true)
+                }}
+                aria-label="Delete this book"
+              >
+                <TrashIcon size={18} />
+              </button>
+            </GlassSurface>
+          </div>
+        </div>
+
+        {/* Everything about the book lives beside its cover — name, author,
+            how it is being read, and its dates — so the head holds one
+            contained block instead of a column of rows. */}
+        <div className={styles.headTop}>
+          <BookCover
+            title={book.title}
+            author={book.author}
+            covers={book.covers}
+            width={78}
+            size="small"
+            className={styles.cover}
+          />
+          <div className={styles.about}>
+            <h1 className={styles.title}>
+              {book.title} <Sparkle size={13} className={styles.spark} />
+            </h1>
+            <p className={styles.author}>
+              {book.author} · {facts}
+            </p>
+
+            <FormatRow
+              small
+              value={formatsOf(book)}
+              onChange={(next) => void setFormats(book.id, next)}
+            />
+
+            <div className={styles.dates}>
+              <button type="button" className={styles.dateCol} onClick={() => setPicking('opened')}>
+                <span className={styles.dateLabel}>Started</span>
+                <span className={styles.dateVal}>
+                  {book.startedOn ? shortDate(book.startedOn) : 'Pick a day'}
+                </span>
+              </button>
+              <button type="button" className={styles.dateCol} onClick={() => setPicking('closed')}>
+                <span className={styles.dateLabel}>Finished</span>
+                <span className={styles.dateVal}>
+                  {book.finishedOn ? shortDate(book.finishedOn) : 'In progress'}
+                </span>
+              </button>
+              <button
+                type="button"
+                className={styles.dateCol}
+                onClick={() => {
+                  setArmed(false)
+                  setBookOpen(true)
+                }}
+              >
+                <span className={styles.dateLabel}>Bookmark</span>
+                <span className={styles.dateVal}>
+                  {book.pagesRead ? `p. ${book.pagesRead}` : 'Set one'}
+                </span>
+              </button>
             </div>
-          </GlassSurface>
+          </div>
+        </div>
+
+        {/* ── Filter and sort, separated ────────────────────────────────── */}
+        <div className={styles.tabsRow}>
+          <div className={styles.tabs} role="group" aria-label="Show only">
+            <button
+              type="button"
+              className={styles.tab}
+              data-on={sift.types.length === 0 || undefined}
+              onClick={() => setSift((s) => ({ ...s, types: [], motif: null }))}
+            >
+              Journey
+            </button>
+            {KINDS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                className={styles.tab}
+                data-on={sift.types.length === 1 && sift.types[0] === t ? '' : undefined}
+                style={{ '--kind': `var(${KIND[t].hue})` } as CSSProperties}
+                onClick={() =>
+                  setSift((s) => ({
+                    ...s,
+                    types: s.types.length === 1 && s.types[0] === t ? [] : [t],
+                  }))
+                }
+              >
+                {KIND[t].many}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className={styles.sortBtn}
+            onClick={() =>
+              setSift((s) => {
+                const at = ORDERS.findIndex((o) => o.value === s.order)
+                return { ...s, order: ORDERS[(at + 1) % ORDERS.length].value }
+              })
+            }
+            aria-label="Change the order"
+          >
+            {SORT_SHORT[sift.order]}
+            <SortIcon size={14} />
+          </button>
         </div>
       </header>
 
@@ -542,15 +573,6 @@ function BookJourney() {
           </div>
         </div>
       </Sheet>
-
-      <SiftSheet
-        open={siftOpen}
-        onClose={() => setSiftOpen(false)}
-        sift={sift}
-        onChange={setSift}
-        keeps={keeps}
-        showing={rows.length}
-      />
 
       <ColophonSheet
         open={colophonOpen}

@@ -23,9 +23,12 @@ export const FORMATS: { value: BookFormat; label: string; Icon: typeof BookIcon 
 interface Props {
   value: BookFormat[]
   onChange: (next: BookFormat[]) => void
+  /** Word-only micro chips, for a header that has to stay small. The add
+      sheet keeps the full-size icon pills. */
+  small?: boolean
 }
 
-function FormatRow({ value, onChange }: Props) {
+function FormatRow({ value, onChange, small = false }: Props) {
   function toggle(format: BookFormat) {
     const on = value.includes(format)
     /* Never down to nothing. A book is being read somehow, and an empty row
@@ -41,7 +44,7 @@ function FormatRow({ value, onChange }: Props) {
   }
 
   return (
-    <div className={styles.row}>
+    <div className={styles.row} data-small={small || undefined}>
       {FORMATS.map(({ value: format, label, Icon }) => {
         const on = value.includes(format)
         return (
@@ -56,8 +59,10 @@ function FormatRow({ value, onChange }: Props) {
             title={label}
             onClick={() => toggle(format)}
           >
-            <Icon size={20} />
-            {on && <span>{label}</span>}
+            {/* Small chips are words, not icons: at micro size the words are
+                narrower than the drawings and read faster. */}
+            {!small && <Icon size={20} />}
+            {small ? <span>{label}</span> : on && <span>{label}</span>}
           </button>
         )
       })}

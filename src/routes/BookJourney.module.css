@@ -13,7 +13,7 @@
    the labels that sit under things. Any fifth size would be an accident. */
 
 .page {
-  --t-display: 1.75rem;
+  --t-display: 1.5rem;
   --t-read: 1.0625rem;
   --t-chrome: 0.9375rem;
   --t-micro: 0.6875rem;
@@ -40,7 +40,7 @@
   position: relative;
   z-index: 2;
   flex-shrink: 0;
-  gap: var(--space-4);
+  gap: var(--space-3);
   padding-block-start: calc(env(safe-area-inset-top, 0px) + var(--space-3));
   padding-inline: var(--space-5);
 }
@@ -49,6 +49,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.chromeGroup {
+  display: flex;
+  gap: var(--space-2);
 }
 
 .capsule {
@@ -80,6 +85,10 @@
 }
 
 .chromeAction:hover {
+  color: var(--color-ink);
+}
+
+.chromeDanger:hover {
   color: var(--color-danger);
 }
 
@@ -101,9 +110,12 @@
 }
 
 .about {
-  position: relative;
   min-inline-size: 0;
-  padding-block-start: var(--space-1);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
 }
 
 /* The same little star Home wears, so the pages read as one book. Inline in
@@ -127,181 +139,144 @@
   color: var(--color-ink);
 }
 
+/* Author and count on one mono caps line, the way a reference jacket sets a
+   byline. */
 .author {
-  margin: var(--space-1) 0 0;
-  font-family: var(--font-sans);
-  font-size: var(--t-chrome);
-  color: var(--color-ink-soft);
-}
-
-.facts {
-  margin: var(--space-2) 0 0;
+  margin: 0;
   font-family: var(--font-mono);
   font-size: var(--t-micro);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
+  color: var(--color-ink-soft);
+}
+
+/* Three labelled columns: started, finished, bookmark. Labels in mono micro
+   caps, values on a dashed underline — the "this is yours to change" cue at
+   a fraction of a field's weight. */
+.dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+
+.dateCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.dateLabel {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--color-ink-faint);
 }
 
-.meta {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+.dateVal {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 560;
+  color: var(--color-ink);
+  border-block-end: 1px dashed color-mix(in oklab, var(--color-ink) 35%, transparent);
+  padding-block-end: 2px;
+  transition: border-color var(--dur-quick) var(--ease-out);
 }
 
-/* The reading span: opened → closed, and the bookmark, on one quiet line.
-   Dotted underlines are the "this is yours to change" cue — the same promise
-   a field makes, at a fraction of the weight, which is what lets the head
-   hold five facts without turning into a bank of grey boxes. */
-.span {
+.dateCol:hover .dateVal {
+  border-block-end-color: var(--color-ink);
+}
+
+/* ── Filter and sort, separated ─────────────────────────────────────────── */
+
+.tabsRow {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0 var(--space-3);
+  gap: var(--space-3);
+  border-block-start: var(--border-hairline) solid var(--card-border);
+  padding-block-start: var(--space-2);
 }
 
-.day {
-  min-block-size: var(--tap-min);
-  padding: 0;
+/* One tab per kind, plus the whole journey. Scrolls sideways on a phone —
+   eight words do not fit, and a peeking ninth is the cue there are more. */
+.tabs {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  position: relative;
+  flex: none;
+  min-block-size: 40px;
+  padding: 0 var(--space-2) var(--space-2);
   border: 0;
   background: none;
   font-family: var(--font-sans);
   font-size: var(--text-sm);
-  color: var(--color-ink-soft);
+  text-transform: capitalize;
+  color: var(--color-ink-faint);
   cursor: pointer;
   transition: color var(--dur-quick) var(--ease-out);
 }
 
-.day strong {
-  font-weight: 600;
+.tab:hover {
+  color: var(--color-ink-soft);
+}
+
+.tab[data-on] {
   color: var(--color-ink);
-  text-decoration: underline dotted color-mix(in oklab, var(--color-ink) 35%, transparent);
-  text-underline-offset: 4px;
+  font-weight: 620;
 }
 
-.day em {
-  font-style: italic;
-  color: var(--color-accent-text);
-  text-decoration: underline dotted color-mix(in oklab, var(--color-ink) 35%, transparent);
-  text-underline-offset: 4px;
+/* The chosen tab is marked with the kind's own dot — the same hue its knots
+   wear on the thread below. */
+.tab[data-on]::after {
+  content: '';
+  position: absolute;
+  inset-block-end: 4px;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: var(--kind, var(--color-accent));
 }
 
-.day:hover strong,
-.day:hover em {
-  text-decoration-style: solid;
-}
-
-.spanArrow {
-  color: var(--color-ink-faint);
-  font-size: var(--text-sm);
-}
-
-.bookmark {
-  margin-inline-start: auto;
-  min-block-size: var(--tap-min);
-  padding: 0 var(--space-3);
+.sortBtn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: 40px;
+  padding: 0 var(--space-2) var(--space-2);
   border: 0;
-  border-radius: var(--radius-pill);
   background: none;
   font-family: var(--font-mono);
   font-size: var(--t-micro);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-accent-text);
+  color: var(--color-ink-soft);
   cursor: pointer;
-  transition: background-color var(--dur-quick) var(--ease-out);
+  transition: color var(--dur-quick) var(--ease-out);
 }
 
-.bookmark:hover {
-  background: var(--color-accent-tint);
-}
-
-/* ── The rail ───────────────────────────────────────────────────────────── */
-
-.railGlass {
-  --glass-pad: 0;
-  --glass-radius: var(--radius-pill);
-  box-shadow: var(--elevation-1);
-}
-
-.railRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding-inline: var(--space-2);
-}
-
-.sift {
-  flex: 1;
-  min-inline-size: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-block-size: 44px;
-  padding-inline: var(--space-3);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: none;
-  font-family: var(--font-sans);
-  font-size: var(--t-chrome);
+.sortBtn:hover {
   color: var(--color-ink);
-  cursor: pointer;
-  transition: color var(--dur-quick) var(--ease-out);
-}
-
-.sift[data-on] {
-  color: var(--color-accent-text);
-}
-
-.siftWhat {
-  min-inline-size: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-/* The order is the second half of one sentence, so it is set quieter rather
-   than given its own control — two buttons here would read as two decisions. */
-.siftHow {
-  flex-shrink: 0;
-  font-size: var(--t-micro);
-  letter-spacing: 0.06em;
-  text-transform: lowercase;
-  color: var(--color-ink-faint);
-}
-
-.count {
-  flex-shrink: 0;
-  font-family: var(--font-mono);
-  font-size: var(--t-micro);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
-  color: var(--color-ink-soft);
-}
-
-.of {
-  color: var(--color-ink-faint);
-}
-
-.shareBtn {
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  inline-size: 44px;
-  block-size: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-ink-soft);
-  cursor: pointer;
-  transition: color var(--dur-quick) var(--ease-out);
-}
-
-.shareBtn:hover {
-  color: var(--color-accent-text);
 }
 
 /* ── The scroll ─────────────────────────────────────────────────────────── */
@@ -468,6 +443,7 @@
 }
 
 .hang {
+  position: relative;
   min-inline-size: 0;
 }
 
@@ -477,15 +453,19 @@
    heading in the book's serif and a line or two under it, the way an epigraph
    sits on paper. The knot beside it is what makes it part of the thread. */
 
+/* Every notch is named the same way: when and where at the leading edge,
+   what at the trailing one. */
 .when {
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
+  justify-content: space-between;
+  gap: var(--space-3);
   margin: 0 0 var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--t-micro);
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
   color: var(--color-ink-faint);
 }
 
@@ -494,16 +474,8 @@
 }
 
 .whenKind {
-  color: color-mix(in oklab, var(--color-accent) 72%, var(--color-ink-faint));
-}
-
-.openTitle {
-  margin: 0 0 var(--space-2);
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: var(--text-xl);
-  line-height: var(--leading-tight);
-  color: var(--color-ink);
+  flex-shrink: 0;
+  color: color-mix(in oklab, var(--kind, var(--color-accent)) 72%, var(--color-ink-faint));
 }
 
 .openLine {
@@ -682,13 +654,13 @@
 
 @media (min-width: 760px) {
   .page {
-    --t-display: 2.25rem;
+    --t-display: 1.875rem;
     --gutter: 40px;
     --journey-gap: var(--space-7);
   }
 
   .pinned {
-    gap: var(--space-5);
+    gap: var(--space-4);
   }
 
   .headTop {
