@@ -19,6 +19,12 @@ interface SheetProps {
       instantly from any transition it is part of, because the top layer is
       not snapshotted. */
   name: string
+  /** Take the whole allowed height instead of only as much as the print needs.
+      A sheet that exists to show one object — a picture, a draft — has to hand
+      that object whatever room is left over, and it cannot do that while its
+      own height is being decided by the object. Off by default: an ordinary
+      sheet should be exactly as tall as the rows in it and no taller. */
+  fill?: boolean
   children: ReactNode
 }
 
@@ -33,7 +39,7 @@ interface SheetProps {
 const DISMISS_AT = 96
 const FLICK = 0.5 // px per ms
 
-function Sheet({ open, onClose, label, name, children }: SheetProps) {
+function Sheet({ open, onClose, label, name, fill = false, children }: SheetProps) {
   const dialog = useRef<HTMLDialogElement>(null)
   const { panel, grabProps } = useDragToDismiss(onClose)
 
@@ -59,7 +65,10 @@ function Sheet({ open, onClose, label, name, children }: SheetProps) {
       // the panel inside it is what actually fills the sheet.
       onClick={(event) => event.target === dialog.current && onClose()}
     >
-      <GlassSurface ref={panel} className={styles.panel}>
+      <GlassSurface
+        ref={panel}
+        className={fill ? `${styles.panel} ${styles.fill}` : styles.panel}
+      >
         {/* The grab handle. A sheet that can be pushed away has to say so —
             without it the only way out is a button in the corner, and every
             reader who has used a phone tries the drag first and concludes the

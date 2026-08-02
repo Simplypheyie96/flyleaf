@@ -42,9 +42,34 @@ export interface Asks {
   media: 'none' | 'image' | 'audio' | 'optional-image'
 }
 
+/** Which half of "collecting whispers and ink" a kind belongs to.
+
+    Home promises the reader they are collecting two different substances. A
+    **whisper** came out of the book — its words, its people, its places.
+    **Ink** is what the reader put down themselves — a note in their hand,
+    their own voice, a picture they took, a thread they are working out.
+
+    This is a property of the thing kept, not a way of sorting. It was briefly
+    a second row of filter labels over the rail, which made it a taxonomy the
+    reader had to operate — a second sift stacked on the one that already
+    works. It belongs in the keep itself: `word` is what a notch says about
+    itself on its own meta line, beside the day and the page. */
+export type Side = 'whisper' | 'ink'
+
+export const SIDE: Record<Side, { label: string; blurb: string; word: string }> = {
+  whisper: { label: 'Whispers', blurb: 'what the book said to you', word: 'a whisper' },
+  ink: { label: 'Ink', blurb: 'what you put down yourself', word: 'your own ink' },
+}
+
 export interface Kind {
   one: string
   many: string
+  /** The name on a control: a filter chip, a section heading, a menu row.
+      Title case, plain words. The theme lives in the group headings above
+      these, never in the label of a thing you are about to tap — a reader
+      hunting for their photographs should not have to decode a metaphor. */
+  label: string
+  side: Side
   /** The sentence on the capture sheet's own title bar. */
   invite: string
   tone: PaperTone
@@ -72,6 +97,8 @@ export const KIND: Record<EntryType, Kind> = {
   quote: {
     one: 'quote',
     many: 'quotes',
+    label: 'Quotes',
+    side: 'whisper',
     invite: 'Keep a line',
     tone: 'quote',
     Icon: QuoteIcon,
@@ -87,6 +114,8 @@ export const KIND: Record<EntryType, Kind> = {
   note: {
     one: 'note',
     many: 'notes',
+    label: 'Notes',
+    side: 'ink',
     invite: 'Write a note',
     tone: 'note',
     Icon: NoteIcon,
@@ -102,6 +131,8 @@ export const KIND: Record<EntryType, Kind> = {
   voice: {
     one: 'voice memo',
     many: 'voice memos',
+    label: 'Voice',
+    side: 'ink',
     invite: 'Record a voice memo',
     tone: 'voice',
     Icon: VoiceIcon,
@@ -119,6 +150,8 @@ export const KIND: Record<EntryType, Kind> = {
   image: {
     one: 'picture',
     many: 'pictures',
+    label: 'Pictures',
+    side: 'ink',
     invite: 'Add a picture',
     tone: 'image',
     Icon: ImageIcon,
@@ -134,6 +167,8 @@ export const KIND: Record<EntryType, Kind> = {
   character: {
     one: 'character',
     many: 'characters',
+    label: 'Characters',
+    side: 'whisper',
     invite: 'Follow a character',
     tone: 'character',
     Icon: CharacterIcon,
@@ -147,15 +182,21 @@ export const KIND: Record<EntryType, Kind> = {
     },
   },
   place: {
-    one: 'place',
-    many: 'places',
-    invite: 'Mark a place',
+    /* The type key stays `place` — it is in every reader's database already and
+       renaming a stored enum to change a screen label is not a trade worth
+       making. The words on screen come from here, and they are the words that
+       were asked for. */
+    one: 'location',
+    many: 'locations',
+    label: 'Locations & Lore',
+    side: 'whisper',
+    invite: 'Mark a location',
     tone: 'place',
     Icon: PlaceIcon,
     hue: '--color-place',
     asks: {
       text: { label: 'The lore', placeholder: 'What happens here, and what the book says about it…' },
-      name: { label: 'Place', placeholder: 'What it is called' },
+      name: { label: 'Location', placeholder: 'What it is called' },
       avatar: false,
       stance: false,
       /* A reader who has a map of the place can pin it; one who does not gets
@@ -166,6 +207,8 @@ export const KIND: Record<EntryType, Kind> = {
   thread: {
     one: 'plot thread',
     many: 'plot threads',
+    label: 'Plot Threads',
+    side: 'ink',
     invite: 'Pull a thread',
     tone: 'thread',
     Icon: ThreadIcon,

@@ -9,6 +9,7 @@
    the chosen ones can put their names on without the others reserving room
    for words they are not showing. */
 .chip {
+  position: relative;
   flex: none;
   display: inline-flex;
   align-items: center;
@@ -47,24 +48,60 @@
 }
 
 /* The header variant: word-only micro chips, the way a reference dust jacket
-   lists its editions. Same control, same toggling, a quarter of the ink. */
+   lists its editions. Same control, same toggling, a quarter of the ink.
+
+   This is the only place the small row is used — the book journey's head —
+   and there it stands on the open sky between the date pill and the filter
+   rail, so it is made of the same frost they are rather than of the field
+   material, which is what a control inside a sheet is made of. */
 .row[data-small] .chip {
   min-height: 28px;
   min-width: 0;
   padding-inline: var(--space-2);
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: var(--text-2xs);
   font-weight: 400;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   box-shadow: none;
 }
 
+/* The full row draws its own 44px; this one draws 28 and has to find the rest.
+   Growing the pill is not the answer — the head is already the part of the
+   journey page that takes too much of the screen, and these two words are the
+   quietest thing on it by design. So the target is extended instead, into head
+   air that holds nothing else. Inline stays at 0 so PRINT's target never
+   reaches over AUDIO's.
+
+   The height is stated rather than reached by insetting eight a side. An inset
+   resolves against the padding box, so with the chip's hairline "28 + 8 + 8"
+   actually drew 42, and the arithmetic that looked exactly right was wrong by
+   the width of two borders. The tap minimum is the number that matters, so it
+   is the number written down. */
+.row[data-small] .chip::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  block-size: var(--tap-min);
+  inline-size: 100%;
+  min-inline-size: var(--tap-min);
+}
+
+/* Chosen: the app's action ink, exactly as the filter rail's chosen chip and
+   every other filled control resolve to. It had its own pair of tokens a shade
+   off that ink, which meant the head carried two nearly-identical blacks doing
+   the same job — the kind of difference nobody names and everybody feels. */
 .row[data-small] .chip[aria-pressed='true'] {
   padding-inline: var(--space-2);
+  border-color: transparent;
+  background: var(--color-action);
+  color: var(--color-on-action);
 }
 
 .row[data-small] .chip[aria-pressed='false'] {
-  background: transparent;
-  border-color: var(--field-border);
+  background: var(--control-fill);
+  border-color: var(--control-border);
+  box-shadow: inset 0 1px 0 var(--control-highlight);
 }

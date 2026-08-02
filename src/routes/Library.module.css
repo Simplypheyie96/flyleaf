@@ -13,17 +13,170 @@
 
 .masthead {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
   padding-inline: var(--space-2);
 }
 
-/* Search flexes, the switcher keeps its corner. Sharing a row works at any
-   width because the field is the only thing that gives. */
+.mastheadName {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+/* Search flexes, the switcher keeps its corner. Sharing a row works only once
+   the column is wide enough for both — below that the switcher is not here at
+   all, and the field has the row to itself. */
 .toolbar {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+}
+
+/* ---- Where the display control lives ----
+   Two renderings of one choice, and exactly one of them is ever in the tree.
+   The switch is a container query rather than a media query because what
+   decides it is the column, not the window: at 1024 a side rail takes a
+   chunk of the viewport and the column here is narrower than the number in
+   any media query would suggest.
+
+   430px is where search (220 to type a title into), the gap and the switcher
+   (190) stop overlapping. */
+.display { display: none; }
+
+@container (max-width: 429px) {
+  .display {
+    display: block;
+    --glass-pad: 0;
+    --glass-radius: var(--radius-pill);
+    flex: none;
+    /* Sits on the subtitle's baseline row, not the title's — the masthead
+       aligns to its foot, and the control is the shorter of the two. */
+    margin-block-end: 2px;
+  }
+
+  .switcher { display: none; }
+}
+
+/* Below this the title and the named control stop fitting on one line, and the
+   title is not the one that gives. The glyph and the caret still say "this
+   opens something and it is currently the stack"; the word comes back the
+   moment there is room for it. */
+@container (max-width: 309px) {
+  .displayName { display: none; }
+  .displayBtn { padding-inline: var(--space-2); }
+}
+
+.displayBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition: color var(--dur-quick) var(--ease-out);
+}
+
+/* Mono caps: this is a setting's current value, in the same voice the app
+   uses everywhere else for one — not a word of prose. */
+.displayName {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .displayBtn:hover { color: var(--color-ink); }
+}
+
+.displayBtn:active {
+  transform: translateY(var(--press));
+  transition-duration: var(--dur-press);
+}
+
+/* ---- The display sheet ---- */
+.sheetTitle {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-lg);
+  letter-spacing: -0.01em;
+}
+
+.viewList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* A row per way of looking at the shelf: the glyph the toolbar uses, the name
+   it goes by, and the sentence that says what it does. The toolbar can only
+   afford the glyph — this is where a reader learns to read it. */
+.viewRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-block-size: var(--tap-min);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-ink-faint);
+  text-align: start;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
+}
+
+.viewText {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viewLabel {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--color-ink);
+}
+
+.viewHint {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+}
+
+.viewTick {
+  flex: none;
+  display: inline-flex;
+  color: var(--color-voice);
+}
+
+@media (hover: hover) {
+  .viewRow:hover {
+    background: color-mix(in oklab, var(--color-ink) 4%, transparent);
+    color: var(--color-ink-soft);
+  }
+}
+
+.viewRow[aria-pressed='true'] {
+  --icon-knockout: var(--color-chip-active);
+  background: var(--color-chip-active);
+  border-color: var(--color-chip-active-border);
+  color: var(--color-ink);
 }
 
 /* The same little star Home wears — the pages read as one book. Inline in
@@ -39,6 +192,10 @@
 .title {
   font-size: var(--text-xl);
   letter-spacing: -0.01em;
+  /* Two words, and the display control now sits beside them. A display serif
+     breaking after "The" is the one thing this masthead may never do, so the
+     control gives up its word before the title gives up its line. */
+  white-space: nowrap;
 }
 
 /* Matches Home: italic serif standfirst, not a second handwritten thing. */
@@ -74,7 +231,7 @@
   /* Sans: what the reader types here is a phrase, not a label. Stated rather
      than inherited — inputs don't take the body font on their own. */
   font-family: var(--font-sans);
-  font-size: 16px; /* keeps iOS from zooming */
+  font-size: var(--text-field); /* keeps iOS from zooming */
 }
 
 .searchInput::placeholder {
@@ -417,6 +574,16 @@
     opacity: 0;
     pointer-events: none;
   }
+
+  /* And its control goes with it. The book above only stops being *painted* at
+     this width — it is still in the markup, so it still renders the button that
+     brings it forward, and that button was invisible, unclickable, and second
+     in the tab order. A keyboard would have landed on "bring The Long Room to
+     the front" pointing at a book nobody could see. `pointer-events` on the
+     card does not fix that; not rendering the control does. */
+  .stackItem[data-slot='3'] .reach {
+    display: none;
+  }
 }
 
 /* Everything past the fourth holds the fourth's pose with nothing showing, so
@@ -503,9 +670,10 @@
   place-items: center;
   inline-size: var(--tap-min);
   block-size: var(--tap-min);
-  border: 1px solid var(--border-hairline);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius-pill);
-  background: var(--card-fill);
+  background: var(--control-fill);
+  box-shadow: inset 0 1px 0 var(--control-highlight);
   color: var(--color-ink-soft);
   cursor: pointer;
   transition:
@@ -514,9 +682,12 @@
     color var(--dur-quick) var(--ease-out);
 }
 
+/* Hover deepens the frost rather than swapping it for paper. A control that
+   turns white under the cursor stops being the same object it was a moment
+   ago, and this one is sitting on a shelf, not on a card. */
 @media (hover: hover) {
   .deckArrow:hover {
-    background: var(--color-paper);
+    background: color-mix(in oklab, var(--control-fill) 100%, var(--color-ink) 8%);
     color: var(--color-ink);
   }
 }
@@ -923,7 +1094,7 @@
 .feedKeepKind {
   flex: 1 1 auto;
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: var(--text-2xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }

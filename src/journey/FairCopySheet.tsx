@@ -62,7 +62,13 @@ function FairCopySheet({ open, onClose, book, keeps }: Props) {
   }
 
   return (
-    <Sheet open={open} onClose={onClose} label="Draft my review" name="fair-copy">
+    <Sheet
+      open={open}
+      onClose={onClose}
+      label="Draft my review"
+      name="fair-copy"
+      fill={!!draft.trim()}
+    >
       <header className={styles.head}>
         <h2 className={styles.title}>Draft my review</h2>
         <button type="button" className={styles.iconButton} onClick={onClose} aria-label="Close">
@@ -70,47 +76,62 @@ function FairCopySheet({ open, onClose, book, keeps }: Props) {
         </button>
       </header>
 
-      <div className={styles.body}>
-        <p className={styles.blurb}>
-          Your own words, gathered in the order you wrote them. Change anything you
-          like before it goes anywhere.
-        </p>
-
-        {draft.trim() ? (
-          <label className={styles.label}>
-            <span className={styles.labelLine}>
-              The draft <span className={styles.optional}>yours to edit</span>
-            </span>
+      {/* The draft is the sheet. It used to be one item in a stack — a
+          paragraph of explanation, a field label, an "optional" tag — inside a
+          scroller, with the box itself measured by a script and grown to fit
+          its own text. That measurement ran before the serif had loaded, so it
+          was taken from a fallback face, and a long review came out with its
+          last lines cut off. A box that is simply the size of the sheet has
+          nothing to measure and nothing to get wrong. */}
+      {draft.trim() ? (
+        <div className={styles.compose}>
+          <div className={styles.stage}>
             <textarea
-              className={`${styles.area} ${styles.tall}`}
+              className={`${styles.area} ${styles.write}`}
+              aria-label="The draft, yours to edit"
               value={draft}
               onChange={(e) => {
                 setDraft(e.target.value)
                 setCopied(false)
               }}
             />
-          </label>
-        ) : (
+          </div>
+
+          <p className={styles.caption}>
+            Your own words, in the order you wrote them, and yours to change.
+          </p>
+
+          <p className={styles.tally}>
+            <span>{countWords(draft)} words</span>
+            {omitted > 0 && (
+              <em>
+                {omitted === 1
+                  ? 'One recording or picture couldn’t be written out.'
+                  : `${omitted} recordings and pictures couldn’t be written out.`}
+              </em>
+            )}
+          </p>
+        </div>
+      ) : (
+        /* Nothing to show and nothing to size the sheet against: the empty
+           state uses the ordinary body so the panel stays as short as the one
+           sentence in it, rather than opening a full-height stage around a
+           paragraph that says there is nothing there. */
+        <div className={styles.body}>
           <p className={styles.quiet}>
             There is nothing written down to gather yet. Keep a note or a line from
             the book and this fills itself in.
           </p>
-        )}
+        </div>
+      )}
 
-        <p className={styles.tally}>
-          <span>{countWords(draft)} words</span>
-          {omitted > 0 && (
-            <em>
-              {omitted === 1
-                ? 'One recording or picture couldn’t be written out.'
-                : `${omitted} recordings and pictures couldn’t be written out.`}
-            </em>
-          )}
-        </p>
-      </div>
-
-      <footer className={styles.foot}>
-        <LeafButton className={styles.submit} onClick={share} disabled={!draft.trim()}>
+      {/* Two ways out, the same size. Sending was a full-width slab and copying
+          was a small pill beneath it, which said one of them was the answer —
+          and on a laptop, where there is no system share sheet, the small one
+          is the only thing that works. Peers on one row, and the reader
+          chooses. */}
+      <footer className={styles.footRow}>
+        <LeafButton onClick={share} disabled={!draft.trim()}>
           <ShareIcon size={18} />
           Send it somewhere
         </LeafButton>

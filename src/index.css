@@ -29,6 +29,41 @@ body {
   line-height: var(--leading-body);
 }
 
+/* Scrollbars, once, for everything.
+
+   This app nests scrollers by design — a thread under a pinned head, a sheet
+   body under a fixed foot, a filter run inside a band — and every one of them
+   was drawing its own default gutter. Four grey tracks on one phone screen is
+   four pieces of furniture the reader did not ask for, and none of them said
+   anything the content wasn't already saying.
+
+   So: a thin bar, no track, and a thumb the colour of quiet ink. It appears
+   where there is genuinely more to reach and disappears into the paper the
+   rest of the time. Set globally rather than per-scroller because the failure
+   mode is a scroller somebody adds later and forgets to quiet. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--color-ink) 22%, transparent) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--color-ink) 22%, transparent);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* Soft cloud masses drifting behind everything — pure gradients, no images. */
 body::before {
   content: '';

@@ -74,7 +74,7 @@
   background: transparent;
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-size: 16px; /* keeps iOS from zooming the sheet on focus */
+  font-size: var(--text-field); /* keeps iOS from zooming the sheet on focus */
 }
 
 .input::placeholder {
@@ -253,7 +253,7 @@
   flex-direction: column;
   gap: var(--space-2);
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: var(--text-2xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-ink-soft);
@@ -287,7 +287,7 @@
   /* Serif: what the reader types here is the book's own title and author, and
      it is typeset in this face on the cover a moment later. */
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: var(--text-field);
 }
 
 .textInput:focus-visible {
@@ -329,7 +329,7 @@
   min-width: 0;
   color: var(--color-ink);
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: var(--text-field);
   /* A long weekday in a long locale — "Wednesday, 30 September 2026" — is the
      one string here that can outgrow the row. */
   overflow: hidden;

@@ -25,6 +25,7 @@
    or delete this file and the one `seedLibrary()` call in main.tsx. The
    define in vite.config.ts goes with it. */
 
+import { SURVEY_BOX, surveyMarks } from '../journey/cards/art'
 import db, { type Book, type Entry } from './db'
 
 declare const __PREVIEW_SEED__: boolean
@@ -323,20 +324,51 @@ function previewPhoto() {
   return new Blob([svg], { type: 'image/svg+xml' })
 }
 
-/** A drawn map for the place that has one, so the plate across the top of a
+/** A drawn map for the place that has one, so the picture across the top of a
     place card can be reviewed with real cartography in it and not only with
-    the fallback contours the card draws for itself. Invented ground: a coast,
-    a river and a road, with no names on it. */
+    the horizon the card draws for itself when nothing is pinned.
+
+    This used to be its own drawing and it was the weakest picture in the app:
+    five wavy strokes, a river and a dashed track, on a window this wide it read
+    as a smudge, and there was nothing in it a reader could name. It is now the
+    app's own survey — a lake with its shore shaded, the lane, a hamlet with a
+    church, a wood of separate trees — baked to fixed colours, which is the one
+    thing a pinned file has to be: a blob in an <img> cannot reach a custom
+    property, so `currentColor` has to be resolved here instead.
+
+    Ink and paper are the daylight ends of the place hue and the card reverse.
+    They do not flip after dark, and that is correct rather than an oversight:
+    what a reader pins is a picture of a thing, and a photograph on the table
+    does not turn its own lights down at night. */
 function previewMap() {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420">
-    <rect width="900" height="420" fill="#efe7d6"/>
-    <path d="M0 300 C 150 268, 250 320, 400 296 S 700 250, 900 276 L900 420 L0 420 Z" fill="#dfe6de"/>
-    ${Array.from({ length: 5 }, (_, i) => {
-      const y = 96 + i * 34
-      return `<path d="M60 ${y} C 240 ${y - 30}, 430 ${y + 34}, 640 ${y - 8} S 830 ${y - 26}, 880 ${y + 6}" fill="none" stroke="#c9bda6" stroke-width="2"/>`
-    }).join('')}
-    <path d="M180 0 C 210 120, 150 200, 214 300" fill="none" stroke="#9fb6c4" stroke-width="7" stroke-linecap="round"/>
-    <path d="M0 232 C 220 214, 470 258, 900 206" fill="none" stroke="#b9a98c" stroke-width="3" stroke-dasharray="14 10"/>
+  const paper = '#eee7d8'
+  const ink = '#3d6a72'
+  const { w } = SURVEY_BOX
+
+  /* The survey is drawn upright, for the tall window on a plate. The postcard's
+     window is a letterbox two and a third times as wide as it is high, so
+     something has to go — and leaving that to `object-fit: cover` meant the
+     browser took an equal bite off the top and the bottom and sliced the field
+     boundaries and the north point in half on the way through. A map with
+     half a compass rose on its top edge looks like a rendering fault.
+
+     So the crop is chosen here instead of discovered there: the band from 36
+     down is 200×84, which is the window's own proportion to within a pixel, and
+     it holds the lane, the hamlet, the church, the lake and the whole wood with
+     nothing cut through. The lane still runs off the top edge, which is what
+     lanes do on maps. */
+  const band = { y: 36, h: 84 }
+  const { ink: strokes, wash } = surveyMarks(707182)
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w * 5}" height="${band.h * 5}" viewBox="0 ${band.y} ${w} ${band.h}">
+    <rect x="-4" y="-4" width="${w + 8}" height="${SURVEY_BOX.h + 8}" fill="${paper}"/>
+    ${wash
+      .map((m) => `<path d="${m.d}" fill="${ink}" fill-opacity="${m.o}"/>`)
+      .join('')}
+    <g fill="none" stroke="${ink}" stroke-linecap="round" stroke-linejoin="round">
+      ${strokes
+        .map((m) => `<path d="${m.d}" stroke-width="${m.w}" stroke-opacity="${m.o}"/>`)
+        .join('')}
+    </g>
   </svg>`
   return new Blob([svg], { type: 'image/svg+xml' })
 }
