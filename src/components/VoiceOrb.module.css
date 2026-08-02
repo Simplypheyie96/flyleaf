@@ -19,11 +19,11 @@
   position: relative;
   display: grid;
   place-items: center;
-  /* 56, not 44. The whole object is the button, so it may as well be the size
-     the object wants to be — and this is the one control on the page that a
-     thumb goes to without looking. */
-  width: 56px;
-  height: 56px;
+  /* Above the 44px floor but no longer 56: the slab got denser with the rest
+     of the cards, and the orb reads as its centrepiece at this size without
+     crowding the wave. */
+  width: 48px;
+  height: 48px;
   flex: 0 0 auto;
   border: none;
   border-radius: 50%;
@@ -70,7 +70,7 @@
    shape with it. */
 .halo {
   position: absolute;
-  inset: -10px;
+  inset: -8px;
   border-radius: 50%;
   pointer-events: none;
   background: radial-gradient(
@@ -133,30 +133,13 @@
   }
 }
 
-/* ---- The bubble ----
-
-   The trace and the clock ride together in a soft pill, the shape every chat
-   app has taught a thumb to read as "a voice message lives here". The clock
-   is a flex sibling with its own reserved room, so it can never land on top
-   of the bars — the overlap that used to happen when the two were loose in
-   the row. */
-
-.bubble {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-pill);
-  background: color-mix(in oklch, var(--color-voice), transparent 80%);
-}
+/* ---- The trace ---- */
 
 .trace {
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
-  height: 30px;
+  height: 32px;
 }
 
 .bars,
