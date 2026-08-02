@@ -121,23 +121,21 @@ function VoiceOrb({ media, duration, seed, label }: VoiceOrbProps) {
         </span>
       </button>
 
-      {/* The trace and the clock share one bubble, like a voice message in any
-          chat the reader already knows. One flex row, so the clock has its own
-          reserved room and can never sit on top of the bars. */}
-      <div className={styles.bubble}>
-        <div className={styles.trace}>
-          <Bars bars={bars} className={styles.bars} />
-          {/* The same trace again, lit, clipped to how far in we are. Two rows
-              rather than one row of two-tone bars: a bar is 3px wide, and the
-              boundary has to be able to fall inside one. */}
-          <Bars bars={bars} className={styles.barsPlayed} />
-        </div>
-        {total > 0 && (
-          <p className={styles.elapsed}>
-            {playing || at > 0 ? clock(at) : clock(total)}
-          </p>
-        )}
+      {/* One calm row: the wave flexes, the clock keeps its own reserved room
+          at the trailing edge — flex siblings, so neither can ever sit on top
+          of the other. */}
+      <div className={styles.trace}>
+        <Bars bars={bars} className={styles.bars} />
+        {/* The same trace again, lit, clipped to how far in we are. Two rows
+            rather than one row of two-tone bars: a bar is 3px wide, and the
+            boundary has to be able to fall inside one. */}
+        <Bars bars={bars} className={styles.barsPlayed} />
       </div>
+      {total > 0 && (
+        <p className={styles.elapsed}>
+          {playing || at > 0 ? clock(at) : clock(total)}
+        </p>
+      )}
 
       {src && (
         <audio

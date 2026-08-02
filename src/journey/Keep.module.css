@@ -42,45 +42,42 @@
   color: var(--color-accent-text);
 }
 
-/* The three verbs, in one pill riding the card's bottom trailing corner —
-   more than one button together shares one container. Positioned against the
-   notch's own hang (the journey sets it relative), so it works the same on
+/* The three verbs: separate little circles riding the card's bottom trailing
+   corner, the way the reference floats them — a shared pill is the app
+   chrome's language, and an entry is not chrome. Positioned against the
+   notch's own hang (the journey sets it relative), so they work the same on
    every one of the seven cards, including the two that clip their own
-   overflow. */
+   overflow — and inset far enough to leave the note's folded corner alone. */
 .acts {
   position: absolute;
   inset-block-end: calc(-1 * var(--space-2) - 2px);
-  inset-inline-end: var(--space-4);
+  inset-inline-end: var(--space-6);
   z-index: 2;
   display: flex;
   align-items: center;
-  padding: 2px;
-  border: var(--border-hairline) solid var(--card-border);
-  border-radius: var(--radius-pill);
-  background: var(--color-paper);
-  box-shadow: var(--elevation-1);
+  gap: var(--space-2);
 }
 
 .act {
   flex: none;
   display: grid;
   place-items: center;
-  inline-size: 32px;
-  block-size: 32px;
+  inline-size: 34px;
+  block-size: 34px;
   padding: 0;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: none;
+  border: var(--border-hairline) solid var(--card-border);
+  border-radius: 50%;
+  background: var(--color-paper);
+  box-shadow: var(--elevation-1);
   color: var(--color-ink-soft);
   cursor: pointer;
   transition:
     color var(--dur-press) var(--ease-out),
-    background-color var(--dur-press) var(--ease-out);
+    transform var(--dur-press) var(--ease-out);
 }
 
 .act:hover {
   color: var(--color-ink);
-  background: var(--card-chip);
 }
 
 .act:active {
