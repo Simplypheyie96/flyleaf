@@ -111,17 +111,42 @@ export function shortDate(iso: string) {
   })
 }
 
-/** "Jul 2", or "Jul 2, 2019" once the year stops being this one. For the two
-    ends of a reading span, where the same year would otherwise be printed
-    twice in one pill — and where the year of a book you are reading right now
-    is not news. */
-export function spanDate(iso: string) {
-  const d = fromISO(iso)
+/** "Jul 2", with the year only when the year is worth saying. */
+function spanEnd(d: Date, withYear: boolean) {
   return d.toLocaleDateString(undefined, {
     day: 'numeric',
     month: 'short',
-    ...(d.getFullYear() === new Date().getFullYear() ? {} : { year: 'numeric' }),
+    ...(withYear ? { year: 'numeric' } : {}),
   })
+}
+
+/** The two ends of a reading span, formatted against each other.
+ *
+ *  A pair of dates is one fact, not two, and the year is where that shows:
+ *  formatting each end on its own gave "Jul 2, 2019 → Aug 14, 2019", which
+ *  prints the year twice for a reader who needed it once, and "Jul 2, 2026 →
+ *  Aug 14, 2026", which prints this year twice for a reader who needed it not
+ *  at all. Three rules, in the order they apply:
+ *
+ *    · this year is never printed — a book you are reading now is not dated;
+ *    · one shared older year is printed once, on the trailing end;
+ *    · two different years are both printed, because that is the fact.
+ *
+ *  Returns undefined for an end that is not set. What stands in for a missing
+ *  end is the caller's to say: only the caller knows whether a blank trailing
+ *  end means the book is still open. */
+export function spanPair(start?: string, finish?: string) {
+  const a = start ? fromISO(start) : undefined
+  const b = finish ? fromISO(finish) : undefined
+  const ya = a?.getFullYear()
+  const yb = b?.getFullYear()
+  const now = new Date().getFullYear()
+  const both = ya !== undefined && yb !== undefined
+  const differ = both && ya !== yb
+  return {
+    start: a && ya !== undefined ? spanEnd(a, ya !== now && (differ || !both)) : undefined,
+    finish: b && yb !== undefined ? spanEnd(b, yb !== now) : undefined,
+  }
 }
 
 /** What a screen reader should hear on a day cell — the full date, never the

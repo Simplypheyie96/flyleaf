@@ -24,6 +24,21 @@
   --t-chrome: 0.875rem;
   --t-micro: 0.6875rem;
 
+  /* The column, widened off the shared default.
+
+     The app's default column has a 420px floor, which is right for the Home
+     feed — a card holding one line is a stretched banner long before 760. It
+     is wrong here. 420 stops being the *floor* and starts being the *width*
+     the moment the viewport passes 390, so from a phone up to about 583px the
+     head and the thread stayed exactly 420 wide while the screen kept growing
+     around them: a fixed block of content marooned in two widening bands of
+     empty sky. That is the gap on a resized window, and it was never a
+     spacing bug in the head at all.
+
+     90vw tracks the screen through that whole band and hands over to the same
+     560 cap at 622, so nothing wider changes. */
+  --column-max: clamp(420px, 90vw, 560px);
+
   --journey-gap: var(--space-6);
   --gutter: 26px;
   --knot-size: 26px;
@@ -84,14 +99,11 @@
   transition: opacity var(--dur-quick) var(--ease-out);
 }
 
-/* Everything that folds, in one box. The book and its dates are two rows and
-   the gap between them is theirs, so it leaves when they do. */
+/* Everything that folds, in one box: the two columns and nothing else. No
+   gap — there is one child now that the dates have gone back up into the
+   record where they belong. The trailing rhythm lives in here rather than on
+   the row below it, so it collapses along with everything else. */
 .headInner {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-3);
-  /* The head's own trailing rhythm, inside the part that collapses. */
   padding-block-end: var(--space-4);
 }
 
@@ -181,44 +193,63 @@
   transform: scale(0.94);
 }
 
-/* Board and record, side by side, ending on the same line.
+/* The book on one side, everything about it on the other.
 
-   The board is 72px wide, and that number is not a taste: at 2:3 it stands
-   108px tall, which is exactly what the column beside it comes to — a title
-   over an author over the format pills, at two lines of title. So the two
-   columns finish level and there is no tall empty rectangle around the book.
+   Two columns and therefore exactly two alignment edges: the spine of the
+   cover, and the edge every written thing starts from. Nothing in the head
+   is allowed a third — the dates used to have one, sitting on a full-width
+   line below both columns, so their leading edge lined up with the book and
+   with none of the writing they belong to.
 
-   The rule that keeps it true from both ends: the title may take two lines
-   but never three, and the record can never be shorter than the board. */
+   The board is 72px wide, which at 2:3 stands 108px tall; the column beside
+   it runs a little past that, and it is *meant* to be the taller of the two.
+   Boards are a fixed shape and records are not, so the one that has to be
+   free to grow is the writing. */
 .headTop {
   --board: 72px;
   align-self: stretch;
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
   gap: var(--space-4);
 }
 
 .cover {
   flex: none;
-  align-self: flex-start;
   inline-size: var(--board);
   border-radius: var(--radius-sm);
   box-shadow: var(--elevation-2);
 }
 
+/* The record: name, byline, formats, dates, in that order down one edge.
+
+   No `justify-content: space-between` and no gap doing the work of four
+   different joins. Distributing the column against the board's height meant
+   the spacing between these four things was decided by *the cover*, so a
+   short title opened a band of dead air under the byline that belonged to
+   nothing. The rhythm is written down instead, tightest where the tie is
+   closest — title to byline is one unit, the two controls stand apart — and
+   the floor only keeps the record from ever finishing above the book. */
 .about {
   min-inline-size: 0;
   flex: 1;
-  /* 1.5 × the board's width is the board's height. Never less, so the record
-     cannot leave a gap under the book; space-between then holds the format
-     pills against the board's bottom edge whether the title took one line or
-     two. */
   min-block-size: calc(var(--board) * 1.5);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-2);
+  gap: var(--space-1);
+}
+
+/* The two controls carry their own leading air, and it has to clear the tap
+   targets above them, not just the ink: the format chips draw 28px and reach
+   44, so they already extend 8px past their own paper. 12 and 16 leave the
+   date pill's own 5px of reach a margin either way — the 5+5 rule, applied
+   down the column instead of across a row. */
+.formats {
+  margin-block-start: var(--space-3);
+}
+
+.about .span {
+  margin-block-start: var(--space-4);
 }
 
 /* The title, at 20px, and it reads as the title of the page at 20px.
@@ -226,24 +257,28 @@
    It used to need 28 to do that, because the face it was set in had one
    weight and the only way to make a heading out of it was to make it big.
    Newsreader carries 200–800, so the emphasis comes out of the weight and the
-   size can go back to something a phone can hold: the seeded title now sets
-   on one line inside 390 instead of breaking across two.
+   size can go back to something a phone can hold.
 
-   Two lines is the hard ceiling. A third would push the record past the
-   bottom of the board and put the empty rectangle back. */
+   One line, and that is a layout rule rather than a typographic one. At two
+   the head's height was a function of how long the book's name happened to
+   be: the byline, the formats and the dates all moved down a line for a long
+   title, so the same screen was a different size per book and the pinned head
+   was 24px taller on the ones with the longest names. Everything below the
+   name now sits where it sits.
+
+   Truncation hides content, so the full name stays reachable — `title` on the
+   element, and the folded bar spells it out in full besides. */
 .title {
+  align-self: stretch;
   margin: 0;
   font-family: var(--font-serif);
   font-weight: 560;
   font-size: var(--t-display);
   line-height: var(--leading-tight);
   letter-spacing: var(--track-title);
-  text-wrap: balance;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--color-ink);
 }
 
@@ -297,13 +332,20 @@
   box-shadow: inset 0 1px 0 var(--control-highlight);
 }
 
+/* 34 drawn, 44 reached — the same trick the format chips above it use.
+
+   It was 46px of painted pill for a 12px date, because the pill was carrying
+   the tap minimum in its own height: two short words upholstered into the
+   largest object in the head, with more air above and below the type than the
+   type was tall. The paper comes down to 34 and the target moves onto the two
+   buttons inside it, where it was always supposed to live. Nothing about the
+   pill got harder to hit. */
 .span {
   display: inline-flex;
   align-items: stretch;
   max-inline-size: 100%;
-  /* Plus the two hairlines, so the buttons *inside* clear the tap minimum
-     rather than the pill clearing it and each end landing two pixels short. */
-  min-block-size: calc(var(--tap-min) + 2px);
+  /* Plus the two hairlines, so the ends draw a clean 32 inside the rim. */
+  min-block-size: calc(32px + 2px);
   border-radius: var(--radius-pill);
 }
 
@@ -315,6 +357,7 @@
    the tap target was never the problem, the pill was just upholstered. The
    hit area is unchanged: it is the full height and the full half-width. */
 .spanEnd {
+  position: relative;
   display: inline-flex;
   align-items: center;
   min-inline-size: 0;
@@ -326,12 +369,35 @@
   font-size: var(--text-xs);
   font-weight: 560;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   color: var(--color-ink);
   cursor: pointer;
   transition: color var(--dur-quick) var(--ease-out);
+}
+
+/* The clipping lives on the label, not on the button. `overflow: hidden` on
+   the button crops its own tap pseudo to the height the pill paints, which is
+   how a control that reads as 44 in the stylesheet measures 33 to a thumb. */
+.spanText {
+  min-inline-size: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The 44 the pill no longer draws. Full width of its own end, so the two
+   halves stay separately tappable and neither reaches over the other; the
+   height is stated rather than inset, because an inset resolves against the
+   padding box and would come out short by the rim. It grows into head air
+   that holds nothing — 12px above it and 16 below, both already wider than
+   the 5px this reaches. */
+.spanEnd::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  inline-size: 100%;
+  block-size: var(--tap-min);
 }
 
 /* An end with nothing in it yet is a prompt, not a fact — it says so by
@@ -1075,12 +1141,12 @@
     margin-block-end: var(--space-4);
   }
 
-  /* A bigger board for a bigger title: 88 × 1.5 = 132, which is what the
-     record comes to once the display size goes up a step. */
+  /* A bigger board for a bigger title: 88 × 1.5 = 132, and the record comes
+     to a shade over that once the display size goes up a step, so the writing
+     stays the taller column here too. */
   .headTop {
     --board: 88px;
     gap: var(--space-5);
-    padding-block-end: var(--space-4);
   }
 }
 

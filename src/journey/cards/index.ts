@@ -72,19 +72,19 @@ export const SETS: Record<Direction, Record<EntryType, ComponentType<CardProps>>
 
 /* Which set each type is drawn from.
 
-   Six of the seven are settled. Threads are not: all three drawings were
-   turned down, so that line is a holding value and not a choice — it stays on
-   Pressed only so the thread renders while the drawing is settled. Characters
-   are settled but are not drawn from a set at all, so their line here is used
-   by nothing but `?dir=`; see `DRAWN` below. */
+   Four of the seven are settled here. The other three — characters, plot
+   threads and voice — had every set drawing turned down and were drawn to
+   order instead, so their lines below are read by nothing but `?dir=`; see
+   `DRAWN`. They are kept at their nearest neighbour rather than deleted, so
+   that switching the whole journey to one set still renders seven cards. */
 export const CHOSEN: Record<EntryType, Direction> = {
   quote: 'plates',
   note: 'pressed',
-  voice: 'plates',
+  voice: 'plates', // superseded by DRAWN — only `?dir=` still reads this
   image: 'plates',
   character: 'pressed', // superseded by DRAWN — only `?dir=` still reads this
   place: 'pressed',
-  thread: 'pressed', // holding — rejected, awaiting its own drawing
+  thread: 'pressed', // superseded by DRAWN — only `?dir=` still reads this
 }
 
 /* Drawn to order, outside the three sets.
@@ -96,50 +96,26 @@ export const CHOSEN: Record<EntryType, Direction> = {
    wins over `CHOSEN` for the types it lists. */
 const DRAWN: Partial<Record<EntryType, ComponentType<CardProps>>> = {
   character: redraw.Character,
+  thread: redraw.Thread,
+  voice: redraw.Voice,
 }
-
-/* Still being chosen. Threads only: three drawings that put the stance where
-   the rejected ones put a count, lettered rather than named because they are
-   not directions and none of them is going to become one. Whichever is picked
-   moves into `DRAWN` and this table goes. */
-const CANDIDATES: Partial<Record<EntryType, Record<string, ComponentType<CardProps>>>> = {
-  thread: {
-    a: redraw.ThreadQuestion,
-    b: redraw.ThreadGauge,
-    c: redraw.ThreadOpenFile,
-  },
-}
-
-/** Which query parameter swaps a candidate in, per type. */
-const HANDLE: Partial<Record<EntryType, string>> = { thread: 'th' }
 
 /* A whole journey, drawn as something other than the app draws it.
 
    The gallery shows three keeps of one type at a time, which is enough to
    judge a drawing and not enough to judge a page: what a set actually feels
    like is thirteen keeps of seven different types running down one thread,
-   with the dividers and the ties between them. Two handles do that here.
-   `?dir=marginalia` redraws every card from one set. `?th=a` swaps in a thread
-   candidate and leaves the six settled types exactly as the app draws them,
-   which is the only way to judge one — beside the quotes and notes it will
-   actually live with.
+   with the dividers and the ties between them. `?dir=marginalia` redraws every
+   card from one set so that can be looked at.
 
-   The per-type handle wins where both are given, since it is the more specific
-   request. Preview handles, not product features: nothing links to either, an
-   unknown value falls straight back to the real drawing, and both come out
-   with the gallery once the last choice is made. */
+   A preview handle, not a product feature: nothing links to it, an unknown
+   value falls straight back to the real drawing, and it comes out with the
+   gallery. */
 export function cardFor(
   type: EntryType,
   preview?: URLSearchParams | null,
 ): ComponentType<CardProps> {
-  if (preview) {
-    const handle = HANDLE[type]
-    const pick = handle ? preview.get(handle)?.trim().toLowerCase() : undefined
-    const candidate = pick ? CANDIDATES[type]?.[pick] : undefined
-    if (candidate) return candidate
-
-    const dir = preview.get('dir')
-    if (dir && dir in SETS) return SETS[dir as Direction][type]
-  }
+  const dir = preview?.get('dir')
+  if (dir && dir in SETS) return SETS[dir as Direction][type]
   return DRAWN[type] ?? SETS[CHOSEN[type]][type]
 }
