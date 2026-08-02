@@ -1,0 +1,438 @@
+/* THE FOURTH DRAWING — characters and plot threads
+
+   Three candidates for each of the two types whose first three drawings were
+   turned down. They have to sit convincingly beside the five that are already
+   chosen, so this sheet copies the two things that make a Plates card a Plates
+   card — the solid paper tone and the tint re-pointing under `.card` — and
+   changes only what is above it.
+
+   Everything directional is logical, so it mirrors without a second sheet. */
+
+/* ── The paper every candidate is drawn on ────────────────────────────────
+   `--color-*` are the *room's* values and flip at night; `--tint-*` are the
+   *card's* and stay daylight-weighted, because a toned card deliberately stays
+   light paper after dark. Re-pointing the room names at the card set inside
+   this rule means everything below can be written in plain `--color-ink` and
+   still get the right one. This block is the same contract as `.plate`; if it
+   drifts, these cards will read as visitors from another app. */
+.card {
+  position: relative;
+  border-radius: var(--radius-md);
+  background-color: var(--paper-tone);
+  box-shadow: inset 0 1px 0 var(--card-edge-light);
+  /* 24 on three sides. The bottom is set per candidate, because the three verb
+     circles hang below the card and reach 24px back up into it: any drawing
+     whose last element is text has to hold that much open or the circles paint
+     over the final line. */
+  padding: var(--space-5) var(--space-5) var(--space-5);
+
+  --color-ink: var(--tint-ink);
+  --color-ink-soft: var(--tint-ink-soft);
+  --color-ink-faint: var(--tint-ink-faint);
+  --color-bg: var(--tint-reverse);
+  --color-paper: var(--tint-reverse);
+  --card-border: var(--tint-border);
+  --card-edge-light: var(--tint-edge);
+  --card-chip: var(--tint-chip);
+  --note-rule: var(--tint-rule);
+  --color-thread: var(--tint-thread);
+  --color-character: var(--tint-character);
+  color: var(--color-ink);
+}
+
+/* ── The foot, borrowed whole ─────────────────────────────────────────────
+   Strand chips and the stance badge are shared furniture, not part of any one
+   drawing, so they are the Plates versions to the pixel. A candidate that
+   states the stance in its own drawing hides the badge with `.stanceHidden`
+   rather than passing a different component — printing the same word twice on
+   one card was the tell that a drawing and its chip row were solving the same
+   problem in two languages. */
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+  /* Ten, not eight: five of the circles' invisible tap margin above the card's
+     own bottom edge, and five below it. */
+  margin-block-end: 10px;
+}
+
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 34px;
+  padding-inline: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--card-chip);
+  color: var(--color-ink-soft);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition:
+    color var(--dur-press) var(--ease-out),
+    background-color var(--dur-press) var(--ease-out);
+}
+
+/* 34 drawn, 44 reached — the five above and below come out of the row's gap.
+   Its own width where that is already past the minimum, and the minimum where
+   a one-word strand would otherwise draw a target too narrow to hit. */
+.chip::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  block-size: var(--tap-min);
+  inline-size: 100%;
+  min-inline-size: var(--tap-min);
+}
+
+.chip:hover {
+  color: var(--color-ink);
+}
+
+.stance {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 34px;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  color: var(--color-bg);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+.stanceHidden {
+  display: none;
+}
+
+/* ══ CHARACTERS ═══════════════════════════════════════════════════════════
+
+   All three sit on rose paper and all three end in prose, so all three take
+   the 32px bottom: 24 for the circles' reach and eight of air on top of it,
+   which is roughly a line. */
+
+.monogram,
+.calling,
+.tracked {
+  --paper-tone: var(--card-character-solid);
+  padding-block-end: var(--space-6);
+}
+
+/* ── A · Monogram ───────────────────────────────────────────────────────── */
+
+.mono {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-4);
+  align-items: baseline;
+}
+
+/* Big enough to be the card's subject rather than an ornament beside the name,
+   which is the whole correction: the hero slot now holds the one mark that is
+   unarguably this person, instead of a likeness the app never had. Line-height
+   just under 1 so a descender still has somewhere to go. */
+.letter {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 3.5rem;
+  line-height: 0.9;
+  letter-spacing: var(--track-display);
+  color: var(--color-character);
+}
+
+.named {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+/* ── B · Calling card ───────────────────────────────────────────────────── */
+
+/* A small object, so it is sized like one and centred rather than filling the
+   keep. Everything you thought about the person stays outside it, on the
+   keep's own paper — the card was handed to you, the note under it is yours. */
+.callingCard {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  max-inline-size: 15.625rem;
+  margin-inline: auto;
+  padding: var(--space-5) var(--space-4);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  background: var(--tint-reverse);
+}
+
+.rule {
+  inline-size: 2.75rem;
+  block-size: 1px;
+  background: color-mix(in oklab, var(--color-character) 55%, transparent);
+}
+
+/* Roman, letterspaced open, no weight: engraving has no bold. */
+.engravedName {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--color-ink);
+}
+
+/* ── C · Tracked person ─────────────────────────────────────────────────── */
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The cameo, demoted from hero to stamp. At 40 it is the size of a mark made
+   against a name in a record, not a portrait — which is the point of this
+   candidate: keep the drawing, lose the claim that it is a likeness. */
+.stamp {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--color-character) 16%, var(--tint-reverse));
+  box-shadow: inset 0 0 0 1px var(--card-border);
+  color: var(--color-character);
+}
+
+.trackedName {
+  min-inline-size: 0;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--track-title);
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+/* Indented to start exactly under the name — the stamp owns the leading
+   column, the words belong to the person beside it. 40 of stamp plus the 12
+   the row holds open. */
+.observed {
+  margin: var(--space-3) 0 0;
+  margin-inline-start: calc(40px + var(--space-3));
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+/* Shared by monogram and calling card: the description on the keep's own
+   paper, full width, under whatever names the person. */
+.about {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+/* ══ PLOT THREADS ═════════════════════════════════════════════════════════
+
+   Mallow paper for all three. Two of them end in the chip row, which carries
+   its own ten below and sixteen above, so 24 of card padding is enough there;
+   the third ends in a strip deep enough to hold the circles itself. */
+
+.asking,
+.gauged,
+.file {
+  --paper-tone: var(--card-thread-solid);
+}
+
+/* ── A · The question ───────────────────────────────────────────────────── */
+
+/* Set as the question it is. This is the one place on the thread where a keep
+   is allowed to be this size, and it is deliberate: a thread is the only kind
+   whose whole content is a sentence you are carrying around. */
+.question {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--track-title);
+  color: var(--color-ink);
+  text-wrap: balance;
+  max-inline-size: var(--measure);
+}
+
+/* "hunch, so far" — in the reader's own voice rather than stamped in mono
+   caps, which is what every rejected version reached for. Italic serif because
+   the line is an aside about the question above it, not a label on it. */
+.saying {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+  color: var(--color-thread);
+}
+
+/* ── B · Stance gauge ───────────────────────────────────────────────────── */
+
+/* Three segments, filled up to where you have got to, each one named. The
+   naming is the entire argument for this over three struck ticks: a count you
+   did not make yourself means nothing on sight, whereas a filled bar under the
+   word SUSPICION means one thing only. */
+.gauge {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin-block-end: var(--space-5);
+}
+
+.stop {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.pip {
+  block-size: 4px;
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--color-thread) 18%, transparent);
+}
+
+.stop[data-reached] .pip {
+  background: var(--color-thread);
+}
+
+.stopLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* Reached but not current reads as passed; current reads as where you are.
+   `data-current` is set in the markup rather than inferred with a sibling
+   selector, so the rule says what it means. */
+.stop[data-reached] .stopLabel {
+  color: color-mix(in oklab, var(--color-thread) 65%, var(--color-ink-faint));
+}
+
+.stop[data-current] .stopLabel {
+  font-weight: 500;
+  color: var(--color-thread);
+}
+
+.gaugedName {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--track-title);
+  color: var(--color-ink);
+  text-wrap: balance;
+  max-inline-size: var(--measure);
+}
+
+/* ── C · Open file ──────────────────────────────────────────────────────── */
+
+.file {
+  padding: 0;
+  overflow: hidden;
+}
+
+.fileBody {
+  padding: var(--space-5) var(--space-5) var(--space-4);
+}
+
+/* Mono caps on the card's own paper, with a rule under it — the case language
+   the rejected ledger had, without the reversed bar and without the ticks,
+   which were the parts being objected to. */
+.fileName {
+  margin: 0 0 var(--space-3);
+  padding-block-end: var(--space-3);
+  border-block-end: 1px solid var(--card-border);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+/* The strip is also the shelf the three verb circles sit on: they hang from
+   the card's bottom edge and reach 24px back up, so 40 of strip holds them
+   without the words moving. Both readings stay on the leading edge, because
+   the trailing end of this strip is where the circles land. */
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 40px;
+  padding-inline: var(--space-5);
+  border-block-start: 1px solid var(--card-border);
+  background: color-mix(in oklab, var(--color-thread) 9%, transparent);
+}
+
+/* The thread's own mallow, carried a third of the way into the ink. At 11px on
+   a strip that is itself faintly mallow, the hue at full strength measured 4.2
+   against its background in daylight and 4.27 after dark — close enough to
+   look deliberate and not close enough to be legible. Deepening it keeps the
+   colour saying "thread" and clears 4.5 in both. */
+.statusStance {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-thread) 68%, var(--color-ink));
+}
+
+.statusPage {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  color: var(--color-ink-soft);
+}
+
+/* Shared working note. Sans, secondary, capped at the measure — the same
+   voice the note and dossier use everywhere else in the app. */
+.working {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip {
+    transition-duration: 0.01ms;
+  }
+}
