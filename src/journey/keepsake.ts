@@ -75,10 +75,6 @@ export interface Keepsake {
   /** Counts by kind, in the registry's order. */
   tally: { label: string; count: number }[]
   kept: number
-  /** A closing line the reader typed themselves, if they typed one. Carried on
-      every surface the keepsake has — the card, the text and the picture — so
-      the three are never three different summaries of the same reading. */
-  note?: string
 }
 
 export function keepsakeOf(book: Book, keeps: Entry[]): Keepsake {
@@ -140,7 +136,6 @@ const SANS = '"Instrument Sans Variable", system-ui, sans-serif'
 export async function readyFonts() {
   await Promise.all([
     document.fonts.load(`400 96px ${SERIF}`),
-    document.fonts.load(`italic 400 34px ${SERIF}`),
     document.fonts.load(`400 32px ${SANS}`),
     document.fonts.load(`600 22px ${SANS}`),
   ])
@@ -227,51 +222,6 @@ function ground(ctx: CanvasRenderingContext2D, look: Look) {
 /* The lowest baseline anything but the imprint may use. */
 const FLOOR = H - PAD - 130
 
-/** The note's own lines, measured once so two places can agree on them. */
-function noteLines(ctx: CanvasRenderingContext2D, k: Keepsake) {
-  if (!k.note) return []
-  ctx.font = `italic 400 34px ${SERIF}`
-  return wrap(ctx, k.note, W - PAD * 2).slice(0, 3)
-}
-
-/* What a shape has to keep clear at the bottom of the plate for the note: one
-   blank line of its own leading, then the lines themselves. A whole line rather
-   than a half, because the note is set in the accent and in italic and needs to
-   arrive as its own thing, not as the last fact wearing a different face. Zero
-   when there is no note, so a plate without one still runs its content all the
-   way to the floor. */
-function noteRoom(ctx: CanvasRenderingContext2D, k: Keepsake) {
-  return noteLines(ctx, k).length * 44
-}
-
-/* The reader's own closing line. Set in italic and in the accent, because it is
-   the one thing on the card that did not come out of the book — which is also
-   why it is no longer the thing that gets dropped when the plate runs out of
-   room. It used to be drawn last and guarded last: the facts above it ran to
-   the bottom margin, `from` landed inside the final 60px, and the one line the
-   reader wrote themselves silently failed to appear on a picture they were
-   about to send. It was still in the field, still in the card, still in the
-   plain text — only the picture lost it.
-
-   Now the shapes reserve `noteRoom` before they lay anything out, and this
-   clamps to the place held for it, so it draws in full whether the content
-   above finished early or ran right down to it. Returns the baseline it
-   finished at. */
-function note(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look, from: number) {
-  const lines = noteLines(ctx, k)
-  if (!lines.length) return from
-
-  let y = Math.min(from + 44, FLOOR - (lines.length - 1) * 44)
-  ctx.textAlign = 'left'
-  ctx.fillStyle = look.palette.accent
-  ctx.font = `italic 400 34px ${SERIF}`
-  for (const line of lines) {
-    ctx.fillText(line, PAD, y)
-    y += 44
-  }
-  return y
-}
-
 /** The book, at the foot of every shape. Attribution is not decoration. */
 function foot(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   const y = H - PAD - 8
@@ -313,11 +263,10 @@ function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
      moment somebody's "Wondered about" runs to four names, and the whole card
      is built out of the reader's own strings.
 
-     The facts stop short of the note's reserved band rather than filling the
-     plate — a colophon has eight or nine facts in it and the last of them is
-     "Wondered about", which nobody will miss the way they would miss their own
-     closing line. */
-  const stop = FLOOR - noteRoom(ctx, k)
+     The last facts fall off the bottom rather than the plate growing to hold
+     them — a colophon has eight or nine facts in it and the last of them is
+     "Wondered about", which is the one nobody will miss. */
+  const stop = FLOOR
   for (const { term, detail } of k.lines) {
     if (y + 70 > stop) break
     ctx.fillStyle = look.palette.soft
@@ -334,7 +283,6 @@ function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
     y += 28
   }
 
-  note(ctx, k, look, y)
 
   ctx.fillStyle = look.palette.soft
   stamp(ctx, k.author.toUpperCase(), PAD, H - PAD - 8)
@@ -346,7 +294,7 @@ function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   /* Set as large as it can be and still fit the plate. A fixed size would
      either strand a six-word line in the middle of an empty card or push a
      long one off the bottom. */
-  const room = H - PAD * 2 - 260 - (k.note ? 160 : 0)
+  const room = H - PAD * 2 - 260
   let size = 88
   let lines: string[] = []
   for (; size >= 40; size -= 4) {
@@ -372,7 +320,6 @@ function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
     stamp(ctx, k.line.where.toUpperCase(), PAD, y)
   }
 
-  note(ctx, k, look, y + 20)
 
   foot(ctx, k, look)
 }
@@ -402,7 +349,7 @@ function drawTally(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   ctx.stroke()
   y += 90
 
-  const stop = FLOOR - noteRoom(ctx, k)
+  const stop = FLOOR
   for (const { label, count } of k.tally) {
     if (y > stop) break
     ctx.fillStyle = look.palette.ink
@@ -415,7 +362,6 @@ function drawTally(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
     y += 84
   }
 
-  note(ctx, k, look, y - 40)
 
   foot(ctx, k, look)
 }
