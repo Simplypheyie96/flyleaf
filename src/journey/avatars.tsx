@@ -1,65 +1,51 @@
-/* The mark that stands for a character: a drawn person.
+/* The face, held at arm's length.
 
-   The drawing itself lives in cards/art.tsx beside the map, because it is the
-   same kind of object — penned, seeded, pure, and never fetched — and a second
-   pen kept somewhere else drifts away from the first one. All this file owns is
-   the question that file cannot answer: which seed a name turns into.
+   Everything that actually draws a person lives in ./face, and it is expensive
+   to carry: the generator validates its own style sheet on the way in, and the
+   validator alone is over a megabyte before the drawing instructions are
+   counted. Loaded flat, that is 71KB gzipped added to the first thing the app
+   downloads — paid by every reader on the shelf, before a single character has
+   been kept.
 
-   Three marks have stood here and the note in art.tsx says why each went. The
-   short version, so nobody has to go and read it: an account glyph said
-   nothing, twelve cut-paper silhouettes were one shape twelve times, and the
-   stamped initial that replaced them was my own substitution for a picture I
-   did not want to draw. A character card exists to show a person. */
+   So it is not loaded flat. This file is the seam: it holds the shape every
+   card already calls, and reaches for the generator only once a person is
+   actually on screen. A reader who never keeps a character never downloads it.
 
-import { Portrait } from './cards/art'
-import s from './avatars.module.css'
+   Nothing here draws anything. Two lines of real work: refuse an empty name,
+   and wait for the module. */
 
-/* An article at the front of a name is not what the name is about, and it is
-   the one part of a name that says nothing about who has it: "The boy from the
-   ferry" and "The younger brother" would otherwise draw from the same three
-   letters before they diverge, and a hash cares about every one of them.
-   Nothing else is stripped — "Aunt Bel" is how the reader thinks of her, title
-   and all. */
-const ARTICLE = /^(?:the|a|an)\s+/i
+import { lazy, Suspense } from 'react'
 
-/** A name turned into a number, case- and space-insensitively so that "aunt
-    bel", "Aunt  Bel" and "Aunt Bel" are one person rather than three.
-
-    FNV-1a, for the one property that matters: a single changed letter has to
-    move the whole number, or "Marek" and "Marec" get the same face and the
-    reader is looking at a bug. Nothing here is a checksum and nothing is
-    stored — it is a pure function from a name to a drawing, so a character
-    keeps their face across devices with nothing written down anywhere. */
-export function nameSeed(name: string): number {
-  const key = name.replace(ARTICLE, '').toLocaleLowerCase().replace(/\s+/g, ' ').trim()
-  let h = 0x811c9dc5
-  for (let i = 0; i < key.length; i += 1) {
-    h ^= key.charCodeAt(i)
-    h = Math.imul(h, 0x01000193)
-  }
-  return h >>> 0
-}
+const Face = lazy(() => import('./face'))
 
 interface AvatarProps {
   name?: string
+  /** What the reader wrote about this person. Read for cues, never shown. */
+  note?: string
+  /** How many times the reader has asked for a different face. */
+  face?: number
 }
 
-/** The person, on a transparent ground, filling whatever it is mounted in. The
-    mount — its shape, its fill, what colour the ink comes out — belongs to the
-    card, which is how the same drawing can be a small oval pressed into a
-    journey card and a portrait plate on another.
-
-    It fills rather than sits inside, because it is a bust and a bust runs off
-    the bottom of its own frame; a figure floating with air all round it is a
-    sticker. Whatever mounts it has to clip.
+/** The person, filling whatever it is mounted in. The mount — its shape, its
+    fill, its ring — belongs to the card, which is how one picture can be a
+    small oval pressed into a journey card and a portrait plate on another.
 
     Nothing at all when there is no name, rather than a placeholder: an empty
     mount is an unfilled plate, which is a real thing and reads as one. A
-    question mark or a grey head would read as a bug. */
-export function Avatar({ name }: AvatarProps) {
-  const key = name?.trim()
-  if (!key) return null
-  return <Portrait seed={nameSeed(key)} className={s.figure} />
+    question mark or a grey head would read as a bug.
+
+    The same is true of the wait. Every mount in the app draws its own paper
+    and its own ring before this fills, so the fallback is that unfilled plate
+    — which is why it is nothing. A spinner inside a 46-pixel oval would be a
+    louder event than the picture it is standing in for. */
+export function Avatar({ name, note, face }: AvatarProps) {
+  const known = name?.trim()
+  if (!known) return null
+  return (
+    <Suspense fallback={null}>
+      <Face name={known} note={note} face={face} />
+    </Suspense>
+  )
 }
 
 export default Avatar

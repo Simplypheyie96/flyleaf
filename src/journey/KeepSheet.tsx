@@ -20,6 +20,7 @@ import Sheet from '../components/Sheet'
 import LeafButton from '../components/LeafButton'
 import DateField from './DateField'
 import Recorder from './Recorder'
+import { Avatar } from './avatars'
 import { CloseIcon, ImageIcon, VoiceIcon } from '../components/TabIcons'
 import { todayISO } from '../components/date/dates'
 import type { Book, Entry, EntryType, Stance } from '../data/db'
@@ -43,6 +44,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
   const [type, setType] = useState<EntryType>(start)
   const [text, setText] = useState('')
   const [name, setName] = useState('')
+  const [face, setFace] = useState(0)
   const [stance, setStance] = useState<Stance>('hunch')
   const [page, setPage] = useState('')
   const [chapter, setChapter] = useState('')
@@ -72,6 +74,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       setType(editing.type)
       setText(editing.text ?? '')
       setName(editing.name ?? '')
+      setFace(editing.face ?? 0)
       setStance(editing.stance ?? 'hunch')
       setPage(editing.page !== undefined ? `${editing.page}` : '')
       setChapter(editing.chapter ?? '')
@@ -84,6 +87,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
     setType(start)
     setText('')
     setName('')
+    setFace(0)
     setStance('hunch')
     setPage('')
     setChapter('')
@@ -140,6 +144,10 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
         duration: asks.media === 'audio' ? duration : undefined,
         name: asks.name ? name.trim() || undefined : undefined,
         stance: asks.stance ? stance : undefined,
+        /* Zero is the face the name draws by itself, so it is stored as
+           nothing at all — the field only exists on the characters whose
+           reader pressed the button. */
+        face: type === 'character' && face ? face : undefined,
       }
       if (editing) await editKeep(editing.id, shared)
       else await addKeep({ bookId: book.id, ...shared })
@@ -221,6 +229,41 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
           </label>
         )}
 
+        {/* The face, and one button.
+
+            The app draws it — from the name, so the same person is the same
+            face on every card, and from anything the reader has already
+            written, so "Aunt Bel, who never smiles" arrives looking like it.
+            The reader is never asked to choose one. Choosing means being shown
+            a wall of strangers and made to decide which is Bel, and a reader
+            who wrote down a habit rather than a face has nothing to decide
+            with; there is no right answer in the grid, only a chore.
+
+            What they do get is "not that one", which is a thing anybody can
+            know at a glance. The button hands back another face from the same
+            pool. Press it again for another. There is no end to the rotation
+            and no going back through it, because a reader who wanted the third
+            one wanted it for a reason they could not have stated in advance,
+            and pressing on until something fits is how that actually gets
+            done.
+
+            It waits for a name because the name is what it draws from: an
+            empty plate above an empty field would be a broken picture rather
+            than an invitation. */}
+        {type === 'character' && name.trim() && (
+          <div className={styles.faceRow}>
+            <span className={styles.facePlate}>
+              <Avatar name={name} note={text} face={face} />
+            </span>
+            <div className={styles.faceSide}>
+              <button type="button" className={styles.capture} onClick={() => setFace(face + 1)}>
+                Another face
+              </button>
+              <p className={styles.rowHint}>Drawn for you. Tap until one fits.</p>
+            </div>
+          </div>
+        )}
+
         {asks.media === 'audio' && (
           <Recorder
             media={media}
@@ -252,11 +295,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
               onClick={() => photo.current?.click()}
             >
               <ImageIcon size={18} />
-              {media
-                ? 'Choose another'
-                : asks.media === 'image'
-                  ? 'Choose a picture'
-                  : 'Pin a map'}
+              {media ? 'Choose another' : asks.media === 'image' ? 'Choose a picture' : 'Pin a map'}
             </button>
             <p className={styles.rowHint}>
               {media
