@@ -81,6 +81,23 @@
 }
 
 /* ---- Currently reading hero — the book gets room to breathe ---- */
+/* The whole card is the way into the book. Nothing here draws a link — the
+   card already looks like an object you can pick up, and underlining a title
+   inside it would say the title is the target when the card is. What the link
+   contributes is the focus ring, drawn round the paper's own silhouette rather
+   than round a rectangle that ignores its tilt. */
+.heroLink {
+  display: block;
+  border-radius: var(--radius-lg);
+  color: inherit;
+  text-decoration: none;
+}
+
+.heroLink:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
 .heroCard {
   padding: var(--space-6) var(--space-5);
 }
