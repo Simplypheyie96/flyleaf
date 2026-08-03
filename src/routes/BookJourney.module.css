@@ -976,22 +976,6 @@
   pointer-events: none;
 }
 
-/* The line under the inscription, set the way every other caption on the
-   thread is set — mono, small, spaced — so the inscription above it is the
-   only thing on the page wearing that voice. `clear` because the raised
-   initial is floated. */
-.openHint {
-  clear: both;
-  margin: var(--space-3) 0 0;
-  font-family: var(--font-sans);
-  font-size: var(--t-micro);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  line-height: var(--leading-body);
-  color: var(--color-ink-faint);
-  max-inline-size: var(--measure);
-}
-
 /* ── Nothing matched ────────────────────────────────────────────────────── */
 
 /* An empty stretch of thread is still part of the scrapbook: a loose,

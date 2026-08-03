@@ -308,7 +308,6 @@ function BookJourney() {
           {opening.line}
           <Sparkle size={12} className={styles.openSpark} />
         </p>
-        {opening.hint && <p className={styles.openHint}>{opening.hint}</p>}
       </div>
     </li>
   )
@@ -652,21 +651,30 @@ function BookJourney() {
             </div>
           )}
 
-          {/* ── The end of the thread ─────────────────────────────────── */}
-          <div className={styles.ending}>
-            <span className={styles.tail} aria-hidden="true" />
-            {/* The bed is the sentence's own box, and it is the creature's
-                whole world — see `.endBed`. */}
-            <div className={styles.endBed}>
-              <p className={styles.endLine}>
-                {book.finishedOn
-                  ? 'That is the whole of this one.'
-                  : 'The thread is still running.'}
-                <Sparkle size={13} className={styles.endSpark} />
-              </p>
-              <Mascot size={52} />
+          {/* ── The end of the thread ───────────────────────────────────
+
+              Only when there is a thread to end. The tail is the drawn line's
+              terminus and the sentence is a verdict on what was just read —
+              under an empty leaf both are talking about nothing, and "the
+              thread is still running" directly contradicts the leaf above it
+              saying nothing has been kept. An empty journey gets one creature
+              and one sentence, not two of each. */}
+          {rows.length > 0 && (
+            <div className={styles.ending}>
+              <span className={styles.tail} aria-hidden="true" />
+              {/* The bed is the sentence's own box, and it is the creature's
+                  whole world — see `.endBed`. */}
+              <div className={styles.endBed}>
+                <p className={styles.endLine}>
+                  {book.finishedOn
+                    ? 'That is the whole of this one.'
+                    : 'The thread is still running.'}
+                  <Sparkle size={13} className={styles.endSpark} />
+                </p>
+                <Mascot size={52} />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* ── The undo bar ──────────────────────────────────────────── */}
           {undo && (

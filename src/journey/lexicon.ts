@@ -189,8 +189,6 @@ export interface Epigraph {
       the day of their earliest keep. Absent means the book has no beginning
       recorded yet, and the journey asks for one. */
   on?: string
-  /** Only when there is nothing kept yet: the nudge under the empty thread. */
-  hint?: string
 }
 
 export function epigraph(book: Book, keeps: Entry[]): Epigraph {
@@ -212,15 +210,13 @@ export function epigraph(book: Book, keeps: Entry[]): Epigraph {
 
   const line = `${first} ${pick(moment, book.id, 2)}`
 
-  return {
-    line,
-    on,
-    ...(keeps.length
-      ? {}
-      : {
-          hint: 'A line worth copying out, a thought, thirty seconds of your own voice — whatever you would want back.',
-        }),
-  }
+  /* No nudge under the inscription when the thread is empty. It used to carry
+     one — "a line worth copying out, a thought, thirty seconds of your own
+     voice" — and it was the second of three things on that screen all saying
+     nothing is here yet, above the dashed leaf that says it properly and the
+     tail marker that said the opposite. The leaf is the empty state; the
+     inscription is the day the book was opened, and that is all it is. */
+  return { line, on }
 }
 
 /* ── The colophon ─────────────────────────────────────────────────────────
