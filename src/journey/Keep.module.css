@@ -30,10 +30,29 @@
    pixels of clearance on five different cards is not five drawings each
    getting their spacing wrong, it is the buttons hanging too high.
 
-   What the extra hang spends, it spends downward: the target now reaches 23
-   below the card into the 32 of journey gap, leaving 9 clear of the next
-   keep's edge and about 33 clear of its first line. That gap was always the
-   cheaper place to spend it, because nothing is drawn in it. */
+   What the extra hang spends, it spends downward: the target reaches 23 below
+   the card, into the journey gap. That gap was always the cheaper place to
+   spend it, because nothing is drawn in it.
+
+   THE BUDGET THIS ROW COSTS, and why the hang is not the lever for it. The
+   row eats vertical space twice — once above the card's bottom edge, where
+   the foot padding has to keep the last line off the targets, and once below
+   it, where the journey gap has to keep the drawn circles off the next keep's
+   date line. Write the two out and the hang cancels: the foot needs
+   (39 - hang) + air, the gap needs hang + clearance, and the sum is
+   39 + air + clearance whatever the hang is. Moving the circles up or down
+   only moves the cost from one side of the edge to the other.
+
+   So the two numbers that are actually spendable are air and clearance, and
+   both were generous. At 32 and 32 they ran 11 and 14, which is 64 of mostly
+   nothing under every keep in the journey. Both are now 24: 3 of air (the
+   glyphs stay about 8 clear of the target, the leading does not, which costs
+   nothing) and 6 of clearance, about 10 to the date line's glyphs. 48 rather
+   than 64, and the floor rather than a preference — take another step off
+   either and the last line of a full-width keep sits under the delete target.
+
+   The one thing that would buy more is not a number: it is moving the verbs
+   off the corner entirely, which is a redrawing and not a spacing fix. */
 .acts {
   position: absolute;
   inset-block-end: calc(-1 * var(--space-4) - 2px);
