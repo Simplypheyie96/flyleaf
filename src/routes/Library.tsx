@@ -546,6 +546,28 @@ function Library() {
   // Only ever true on a narrow column, where the four view pills are folded
   // away behind the masthead button rather than laid out in the toolbar.
   const [picking, setPicking] = useState(false)
+
+  /* Open the sheet on the layout that is already chosen.
+
+     `showModal` gives focus to the first focusable thing inside the dialog,
+     and this is the one sheet in the app whose header carries no close button
+     — so the first focusable thing is a *choice*, always the top one. Stack
+     therefore took the focus ring whatever the reader was actually using, and
+     the ring (2px of --color-accent-text, the darkest ink in the sheet) reads
+     louder than the chosen row's own marks, which are a pale wash and a small
+     check. Two rows wearing two different "this one" signals, and the wrong
+     one wearing the stronger.
+
+     Focusing the chosen row instead puts both signals on the same row, so
+     there is only ever one. It is also where a keyboard reader wants to start
+     — at what is set now, not at whatever happens to be listed first.
+
+     Sheet's own showModal runs before this: it is the child, and child effects
+     run first. */
+  const chosenView = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (picking) chosenView.current?.focus()
+  }, [picking])
   const [fitted, setFitted] = useState<
     Record<string, { title: string; author: string }>
   >({})
@@ -837,6 +859,7 @@ function Library() {
             {VIEWS.map(({ id, Icon, hint }) => (
               <button
                 key={id}
+                ref={view === id ? chosenView : null}
                 type="button"
                 className={styles.viewRow}
                 aria-pressed={view === id}
