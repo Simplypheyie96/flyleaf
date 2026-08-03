@@ -4,95 +4,25 @@ import LeafButton from '../components/LeafButton'
 import Mascot from '../components/Mascot'
 import Sparkle from '../components/Sparkle'
 import PaperSurface from '../components/PaperSurface'
-import { QuoteIcon, VoiceIcon } from '../components/TabIcons'
-import { currentlyReading, recentMemories } from '../data/sample'
-import type { SampleMemory } from '../data/sample'
+import Recent, { type HomeDirection } from './home/Recent'
+import { currentlyReading } from '../data/sample'
 import pageStyles from './page.module.css'
 import styles from './Home.module.css'
 
-const WAVE_HEIGHTS = [10, 18, 26, 14, 30, 22, 12, 24, 16, 28, 18, 10, 20, 14]
+const DIRECTIONS: HomeDirection[] = ['a', 'b', 'c']
 
-/* Each entry type is its own object: a quotation, a sticky note, a player. */
-function MemoryCard({ memory, index }: { memory: SampleMemory; index: number }) {
-  const rotate = index % 2 === 0 ? 0.6 : -0.6
+/* The warm landing: archive masthead → currently reading → whatever the second
+   section turns out to be. Sample data until 03 (covers) and the entry store
+   are wired.
 
-  if (memory.type === 'quote') {
-    return (
-      <div className={`${styles.timelineItem} ${styles.memoryQuote}`}>
-        <span className={styles.dot} aria-hidden="true" />
-        <PaperSurface tone="quote" rotate={rotate} className={styles.quoteCard}>
-          <span className={styles.chip} aria-hidden="true">
-            <QuoteIcon size={16} />
-          </span>
-          <span className={styles.quoteMark} aria-hidden="true">
-            “
-          </span>
-          <p className={styles.quoteText}>{memory.text}</p>
-          <span className={`${styles.memoryType} ${styles.quoteMeta}`}>
-            {memory.source}
-          </span>
-        </PaperSurface>
-      </div>
-    )
-  }
-
-  if (memory.type === 'voice') {
-    return (
-      <div className={`${styles.timelineItem} ${styles.memoryVoice}`}>
-        <span className={styles.dot} aria-hidden="true" />
-        <PaperSurface tone="voice" rotate={rotate}>
-          <span className={styles.chip} aria-hidden="true">
-            <VoiceIcon size={16} />
-          </span>
-          <div className={styles.voiceRow}>
-            <button
-              type="button"
-              className={styles.playButton}
-              aria-label="Play voice memo"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-                <path fill="currentColor" d="M5 3.5 L 12.5 8 L 5 12.5 Z" />
-              </svg>
-            </button>
-            <div className={styles.waveform} aria-hidden="true">
-              {WAVE_HEIGHTS.map((h, i) => (
-                <span
-                  key={i}
-                  className={styles.wavebar}
-                  style={{ height: `${h}px` }}
-                />
-              ))}
-            </div>
-          </div>
-          <div className={styles.voiceMeta}>
-            <span className={styles.memoryType}>
-              Voice memo · {memory.duration}
-            </span>
-            <span className={styles.memoryType}>{memory.date}</span>
-          </div>
-        </PaperSurface>
-      </div>
-    )
-  }
-
-  return (
-    <div className={`${styles.timelineItem} ${styles.memoryNote}`}>
-      <span className={styles.dot} aria-hidden="true" />
-      <PaperSurface tone="note" rotate={rotate} className={styles.noteCard}>
-        <span className={styles.memoryType}>
-          Note · {memory.source}
-        </span>
-        <p className={styles.noteText}>{memory.text}</p>
-      </PaperSurface>
-    </div>
-  )
-}
-
-/* The warm landing: archive masthead → currently reading → memory timeline.
-   Sample data until 03 (covers) and the entry store are wired.
-   `?empty` previews the first-time reader state. */
+   Two switches, both temporary. `?empty` previews the first-time reader state.
+   `?home=a|b|c` picks between the three candidates for the second section — it
+   comes out, along with the two that lose, once one is chosen. */
 function Home() {
-  const empty = new URLSearchParams(useLocation().search).has('empty')
+  const query = new URLSearchParams(useLocation().search)
+  const empty = query.has('empty')
+  const asked = query.get('home') as HomeDirection | null
+  const direction = asked && DIRECTIONS.includes(asked) ? asked : 'a'
   const book = currentlyReading
   const progressPct = Math.round((book.pagesRead / book.pages) * 100)
 
@@ -116,85 +46,68 @@ function Home() {
             </div>
           </PaperSurface>
         ) : (
-          <>
-            <section aria-labelledby="currently-reading">
-              <div className={styles.sectionHead}>
-                <h2 id="currently-reading" className={styles.sectionLabel}>
-                  Currently reading
-                </h2>
-                {/* The lane is the gap between the end of the heading and the
-                    right edge of the card, and it is the mascot's whole world:
-                    the creature's travel is written as a share of it, so the
-                    heading is a wall it cannot pass without anything having to
-                    measure the words. The lane takes no vertical space of its
-                    own — the strip hangs out of it — so putting the creature
-                    here does not push the card down away from its label. */}
-                <div className={styles.mascotLane}>
-                  <Mascot />
-                </div>
+          <section aria-labelledby="currently-reading">
+            <div className={styles.sectionHead}>
+              <h2 id="currently-reading" className={styles.sectionLabel}>
+                Currently reading
+              </h2>
+              {/* The lane is the gap between the end of the heading and the
+                  right edge of the card, and it is the mascot's whole world:
+                  the creature's travel is written as a share of it, so the
+                  heading is a wall it cannot pass without anything having to
+                  measure the words. The lane takes no vertical space of its
+                  own — the strip hangs out of it — so putting the creature
+                  here does not push the card down away from its label. */}
+              <div className={styles.mascotLane}>
+                <Mascot />
               </div>
-              <PaperSurface rotate={-0.4} className={styles.heroCard}>
-                <div className={styles.hero}>
-                  <BookCover
-                    title={book.title}
-                    author={book.author}
-                    width={104}
-                    rotate={-2}
-                  />
-                  <div className={styles.heroInfo}>
-                    <h3 className={styles.heroTitle}>{book.title}</h3>
-                    <p className={styles.heroAuthor}>{book.author}</p>
-                    <div className={styles.gauge}>
-                      <div className={styles.gaugeHead}>
-                        <span>
-                          {book.pagesRead} / {book.pages}
-                        </span>
-                        <span>{progressPct}%</span>
-                      </div>
-                      <div
-                        className={styles.gaugeTrack}
-                        role="progressbar"
-                        aria-label="Reading progress"
-                        aria-valuenow={book.pagesRead}
-                        aria-valuemin={0}
-                        aria-valuemax={book.pages}
-                      >
-                        <div
-                          className={styles.gaugeFill}
-                          style={{ width: `${progressPct}%` }}
-                        />
-                      </div>
-                    </div>
-                    <p className={styles.entryHint}>
-                      {book.memories} {book.memories === 1 ? 'memory' : 'memories'}{' '}
-                      kept
-                    </p>
-                  </div>
-                </div>
-              </PaperSurface>
-            </section>
-
-            <section aria-labelledby="recent-memories">
-              <div className={styles.sectionHead}>
-                <h2 id="recent-memories" className={styles.sectionLabel}>
-                  Recent memories
-                </h2>
-                <Sparkle
-                  className={`${styles.sparkle} ${styles.sparkleMemories}`}
+            </div>
+            <PaperSurface rotate={-0.4} className={styles.heroCard}>
+              <div className={styles.hero}>
+                <BookCover
+                  title={book.title}
+                  author={book.author}
+                  width={104}
+                  rotate={-2}
                 />
+                <div className={styles.heroInfo}>
+                  <h3 className={styles.heroTitle}>{book.title}</h3>
+                  <p className={styles.heroAuthor}>{book.author}</p>
+                  <div className={styles.gauge}>
+                    <div className={styles.gaugeHead}>
+                      <span>
+                        {book.pagesRead} / {book.pages}
+                      </span>
+                      <span>{progressPct}%</span>
+                    </div>
+                    <div
+                      className={styles.gaugeTrack}
+                      role="progressbar"
+                      aria-label="Reading progress"
+                      aria-valuenow={book.pagesRead}
+                      aria-valuemin={0}
+                      aria-valuemax={book.pages}
+                    >
+                      <div
+                        className={styles.gaugeFill}
+                        style={{ width: `${progressPct}%` }}
+                      />
+                    </div>
+                  </div>
+                  <p className={styles.entryHint}>
+                    {book.memories} {book.memories === 1 ? 'memory' : 'memories'}{' '}
+                    kept
+                  </p>
+                </div>
               </div>
-              <div className={styles.timeline}>
-                {recentMemories.map((memory, i) => (
-                  <MemoryCard
-                    key={`${memory.type}-${i}`}
-                    memory={memory}
-                    index={i}
-                  />
-                ))}
-              </div>
-            </section>
-          </>
+            </PaperSurface>
+          </section>
         )}
+
+        {/* Outside the branch on purpose. The first run has to be the same
+            page with less in it, not a different page: two sections either
+            way, each stating what will land there. */}
+        <Recent direction={direction} empty={empty} />
       </div>
     </main>
   )

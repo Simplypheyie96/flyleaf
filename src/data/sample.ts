@@ -38,6 +38,24 @@ export const libraryBooks: SampleLibraryBook[] = [
   { title: 'The Cartographer’s Daughter', author: 'E. Vasquez', hue: 'highlight' },
 ]
 
+/** Books with something kept in them lately, most recent first. Separate from
+    `libraryBooks` on purpose: the library is everything a reader owns, this is
+    only where their attention has actually been. */
+export interface SampleVisit {
+  title: string
+  author: string
+  hue: SampleLibraryBook['hue']
+  whispers: number
+  ink: number
+  when: string
+}
+
+export const recentVisits: SampleVisit[] = [
+  { title: 'The Lantern Season', author: 'A. Winters', hue: 'image', whispers: 4, ink: 1, when: 'today' },
+  { title: 'Salt Meridian', author: 'R. Okonkwo', hue: 'voice', whispers: 1, ink: 3, when: 'Tuesday' },
+  { title: 'A Field Guide to Quiet Hours', author: 'M. Hale', hue: 'quote', whispers: 9, ink: 4, when: 'last week' },
+]
+
 export const recentMemories: SampleMemory[] = [
   {
     type: 'quote',
