@@ -33,6 +33,9 @@ import { createRoot } from 'react-dom/client'
 import '@fontsource-variable/eb-garamond'
 import '@fontsource-variable/source-sans-3'
 import '@fontsource/instrument-serif/400-italic.css'
+/* The roman cut, for the one upright thing set in this face: the stance on a
+   plot thread's tab. See --font-stamp. */
+import '@fontsource/instrument-serif/400.css'
 import '@fontsource/patrick-hand'
 import './styles/tokens.css'
 import './styles/motion.css'

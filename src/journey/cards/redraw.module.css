@@ -264,30 +264,38 @@
    exactly on it: the word centres in the part of the tab that is above the
    card, never in the part covering its edge.
 
-   12px rather than 11. The word is the one thing the tab exists to hold and it
-   was set at the size the app uses for a date stamp — correct for a line of
-   metadata that runs under everything, wrong for the only thing inside a shape
-   this size, where it left the tab looking like a box somebody forgot to fill.
-   Line height flat at 1 for the same reason: uppercase has no descenders and
-   nothing to lead against, so 1.15 was buying two pixels of empty line box
-   that the tab then had to grow to hold.
+   The word is set in the display serif, upright — the one place in the app
+   that face stands up. Every other small capital here is the sans, and should
+   stay the sans, because every other one of them runs in a row: a date beside
+   a page number beside a side. A serif in that row is costume. This one is
+   alone inside a silhouette drawn to hold exactly it, which is the case a
+   serif is for. 14 rather than the sans's 12 because the two faces do not
+   carry the same cap height at the same size; 14 here sets caps at the height
+   12 of the sans did, so the tab did not have to grow to take the change.
+   Weight 400 and not the label weight: single-master face, and asking it for
+   560 gets a synthesised smear.
+
+   Line height flat at 1: uppercase has no descenders and nothing to lead
+   against, so 1.15 was buying two pixels of empty line box that the tab then
+   had to grow to hold.
 
    The top corners take the small radius, not the card's. The card's 14 is more
    than half the height of this shape and turns a tab into a lozenge; 8 on a 24
    is the corner a real folder tab is cut with.
 
    Inline padding is not symmetric on purpose. The leading side is the card's
-   own padding plus the rule width, which is what it takes to stand the first
-   character of the tab on the same vertical as the first character of the
-   title below it — the tab's box starts a rule further out than the card's
-   content does. 16 at the trailing side keeps the word from sitting dead
-   centre in a box that has no reason to be centred. */
+   own padding plus the rule width, which is what it takes to stand the tab's
+   first mark on the same vertical as the first character of the title below it
+   — the tab's box starts a rule further out than the card's content does. 16
+   at the trailing side keeps the word from sitting dead centre in a box that
+   has no reason to be centred. */
 .standing {
   position: absolute;
   inset-block-start: calc(-1 * (var(--edge) + var(--tab-rise)));
   inset-inline-start: calc(-1 * var(--edge));
-  display: grid;
+  display: flex;
   align-items: center;
+  gap: var(--space-2);
   block-size: calc(var(--tab-rise) + var(--edge));
   margin: 0;
   padding: 0 var(--space-4) var(--edge) calc(var(--space-5) + var(--edge));
@@ -297,14 +305,43 @@
   border-start-end-radius: var(--radius-sm);
   /* The card's own paper, not a fill laid on it. A folder tab is the folder. */
   background: var(--paper-tone);
-  font-family: var(--font-sans);
-  font-weight: var(--weight-label);
-  font-size: var(--text-xs);
+  font-family: var(--font-stamp);
+  font-weight: var(--weight-italic);
+  font-size: var(--text-sm);
   line-height: 1;
   letter-spacing: var(--track-label);
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--color-ink);
+}
+
+/* The dot, and the only mark on this card that is not a rule or a letter.
+
+   It is doing two jobs. The tab is a shape with one weight in it and that
+   weight sits off to one side of a silhouette that steps down at the trailing
+   edge — the word alone reads as having drifted. A mark at the leading edge
+   gives the shape a second anchor and the eye something to start on.
+
+   And it carries the accent. Everything else on this card states the thread
+   colour at some fraction: the rule at 76%, the paper at a few percent. This
+   is the one place it is stated whole, which is what makes a five-letter word
+   in a tab read as belonging to a plot thread rather than to any card.
+
+   5px, not a spacing step, because it is sized against the cap height beside
+   it rather than against the layout: half a cap is a dot, and a full one is a
+   bullet from a list.
+
+   The nudge is optical. Centring on the flex line centres the dot on the em
+   box, and the em box hangs lower than the capitals do — a dot level with the
+   middle of a word set in caps has to sit above the middle of the line. */
+.standing::before {
+  content: '';
+  flex: none;
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: var(--color-thread);
+  translate: 0 -1px;
 }
 
 /* One line, always. A thread's name is a question you are carrying around, not
