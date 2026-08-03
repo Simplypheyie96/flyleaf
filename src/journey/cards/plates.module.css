@@ -91,7 +91,11 @@
 .panel {
   --paper-tone: var(--card-quote-solid);
   overflow: hidden;
-  padding-block: var(--space-6);
+  /* 32 at the head, 24 at the foot, no longer the same number top and bottom.
+     The head is holding the ghost mark up off the line — it hangs into that
+     band and the panel clips whatever leaves it — and the foot is holding
+     nothing but the verb circles off the last line, which takes 24. */
+  padding-block: var(--space-6) var(--space-5);
 }
 
 /* The mark has to be big enough to read as a *shape* rather than as
@@ -229,7 +233,12 @@
      proportion of the object, and it had been running at 24, which is heavy
      but not a polaroid's kind of heavy. The extra eight is also what the
      caption needed: it is the last line on the card and it sits nearest the
-     verb circles, so it was the worst-off line in the journey. */
+     verb circles, so it was the worst-off line in the journey.
+
+     The one card in the set that keeps 32 when the other six went to 24. Here
+     the number is not clearance, it is the shape of the thing — a polaroid
+     with an even border is a photograph in a frame. Deliberately the odd one
+     out; do not "fix" it to match. */
   padding: var(--space-4) var(--space-4) var(--space-6);
   border-radius: 3px;
   box-shadow:
