@@ -30,6 +30,31 @@ import styles from './Recent.module.css'
 
 export type HomeDirection = 'a' | 'b' | 'c'
 
+/* The candidate list, and the only place it is written down. /lab/home builds
+   its frames from this, so putting a new direction in front of a reader is
+   adding a row here and a function below — never editing the workbench. */
+export const HOME_DIRECTIONS: {
+  id: HomeDirection
+  name: string
+  blurb: string
+}[] = [
+  {
+    id: 'a',
+    name: 'The last thing you kept',
+    blurb: 'One object, the newest, drawn by the journey’s own card.',
+  },
+  {
+    id: 'b',
+    name: 'Where you’ve been',
+    blurb: 'Books rather than entries, counted in the app’s own two words.',
+  },
+  {
+    id: 'c',
+    name: 'Back to you',
+    blurb: 'An old keep brought back, set on the page rather than in a card.',
+  },
+]
+
 /* Placeholder until the entry store is wired — the same invented content the
    old section used, shaped as the thing the journey's own cards take so this
    renders the real drawing rather than a homepage imitation of one. */

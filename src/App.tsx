@@ -15,6 +15,7 @@ import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
 import UpdateToast from "./components/UpdateToast";
 import BookJourney from "./routes/BookJourney";
 import CardLab from "./routes/CardLab";
+import HomeLab from "./routes/HomeLab";
 import Home from "./routes/Home";
 import Library from "./routes/Library";
 import Settings from "./routes/Settings";
@@ -111,6 +112,7 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/styleguide" element={<Styleguide />} />
         <Route path="/lab/cards" element={<CardLab />} />
+        <Route path="/lab/home" element={<HomeLab />} />
       </Routes>
 
       <Shell onAdd={() => setAdding(true)} />
