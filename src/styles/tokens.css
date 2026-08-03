@@ -404,7 +404,10 @@
        hand   note cards, and nowhere else. The only decorative thing on the
               screen, which is what makes it read as a note. Upright print,
               not cursive — a note exists to be reread, so legibility beats
-              flourish. Deliberately unchanged.  */
+              flourish. Deliberately unchanged.
+       italic every sloped line in the app, and nothing upright ever. Instrument
+              Serif, italic cut only — see --font-italic below for why the book
+              face does not set its own italic.  */
   /* Three steps, and no more — a scale of five weights is how a system stops
      meaning anything.
 
@@ -419,14 +422,29 @@
               old-style face carries less ink per stem than the tall narrow one
               it replaced, so at 400 a card title looks a step smaller than it
               measures. 500 restores the colour without turning the title bold,
-              which 600 does immediately in this family. */
+              which 600 does immediately in this family.
+       italic 400, because the italic face has exactly one weight and asking a
+              single-master face for 500 gets a synthesised smear rather than a
+              refusal. It also does not need the extra: Instrument's italic
+              already carries more ink per stem than Garamond's roman, which is
+              the whole reason it was brought in for the slope. */
   --weight-card: 450;
   --weight-label: 560;
   --weight-serif: 500;
+  --weight-italic: 400;
 
   --font-serif: 'EB Garamond Variable', Georgia, 'Times New Roman', serif;
   --font-sans: 'Source Sans 3 Variable', system-ui, -apple-system, sans-serif;
   --font-hand: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
+  /* The slope, and only the slope. Garamond's variable file has no italic in
+     it, so every `font-style: italic` in the app was the browser shearing the
+     roman over — an obliqued book face, not an italic one, with none of the
+     letterforms that make an italic legible as a change of voice rather than a
+     change of angle. Instrument Serif's italic is drawn: single-storey a,
+     entry strokes on the ascenders, a narrower set. Garamond stands behind it
+     in the stack so a line that fails to load slopes rather than straightens,
+     which is the failure that keeps the meaning. */
+  --font-italic: 'Instrument Serif', 'EB Garamond Variable', Georgia, serif;
 
   /* One step smaller nearly everywhere than it used to be. The scale below
      ~15px is where this app actually lives — meta lines, chips, captions — so

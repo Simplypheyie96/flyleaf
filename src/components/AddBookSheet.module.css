@@ -173,8 +173,8 @@
 /* The three empty answers — nothing typed, still looking, nothing found —
    all read as the same calm voice rather than as an error. */
 .quiet {
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-style: italic;
   font-size: var(--text-md);
   line-height: var(--leading-body);

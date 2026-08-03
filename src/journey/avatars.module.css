@@ -1,35 +1,18 @@
-/* The stamped initial. Everything about the mount — the oval, its fill, what
-   colour the letter comes out — belongs to the card that mounts it, so all
-   this owns is the letterform and where it sits. */
+/* The drawn person. Everything about the mount — its shape, its fill, what
+   colour the ink comes out — belongs to the card that mounts it, so all this
+   owns is that the figure fills what it is given.
 
-.monogram {
+   `slice` on the drawing's own preserveAspectRatio does the fitting, so this
+   only has to hand it a box: the sheet is cut 100 × 122, the same 46 × 56 the
+   journey card's plate is, and any mount with a different ratio crops the
+   sides rather than shrinking the head. That is the right failure for a bust —
+   a portrait is cropped, never letterboxed. */
+
+.figure {
   display: block;
-  font-family: var(--font-serif);
-  /* Stated rather than inherited, so a card that runs its own text at a
-     different weight cannot drag the initial along with it. */
-  font-weight: var(--weight-serif);
-  /* A line box exactly one em tall, so the glyph is centred by its own metrics
-     and not by whatever leading the card happens to be running. */
-  line-height: 1;
-  /* One glyph, and letter-spacing is applied *after* it — inheriting a tracked
-     label's value would push the letter off its own centre by that much. */
-  letter-spacing: 0;
-  /* Optical centring. A capital is ink between the baseline and the cap line,
-     which is not the same span as the em box the grid centres, so the letter
-     can land off its mount by a fraction nobody would find by eye but everyone
-     would feel. Measured, not guessed, and re-measured when the face changed:
-     off painted pixels rather than off the font's declared metrics. The
-     metrics answer put the correction at nearly twice this, which would have
-     pushed the letter as far past centre as it started below it. Rendering a
-     cap into a box one em tall and reading the first and last inked rows says
-     the ink sits 0.0144em low, so that is the lift.
-
-     It is a bigger correction than the face before it needed, and in the other
-     direction. That is what a small x-height and a low cap height do — an
-     old-style book face hangs more of its em under the letters than a display
-     serif does, which is also why it reads as unhurried. */
-  translate: 0 -0.0144em;
-  /* The letter is the plate's own name, not a word anyone needs to copy, and a
-     drag across the card should take the sentences rather than this. */
+  inline-size: 100%;
+  block-size: 100%;
+  /* The drawing is the plate's own picture, not a word anyone needs to copy,
+     and a drag across the card should take the sentences rather than this. */
   user-select: none;
 }

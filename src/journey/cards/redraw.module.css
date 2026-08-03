@@ -21,9 +21,9 @@
   background-color: var(--paper-tone);
   box-shadow: inset 0 1px 0 var(--card-edge-light);
   /* 24 on three sides. The bottom is set per candidate, because the three verb
-     circles hang below the card and reach 24px back up into it: any drawing
-     whose last element is text has to hold that much open or the circles paint
-     over the final line. */
+     circles hang 18 below the card and their 44px targets reach 21 back up
+     inside it: any drawing whose last element is text has to hold that much
+     open or the circles paint over the final line. */
   padding: var(--space-5) var(--space-5) var(--space-5);
 
   --color-ink: var(--tint-ink);
@@ -42,9 +42,9 @@
 
 /* ══ CHARACTER ════════════════════════════════════════════════════════════
 
-   Rose paper, and the 32px bottom every card that ends in prose takes: 24 for
-   the verb circles' reach back up into the card, and eight of air on top of
-   it, which is roughly a line.
+   Rose paper, and the 32px bottom every card that ends in prose takes: 21 for
+   the verb circles' targets reaching back up into the card, and eleven of air
+   on top of it, which is roughly a line.
 
    A page from a dramatis personae: who they are on a band across the top, what
    you know about them underneath it. Two groups, one rule between them.
@@ -83,22 +83,23 @@
   border-block-end: 1px solid color-mix(in oklab, var(--color-character) 24%, transparent);
 }
 
-/* The plate the initial is stamped into. `Avatar` draws a letter and no ground
-   at all, so the whole of the object is here.
+/* The plate the person is drawn into. `Avatar` draws a figure and no ground at
+   all, so the whole of the mount is here.
 
    46 × 56, which is the one measurement doing real work. A circle at this size
    is a profile picture no matter what is inside it — every app on the phone has
    one in its top corner. An oval standing taller than it is wide is a cameo
    mount, and nothing else on a screen is that shape, so the card is legible as
-   *a portrait plate* before the letter in it is read. Narrower than the 52 the
-   silhouette needed, too: beside a name it has to be the smaller half of the
-   pair or it takes the row over.
+   *a portrait plate* before the drawing in it is read. It is also the ratio the
+   figure is cut to, so the head sits where a head sits and the bust runs off
+   the bottom edge the way a bust does.
 
-   Filled and reversed rather than inked on a pale ground. A letter sitting on
-   tinted paper is a letter; a letter cut out of a filled plate is a stamp, and
-   a stamp is the thing this is meant to be. `--tint-character` because the
-   plate belongs to the card and keeps its daylight weight after dark — the room
-   dims around it, the pressed plate does not. */
+   Inked on a pale ground, not reversed out of a filled one. That was right for
+   a stamped letter — a letter cut out of a fill is a stamp — and it is wrong
+   for a drawing: a pen line reversed out of solid rose at 46px is a white
+   scratch, and every stroke thinner than the fill's own edge disappears into
+   it. The plate is near-white and the figure is drawn on it, which is what the
+   location card does with its map and what a portrait does on paper. */
 .cameo {
   display: grid;
   place-items: center;
@@ -106,14 +107,24 @@
   inline-size: 46px;
   block-size: 56px;
   border-radius: 50%;
-  background: var(--tint-character);
+  /* The bust is drawn past the foot of its own sheet, so the mount has to be
+     the thing that ends it. Without this the shoulders run out over the card. */
+  overflow: hidden;
+  background: var(--tint-reverse);
   /* Paper, then the mount's own line. A portrait is *set into* something, and
      a single ring drawn tight on the fill reads as a border rather than as a
      surround. */
   box-shadow:
     0 0 0 3px var(--paper-tone),
     0 0 0 4px color-mix(in oklab, var(--color-character) 34%, transparent);
-  color: var(--tint-reverse);
+  /* Rose taken most of the way to ink. The card's own rose is a *label* colour
+     — it has to stay light enough to fill chips and rules — and a drawing made
+     of 1.6px strokes in it is a pink smudge. Pulling it toward the tint set's
+     ink keeps the hue, so the figure still reads as the character colour, and
+     buys the line the density it needs to be a line. Both ends are tint names,
+     so the plate keeps its daylight weight after dark: the room dims around it,
+     the pressed plate does not. */
+  color: color-mix(in oklab, var(--tint-character), var(--tint-ink) 32%);
 }
 
 /* Size carries the step, not weight. At 17 against the account's 14 the two
@@ -163,80 +174,137 @@
    outline instead, and the outline is the only thing that reads from two feet
    away.
 
-   The border is dashed rather than drawn. Every other keep on the thread is a
-   closed rectangle, so an edge that is not continuous is a different kind of
-   object before a word is read — and it happens to be the truth, since a
-   thread is the one keep that is not finished.
+   The outline is drawn rather than dashed. It was dashed for a round, on the
+   argument that a broken edge is what provisional looks like and a thread is
+   the one keep that is not finished. Read on paper that argument is fine; read
+   on a phone it is a card with a stitched border round it — three pixels of
+   dash is a *texture*, and a texture on the outermost edge of an object shouts
+   louder than anything drawn inside it, so the card's own title was losing the
+   first look to its own frame. The tab was always carrying the difference on
+   its own. Nothing else in the journey has an outline at all, so a continuous
+   two-pixel rule is already the loudest thing this card needs to say before a
+   word is read, and the silhouette says the rest.
 
-   The stance is a tab on the top corner, which is where a filed thing carries
-   its label. It was a ring for a while — a seal hung half off the leading rule,
-   filled a third of the way round for a hunch and closed for something certain
-   — on the argument that a card should *be* a thing rather than say it. The
-   argument was better than the object: a ring reports a value out of three that
-   nothing on screen gives you a scale for, so it was a word you had to already
-   know to read, sitting where the card's own name should be. The word says it,
-   and the tab is a shape only this card has. */
+   The stance rides a tab that stands above the top edge, the way the tab on a
+   file folder stands above the folder. It was a ring for a while — a seal hung
+   half off the leading rule, filled a third of the way round for a hunch and
+   closed for something certain — on the argument that a card should *be* a
+   thing rather than say it. The argument was better than the object: a ring
+   reports a value out of three that nothing on screen gives you a scale for,
+   so it was a word you had to already know to read, sitting where the card's
+   own name should be. The word says it, and the tab is a shape only this card
+   has.
+
+   Then it was a chip for two rounds: the same word, but filled in deep mallow
+   with the paper reversed out of it, tucked down inside the card's own corner.
+   That is not a tab, it is a badge on a card, and it is what a tab looks like
+   when you draw it without letting it leave the rectangle. A tab is only a tab
+   because it *sticks out* — that is the entire idea, it is the part you can see
+   when the folder is in the drawer with everything else. So this one leaves:
+   it stands proud of the top edge, it is cut from the card's own paper rather
+   than filled against it, it carries the same rule round its three free sides,
+   and the card's top edge simply stops underneath it. One silhouette, drawn in
+   one line, with a step in the top-leading corner. */
 
 .dossier {
   --paper-tone: var(--card-thread-solid);
-  /* Dotted, and that word is the specification rather than a loose way of
-     saying broken. Two rounds of this were dashed, which draws a rectangle
-     with pieces missing from it — at a glance that is a solid edge rendering
-     badly. Dots are a different mark: round, evenly spaced, unmistakably put
-     there on purpose, and the thing a cut-out line has always been.
+  /* One number for the rule, because five other lengths are measured off it:
+     where the tab starts, how tall it is, how far its word is inset, and both
+     of its own free edges. Two rather than three. Three was chosen when the
+     rule was dashed and needed the width to make its gaps legible; a solid
+     line has no gaps to size, and at three it is a frame rather than an edge —
+     heavy enough that the eye reads the border before the title inside it. */
+  --edge: 2px;
+  /* How far the tab stands above the card's top edge. It lives on the card and
+     not on the tab because both need it: the tab to place itself, the card to
+     hold that much room open above itself so the tab has somewhere to stand.
 
-     3px, because CSS sizes the dot by the border width and nothing else. At
-     1px they are specks, at 2px they read as a broken rule again, and 3px is
-     the first width where a dot is round enough to be seen as a dot at arm's
-     length on a phone. 82% of the thread hue against the card's own pale fill
-     lands at a contrast the edge can be found by without competing with the
-     title for the first look. */
-  border: 3px dotted color-mix(in oklab, var(--color-thread) 82%, transparent);
+     22, down from 30. Every pixel of this is a pixel of page showing between
+     the meta line above and the card's own top edge, and the tab only covers
+     the leading third of that width — so the trailing end of the meta line,
+     which is where the side label sits, was left hanging over 30px of nothing.
+     22 is what the word actually needs: a 12px capital is about 8.6 of ink, and
+     20 of clear tab around it leaves close to six above and below. Below that
+     the tab starts crowding its own word, which is the fault this replaced. */
+  --tab-rise: 22px;
+  margin-block-start: var(--tab-rise);
+  /* 76% of the thread hue on the card's own pale fill. Down from the 82 the
+     dash carried: a broken line shows less ink than a continuous one at the
+     same value, so holding the old figure would have made the solid version
+     read a step darker than the dashed one it replaced. */
+  border: var(--edge) solid color-mix(in oklab, var(--color-thread) 76%, transparent);
+  /* Squared, alone of the four. That corner is behind the tab, so the radius
+     was never visible — but the card's leading rule needs to run straight up
+     to its own top edge to meet the tab's leading rule there. With the radius
+     on, the two lines arrive at the junction on different verticals and the
+     silhouette has a nick in it. */
+  border-start-start-radius: 0;
   /* 32 at the foot rather than 24. The strand names are 11px of text carrying
      a 44px target, so each one reaches ~14 below its own line; the verb
-     circles hang off the card and reach 29 back up including their own margin.
-     12 of foot margin and 32 of padding is the 44 that keeps the two apart. */
+     circles hang off the card and reach 21 back up into it. */
   padding-block-end: var(--space-6);
 }
 
-/* The stance, cut into the top-leading corner.
+/* The tab.
 
-   box-sizing is border-box across the whole app, so pulling the tab back by
-   one padding step lands its two outer edges exactly on the padding box —
-   hard against the dashed rule without covering it. That is the difference
-   between a tab and a chip: a chip sits on the card, a tab is a piece of the
-   card's own edge.
+   Every length here is the rule width or the rise, and the three that look
+   arbitrary are the ones holding the silhouette together:
 
-   Its inline padding is not symmetric on purpose. 20 at the leading side is
-   the card's own padding, which puts the first character of the tab on the
-   same vertical as the first character of the title below it; 16 at the
-   trailing side keeps the word from sitting dead centre in a box that has no
-   reason to be centred.
+   Its outer leading edge is the card's outer leading edge, so the inline start
+   is minus one rule width — an absolute inset resolves against the padding
+   box, and the card's border is that much outside it.
 
-   Two corners are rounded and two are square. The leading one takes the
-   card's radius less the 3px of border it nests inside, so the tab
-   follows the corner it is cut into rather than fighting it; the free corner
-   diagonally opposite takes the small radius so the shape tapers back into
-   the card. The other two sit on the card's own edges and a radius there
-   would lift the tab off them. */
+   Its bottom lands one rule width *past* the card's top edge rather than on
+   it, so the tab's own paper covers the segment of the card's top rule running
+   behind it; without that overlap the rule shows through and the two shapes
+   read as stacked instead of joined. That is why the block size is the rise
+   plus a rule, and why a rule's worth of padding is given back at the foot.
+
+   What those two buy is a content box exactly as tall as the rise and sitting
+   exactly on it: the word centres in the part of the tab that is above the
+   card, never in the part covering its edge.
+
+   12px rather than 11. The word is the one thing the tab exists to hold and it
+   was set at the size the app uses for a date stamp — correct for a line of
+   metadata that runs under everything, wrong for the only thing inside a shape
+   this size, where it left the tab looking like a box somebody forgot to fill.
+   Line height flat at 1 for the same reason: uppercase has no descenders and
+   nothing to lead against, so 1.15 was buying two pixels of empty line box
+   that the tab then had to grow to hold.
+
+   The top corners take the small radius, not the card's. The card's 14 is more
+   than half the height of this shape and turns a tab into a lozenge; 8 on a 24
+   is the corner a real folder tab is cut with.
+
+   Inline padding is not symmetric on purpose. The leading side is the card's
+   own padding plus the rule width, which is what it takes to stand the first
+   character of the tab on the same vertical as the first character of the
+   title below it — the tab's box starts a rule further out than the card's
+   content does. 16 at the trailing side keeps the word from sitting dead
+   centre in a box that has no reason to be centred. */
 .standing {
-  margin: calc(-1 * var(--space-5)) 0 0 calc(-1 * var(--space-5));
-  inline-size: fit-content;
-  padding: var(--space-2) var(--space-4) var(--space-2) var(--space-5);
-  border-start-start-radius: calc(var(--radius-md) - 3px);
-  border-end-end-radius: var(--radius-sm);
+  position: absolute;
+  inset-block-start: calc(-1 * (var(--edge) + var(--tab-rise)));
+  inset-inline-start: calc(-1 * var(--edge));
+  display: grid;
+  align-items: center;
+  block-size: calc(var(--tab-rise) + var(--edge));
+  margin: 0;
+  padding: 0 var(--space-4) var(--edge) calc(var(--space-5) + var(--edge));
+  border: var(--edge) solid color-mix(in oklab, var(--color-thread) 76%, transparent);
+  border-block-end: 0;
+  border-start-start-radius: var(--radius-sm);
+  border-start-end-radius: var(--radius-sm);
+  /* The card's own paper, not a fill laid on it. A folder tab is the folder. */
+  background: var(--paper-tone);
   font-family: var(--font-sans);
   font-weight: var(--weight-label);
-  font-size: var(--text-2xs);
-  line-height: var(--leading-tight);
+  font-size: var(--text-xs);
+  line-height: 1;
   letter-spacing: var(--track-label);
   text-transform: uppercase;
-  /* The same deepened mallow the strand names are set in, filled rather than
-     drawn, with the card's own paper reversed out of it. --tint-reverse and
-     not --color-bg: the thread card stays a pale mallow in both themes, so
-     the text that sits on this fill has to be light in both themes too. */
-  background: color-mix(in oklab, var(--color-thread) 68%, var(--color-ink));
-  color: var(--tint-reverse);
+  white-space: nowrap;
+  color: var(--color-ink);
 }
 
 /* One line, always. A thread's name is a question you are carrying around, not
@@ -244,11 +312,15 @@
    different height for a reason the reader cannot act on. The full text is on
    the element's `title` and in the entry itself.
 
-   16 below the tab. It was 8 when the stance was a line of text directly
+   No top margin at all. It was 8 when the stance was a line of text directly
    above — half of every other gap on the card, because a label and the thing
-   it labels are one group. The stance is a shape on the edge now rather than
-   a line in the column, so the title is the first thing in the column and
-   takes the column's own spacing.
+   it labels are one group — and then 16 when the stance became a chip nested
+   in the corner. The stance has left the card entirely now, so the title is
+   simply the first thing in the column and takes the card's own top padding
+   and nothing else: 24 above it against 32 below the last line, which is the
+   proportion every other card in the set is drawn to. Anything on top of that
+   was 48 of empty paper under a tab, which read as the card having lost
+   something.
 
    This used to be set heavier than the other card titles, on the argument
    that a question the reader is still holding open deserves the emphasis.
@@ -257,7 +329,7 @@
    other keep, and a heading does not have to carry a distinction the whole
    object is already making. Same 20 as the character name. */
 .asked {
-  margin: var(--space-4) 0 0;
+  margin: 0;
   max-inline-size: 100%;
   font-family: var(--font-serif);
   font-weight: var(--weight-serif);

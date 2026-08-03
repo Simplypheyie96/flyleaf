@@ -671,8 +671,8 @@
    you the answer instead of describing it. */
 .caption {
   flex: none;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-style: italic;
   font-size: var(--text-sm);
   line-height: var(--leading-snug);
@@ -830,8 +830,8 @@
 }
 
 .quiet {
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-style: italic;
   font-size: var(--text-md);
   line-height: var(--leading-body);

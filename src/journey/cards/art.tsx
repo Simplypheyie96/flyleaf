@@ -278,6 +278,392 @@ export function Place({ seed, className }: { seed: number; className?: string })
   )
 }
 
+/* ── A person ─────────────────────────────────────────────────────────────
+
+   A drawn bust: head, hair, neck, shoulders, a collar, and two closed eyes.
+
+   Three things have stood here. A generic account glyph, which said nothing.
+   Twelve cut-paper silhouettes picked from a grid, which were solid black
+   shapes that differed only at the crown — the reader was asked to choose
+   between drawings they could not tell apart, and the ones they could tell
+   apart were not in the app's hand. And then a stamped initial, which was
+   nobody's idea but mine: I removed the picture rather than draw a better one
+   and wrote a long argument for why a letter was the honest answer. It was not
+   asked for and it is not what a character card is for. A row that reads
+   "B — Aunt Bel" has said the name twice and shown the person nought times.
+
+   So this is a person, drawn the way everything else in this file is drawn:
+   penned, seeded, and bowed off the straight, so it belongs beside the map on
+   a location card rather than looking imported. Ink line on the plate, not a
+   silhouette filled solid — a filled head at 46px is a shape, and a drawn one
+   is a drawing.
+
+   On the face. The old argument was that a picture of a face claims a face,
+   and Aunt Bel already has one in the reader's head. That much is true, and it
+   is why there is no mouth, no nose and no brow here: those are where an
+   expression lives, and an expression is a claim about a person the book has
+   already made. What is left is two closed lids — enough that the head reads
+   as a person rather than a mannequin, and not enough to say what kind. A
+   drawing can be human without being a portrait, and that is the line this
+   sits on.
+
+   What varies, all from the name: seven hair shapes, head width and height,
+   the tilt of the whole head, shoulder width on each side independently, three
+   collars, and whether the ears show. Two characters would have to collide on
+   every one of those to look alike, which is why nobody has to pick anything —
+   a reader who typed the name has already drawn the picture.
+
+   100 × 122 is the journey card's 46 × 56 mount, so the figure sits at the
+   same fraction of its plate wherever it is mounted. */
+
+export const FACE_BOX = { w: 100, h: 122 }
+
+/* The box the figure is *drawn* in and the box it is *shown* in are not the
+   same. Drawing wants slack — a bun stands above the crown, shoulders run off
+   the foot — while a portrait plate wants the head to fill it. Measured across
+   two dozen names the crown lands near y=16 and never above 4, so a view that
+   starts at 4 and keeps 107 of the 122 puts the head where a medallion puts a
+   head and lets the plate's own edge finish the shoulders. Kept next to the
+   drawing box because anything that rasterises these needs both. */
+export const FACE_VIEW = { x: 6, y: 4, w: 88, h: 107 }
+
+/* Hair, as seven parameter sets rather than seven hand-built shapes. Every one
+   of them is the same closed ring — up one side, over the crown, down the
+   other, then back inside the mass and across the brow — and the seven differ
+   only in the six numbers below. That is deliberate: seven shapes drawn by
+   hand would be seven different draughtsmen, and what makes these read as one
+   app's drawing is that they are one drawing with the dials moved.
+
+   Every measure is in head half-widths or half-heights, never pixels, so the
+   hair grows with the head it is on rather than sitting on it like a hat.
+
+     stop    how far up the sides the mass ends, as a fraction of the quarter
+             turn. 0 carries it past the ear; 0.16 finishes it well above one.
+     side    how far the sides hang below the eye line. 0 or less means they do
+             not hang at all and the two `out` numbers go unused.
+     out     how far the hanging tips stand off the head. Above `grow` the
+             silhouette flares toward the jaw, which is what a bob does.
+     grow    how far the mass stands off the skull everywhere else.
+     lift    extra height at the crown, in px, for volume that is not width.
+     fringe  where the hairline crosses the middle of the brow, read upward: a
+             big number is a high forehead and a small one is a fringe worn low.
+     temple  the same, at the temples. Below `fringe` the hairline arcs the way
+             most do; above it, the two corners are cut back and what is left in
+             the middle is a widow's peak. That one number is the whole
+             difference between a full head of hair and a receding one. It has
+             a ceiling near 0.70: the return runs at 0.7 head-widths out, where
+             the outside of the mass sits about 0.72 up, and a temple above
+             that puts the inside of the shape outside it. The ring then
+             crosses itself and the corners render as two spikes. */
+const HAIR = [
+  /* Cropped   */ { stop: 0.06, side: 0, out: 1, grow: 1.05, lift: 0, fringe: 0.5, temple: 0.42, ears: true },
+  /* Bob       */ { stop: 0, side: 0.72, out: 1.08, grow: 1.08, lift: 1, fringe: 0.42, temple: 0.34, ears: false },
+  /* Long      */ { stop: 0, side: 1.24, out: 1.06, grow: 1.08, lift: 1, fringe: 0.38, temple: 0.32, ears: false },
+  /* Gathered  */ { stop: 0.14, side: 0, out: 1, grow: 1.04, lift: 0, fringe: 0.52, temple: 0.44, ears: true },
+  /* Curled    */ { stop: 0, side: 0.34, out: 1.1, grow: 1.16, lift: 3, fringe: 0.44, temple: 0.36, ears: false },
+  /* Swept     */ { stop: 0.02, side: 0, out: 1, grow: 1.09, lift: 2, fringe: 0.26, temple: 0.44, ears: true },
+  /* Receding  */ { stop: 0.16, side: 0, out: 1, grow: 1.02, lift: 0, fringe: 0.44, temple: 0.66, ears: true },
+]
+
+export function faceMarks(seed: number): PlaceMark[] {
+  const r = rng(seed)
+  const H = FACE_BOX.h
+
+  /* An arch between two marks a fixed amount, rather than a random one. The
+     pen above bows every stroke by an amount it makes up, which is right for
+     scenery and wrong for a lid: an eye that curves up on one face and down on
+     another is not two people, it is one person and one mistake. */
+  const arch = (a: Pt, b: Pt, lift: number) =>
+    `M ${n2(a[0])} ${n2(a[1])} Q ${n2((a[0] + b[0]) / 2)} ${n2((a[1] + b[1]) / 2 - lift)} ${n2(b[0])} ${n2(b[1])}`
+
+  /* The head. An ellipse would be a balloon, so the lower half narrows into a
+     jaw — the taper only applies where sin is positive, which is the half
+     below the eye line. Splined, never penned corner to corner: sixteen pen
+     strokes round a head is a sixteen-sided polygon, and the seed's small
+     jitter on each radius is what keeps it from being a perfect one. */
+  const cx = 50 + (r() - 0.5) * 3
+  const cy = 50
+  const hw = 23 + r() * 7
+  const hh = 27 + r() * 7
+  /* The jaw is its own number, not a constant. Width and height alone give
+     large and small heads of one shape; a separate taper is what separates a
+     round face from a narrow one at the same size, and it is the difference
+     the eye actually reads at 46px. */
+  const jawCut = 0.1 + r() * 0.18
+  const headPts: Pt[] = []
+  for (let i = 0; i < 16; i += 1) {
+    const a = (i / 16) * Math.PI * 2 - Math.PI / 2
+    const jaw = 1 - jawCut * Math.max(0, Math.sin(a))
+    const j = 0.985 + r() * 0.03
+    headPts.push([cx + Math.cos(a) * hw * jaw * j, cy + Math.sin(a) * hh * j])
+  }
+  const head = loop(headPts)
+
+  /* Neck and shoulders. The garment is closed across the neckline rather than
+     under the chin, so its wash never runs over the face — the neck itself is
+     two lines and no fill, which is also how it is drawn on paper.
+
+     The two shoulders are drawn from separate numbers. A bust built off one
+     half-width mirrored is a symmetrical object, and a symmetrical object is
+     the thing that made the twelve silhouettes read as clip art. */
+  const jawY = cy + hh * 0.72
+  const neck = hw * 0.4
+  const top = cy + hh + 9 + r() * 5
+  const shL = 40 + r() * 9
+  const shR = 40 + r() * 9
+  const garment = loop([
+    [cx - neck, top - 4],
+    [cx - neck - 12, top + 3],
+    [cx - shL, top + 15],
+    [cx - shL - 8, H + 8],
+    [cx + shR + 8, H + 8],
+    [cx + shR, top + 15],
+    [cx + neck + 12, top + 3],
+    [cx + neck, top - 4],
+    /* The neckline needs its own middle point. Closing a spline straight from
+       one shoulder's inner corner to the other reverses direction against two
+       neighbours that both sit lower, and the curve answers by looping — a
+       small bow tie under the chin on every figure. Scooping it deliberately
+       gives the spline somewhere to go. */
+    [cx, top - 1],
+  ])
+  /* The neck lands exactly on the neckline's own corner. Everything at the
+     throat — two neck lines, the neckline, the collar — has to *meet* rather
+     than cross: three shapes that each pass through each other draw an X under
+     the chin, which is what the first pass did on every high-collared figure. */
+  const necks = [
+    drawn(
+      r,
+      [
+        [cx - hw * 0.56, jawY],
+        [cx - neck, top - 4],
+      ],
+      false,
+      1.2,
+    ),
+    drawn(
+      r,
+      [
+        [cx + hw * 0.56, jawY],
+        [cx + neck, top - 4],
+      ],
+      false,
+      1.2,
+    ),
+  ]
+
+  /* The collar. Three, because it is the one part of a person that is a
+     *choice* rather than a fact about them, and three visibly different
+     choices is enough for the row of cards to look like a row of people who
+     dressed themselves. */
+  const collar: string[] = []
+  const kollar = Math.floor(r() * 3)
+  if (kollar === 0) {
+    collar.push(
+      drawn(
+        r,
+        [
+          [cx - 13, top + 1],
+          [cx, top + 16],
+          [cx + 13, top + 1],
+        ],
+        false,
+        1,
+      ),
+    )
+  } else if (kollar === 1) {
+    collar.push(
+      drawn(
+        r,
+        [
+          [cx - 14, top - 1],
+          [cx - 4, top + 14],
+        ],
+        false,
+        0.8,
+      ),
+      drawn(
+        r,
+        [
+          [cx + 14, top - 1],
+          [cx + 4, top + 14],
+        ],
+        false,
+        0.8,
+      ),
+    )
+  } else {
+    /* A collar standing up, as two strokes that start on the neckline's own
+       corners and rise. Drawn as one band across the throat it has to cross
+       the neckline twice to get there, and two crossings is the X again. */
+    collar.push(
+      drawn(
+        r,
+        [
+          [cx - neck, top - 4],
+          [cx - neck - 4, top - 13],
+        ],
+        false,
+        0.9,
+      ),
+      drawn(
+        r,
+        [
+          [cx + neck, top - 4],
+          [cx + neck + 4, top - 13],
+        ],
+        false,
+        0.9,
+      ),
+    )
+  }
+
+  const kind = Math.floor(r() * HAIR.length)
+  const hair = HAIR[kind]
+  /* A parting, and for the swept style a deliberate one rather than a wobble.
+     It moves the crown's high point and the hairline's low point together,
+     which is what a parting actually does to a silhouette. */
+  const part = kind === 5 ? (r() < 0.5 ? -1 : 1) * hw * 0.3 : (r() - 0.5) * hw * 0.12
+  const curl = kind === 4
+  const g = hair.grow
+  const hangs = hair.side > 0
+  const sideY = cy + hh * hair.side
+
+  /* The outside of the mass, swept from one side of the head to the other
+     rather than hit at four fixed points. Sweeping it means `stop` can end the
+     arc early — that one number is a crop finishing above the ear instead of
+     carrying on past it, and no other style has to know about it.
+
+     Curls are the other thing the sweep buys. Nine steps with alternating
+     radii and a spline through them is a scalloped edge; five steps and no
+     wobble is a smooth one. Nobody draws a curl here; the ring is just lumpy,
+     and lumpy at 46px is unmistakably not straight hair. */
+  const start = Math.PI * (1 + hair.stop)
+  const span = Math.PI * (1 - hair.stop * 2)
+  const steps = curl ? 9 : 5
+  const ring: Pt[] = []
+  if (hangs) ring.push([cx - hw * hair.out, sideY])
+  for (let i = 0; i < steps; i += 1) {
+    const t = i / (steps - 1)
+    const a = start + t * span
+    const wob = curl ? (i % 2 ? -0.08 : 0.1) : 0
+    ring.push([
+      cx + Math.cos(a) * hw * g * (1 + wob) + part * 0.5 * Math.sin(t * Math.PI),
+      cy + Math.sin(a) * hh * g * (1 + wob) - hair.lift * Math.sin(t * Math.PI),
+    ])
+  }
+  if (hangs) ring.push([cx + hw * hair.out, sideY])
+
+  /* And the inside, coming back: up the far side hugging the skull, across the
+     brow, down the near side. Without these the ring closed straight from one
+     temple to the opposite tip, and on the long styles that shortcut ran
+     diagonally across the throat — two hanging curtains and an X under the
+     chin where no hair is. The return is also what gives a curtain a
+     thickness, so it tapers to a tip instead of ending as a bare line. */
+  const outTip = hangs ? sideY : cy + Math.sin(start) * hh * g
+  const inTip = outTip - (hangs ? 9 : 5)
+  const browY = cy - hh * hair.temple
+  const cheek = (inTip + browY) / 2
+  ring.push(
+    [cx + hw * (hangs ? 0.72 : 0.84), inTip],
+    [cx + hw * 0.84, cheek],
+    [cx + hw * 0.7, browY],
+    [cx + part, cy - hh * hair.fringe],
+    [cx - hw * 0.7, browY],
+    [cx - hw * 0.84, cheek],
+    [cx - hw * (hangs ? 0.72 : 0.84), inTip],
+  )
+  const mane = loop(ring)
+
+  /* Gathered up: the knot is a second closed shape rather than a bump on the
+     ring, because a bump big enough to read as a bun deforms the crown under
+     it and the head stops looking like a head. */
+  const knotPts: Pt[] = []
+  for (let i = 0; i < 9; i += 1) {
+    const a = (i / 9) * Math.PI * 2
+    knotPts.push([
+      cx + hw * 0.26 + Math.cos(a) * 8 * (0.88 + r() * 0.24),
+      cy - hh * 1.14 + Math.sin(a) * 7.4 * (0.88 + r() * 0.24),
+    ])
+  }
+  const knot = kind === 3 ? loop(knotPts) : ''
+
+  const ears = hair.ears
+    ? `M ${n2(cx - hw * 0.97)} ${n2(cy - 5)} Q ${n2(cx - hw * 0.97 - 5)} ${n2(cy)} ${n2(cx - hw * 0.97)} ${n2(cy + 5)}` +
+      ` M ${n2(cx + hw * 0.97)} ${n2(cy - 5)} Q ${n2(cx + hw * 0.97 + 5)} ${n2(cy)} ${n2(cx + hw * 0.97)} ${n2(cy + 5)}`
+    : ''
+
+  /* Two closed lids on the eye line, and a nose. No mouth: see the note above,
+     a mouth is an expression and an expression is the book's to give. A nose is
+     not an expression, it is a fact about a face, and without one the lower two
+     thirds of every head is blank — which is what made the first pass read as
+     two dozen masks rather than two dozen people.
+
+     Every measure here is seeded. Hair and outline were carrying the whole
+     difference between one name and the next while the face itself was a
+     constant, and a constant face is the thing the eye actually recognises: set
+     wide-apart small eyes beside close-set long ones and the two read as
+     different people before either haircut registers. */
+  const ex = hw * (0.34 + r() * 0.12)
+  const ey = cy + 1 + r() * 4
+  const ew = 3.4 + r() * 1.8
+  const lid = 1.3 + r() * 1.2
+  const eyes =
+    `${arch([cx - ex - ew, ey], [cx - ex + ew, ey], lid)} ${arch([cx + ex - ew, ey], [cx + ex + ew, ey], lid)}`
+  /* The nose as the one stroke that reads at 46px: down the near side, round
+     the tip, out to a nostril. The bridge is invisible at this size and a full
+     outline turns into a blob.
+
+     It has to be lopsided. Drawn symmetrically — two ends level, the control
+     point below both — the eye reads the curve as a mouth, and twenty-four
+     people all smiling politely is worse than twenty-four blanks. Starting high
+     on one side and finishing low on the other is the whole difference. */
+  const nx = cx + part * 0.2
+  const noseY = ey + hh * (0.26 + r() * 0.08)
+  const noseW = 2.2 + r() * 1.4
+  const nose = `M ${n2(nx)} ${n2(noseY - 4.5)} Q ${n2(nx - noseW)} ${n2(noseY)} ${n2(nx + noseW * 0.9)} ${n2(noseY - 0.4)}`
+
+  /* Back to front, and the hair goes on *after* the head rather than behind
+     it: the fringe crosses the forehead, so it has to be able to tint it. */
+  return [
+    { d: garment, fill: 0.1 },
+    { d: garment, stroke: 0.42, w: 1.6 },
+    ...collar.map((d) => ({ d, stroke: 0.4, w: 1.3 })),
+    ...necks.map((d) => ({ d, stroke: 0.4, w: 1.5 })),
+    ...(ears ? [{ d: ears, stroke: 0.36, w: 1.3 }] : []),
+    { d: head, stroke: 0.6, w: 1.7 },
+    { d: mane, fill: 0.24 },
+    { d: mane, stroke: 0.55, w: 1.6 },
+    ...(knot ? [{ d: knot, fill: 0.24 }, { d: knot, stroke: 0.55, w: 1.6 }] : []),
+    { d: eyes, stroke: 0.72, w: 1.7 },
+    { d: nose, stroke: 0.5, w: 1.4 },
+  ]
+}
+
+export function Portrait({ seed, className }: { seed: number; className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox={`${FACE_VIEW.x} ${FACE_VIEW.y} ${FACE_VIEW.w} ${FACE_VIEW.h}`}
+      preserveAspectRatio="xMidYMid slice"
+      role="presentation"
+    >
+      <g stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+        {faceMarks(seed).map((m, i) => (
+          <path
+            key={i}
+            d={m.d}
+            fill={m.fill === undefined ? 'none' : 'currentColor'}
+            fillOpacity={m.fill}
+            strokeWidth={m.w}
+            strokeOpacity={m.stroke ?? 0}
+          />
+        ))}
+      </g>
+    </svg>
+  )
+}
+
 /* ── A survey ─────────────────────────────────────────────────────────────
 
    The same instinct as the place scene, from directly overhead: a map made of
