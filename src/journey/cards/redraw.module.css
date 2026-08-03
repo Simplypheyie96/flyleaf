@@ -415,65 +415,6 @@
   max-inline-size: var(--measure);
 }
 
-/* What it is filed under, written along the bottom of the card the way you
-   would write it on a real case file. These are still the only way into the
-   motif filter, so they have to stay pressable — but a row of filled lozenges
-   under every thread was the "random tag" look, and a case file has its own
-   place for this. Bare words, spaced far enough apart that two 44px targets
-   never touch: 16 of gap, and the narrowest strand still paints ~40 wide. */
-.filing {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-4);
-  margin-block-start: var(--space-4);
-  margin-block-end: var(--space-3);
-}
-
-/* The words that make the line a sentence rather than a tag. Set in the same
-   mono micro-caps as the strands but in plain ink, so the coloured words are
-   visibly the pressable half of the line and this half is visibly not. */
-.filedUnder {
-  font-family: var(--font-sans);
-  font-weight: var(--weight-label);
-  font-size: var(--text-2xs);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  color: var(--color-ink-soft);
-}
-
-.strand {
-  position: relative;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-family: var(--font-sans);
-  font-weight: var(--weight-label);
-  font-size: var(--text-2xs);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  color: color-mix(in oklab, var(--color-thread) 68%, var(--color-ink));
-  cursor: pointer;
-  transition: color var(--dur-press) var(--ease-out);
-}
-
-/* Drawn at its own size, reached at 44. Height stated rather than inset, so it
-   resolves against the border box and not the padding box. */
-.strand::after {
-  content: '';
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 50%;
-  translate: -50% -50%;
-  block-size: var(--tap-min);
-  inline-size: 100%;
-  min-inline-size: var(--tap-min);
-}
-
-.strand:hover {
-  color: var(--color-ink);
-}
-
 /* ══ VOICE ════════════════════════════════════════════════════════════════
 
    The only keep with no paper. Reversed out of the page in both themes,

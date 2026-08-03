@@ -66,7 +66,6 @@ const LAST_KEPT: Entry = {
   page: 214,
   keptOn: '2026-07-28',
   createdAt: 0,
-  motifs: ['weather'],
 } as Entry
 
 const RESURFACED: Entry = {
@@ -78,8 +77,6 @@ const RESURFACED: Entry = {
   keptOn: '2026-04-11',
   createdAt: 0,
 } as Entry
-
-const noop = () => {}
 
 /* ══ A ═══════════════════════════════════════════════════════════════════════
 
@@ -108,17 +105,26 @@ function Latest({ empty }: { empty: boolean }) {
         </div>
       ) : (
         <>
-          <Card keep={LAST_KEPT} onMotif={noop} />
+          <Card keep={LAST_KEPT} />
           {/* The journey writes the date above the card and the book is
               implied by the route. Here it is the other way round, so the one
               line under the card carries both — in the journey's own words for
               a date, so "today" means the same thing on both pages. */}
           <p className={styles.provenance}>
             {keptLabel(LAST_KEPT.keptOn)}
-            <span className={styles.sep} aria-hidden="true">·</span>
-            from <Link to="/book/111111" className={styles.book}>The Lantern Season</Link>
-            <span className={styles.sep} aria-hidden="true">·</span>
-            <Link to="/book/111111" className={styles.more}>two more kept there</Link>
+            <span className={styles.sep} aria-hidden="true">
+              ·
+            </span>
+            from{' '}
+            <Link to="/book/111111" className={styles.book}>
+              The Lantern Season
+            </Link>
+            <span className={styles.sep} aria-hidden="true">
+              ·
+            </span>
+            <Link to="/book/111111" className={styles.more}>
+              two more kept there
+            </Link>
           </p>
         </>
       )}
@@ -147,9 +153,7 @@ function Visits({ empty }: { empty: boolean }) {
       </h2>
       {empty ? (
         <div className={styles.invite}>
-          <p className={styles.inviteLine}>
-            No books open yet. Start one and it stands here.
-          </p>
+          <p className={styles.inviteLine}>No books open yet. Start one and it stands here.</p>
         </div>
       ) : (
         <ul className={styles.strip}>
@@ -163,8 +167,8 @@ function Visits({ empty }: { empty: boolean }) {
                     it does at the end of a book — and a spelled number cannot
                     be mistaken for a page. */}
                 <span className={styles.tileKept}>
-                  {count(visit.whispers, { one: 'whisper', many: 'whispers' })} ·{' '}
-                  {spell(visit.ink)} in your own ink
+                  {count(visit.whispers, { one: 'whisper', many: 'whispers' })} · {spell(visit.ink)}{' '}
+                  in your own ink
                 </span>
                 <span className={styles.tileWhen}>{visit.when}</span>
               </Link>
@@ -199,8 +203,7 @@ function Resurface({ empty }: { empty: boolean }) {
       {empty ? (
         <div className={styles.invite}>
           <p className={styles.inviteLine}>
-            Nothing to bring back yet. This is where the archive starts
-            answering you.
+            Nothing to bring back yet. This is where the archive starts answering you.
           </p>
         </div>
       ) : (
@@ -208,9 +211,15 @@ function Resurface({ empty }: { empty: boolean }) {
           <p className={styles.recalled}>{RESURFACED.text}</p>
           <p className={styles.recalledFrom}>
             your own ink
-            <span className={styles.sep} aria-hidden="true">·</span>
-            <Link to="/book/111111" className={styles.book}>The Lantern Season</Link>
-            <span className={styles.sep} aria-hidden="true">·</span>
+            <span className={styles.sep} aria-hidden="true">
+              ·
+            </span>
+            <Link to="/book/111111" className={styles.book}>
+              The Lantern Season
+            </Link>
+            <span className={styles.sep} aria-hidden="true">
+              ·
+            </span>
             kept {keptLabel(RESURFACED.keptOn)}
           </p>
           <button type="button" className={styles.another}>
@@ -228,13 +237,7 @@ const DIRECTIONS: Record<HomeDirection, ComponentType<{ empty: boolean }>> = {
   c: Resurface,
 }
 
-export default function Recent({
-  direction,
-  empty,
-}: {
-  direction: HomeDirection
-  empty: boolean
-}) {
+export default function Recent({ direction, empty }: { direction: HomeDirection; empty: boolean }) {
   const Chosen = DIRECTIONS[direction]
   return <Chosen empty={empty} />
 }

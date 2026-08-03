@@ -63,10 +63,10 @@
   color: var(--color-ink-faint);
 }
 
-/* ── Shared: the motifs ───────────────────────────────────────────────── */
+/* ── Shared: the stance ───────────────────────────────────────────────── */
 
-/* Trailing space so the chips' tap targets clear the verb circles that hang
-   off the keep's bottom-right — see the long note on the same rule in
+/* Trailing space so the stance's tap-sized row clears the verb circles that
+   hang off the keep's bottom-right — see the long note on the same rule in
    pressed.module.css. */
 .foot {
   display: flex;
@@ -77,58 +77,10 @@
   margin-block-end: 10px;
 }
 
-.chip {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  min-block-size: 34px;
-  padding-inline: var(--space-3);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--color-ink-soft);
-  font-family: var(--font-sans);
-  font-weight: var(--weight-label);
-  font-size: var(--text-xs);
-  cursor: pointer;
-  transition:
-    color var(--dur-press) var(--ease-out),
-    border-color var(--dur-press) var(--ease-out);
-}
-
-/* 34px of pill, 44px of target. Drawing the tag at the full tap minimum turns
-   a note in the margin into a button bar — these are the size they are because
-   a card is a thing you read, not a form. But how big it looks and how big it
-   is to a thumb are two measurements and only one of them is a rule, so the
-   extra 5px top and bottom is taken here, out of the card's own air, where
-   nothing else is claiming it. Inline stays at 0: the chips sit 8px apart in a
-   row and an overhang would put each one's target over its neighbour.
-
-   The height is written down rather than reached by insetting five a side,
-   because an absolute inset resolves against the *padding* box: with the
-   chip's hairline, "34 and five each way" drew 42 and read as 44. */
-.chip::after {
-  content: '';
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 50%;
-  translate: -50% -50%;
-  block-size: var(--tap-min);
-  inline-size: 100%;
-  min-inline-size: var(--tap-min);
-}
-
-.chip:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent-text);
-}
-
 /* The stance, and in this direction it gets no pill at all. A margin is a
    place where you write, not a place where you put badges — so the strokes in
    the gutter get their word as a small letter-spaced label with a rule run in
-   front of it, the way an annotation is introduced. That also keeps it
-   unmistakably apart from the strand names beside it, which are outlined and
-   pressable; nothing here is either.
+   front of it, the way an annotation is introduced.
 
    Ink-soft rather than the thread's mallow: at this size the word is text and
    owes 4.5:1, which mallow on paper does not make in daylight. The rule is a
@@ -368,12 +320,7 @@
 .pinMark {
   /* A surveyor's pin: a stem with a ringed head. */
   background:
-    radial-gradient(
-        circle at 50% 32%,
-        transparent 0 2.4px,
-        currentColor 2.4px 4px,
-        transparent 4px
-      )
+    radial-gradient(circle at 50% 32%, transparent 0 2.4px, currentColor 2.4px 4px, transparent 4px)
       no-repeat,
     linear-gradient(to bottom, currentColor 0 100%) no-repeat;
   background-size:
@@ -392,13 +339,7 @@
   color: var(--color-place);
   /* Faded at both ends: a vignette has no edges, which is what separates it
      from a picture in a frame. */
-  mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    black 12%,
-    black 88%,
-    transparent 100%
-  );
+  mask-image: linear-gradient(to right, transparent 0, black 12%, black 88%, transparent 100%);
 }
 
 .horizon,
@@ -490,7 +431,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .chip,
   .bar,
   .play {
     transition-duration: 0.01ms;

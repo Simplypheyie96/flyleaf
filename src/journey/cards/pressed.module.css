@@ -57,25 +57,15 @@
   color: var(--color-ink);
 }
 
-/* ── Shared: the motifs ───────────────────────────────────────────────────
-   The one control that rides every card. Sized to be tapped, not admired. */
+/* ── Shared: the stance ───────────────────────────────────────────────────
+   The one line that rides the thread cards, and the only thing left in the
+   foot. Read, not pressed. */
 
-/* The trailing space is not decoration, it is the same five-pixel arithmetic
-   as everywhere else. The three verb circles hang off the card's bottom-right
-   and reach 44 by taking five all round out of the air beside them; so does a
-   chip. The circles hang 18 below the card and their targets reach 21 back
-   inside it, against 24 of card padding, which left the foot's last line all
-   but flush against the top of the verbs — the chips' lower five had nowhere
-   to go and a tag under the verbs measured 34.
-
-   It only showed once a thread carried two chips, because one chip sits at the
-   leading edge and the circles at the trailing one and they never met.
-
-   Ten, and off the scale for the same reason .acts sets its gap to ten: it is
-   five plus five. The chip reaches five below itself and the verb circle
-   reaches five above itself, and two targets that each overhang by five need
-   ten between them or they meet in the middle and the browser hands a thumb
-   whichever it likes. Eight was tried and left the chip at 42. */
+/* The trailing space is the same five-pixel arithmetic as everywhere else. The
+   three verb circles hang 18 below the card's bottom-right and their targets
+   reach 21 back inside it, against 24 of card padding — which left the foot's
+   last line all but flush against the top of the verbs. Ten, and off the scale
+   for the same reason .acts sets its gap to ten: it is five plus five. */
 .foot {
   display: flex;
   flex-wrap: wrap;
@@ -85,55 +75,14 @@
   margin-block-end: 10px;
 }
 
-.chip {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  min-block-size: 34px;
-  padding-inline: var(--space-3);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--card-chip);
-  color: var(--color-ink-soft);
-  font-family: var(--font-sans);
-  font-weight: var(--weight-label);
-  font-size: var(--text-xs);
-  cursor: pointer;
-  transition:
-    color var(--dur-press) var(--ease-out),
-    background-color var(--dur-press) var(--ease-out);
-}
-
-/* 34px of pill, 44px of target — the extra 5px top and bottom taken out of the
-   card's own air rather than drawn. See the note on the same rule in
-   marginalia.module.css. */
-.chip::after {
-  content: '';
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 50%;
-  translate: -50% -50%;
-  block-size: var(--tap-min);
-  inline-size: 100%;
-  min-inline-size: var(--tap-min);
-}
-
-.chip:hover {
-  background: var(--color-accent-tint);
-  color: var(--color-accent-text);
-}
-
 /* How sure the reader was, said out loud. The cord beside it already counts
    the knots, and the count is the better half of the idea — but a knot is only
    legible to the person who tied it, so the word leads the row and the knots
    become its echo rather than its cipher.
 
-   Tinted in the thread's own mallow while the strand names beside it stay
-   neutral, because the two are different kinds of thing: this is a state the
-   keep is in, those are filters you can press. Colour marks the one that is
-   not a control. No ::after here for the same reason — a 44px target belongs
-   to things that can be tapped, and adding one would only put an invisible
-   overhang across the chip next to it. */
+   Tinted in the thread's own mallow, and no ::after: a 44px target belongs to
+   things that can be tapped, and this is a state the keep is in rather than
+   anything a thumb can change. */
 .stance {
   display: inline-flex;
   align-items: center;
@@ -200,13 +149,12 @@
   inline-size: 78px;
   block-size: 24px;
   rotate: -7deg;
-  background:
-    linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--tape-fill), var(--color-ink) 9%) 0 18%,
-      color-mix(in oklab, var(--tape-fill), var(--color-bg) 40%) 18% 62%,
-      color-mix(in oklab, var(--tape-fill), var(--color-ink) 11%) 62% 100%
-    );
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--tape-fill), var(--color-ink) 9%) 0 18%,
+    color-mix(in oklab, var(--tape-fill), var(--color-bg) 40%) 18% 62%,
+    color-mix(in oklab, var(--tape-fill), var(--color-ink) 11%) 62% 100%
+  );
   box-shadow: inset 0 0 0 1px var(--tape-edge);
   /* Torn, not cut: no two of the four corners agree. */
   clip-path: polygon(2px 0, 100% 3px, calc(100% - 3px) 100%, 0 calc(100% - 2px));
@@ -438,12 +386,7 @@
   block-size: 15px;
   border: 0;
   margin-inline-start: 0;
-  background: linear-gradient(
-    to right,
-    currentColor 0 34%,
-    transparent 34% 66%,
-    currentColor 66%
-  );
+  background: linear-gradient(to right, currentColor 0 34%, transparent 34% 66%, currentColor 66%);
 }
 
 /* The take-up reel. It turns with the other one but there is nothing to press,
@@ -889,7 +832,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .chip,
   .reel,
   .tick {
     transition-duration: 0.01ms;

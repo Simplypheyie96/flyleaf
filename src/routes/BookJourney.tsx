@@ -21,7 +21,7 @@
    button three inches from the first was the app asking the reader to work
    out which "+" they meant. */
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import BookCover from '../components/BookCover'
@@ -85,7 +85,6 @@ const SORT_SHORT: Record<Order, string> = {
   kept: 'as kept',
   newest: 'newest',
   book: 'by page',
-  motif: 'by motif',
 }
 
 /* ── One notch ────────────────────────────────────────────────────────────
@@ -99,12 +98,11 @@ interface NotchProps {
   /* False once every visible keep is the same substance — see `showSide` at
      the call site. */
   showSide: boolean
-  onMotif: (motif: string) => void
   onEdit: (keep: Entry) => void
   onDelete: (keep: Entry) => void
 }
 
-function Notch({ keep, book, tie, showSide, onMotif, onEdit, onDelete }: NotchProps) {
+function Notch({ keep, book, tie, showSide, onEdit, onDelete }: NotchProps) {
   const { Icon, hue, side } = KIND[keep.type]
   return (
     <li
@@ -154,22 +152,8 @@ function Notch({ keep, book, tie, showSide, onMotif, onEdit, onDelete }: NotchPr
           </span>
           {showSide && <em className={styles.whenSide}>{SIDE[side].word}</em>}
         </p>
-        <Keep keep={keep} book={book} onMotif={onMotif} onEdit={onEdit} onDelete={onDelete} />
+        <Keep keep={keep} book={book} onEdit={onEdit} onDelete={onDelete} />
       </div>
-    </li>
-  )
-}
-
-/* A group heading is its own item on the thread rather than a title inside the
-   next card, so that the knots stay on one line down the page — a heading
-   tucked into a notch would push that notch's knot out of the column. The line
-   still runs behind it: an order changes what is being shown, not where the
-   journey goes. */
-function Divider({ label }: { label: string }) {
-  return (
-    <li className={styles.notch} data-divider="">
-      <span className={styles.gutter} aria-hidden="true" />
-      <h2 className={styles.divider}>{label}</h2>
     </li>
   )
 }
@@ -216,9 +200,7 @@ function BookJourney() {
   const onScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget
     const room = el.scrollHeight - el.clientHeight
-    setHeadOpen((open) =>
-      open ? !(room > 240 && el.scrollTop > 72) : el.scrollTop < 16,
-    )
+    setHeadOpen((open) => (open ? !(room > 240 && el.scrollTop > 72) : el.scrollTop < 16))
 
     /* And the way to keep more gets out of the way of what is already kept.
        Fixed in the trailing corner, it sits on top of whatever card happens to
@@ -277,8 +259,7 @@ function BookJourney() {
             <span>Library</span>
           </Link>
           <p className={styles.missing}>
-            That book isn’t on your shelf. It may have been removed from this
-            device.
+            That book isn’t on your shelf. It may have been removed from this device.
           </p>
         </div>
       </main>
@@ -418,26 +399,26 @@ function BookJourney() {
           data-folded={!headOpen || undefined}
           inert={!headOpen}
         >
-        {/* One child, and that is load-bearing. `grid-template-rows` only sizes
+          {/* One child, and that is load-bearing. `grid-template-rows` only sizes
             the rows it declares: a second child auto-places into an *implicit*
             row, which stays `auto` no matter what the explicit row is set to.
             Folded, that left the dates collapsed to nothing visible but still
             holding 48px of their own row open — a band of empty sky under the
             chrome that nobody could see and everybody could feel. Everything
             that folds goes inside here. */}
-        <div className={styles.headInner}>
-        <div className={styles.headTop}>
-          {/* Sized in CSS rather than by prop, because its width is not a
+          <div className={styles.headInner}>
+            <div className={styles.headTop}>
+              {/* Sized in CSS rather than by prop, because its width is not a
               free choice any more: the board's height is the height of the
               record beside it, and 2:3 is what turns one into the other. */}
-          <BookCover
-            title={book.title}
-            author={book.author}
-            covers={book.covers}
-            size="small"
-            className={styles.cover}
-          />
-          {/* Everything that is *about* the book, in one column: name, byline,
+              <BookCover
+                title={book.title}
+                author={book.author}
+                covers={book.covers}
+                size="small"
+                className={styles.cover}
+              />
+              {/* Everything that is *about* the book, in one column: name, byline,
               formats, dates. The cover is the other column and holds nothing
               but the cover.
 
@@ -446,8 +427,8 @@ function BookJourney() {
               their own, so their leading edge lined up with the spine of the
               book and with nothing in the column of writing above them —
               three edges to read where there should have been two. */}
-          <div className={styles.about}>
-            {/* One column with one rhythm, and exactly one thing bound tighter
+              <div className={styles.about}>
+                {/* One column with one rhythm, and exactly one thing bound tighter
                 than the rest.
 
                 It used to be two groups held apart by a seam, and the seam was
@@ -463,30 +444,30 @@ function BookJourney() {
                 whole of the 2× the grouping needs. Spare height falls to the
                 foot of the column, where a cover taller than its own caption
                 is just what a book beside a paragraph looks like. */}
-            <div className={styles.identity}>
-              {/* Up to two lines. One line was a height rule — it kept the
+                <div className={styles.identity}>
+                  {/* Up to two lines. One line was a height rule — it kept the
                   pinned head the same size per book — but it also truncated
                   most real titles at this width, and the space it saved was
                   the space that opened under the byline. Two lines spends it
                   on the name instead. The full text stays on the element. */}
-              <h1 className={styles.title} title={book.title}>
-                {book.title}
-              </h1>
-              <p className={styles.author}>
-                {book.author} · {facts}
-              </p>
-            </div>
+                  <h1 className={styles.title} title={book.title}>
+                    {book.title}
+                  </h1>
+                  <p className={styles.author}>
+                    {book.author} · {facts}
+                  </p>
+                </div>
 
-            {/* No wrapper. The row used to sit in a div whose only job was to
+                {/* No wrapper. The row used to sit in a div whose only job was to
                 carry a top margin, and that margin was one of the three
                 hand-placed numbers this column was rebuilt to get rid of. */}
-            <FormatRow
-              small
-              value={formatsOf(book)}
-              onChange={(next) => void setFormats(book.id, next)}
-            />
+                <FormatRow
+                  small
+                  value={formatsOf(book)}
+                  onChange={(next) => void setFormats(book.id, next)}
+                />
 
-            {/* The reading span: one pill, two tappable ends, an arrow between.
+                {/* The reading span: one pill, two tappable ends, an arrow between.
 
                 A date, an arrow and a second date is already a sentence, so
                 there are no labels — nobody reads "Jul 2 → still reading" and
@@ -495,60 +476,60 @@ function BookJourney() {
                 being printed twice inside one pill.
 
                 Each end is its own button and the arrow is neither of them. */}
-            {book.startedOn || book.finishedOn ? (
-              <div className={styles.span}>
-                <button
-                  type="button"
-                  className={styles.spanEnd}
-                  data-unset={!book.startedOn || undefined}
-                  onClick={() => setPicking('opened')}
-                  aria-label={
-                    book.startedOn
-                      ? `Started ${shortDate(book.startedOn)}. Change the day.`
-                      : 'No start date yet. Set one.'
-                  }
-                >
-                  {/* The label carries its own clipping so the button does not.
+                {book.startedOn || book.finishedOn ? (
+                  <div className={styles.span}>
+                    <button
+                      type="button"
+                      className={styles.spanEnd}
+                      data-unset={!book.startedOn || undefined}
+                      onClick={() => setPicking('opened')}
+                      aria-label={
+                        book.startedOn
+                          ? `Started ${shortDate(book.startedOn)}. Change the day.`
+                          : 'No start date yet. Set one.'
+                      }
+                    >
+                      {/* The label carries its own clipping so the button does not.
                       `overflow: hidden` on the button would crop its own 44px
                       tap pseudo back to the 33 it paints. */}
-                  <span className={styles.spanText}>{span.start ?? 'no start date'}</span>
-                </button>
-                <span className={styles.spanArrow} aria-hidden="true">
-                  →
-                </span>
-                <button
-                  type="button"
-                  className={styles.spanEnd}
-                  data-unset={!book.finishedOn || undefined}
-                  onClick={() => setPicking('closed')}
-                  aria-label={
-                    book.finishedOn
-                      ? `Finished ${shortDate(book.finishedOn)}. Change the day.`
-                      : 'Still reading. Set the day you finished.'
-                  }
-                >
-                  <span className={styles.spanText}>{span.finish ?? 'still reading'}</span>
-                </button>
+                      <span className={styles.spanText}>{span.start ?? 'no start date'}</span>
+                    </button>
+                    <span className={styles.spanArrow} aria-hidden="true">
+                      →
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.spanEnd}
+                      data-unset={!book.finishedOn || undefined}
+                      onClick={() => setPicking('closed')}
+                      aria-label={
+                        book.finishedOn
+                          ? `Finished ${shortDate(book.finishedOn)}. Change the day.`
+                          : 'Still reading. Set the day you finished.'
+                      }
+                    >
+                      <span className={styles.spanText}>{span.finish ?? 'still reading'}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className={styles.span}>
+                    <button
+                      type="button"
+                      className={styles.spanEnd}
+                      onClick={() => setPicking('opened')}
+                    >
+                      <span className={styles.spanText}>Add reading dates</span>
+                    </button>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className={styles.span}>
-                <button
-                  type="button"
-                  className={styles.spanEnd}
-                  onClick={() => setPicking('opened')}
-                >
-                  <span className={styles.spanText}>Add reading dates</span>
-                </button>
-              </div>
-            )}
-          </div>
 
-          {/* The head's own star — see `.headSpark`. Last child on purpose: it
+              {/* The head's own star — see `.headSpark`. Last child on purpose: it
               is lifted out of flow, so its only job in the markup is to be
               somewhere it can never take part in the row's layout. */}
-          <Sparkle size={15} className={styles.headSpark} />
-        </div>
-        </div>
+              <Sparkle size={15} className={styles.headSpark} />
+            </div>
+          </div>
         </div>
 
         {/* ── One line: what to show, and the order it hangs in ─────────── */}
@@ -565,9 +546,9 @@ function BookJourney() {
             <button
               type="button"
               className={styles.tab}
-              aria-pressed={sift.types.length === 0 && !sift.motif}
-              data-on={(sift.types.length === 0 && !sift.motif) || undefined}
-              onClick={() => setSift((s) => ({ ...s, types: [], motif: null }))}
+              aria-pressed={sift.types.length === 0}
+              data-on={sift.types.length === 0 || undefined}
+              onClick={() => setSift((s) => ({ ...s, types: [] }))}
             >
               All
             </button>
@@ -629,21 +610,16 @@ function BookJourney() {
         <div className={`${pageStyles.column} ${styles.column}`}>
           <ol className={styles.thread}>
             {forward && seal}
-            {rows.map(({ keep, divider, tie }) => (
-              <Fragment key={keep.id}>
-                {divider && <Divider label={divider} />}
-                <Notch
-                  keep={keep}
-                  book={book}
-                  tie={tie}
-                  showSide={showSide}
-                  onMotif={(motif) =>
-                    setSift((s) => ({ ...s, motif: s.motif === motif ? null : motif }))
-                  }
-                  onEdit={setEditing}
-                  onDelete={(k) => void deleteKeep(k)}
-                />
-              </Fragment>
+            {rows.map(({ keep, tie }) => (
+              <Notch
+                key={keep.id}
+                keep={keep}
+                book={book}
+                tie={tie}
+                showSide={showSide}
+                onEdit={setEditing}
+                onDelete={(k) => void deleteKeep(k)}
+              />
             ))}
             {!forward && seal}
           </ol>
@@ -670,8 +646,8 @@ function BookJourney() {
             <div className={styles.nothing}>
               <Mascot size={54} />
               <span>
-                Nothing on this thread yet. Whatever this book whispers to you,
-                and whatever you put down in your own ink, will hang right here.
+                Nothing on this thread yet. Whatever this book whispers to you, and whatever you put
+                down in your own ink, will hang right here.
               </span>
             </div>
           )}
@@ -824,9 +800,7 @@ function BookJourney() {
         </header>
         <div className={sheet.body}>
           <CalendarPicker
-            value={
-              (picking === 'opened' ? book.startedOn : book.finishedOn) ?? todayISO()
-            }
+            value={(picking === 'opened' ? book.startedOn : book.finishedOn) ?? todayISO()}
             max={todayISO()}
             seed={book.id}
             onChange={(iso) => {
@@ -861,12 +835,7 @@ function BookJourney() {
         keeps={keeps}
       />
 
-      <FairCopySheet
-        open={fairOpen}
-        onClose={() => setFairOpen(false)}
-        book={book}
-        keeps={keeps}
-      />
+      <FairCopySheet open={fairOpen} onClose={() => setFairOpen(false)} book={book} keeps={keeps} />
 
       <BookMenu
         open={bookOpen}

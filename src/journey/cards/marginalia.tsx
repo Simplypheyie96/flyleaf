@@ -19,22 +19,21 @@
 import { keptLabel } from '../lexicon'
 import { STANCE } from '../kinds'
 import { Place, waveBars } from './art'
-import { Motifs, clock, useObjectUrl, usePlayback, type CardProps } from './shared'
+import { Stance, clock, useObjectUrl, usePlayback, type CardProps } from './shared'
 import s from './marginalia.module.css'
 
-const foot = { footClass: s.foot, chipClass: s.chip, stanceClass: s.stance }
+const foot = { footClass: s.foot, stanceClass: s.stance }
 
 /* ── Quote ────────────────────────────────────────────────────────────────
    A pulled quote, the way a book sets one: a heavy rule in the margin, the
    line hung off it in large italic serif, no container at all. */
 
-export function Quote({ keep, onMotif }: CardProps) {
+export function Quote({ keep }: CardProps) {
   return (
     <article className={`${s.set} ${s.pulled}`}>
       <span className={`${s.mark} ${s.rule}`} aria-hidden="true" />
       <div className={s.body}>
         <blockquote className={s.said}>{keep.text}</blockquote>
-        <Motifs keep={keep} onMotif={onMotif} {...foot} />
       </div>
     </article>
   )
@@ -44,13 +43,12 @@ export function Quote({ keep, onMotif }: CardProps) {
    The reader's hand, written straight onto a dotted writing guide — the sort
    printed faintly so it disappears once there is writing on it. */
 
-export function Note({ keep, onMotif }: CardProps) {
+export function Note({ keep }: CardProps) {
   return (
     <article className={`${s.set} ${s.written}`}>
       <span className={`${s.mark} ${s.nib}`} aria-hidden="true" />
       <div className={s.body}>
         <p className={s.hand}>{keep.text}</p>
-        <Motifs keep={keep} onMotif={onMotif} {...foot} />
       </div>
     </article>
   )
@@ -60,7 +58,7 @@ export function Note({ keep, onMotif }: CardProps) {
    A bare waveform with a play mark in the margin. No slab, no shell: the
    recording is a line across the page, and it fills in as it plays. */
 
-export function Voice({ keep, onMotif }: CardProps) {
+export function Voice({ keep }: CardProps) {
   const { playing, at, toggle, ready } = usePlayback(keep.media)
   const bars = waveBars(keep.id, 56)
   const played = Math.round(at * bars.length)
@@ -90,7 +88,6 @@ export function Voice({ keep, onMotif }: CardProps) {
           <span className={s.stamp}>{clock(keep.duration)}</span>
           {keep.text || `Kept ${keptLabel(keep.keptOn)}`}
         </p>
-        <Motifs keep={keep} onMotif={onMotif} {...foot} />
       </div>
     </article>
   )
@@ -100,7 +97,7 @@ export function Voice({ keep, onMotif }: CardProps) {
    The picture runs the full measure with nothing around it — no mount, no
    frame, no corners. The caption is set under it as a printed plate line. */
 
-export function Picture({ keep, onMotif }: CardProps) {
+export function Picture({ keep }: CardProps) {
   const url = useObjectUrl(keep.media)
   return (
     <figure className={`${s.set} ${s.plated}`}>
@@ -112,7 +109,6 @@ export function Picture({ keep, onMotif }: CardProps) {
           <p className={s.gone}>This picture isn’t on this device.</p>
         )}
         {keep.text && <figcaption className={s.plate}>{keep.text}</figcaption>}
-        <Motifs keep={keep} onMotif={onMotif} {...foot} />
       </div>
     </figure>
   )
@@ -123,7 +119,7 @@ export function Picture({ keep, onMotif }: CardProps) {
    a dramatis-personae entry: small caps, an em rule, then the description
    running on as prose. */
 
-export function Character({ keep, onMotif }: CardProps) {
+export function Character({ keep }: CardProps) {
   return (
     <article className={`${s.set} ${s.listed}`}>
       <svg className={`${s.mark} ${s.bust}`} viewBox="0 0 24 24" aria-hidden="true">
@@ -141,7 +137,6 @@ export function Character({ keep, onMotif }: CardProps) {
           <span className={s.who}>{keep.name}</span>
           {keep.text && <span className={s.about}>{keep.text}</span>}
         </p>
-        <Motifs keep={keep} onMotif={onMotif} {...foot} />
       </div>
     </article>
   )
@@ -151,7 +146,7 @@ export function Character({ keep, onMotif }: CardProps) {
    A drawn horizon ruled across the full measure, like a chapter-head vignette,
    with the name set beneath it in the small caps a map uses. */
 
-export function Location({ keep, onMotif }: CardProps) {
+export function Location({ keep }: CardProps) {
   const url = useObjectUrl(keep.media)
   return (
     <article className={`${s.set} ${s.surveyed}`}>
@@ -166,7 +161,6 @@ export function Location({ keep, onMotif }: CardProps) {
         </div>
         {keep.name && <h3 className={s.legend}>{keep.name}</h3>}
         {keep.text && <p className={s.lore}>{keep.text}</p>}
-        <Motifs keep={keep} onMotif={onMotif} {...foot} />
       </div>
     </article>
   )
@@ -178,7 +172,7 @@ export function Location({ keep, onMotif }: CardProps) {
    mark gets darker and heavier as the reader gets surer — no tag, no label,
    nothing to read. */
 
-export function Thread({ keep, onMotif }: CardProps) {
+export function Thread({ keep }: CardProps) {
   const stance = keep.stance ?? 'hunch'
   const strokes = STANCE[stance].weight
   return (
@@ -191,7 +185,7 @@ export function Thread({ keep, onMotif }: CardProps) {
       <div className={s.body}>
         {keep.name && <h3 className={s.calling}>{keep.name}</h3>}
         {keep.text && <p className={s.working}>{keep.text}</p>}
-        <Motifs keep={keep} onMotif={onMotif} {...foot} />
+        <Stance keep={keep} {...foot} />
       </div>
     </article>
   )

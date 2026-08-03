@@ -21,23 +21,22 @@ import { Avatar } from '../avatars'
 import { keptLabel } from '../lexicon'
 import { STANCES, STANCE } from '../kinds'
 import { Survey } from './art'
-import { Motifs, useObjectUrl, type CardProps } from './shared'
+import { Stance, useObjectUrl, type CardProps } from './shared'
 import s from './plates.module.css'
 
-const foot = { footClass: s.foot, chipClass: s.chip, stanceClass: s.stance }
+const foot = { footClass: s.foot, stanceClass: s.stance }
 
 /* ── Quote ────────────────────────────────────────────────────────────────
    A tinted panel with an oversized quotation mark ghosted across it, bled off
    the leading edge. The line is set over the mark, not beside it. */
 
-export function Quote({ keep, onMotif }: CardProps) {
+export function Quote({ keep }: CardProps) {
   return (
     <article className={`${s.plate} ${s.panel}`}>
       <span className={s.ghost} aria-hidden="true">
         “
       </span>
       <blockquote className={s.said}>{keep.text}</blockquote>
-      <Motifs keep={keep} onMotif={onMotif} {...foot} />
     </article>
   )
 }
@@ -47,13 +46,12 @@ export function Quote({ keep, onMotif }: CardProps) {
    margin down the leading edge. The most familiar object in the set, and the
    one the reader already said reads clearly. */
 
-export function Note({ keep, onMotif }: CardProps) {
+export function Note({ keep }: CardProps) {
   return (
     <article className={`${s.plate} ${s.index}`}>
       <div className={s.lines}>
         <p className={s.hand}>{keep.text}</p>
       </div>
-      <Motifs keep={keep} onMotif={onMotif} {...foot} />
     </article>
   )
 }
@@ -63,7 +61,7 @@ export function Note({ keep, onMotif }: CardProps) {
    after dark, inverted against the page either way. A recording is a device,
    not a piece of paper. */
 
-export function Voice({ keep, onMotif }: CardProps) {
+export function Voice({ keep }: CardProps) {
   return (
     <article className={`${s.plate} ${s.slab}`}>
       <VoiceOrb
@@ -73,7 +71,6 @@ export function Voice({ keep, onMotif }: CardProps) {
         label={`the voice memo kept ${keptLabel(keep.keptOn)}`}
       />
       {keep.text && <p className={s.slabCaption}>{keep.text}</p>}
-      <Motifs keep={keep} onMotif={onMotif} {...foot} />
     </article>
   )
 }
@@ -82,7 +79,7 @@ export function Voice({ keep, onMotif }: CardProps) {
    A polaroid: white all round, heavy at the foot, the caption written across
    the wide edge in the reader's hand. */
 
-export function Picture({ keep, onMotif }: CardProps) {
+export function Picture({ keep }: CardProps) {
   const url = useObjectUrl(keep.media)
   return (
     <figure className={`${s.plate} ${s.polaroid}`}>
@@ -94,7 +91,6 @@ export function Picture({ keep, onMotif }: CardProps) {
         )}
       </div>
       <figcaption className={s.scrawl}>{keep.text || keptLabel(keep.keptOn)}</figcaption>
-      <Motifs keep={keep} onMotif={onMotif} {...foot} />
     </figure>
   )
 }
@@ -104,7 +100,7 @@ export function Picture({ keep, onMotif }: CardProps) {
    the name reversed out of a band across the foot of the portrait — the way a
    plate in an illustrated edition is captioned. */
 
-export function Character({ keep, onMotif }: CardProps) {
+export function Character({ keep }: CardProps) {
   return (
     <article className={`${s.plate} ${s.portrait}`}>
       <div className={s.ground}>
@@ -114,7 +110,6 @@ export function Character({ keep, onMotif }: CardProps) {
         <h3 className={s.band}>{keep.name}</h3>
       </div>
       {keep.text && <p className={s.dossier}>{keep.text}</p>}
-      <Motifs keep={keep} onMotif={onMotif} {...foot} />
     </article>
   )
 }
@@ -124,7 +119,7 @@ export function Character({ keep, onMotif }: CardProps) {
    marked — runs the whole plate, and the name is reversed out of a scrim laid
    across the foot of it, which is how a plaque is lettered. */
 
-export function Location({ keep, onMotif }: CardProps) {
+export function Location({ keep }: CardProps) {
   const url = useObjectUrl(keep.media)
   return (
     <article className={`${s.plate} ${s.plaque}`}>
@@ -140,10 +135,7 @@ export function Location({ keep, onMotif }: CardProps) {
           </div>
         )}
       </div>
-      <div className={s.plaqueBody}>
-        {keep.text && <p className={s.lore}>{keep.text}</p>}
-        <Motifs keep={keep} onMotif={onMotif} {...foot} />
-      </div>
+      <div className={s.plaqueBody}>{keep.text && <p className={s.lore}>{keep.text}</p>}</div>
     </article>
   )
 }
@@ -154,7 +146,7 @@ export function Location({ keep, onMotif }: CardProps) {
    reader is. Three boxes, one, two or three of them struck. Countable, not
    readable. */
 
-export function Thread({ keep, onMotif }: CardProps) {
+export function Thread({ keep }: CardProps) {
   const stance = keep.stance ?? 'hunch'
   const weight = STANCE[stance].weight
   return (
@@ -169,7 +161,7 @@ export function Thread({ keep, onMotif }: CardProps) {
       </header>
       <div className={s.ledgerBody}>
         {keep.text && <p className={s.working}>{keep.text}</p>}
-        <Motifs keep={keep} onMotif={onMotif} {...foot} />
+        <Stance keep={keep} {...foot} />
       </div>
     </article>
   )

@@ -46,10 +46,10 @@
   color: var(--color-ink);
 }
 
-/* ── Shared: the motifs ───────────────────────────────────────────────── */
+/* ── Shared: the stance ───────────────────────────────────────────────── */
 
-/* Trailing space so the chips' tap targets clear the verb circles that hang
-   off the keep's bottom-right — see the long note on the same rule in
+/* Trailing space so the stamp's tap-sized row clears the verb circles that
+   hang off the keep's bottom-right — see the long note on the same rule in
    pressed.module.css. */
 .foot {
   display: flex;
@@ -60,54 +60,15 @@
   margin-block-end: 10px;
 }
 
-.chip {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  min-block-size: 34px;
-  padding-inline: var(--space-3);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: var(--card-chip);
-  color: var(--color-ink-soft);
-  font-family: var(--font-sans);
-  font-weight: var(--weight-label);
-  font-size: var(--text-xs);
-  letter-spacing: 0.03em;
-  cursor: pointer;
-  transition:
-    color var(--dur-press) var(--ease-out),
-    background-color var(--dur-press) var(--ease-out);
-}
-
-/* 34px of pill, 44px of target — the extra 5px top and bottom taken out of the
-   card's own air rather than drawn. See the note on the same rule in
-   marginalia.module.css. */
-.chip::after {
-  content: '';
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 50%;
-  translate: -50% -50%;
-  block-size: var(--tap-min);
-  inline-size: 100%;
-  min-inline-size: var(--tap-min);
-}
-
-.chip:hover {
-  background: var(--color-accent-tint);
-  color: var(--color-accent-text);
-}
-
 /* The stance as a struck stamp: reversed out of the ink, mono, letter-spaced,
    square-cornered like everything else in the ledger. The ticks in the header
    already score how sure the reader was, and this is the line of the entry
    that says which score it is.
 
-   Reversed rather than tinted because the strand names beside it are already
-   filled chips — a second filled chip in a different tint would read as a
-   second filter. Ink-on-paper flips it out of that set entirely, and both
-   tokens are card-side, so it is dark-on-light in either theme. */
+   Reversed rather than tinted because a tinted pill on a tinted card is a
+   second surface at the same weight as the paper it sits on. Ink-on-paper
+   flips it out of that set entirely, and both tokens are card-side, so it is
+   dark-on-light in either theme. */
 .stance {
   display: inline-flex;
   align-items: center;
@@ -442,8 +403,7 @@
   background: linear-gradient(
     to top,
     color-mix(in oklab, var(--color-place) 88%, black) 0,
-    color-mix(in oklab, var(--color-place) 88%, black)
-      calc(100% - var(--space-6)),
+    color-mix(in oklab, var(--color-place) 88%, black) calc(100% - var(--space-6)),
     transparent 100%
   );
 }
@@ -563,11 +523,5 @@
   .plate {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .chip {
-    transition-duration: 0.01ms;
   }
 }

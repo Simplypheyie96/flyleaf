@@ -109,13 +109,13 @@ const PREVIEW_SHELF: Book[] = [
    filtering, tagging or gathering can be seen at all. So one of the invented
    books arrives with a journey already on it — all seven kinds of keep, three
    plot threads at the three stances so the tie between them can be seen
-   hardening, a place with a map and a place without one, motifs that overlap,
-   and pages that run in a different order from the days they were kept, so
-   "Book order" and "As kept" visibly differ.
+   hardening, a place with a map and a place without one, and pages that run in
+   a different order from the days they were kept, so "Book order" and "As
+   kept" visibly differ.
 
-   These are real rows in the real table. They can be edited, retagged,
-   re-dated and deleted like anything else, which is the point: a placeholder
-   that cannot be deleted is not a preview of the app. */
+   These are real rows in the real table. They can be edited, re-dated and
+   deleted like anything else, which is the point: a placeholder that cannot be
+   deleted is not a preview of the app. */
 
 const JOURNEY_BOOK = 111111
 
@@ -141,7 +141,6 @@ const PREVIEW_JOURNEY: Fixture[] = [
     page: 12,
     keptOn: '2026-07-04',
     createdAt: at('2026-07-04', 12),
-    motifs: ['the house'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -151,7 +150,6 @@ const PREVIEW_JOURNEY: Fixture[] = [
     chapter: 'One',
     keptOn: '2026-07-05',
     createdAt: at('2026-07-05', 30),
-    motifs: ['weather', 'the house'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -162,7 +160,6 @@ const PREVIEW_JOURNEY: Fixture[] = [
     chapter: 'Two',
     keptOn: '2026-07-06',
     createdAt: at('2026-07-06', 18),
-    motifs: ['the house'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -172,7 +169,6 @@ const PREVIEW_JOURNEY: Fixture[] = [
     chapter: 'Two',
     keptOn: '2026-07-07',
     createdAt: at('2026-07-07', 55),
-    motifs: ['the house'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -184,7 +180,6 @@ const PREVIEW_JOURNEY: Fixture[] = [
     page: 47,
     keptOn: '2026-07-09',
     createdAt: at('2026-07-09', 15),
-    motifs: ['weather'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -204,7 +199,6 @@ const PREVIEW_JOURNEY: Fixture[] = [
     page: 63,
     keptOn: '2026-07-14',
     createdAt: at('2026-07-14', 5),
-    motifs: ['weather'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -215,7 +209,6 @@ const PREVIEW_JOURNEY: Fixture[] = [
     chapter: 'Six',
     keptOn: '2026-07-16',
     createdAt: at('2026-07-16', 30),
-    motifs: ['the house'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -224,7 +217,6 @@ const PREVIEW_JOURNEY: Fixture[] = [
     page: 122,
     keptOn: '2026-07-18',
     createdAt: at('2026-07-18', 45),
-    motifs: ['the house'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -234,7 +226,6 @@ const PREVIEW_JOURNEY: Fixture[] = [
     chapter: 'Nine',
     keptOn: '2026-07-21',
     createdAt: at('2026-07-21', 10),
-    motifs: ['grief', 'the house'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -245,7 +236,6 @@ const PREVIEW_JOURNEY: Fixture[] = [
     page: 155,
     keptOn: '2026-07-24',
     createdAt: at('2026-07-24', 40),
-    motifs: ['the house'],
   },
   {
     bookId: JOURNEY_BOOK,
@@ -263,7 +253,6 @@ const PREVIEW_JOURNEY: Fixture[] = [
     page: 168,
     keptOn: '2026-07-28',
     createdAt: at('2026-07-28', 25),
-    motifs: ['grief'],
   },
 ]
 

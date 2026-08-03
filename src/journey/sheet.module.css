@@ -532,24 +532,34 @@
 
 /* ── The character's face ───────────────────────────────────────────────────
 
-   Not a panel. The recorder and the picture chooser are framed because they
-   are asking for something the reader has not given yet; this is the opposite
-   — the app has already drawn somebody, and there is nothing to fill in. A box
-   around a face and one word promises more work than one tap. */
-.faceRow {
+   Not a panel and not a row of its own. The recorder and the picture chooser
+   are framed because they are asking for something the reader has not given
+   yet; this is the opposite — the face is made out of the name in the box
+   beside it, so it stands in that box's own row and reads as what the field
+   just produced rather than as a second thing to deal with. */
+.nameRow {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
-/* The card's cameo at the card's size, because that is where this face is
-   going: the reader is looking at the thing itself, not a preview of it. */
+/* The field still owns the row; the face is what is left over. Stated rather
+   than left to `width: 100%` and flex-shrink, because that pair happens to
+   work and reads like an accident. */
+.nameRow .input {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* The card's cameo, sized to the field it stands beside — a circle the height
+   of the input, so the two read as one row rather than as a picture with a
+   text box parked under its chin. */
 .facePlate {
   display: grid;
   place-items: center;
   flex: none;
-  inline-size: 46px;
-  block-size: 56px;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
   border-radius: 50%;
   /* The bust is drawn past the foot of its own sheet; the mount ends it. */
   overflow: hidden;
@@ -558,11 +568,12 @@
   color: color-mix(in oklab, var(--tint-character), var(--tint-ink) 32%);
 }
 
-/* Dictate's button, said again — a small label rather than a pill, because
-   nothing here is waiting on the reader and a filled control would say it was.
-   The tap target is the full 44px and is taken back out of the layout, so the
-   row stands as tall as the face and not as tall as the hit area. */
+/* Dictate's button, said again, on the label line Dictate uses — a small label
+   rather than a pill, because nothing here is waiting on the reader and a
+   filled control would say it was. The tap target is the full 44px and is
+   taken back out of the layout, so the label line stays a label line. */
 .faceSwap {
+  margin-inline-start: auto;
   display: inline-flex;
   align-items: center;
   min-height: var(--tap-min);
@@ -590,18 +601,6 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-/* A field with its own commit button beside it — adding a motif. */
-.addRow {
-  display: flex;
-  align-items: stretch;
-  gap: var(--space-2);
-}
-
-.addRow .input {
-  flex: 1;
-  min-width: 0;
 }
 
 /* ---- The date ---- */

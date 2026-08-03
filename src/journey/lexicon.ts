@@ -1,6 +1,6 @@
 /* Flyleaf's own words.
 
-   Five of them, and they are all borrowed from bookbinding and printing rather
+   Four of them, and they are all borrowed from bookbinding and printing rather
    than from software, because this app is about books and "entries", "tags"
    and "AI summary" are about databases. A reader who has never seen the words
    before should be able to work out every one of them from where it sits on
@@ -9,7 +9,6 @@
      Keep       one thing taken out of a book and held on to
      Epigraph   the inscription at the head of the journey, written the day
                 the book was opened
-     Motif      what a keep is about, in the reader's own words
      Colophon   the closing facts of the reading, set as a keepsake
      Fair Copy  a clean draft of a review, assembled from what you wrote
 
@@ -274,8 +273,9 @@ export function colophon(book: Book, keeps: Entry[]): ColophonLine[] {
     })
   }
 
-  const named = (type: EntryType) =>
-    [...new Set(keeps.filter((e) => e.type === type && e.name).map((e) => e.name!))]
+  const named = (type: EntryType) => [
+    ...new Set(keeps.filter((e) => e.type === type && e.name).map((e) => e.name!)),
+  ]
 
   const people = named('character')
   if (people.length) lines.push({ term: 'Followed', detail: people.join(', ') })
@@ -285,9 +285,6 @@ export function colophon(book: Book, keeps: Entry[]): ColophonLine[] {
 
   const threads = named('thread')
   if (threads.length) lines.push({ term: 'Wondered about', detail: threads.join(', ') })
-
-  const motifs = [...new Set(keeps.flatMap((e) => e.motifs ?? []))]
-  if (motifs.length) lines.push({ term: 'On', detail: motifs.join(', ') })
 
   const pages = book.pages
   if (pages && book.pagesRead && !book.finishedOn) {
@@ -368,9 +365,7 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
   if (lifted.length) {
     parts.push(lifted.length === 1 ? 'A line I kept:' : 'Some lines I kept:')
     parts.push(
-      lifted
-        .map((e) => `${QUOTE_OPEN}${e.text!.trim()}${QUOTE_CLOSE}${place(e)}`)
-        .join('\n\n'),
+      lifted.map((e) => `${QUOTE_OPEN}${e.text!.trim()}${QUOTE_CLOSE}${place(e)}`).join('\n\n'),
     )
   }
 

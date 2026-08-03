@@ -3,9 +3,7 @@
    Three keeps per type, invented for the purpose and belonging to no real book
    — the point is to judge a drawing against writing of a realistic length,
    including the awkward ones: a quote that runs four lines, a character with no
-   name to give, a thread whose title is a whole sentence.
-
-   Some carry motifs and some do not, because a card has to hold both. */
+   name to give, a thread whose title is a whole sentence. */
 
 import type { Entry, EntryType } from '../../data/db'
 
@@ -23,7 +21,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       keptOn: '2026-06-14',
       page: 41,
       text: 'The house had been holding its breath since March, and not one of us thought to tell it that it could stop.',
-      motifs: ['the house', 'grief'],
     }),
     keep({
       type: 'quote',
@@ -36,7 +33,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       keptOn: '2026-07-02',
       page: 7,
       text: 'Rain on the skylight, and the long argument of the pipes.',
-      motifs: ['weather'],
     }),
   ],
   note: [
@@ -44,7 +40,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       type: 'note',
       keptOn: '2026-06-15',
       text: 'I keep circling the sister. She is not the one being punished, but she is the one who keeps apologising.',
-      motifs: ['the sister'],
     }),
     keep({
       type: 'note',
@@ -56,7 +51,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       type: 'note',
       keptOn: '2026-07-09',
       text: 'The ferry timetable is doing something. Every time it changes, somebody leaves and nobody says goodbye.',
-      motifs: ['leaving', 'the sea'],
     }),
   ],
   voice: [
@@ -65,7 +59,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       keptOn: '2026-06-18',
       duration: 47,
       text: 'Walked home the long way arguing with chapter nine out loud.',
-      motifs: ['arguing with it'],
     }),
     keep({
       type: 'voice',
@@ -78,7 +71,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       keptOn: '2026-07-11',
       duration: 96,
       text: 'Three in the morning and I cannot sleep. Something about the lighthouse.',
-      motifs: ['the lighthouse'],
     }),
   ],
   image: [
@@ -86,7 +78,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       type: 'image',
       keptOn: '2026-06-16',
       text: 'The bridge from chapter four, more or less, at entirely the wrong time of year.',
-      motifs: ['the bridge'],
     }),
     keep({
       type: 'image',
@@ -97,7 +88,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       type: 'image',
       keptOn: '2026-07-06',
       text: 'Tried drawing the kitchen the way it is described. Got the window badly wrong.',
-      motifs: ['the house'],
     }),
   ],
   character: [
@@ -106,7 +96,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       keptOn: '2026-06-13',
       name: 'Vesna Mardal',
       text: 'Keeps the accounts, and everybody else’s secrets. Says less with every chapter.',
-      motifs: ['the sister'],
     }),
     keep({
       type: 'character',
@@ -119,7 +108,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       keptOn: '2026-07-05',
       name: 'Aunt Clement',
       text: 'Arrives with the weather and leaves before anyone has the chance to thank her.',
-      motifs: ['weather'],
     }),
   ],
   place: [
@@ -128,7 +116,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       keptOn: '2026-06-17',
       name: 'The Sea Road',
       text: 'Six miles of it, and the book measures every argument against how far along it they have got.',
-      motifs: ['the sea'],
     }),
     keep({
       type: 'place',
@@ -141,7 +128,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       keptOn: '2026-07-10',
       name: 'The Winter Room',
       text: 'Shut up from October. The only room in the house with the lock on the inside.',
-      motifs: ['the house', 'cold'],
     }),
   ],
   thread: [
@@ -158,7 +144,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       name: 'She knew about the fire',
       stance: 'suspicion',
       text: 'She is the only person in the house who never asks a single question about it.',
-      motifs: ['the fire'],
     }),
     keep({
       type: 'thread',
@@ -166,7 +151,6 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       name: 'The house is telling this',
       stance: 'certain',
       text: 'Chapter twelve settles it. Nobody standing in that room could have seen what we are shown.',
-      motifs: ['the house'],
     }),
   ],
 }
