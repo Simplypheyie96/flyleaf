@@ -637,9 +637,10 @@
      simply resolve to zero once the content outgrows the box. */
   overflow: auto;
   overscroll-behavior: contain;
-  /* Thin and drawn in the page's own ink. Only the card ever needs it — a
-     reading with a dozen facts on it outgrows the stage on a small phone —
-     and one hairline track is a long way from the four the old sheet had. */
+  /* Thin and drawn in the page's own ink, for the one stage that can outgrow
+     itself: the fair copy's own text, on a short phone in landscape. The
+     keepsake's plate is fitted to the stage and never asks for it, and one
+     hairline track is a long way from the four the old sheet had. */
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklch, var(--color-ink), transparent 72%) transparent;
   /* Room for a focus ring, taken back off the outside. Same pair as `.body`,
@@ -654,31 +655,17 @@
   margin-block: auto;
 }
 
-/* A reading with a dozen facts on it is taller than any stage a phone can give
-   it — eight of those facts at the 44px a finger needs is 390px before the
-   title is set — so the card scrolls. What it must not do is end on a hard
-   horizontal cut, which is how a clipped bug looks and how a deliberate
-   scroller does not. The last 24px dissolve instead.
-
-   24 because that is exactly the card's own bottom padding: scrolled to the
-   end, the thing being faded out is paper margin, never a fact. Card only —
-   over a textarea this would be sitting on the line somebody is typing, and
-   over the plate there is nothing to fade, the picture already fits. */
-.fades {
-  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--space-5)), transparent);
-}
-
-/* The text pane is the exception: the writing is the preview, so it takes the
+/* The fair copy is the exception: the writing is the preview, so it takes the
    stage rather than sitting in the middle of it. */
 .stage > .write {
   flex: 1;
   margin-block: 0;
 }
 
-/* One quiet line between the stage and the controls, saying what the pane in
-   front of you does. It replaced a paragraph per pane plus a hint under the
-   shape chips — four blocks of explanation for a screen whose whole job is to
-   show you the answer instead of describing it. */
+/* One quiet line between the stage and the controls, saying what the thing in
+   front of you is. It replaced a paragraph per pane plus a hint under the shape
+   chips — four blocks of explanation for a screen whose whole job is to show
+   you the answer instead of describing it. */
 .caption {
   flex: none;
   font-family: var(--font-serif);
@@ -699,120 +686,27 @@
   gap: var(--space-2);
 }
 
-/* ---- Segmented: several buttons that are one control ----
+/* ---- The rail: one row, one question ----
 
-   Three mutually exclusive answers to one question belong in one track, not in
-   three pills with sky between them — the same rule the journey's chrome pill
-   follows. Built from the sheet's own field material and the chip's own chosen
-   state, so it is the app's existing pill grouped, not a new control. */
-.segment {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: 2px;
-  padding: 3px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--field-border);
-  background: var(--field-fill);
-}
+   A row of the options for a single axis. There were three of these on one
+   line once, each behind its own stamped label with hairlines between them, in
+   a scroller — and on a 390px phone that put the shapes on screen and the
+   colours and the papers past the right-hand edge, with a mask over the end
+   instead of anything saying they were there. An option nobody can see is an
+   option nobody has.
 
-.segmentItem {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  /* The track adds its own 8px, so this is the hit area and not the row. */
-  min-block-size: var(--tap-min);
-  min-inline-size: 0;
-  padding-inline: var(--space-2);
-  border: 1px solid transparent;
-  border-radius: var(--radius-pill);
-  background: none;
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  font-weight: 620;
-  letter-spacing: 0.01em;
-  color: var(--color-ink-soft);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-  transition:
-    background-color var(--dur-quick) var(--ease-out),
-    color var(--dur-quick) var(--ease-out);
-}
-
-.segmentItem:hover {
-  color: var(--color-ink);
-}
-
-.segmentItem[aria-checked='true'] {
-  background: var(--color-chip-active);
-  border-color: var(--border-hairline);
-  color: var(--color-ink);
-  box-shadow: var(--elevation-1);
-}
-
-.segmentItem:focus-visible {
-  outline: 2px solid var(--color-accent-text);
-  outline-offset: -1px;
-}
-
-/* ---- The rail: a printer's spec strip ----
-
-   Three axes on one line — what the picture shows, what it is printed on, what
-   it is printed in — each behind its own stamped label, divided by hairlines.
-   Stacked as three labelled fieldsets they were 200px of the sheet and pushed
-   the picture down to a thumbnail; laid out along one line they are 52px and
-   the picture keeps the difference.
-
-   It scrolls sideways when the words outrun the phone, the same way the
-   journey's filter rail does, and fades at the trailing edge rather than
-   showing a track. A rail is a shelf of options, not a document. */
+   So: one axis per rail, two rails stacked, and it wraps rather than scrolls.
+   Wrapping costs a row of height on the narrowest phone in the worst case and
+   hides nothing ever, which is the trade every time. */
 .rail {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
-  scrollbar-width: none;
-  /* The fade has to sit inside the padding, or a chip at rest looks dimmed for
-     no reason; it only ever eats a chip once one is genuinely scrolled under
-     it. `--fade` matches the gap so nothing lands half-lit. */
-  --fade: var(--space-5);
-  padding-inline-end: var(--fade);
-  margin-inline-end: calc(-1 * var(--fade));
-  mask-image: linear-gradient(
-    to right,
-    #000 0,
-    #000 calc(100% - var(--fade)),
-    transparent 100%
-  );
 }
 
-.rail::-webkit-scrollbar {
-  display: none;
-}
-
-/* `flex: none` is load-bearing. A flex item shrinks by default, and these
-   groups hold chips that refuse to — so on a narrow phone each group's box was
-   squeezed below its contents and the swatches spilled out to the right, under
-   the next group's label. They still drew in the right place; they just could
-   not be tapped, because the label painted after them was what the tap landed
-   on. Groups keep their own width and the rail scrolls, which is what a rail
-   is for. */
-.railGroup {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  border: none;
-  padding: 0;
-  margin: 0;
-}
-
-/* Stamped, not written: the axis names are the caption on a printer's strip,
-   and at this size they have to be soft ink rather than faint — 11px tracked
+/* Stamped, not written: the axis name is the caption on a printer's strip, and
+   at this size it has to be soft ink rather than faint — 11px tracked
    uppercase is already working hard enough to be read. */
 .railLabel {
   flex: none;
@@ -821,14 +715,6 @@
   letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--color-ink-soft);
-}
-
-.railSep {
-  flex: none;
-  inline-size: 1px;
-  block-size: 24px;
-  margin-inline: var(--space-1);
-  background: var(--border-hairline);
 }
 
 /* A palette is a thing you look at, not a word you read, so its button is the

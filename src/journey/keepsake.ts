@@ -6,11 +6,16 @@
    tap is a share that eventually stops working, and the archive has to outlive
    whatever this app's bill looks like next year.
 
-   Three axes, because one picture is a template and thirty-six is a choice:
-   the SHAPE decides what the reading is reduced to, the PALETTE decides what
-   it is set in, and the GRAIN decides what it is set on. They are independent
-   on purpose — a reader who wants the tally on night-blue ruled paper should
-   not have to accept somebody else's idea of which of those go together.
+   Two axes, because one picture is a template and twelve is a choice: the
+   SHAPE decides what the reading is reduced to, and the PALETTE decides what
+   it is set in and on. They are independent on purpose — a reader who wants
+   the tally on night blue should not have to accept somebody else's idea of
+   which of those go together.
+
+   There was a third, GRAIN, and it was the one axis nobody needed: three
+   answers to "what paper", of which one was a novelty (ruled), one was the
+   absence of another (plain), and only the speckle did any work. The speckle
+   is not a choice now, it is what paper is — every palette carries it.
 
    Nothing in here says "Flyleaf". A keepsake with an app's name across the
    foot is an advertisement wearing the reader's reading as a costume, and
@@ -20,21 +25,14 @@ import type { Book, Entry } from '../data/db'
 import { KIND, KINDS } from './kinds'
 import { colophon } from './lexicon'
 
-/* ── The three axes ────────────────────────────────────────────────────── */
+/* ── The two axes ──────────────────────────────────────────────────────── */
 
 export type Shape = 'colophon' | 'line' | 'tally'
-export type Grain = 'plain' | 'grain' | 'ruled'
 
 export const SHAPES: { id: Shape; label: string; hint: string }[] = [
-  { id: 'colophon', label: 'The colophon', hint: 'dates, counts, names — the whole reading set small' },
+  { id: 'colophon', label: 'The colophon', hint: 'the line you kept, and the whole reading under it' },
   { id: 'line', label: 'One line', hint: 'a single thing the book said, set large' },
   { id: 'tally', label: 'The tally', hint: 'what you kept, counted' },
-]
-
-export const GRAINS: { id: Grain; label: string }[] = [
-  { id: 'plain', label: 'Plain' },
-  { id: 'grain', label: 'Grain' },
-  { id: 'ruled', label: 'Ruled' },
 ]
 
 export interface Palette {
@@ -60,7 +58,6 @@ export const PALETTES: Palette[] = [
 export interface Look {
   shape: Shape
   palette: Palette
-  grain: Grain
 }
 
 /* ── What there is to draw ─────────────────────────────────────────────── */
@@ -136,6 +133,7 @@ const SANS = '"Instrument Sans Variable", system-ui, sans-serif'
 export async function readyFonts() {
   await Promise.all([
     document.fonts.load(`400 96px ${SERIF}`),
+    document.fonts.load(`italic 400 44px ${SERIF}`),
     document.fonts.load(`400 32px ${SANS}`),
     document.fonts.load(`600 22px ${SANS}`),
   ])
@@ -187,28 +185,16 @@ function ground(ctx: CanvasRenderingContext2D, look: Look) {
   ctx.fillStyle = look.palette.paper
   ctx.fillRect(0, 0, W, H)
 
-  if (look.grain === 'grain') {
-    const rand = scatter(9973)
-    ctx.fillStyle = look.palette.ink
-    ctx.globalAlpha = 0.045
-    for (let i = 0; i < 5200; i++) {
-      ctx.fillRect(rand() * W, rand() * H, 2, 2)
-    }
-    ctx.globalAlpha = 1
+  /* The tooth. At 4.5% of the ink over about 1.4% of the plate it is not
+     visible as dots at any size anyone will see this at — it just stops the
+     paper reading as a flat fill, which is the whole of what a stock does. */
+  const rand = scatter(9973)
+  ctx.fillStyle = look.palette.ink
+  ctx.globalAlpha = 0.045
+  for (let i = 0; i < 5200; i++) {
+    ctx.fillRect(rand() * W, rand() * H, 2, 2)
   }
-
-  if (look.grain === 'ruled') {
-    ctx.strokeStyle = look.palette.soft
-    ctx.globalAlpha = 0.18
-    ctx.lineWidth = 1
-    for (let y = PAD; y < H - PAD; y += 54) {
-      ctx.beginPath()
-      ctx.moveTo(PAD, y + 0.5)
-      ctx.lineTo(W - PAD, y + 0.5)
-      ctx.stroke()
-    }
-    ctx.globalAlpha = 1
-  }
+  ctx.globalAlpha = 1
 
   /* The plate's edge. One hairline inside the bleed, which is what makes a
      picture read as a printed thing rather than as a screenshot. */
@@ -235,13 +221,119 @@ function foot(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   stamp(ctx, k.author.toUpperCase(), PAD, y)
 }
 
+/* The colophon's own floor. It ends in a single stamped author line rather
+   than the two-line imprint the other shapes carry, so it can run further down
+   the plate than they can before anything is crowded. */
+const COLOPHON_FLOOR = H - PAD - 60
+
+/* One fact's geometry, in one place. The term is stamped, the detail is set
+   under it, and both the measuring pass and the drawing pass read these — a
+   colophon whose epigraph was sized against a different set of facts than the
+   one printed beneath it would run off the bottom of the plate. */
+const TERM_STEP = 36
+const DETAIL_STEP = 44
+const FACT_GAP = 24
+
+function factLines(ctx: CanvasRenderingContext2D, detail: string) {
+  ctx.font = `400 36px ${SANS}`
+  return wrap(ctx, detail, W - PAD * 2).slice(0, 2)
+}
+
+/** How tall the first `most` facts will set, given where they start. */
+function factsHeight(ctx: CanvasRenderingContext2D, k: Keepsake, top: number, most: number) {
+  let y = top
+  for (const { detail } of k.lines.slice(0, most)) {
+    const lines = factLines(ctx, detail)
+    if (y + TERM_STEP + lines.length * DETAIL_STEP > COLOPHON_FLOOR) break
+    y += TERM_STEP + lines.length * DETAIL_STEP + FACT_GAP
+  }
+  return y - top
+}
+
+/* The epigraph.
+
+   A colophon of dates and counts and nothing else is a receipt, and nobody
+   sends anybody a receipt. The line the reader kept goes in under the rule,
+   where a title page puts one — set in the book's own voice, above a set of
+   facts about reading it.
+
+   It was written first to take only the slack the facts left over, which
+   sounded principled and drew nothing: a reading with six facts on it, two of
+   them running to a second line, leaves 44px. The priority is the other way
+   round. The line is the one thing on this plate that came out of the book;
+   the facts are a list of counts, and the last of them is "Wondered about",
+   which is the one nobody will miss. So the epigraph is drawn, and the facts
+   fill what is under it.
+
+   What protects the facts is the reserve: the room handed here is measured
+   against the first THREE facts already standing, so no line, however long,
+   can reduce the reading to a quotation with a date under it. Three lines is
+   the cap and 36px the floor, and below 150px of room there is no epigraph at
+   all — two lines at 30px under a 76px title is not an epigraph, it is a
+   caption nobody asked for.
+
+   No citation either: the book is named directly above it, the author is
+   stamped at the foot, and "One line" is the shape for when the sentence and
+   its page are the whole point. */
+/* 72, and it is measured rather than chosen: the gap between one fact's last
+   line and the next fact's term is 68px, so anything at or under that made the
+   quotation read as the first item in the list instead of the thing the list
+   is under. Above it the rule sits 60px away, which keeps it grouped with the
+   title where it belongs. */
+const EPI_GAP = 72
+const EPI_RESERVE = 3
+
+function epigraph(
+  ctx: CanvasRenderingContext2D,
+  k: Keepsake,
+  look: Look,
+  top: number,
+  room: number,
+) {
+  if (!k.line || room < 150) return 0
+
+  const quoted = `“${k.line.text}”`
+  const setAt = (px: number) => {
+    ctx.font = `italic 400 ${px}px ${SERIF}`
+    return wrap(ctx, quoted, W - PAD * 2)
+  }
+
+  let size = 44
+  let lines = setAt(size)
+  const fits = () => lines.length <= 3 && lines.length * size * 1.3 + EPI_GAP <= room
+  while (!fits() && size > 36) {
+    size -= 2
+    lines = setAt(size)
+  }
+
+  /* Still too long at the smallest size it may take. Keep the lines the room
+     honestly holds and end them in an ellipsis; below two, stop — one line of
+     a four-line sentence is a fragment, not a quotation. */
+  if (!fits()) {
+    const keep = Math.min(3, Math.floor((room - EPI_GAP) / (size * 1.3)))
+    if (keep < 2) return 0
+    lines = lines.slice(0, keep)
+    lines[keep - 1] = `${lines[keep - 1]}…”`
+  }
+
+  const step = size * 1.3
+  let y = top + size
+  ctx.fillStyle = look.palette.ink
+  ctx.font = `italic 400 ${size}px ${SERIF}`
+  for (const line of lines) {
+    ctx.fillText(line, PAD, y)
+    y += step
+  }
+  return lines.length * step + EPI_GAP
+}
+
 function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   let y = PAD + 84
 
   ctx.textAlign = 'left'
   ctx.fillStyle = look.palette.soft
   stamp(ctx, 'A READING', PAD, y)
-  y += 92
+  y += 76
 
   ctx.fillStyle = look.palette.ink
   ctx.font = `400 76px ${SERIF}`
@@ -257,7 +349,12 @@ function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   ctx.moveTo(PAD, y)
   ctx.lineTo(PAD + 120, y)
   ctx.stroke()
-  y += 76
+  y += 60
+
+  /* Measured against the reserve before anything under the rule is drawn: what
+     the epigraph may take is whatever is left once the first three facts are
+     standing. */
+  y += epigraph(ctx, k, look, y, COLOPHON_FLOOR - y - factsHeight(ctx, k, y, EPI_RESERVE))
 
   /* Term above detail rather than beside it. A two-column set breaks the
      moment somebody's "Wondered about" runs to four names, and the whole card
@@ -266,23 +363,22 @@ function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
      The last facts fall off the bottom rather than the plate growing to hold
      them — a colophon has eight or nine facts in it and the last of them is
      "Wondered about", which is the one nobody will miss. */
-  const stop = FLOOR
   for (const { term, detail } of k.lines) {
-    if (y + 70 > stop) break
+    const lines = factLines(ctx, detail)
+    if (y + TERM_STEP + lines.length * DETAIL_STEP > COLOPHON_FLOOR) break
+
     ctx.fillStyle = look.palette.soft
     stamp(ctx, term.toUpperCase(), PAD, y)
-    y += 40
+    y += TERM_STEP
 
     ctx.fillStyle = look.palette.ink
     ctx.font = `400 36px ${SANS}`
-    for (const line of wrap(ctx, detail, W - PAD * 2).slice(0, 2)) {
-      if (y > stop) break
+    for (const line of lines) {
       ctx.fillText(line, PAD, y)
-      y += 46
+      y += DETAIL_STEP
     }
-    y += 28
+    y += FACT_GAP
   }
-
 
   ctx.fillStyle = look.palette.soft
   stamp(ctx, k.author.toUpperCase(), PAD, H - PAD - 8)
@@ -423,11 +519,4 @@ export async function sendKeepsake(
 
   download(file)
   return 'saved'
-}
-
-/** Straight to the device, no system sheet. The reader asked for the file. */
-export async function saveKeepsake(canvas: HTMLCanvasElement, title: string) {
-  const file = await fileOf(canvas, title)
-  if (file) download(file)
-  return file ? 'saved' : 'cancelled'
 }
