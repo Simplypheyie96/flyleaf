@@ -13,9 +13,9 @@ import LeafButton from "./components/LeafButton";
 import SplashScreen from "./components/SplashScreen";
 import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
 import UpdateToast from "./components/UpdateToast";
+import BoardLab from "./routes/BoardLab";
 import BookJourney from "./routes/BookJourney";
 import CardLab from "./routes/CardLab";
-import FaceLab from "./routes/FaceLab";
 import HomeLab from "./routes/HomeLab";
 import Home from "./routes/Home";
 import Library from "./routes/Library";
@@ -114,7 +114,7 @@ function App() {
         <Route path="/styleguide" element={<Styleguide />} />
         <Route path="/lab/cards" element={<CardLab />} />
         <Route path="/lab/home" element={<HomeLab />} />
-        <Route path="/lab/faces" element={<FaceLab />} />
+        <Route path="/lab/board" element={<BoardLab />} />
       </Routes>
 
       <Shell onAdd={() => setAdding(true)} />

@@ -171,7 +171,7 @@ function CastTile({ person, tilt }: { person: Cast; tilt: number }) {
             somebody is, so here the face is the tile and the name is under it,
             the way a photograph is pinned up. */}
         <span className={styles.cameo}>
-          <Avatar name={person.name} />
+          <Avatar name={person.name} note={person.note} />
         </span>
         <span className={styles.castName}>{person.name}</span>
         <span className={styles.castNote}>{person.note}</span>

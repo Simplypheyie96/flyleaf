@@ -56,7 +56,7 @@ export function Character({ keep }: CardProps) {
     <article className={`${s.card} ${s.person}`}>
       <div className={s.who}>
         <span className={s.cameo}>
-          <Avatar name={keep.name} />
+          <Avatar name={keep.name} note={keep.text} face={keep.face} />
         </span>
         <h3 className={s.name}>{keep.name}</h3>
       </div>
@@ -120,12 +120,7 @@ export function Thread({ keep, onMotif }: CardProps) {
         <p className={s.filing}>
           <span className={s.filedUnder}>Filed under</span>
           {strands.map((strand) => (
-            <button
-              key={strand}
-              type="button"
-              className={s.strand}
-              onClick={() => onMotif(strand)}
-            >
+            <button key={strand} type="button" className={s.strand} onClick={() => onMotif(strand)}>
               {strand}
             </button>
           ))}

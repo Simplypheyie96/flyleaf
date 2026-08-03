@@ -67,14 +67,7 @@ export function formatsOf(book: Pick<Book, 'format' | 'formats'>): BookFormat[] 
     page, and two ways to keep a line is one too many. `strand` is gone too,
     replaced by `thread`, which is an ordinary keep with a stance rather than
     a second table with a lifespan. */
-export type EntryType =
-  | 'quote'
-  | 'note'
-  | 'voice'
-  | 'image'
-  | 'character'
-  | 'place'
-  | 'thread'
+export type EntryType = 'quote' | 'note' | 'voice' | 'image' | 'character' | 'place' | 'thread'
 
 /** How sure the reader is, on a plot thread. The whole point of the type: a
     hunch that hardens into a certainty is the shape of reading a novel, and
@@ -130,6 +123,19 @@ export interface Entry {
   name?: string
   /** `thread` only — how sure the reader currently is. */
   stance?: Stance
+  /** `character` only — which face the reader has swapped to.
+
+      The app assigns one, and it assigns it from the name, so the same person
+      keeps the same face across the journey, the board and the plate without
+      anything having to be stored. Absent means exactly that: the first face
+      the name draws, which is what nearly every character will keep.
+
+      It only appears once the reader has pressed the swap button, and then it
+      is just a count of how many times — the drawing is still the app's, and
+      the reader is never asked to pick one. What they are saying with the
+      button is "not that one", which is a thing they can know without being
+      able to describe what they want instead. */
+  face?: number
 }
 
 const db = new Dexie('flyleaf') as Dexie & {

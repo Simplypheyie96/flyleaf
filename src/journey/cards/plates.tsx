@@ -109,7 +109,7 @@ export function Character({ keep, onMotif }: CardProps) {
     <article className={`${s.plate} ${s.portrait}`}>
       <div className={s.ground}>
         <span className={s.mount}>
-          <Avatar name={keep.name} />
+          <Avatar name={keep.name} note={keep.text} face={keep.face} />
         </span>
         <h3 className={s.band}>{keep.name}</h3>
       </div>
