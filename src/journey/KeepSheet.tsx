@@ -229,38 +229,22 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
           </label>
         )}
 
-        {/* The face, and one button.
+        {/* The face the app drew, and the one word for "not that one".
 
-            The app draws it — from the name, so the same person is the same
-            face on every card, and from anything the reader has already
-            written, so "Aunt Bel, who never smiles" arrives looking like it.
-            The reader is never asked to choose one. Choosing means being shown
-            a wall of strangers and made to decide which is Bel, and a reader
-            who wrote down a habit rather than a face has nothing to decide
-            with; there is no right answer in the grid, only a chore.
+            The reader is never asked to pick. A grid of strangers asks them to
+            decide which one is Bel, and somebody who wrote down a habit rather
+            than a face has nothing to decide with. Tapping hands back another
+            from the same pool, for as long as they keep tapping.
 
-            What they do get is "not that one", which is a thing anybody can
-            know at a glance. The button hands back another face from the same
-            pool. Press it again for another. There is no end to the rotation
-            and no going back through it, because a reader who wanted the third
-            one wanted it for a reason they could not have stated in advance,
-            and pressing on until something fits is how that actually gets
-            done.
-
-            It waits for a name because the name is what it draws from: an
-            empty plate above an empty field would be a broken picture rather
-            than an invitation. */}
+            It waits for a name because the name is what it draws from. */}
         {type === 'character' && name.trim() && (
           <div className={styles.faceRow}>
             <span className={styles.facePlate}>
               <Avatar name={name} note={text} face={face} />
             </span>
-            <div className={styles.faceSide}>
-              <button type="button" className={styles.capture} onClick={() => setFace(face + 1)}>
-                Another face
-              </button>
-              <p className={styles.rowHint}>Drawn for you. Tap until one fits.</p>
-            </div>
+            <button type="button" className={styles.faceSwap} onClick={() => setFace(face + 1)}>
+              Another face
+            </button>
           </div>
         )}
 
