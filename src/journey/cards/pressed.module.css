@@ -655,9 +655,11 @@
 
 .mapped {
   --paper-tone: var(--card-place-solid);
-  /* Ends in prose like the quote and the note do, so it takes the same 24 at
-     the foot that keeps the verb circles off the last line. */
-  padding-block-end: var(--space-5);
+  /* Ends in prose like the quote does, so it takes the same 24 at the foot
+     that keeps the verb circles off the last line, less the leading slack
+     under that line — see `--leading-slack`. (The note does not: it ends in a
+     ruled line, which is ink at its own edge with no leading under it.) */
+  padding-block-end: calc(var(--space-5) - var(--leading-slack));
 }
 
 .marked {

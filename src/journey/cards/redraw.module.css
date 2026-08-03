@@ -70,8 +70,10 @@
 .person {
   --paper-tone: var(--card-character-solid);
   /* 24, matching the head. The foot only has to keep the account's last line
-     off the verb targets; see the budget in Keep.module.css `.acts`. */
-  padding-block-end: var(--space-5);
+     off the verb targets; see the budget in Keep.module.css `.acts`. Less the
+     leading slack under the account's last line, so the 24 is what the eye
+     gets and not what the box gets — see `--leading-slack`. */
+  padding-block-end: calc(var(--space-5) - var(--leading-slack));
 }
 
 /* The band. Ruled underneath in the character's own hue rather than the
@@ -248,8 +250,9 @@
      circles' 21 coming back up. The strands do not carry targets in the
      journey (checked: every card in the thread reports no hit area within 90
      of its own foot), so the collision the 32 was paying for is not there,
-     and the card was buying eight pixels of blank paper with it. */
-  padding-block-end: var(--space-5);
+     and the card was buying eight pixels of blank paper with it. Less the
+     leading slack under the working note — see `--leading-slack`. */
+  padding-block-end: calc(var(--space-5) - var(--leading-slack));
 }
 
 /* The tab.
@@ -395,7 +398,15 @@
    other keep, and a heading does not have to carry a distinction the whole
    object is already making. Same 20 as the character name. */
 .asked {
-  margin: 0;
+  /* The title is the first thing in the column, so the card's head is 24 of
+     padding plus this line's own empty leading above the capitals. On a 20px
+     serif at --leading-snug that is ~6px, which put the question 31.5 from the
+     card's edge against 25.5 under the last line of the working note — the
+     head visibly deeper than the foot on the one card whose head is text.
+     Trim the leading rather than the padding: the step stays 24, and the
+     question now starts where the note ends. Same correction as
+     `--leading-slack` at the foot, sized for this face at this size. */
+  margin: -6px 0 0;
   max-inline-size: 100%;
   font-family: var(--font-serif);
   font-weight: var(--weight-serif);
@@ -432,8 +443,9 @@
    cannot be both a fill and its own opposite. */
 .recorder {
   /* Even 24 all round: the transport sits 93 above the foot, so nothing here
-     needs the extra step the other cards were taking. */
-  padding: var(--space-5);
+     needs the extra step the other cards were taking. The foot alone comes in
+     by the leading slack under the caption — see `--leading-slack`. */
+  padding: var(--space-5) var(--space-5) calc(var(--space-5) - var(--leading-slack));
   background: var(--color-ink);
   color: var(--color-paper);
 
