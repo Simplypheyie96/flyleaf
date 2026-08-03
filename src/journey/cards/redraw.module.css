@@ -219,14 +219,16 @@
      not on the tab because both need it: the tab to place itself, the card to
      hold that much room open above itself so the tab has somewhere to stand.
 
-     22, down from 30. Every pixel of this is a pixel of page showing between
-     the meta line above and the card's own top edge, and the tab only covers
-     the leading third of that width — so the trailing end of the meta line,
-     which is where the side label sits, was left hanging over 30px of nothing.
-     22 is what the word actually needs: a 12px capital is about 8.6 of ink, and
-     20 of clear tab around it leaves close to six above and below. Below that
-     the tab starts crowding its own word, which is the fault this replaced. */
-  --tab-rise: 22px;
+     24, down from 30 and then back up from 22. Every pixel of this is a pixel
+     of page showing between the meta line above and the card's own top edge,
+     and the tab only covers the leading third of that width — so the trailing
+     end of the meta line, which is where the side label sits, was left hanging
+     over 30px of nothing. But 22 crowded the word against its own top rule:
+     the cap is about 9.8 of ink and there is nowhere for it to go. 24 is the
+     smallest rise that leaves ten clear above the capitals, which is what the
+     word needs given that the space below them is not clear at all — see the
+     padding on `.standing` for why the two sides are not the same number. */
+  --tab-rise: 24px;
   margin-block-start: var(--tab-rise);
   /* 76% of the thread hue on the card's own pale fill. Down from the 82 the
      dash carried: a broken line shows less ink than a continuous one at the
@@ -294,11 +296,23 @@
    than half the height of this shape and turns a tab into a lozenge; 8 on a 24
    is the corner a real folder tab is cut with.
 
-   Inline padding is not symmetric on purpose. The leading side is whatever is
-   left of the card's content inset once the tab's own inset and rule are taken
-   out of it, which is what stands the dot on the title's vertical. 16 at the
-   trailing side keeps the word from sitting dead centre in a box that has no
-   reason to be centred. */
+   Neither pair of paddings is symmetric, and both asymmetries are the same
+   argument: this shape is only closed on three sides.
+
+   Inline — the leading side is whatever is left of the card's content inset
+   once the tab's own inset and rule are taken out of it, which is what stands
+   the dot on the title's vertical. 16 at the trailing side keeps the word from
+   sitting dead centre in a box that has no reason to be centred.
+
+   Block — 4 at the top on top of the rule, nothing at the bottom but the rule
+   the foot gives back. Optically centring the word would be wrong here: the
+   tab's top edge is a 2px rule and reads as a wall, while its bottom edge does
+   not exist — the tab's paper and the card's paper are the same paper, with no
+   line between them, so the eye runs straight down out of the tab and into the
+   card. A gap that is bounded looks smaller than the same gap left open, so
+   the word has to be given roughly twice as much room above it as below to
+   read as sitting in the middle: about ten clear over the capitals against
+   four under the baseline. Centred by the numbers is crowded by the eye. */
 .standing {
   position: absolute;
   inset-block-start: calc(-1 * (var(--edge) + var(--tab-rise)));
@@ -308,7 +322,7 @@
   gap: var(--space-2);
   block-size: calc(var(--tab-rise) + var(--edge));
   margin: 0;
-  padding: 0 var(--space-4) var(--edge) var(--space-3);
+  padding: var(--space-1) var(--space-4) var(--edge) var(--space-3);
   border: var(--edge) solid color-mix(in oklab, var(--color-thread) 76%, transparent);
   border-block-end: 0;
   border-start-start-radius: var(--radius-sm);
