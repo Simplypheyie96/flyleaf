@@ -128,10 +128,6 @@ export interface Entry {
       the card, kept apart from `text` so the two can be styled and searched
       as the different things they are. */
   name?: string
-  /** Which drawn figure stands for this character. An id into the avatar set,
-      not a description of a person: the reader picks a likeness they like,
-      and the app never asks or records who anybody is. */
-  avatar?: string
   /** `thread` only — how sure the reader currently is. */
   stance?: Stance
 }

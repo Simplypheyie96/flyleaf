@@ -100,15 +100,17 @@ export function Picture({ keep, onMotif }: CardProps) {
 }
 
 /* ── Character ────────────────────────────────────────────────────────────
-   A portrait plate: the drawn person large on a tinted ground, with the name
-   reversed out of a band across the foot of the portrait — the way a plate in
-   an illustrated edition is captioned. */
+   A portrait plate: the stamped initial mounted large on a tinted ground, with
+   the name reversed out of a band across the foot of the portrait — the way a
+   plate in an illustrated edition is captioned. */
 
 export function Character({ keep, onMotif }: CardProps) {
   return (
     <article className={`${s.plate} ${s.portrait}`}>
       <div className={s.ground}>
-        <Avatar id={keep.avatar} size={92} />
+        <span className={s.mount}>
+          <Avatar name={keep.name} size={104} />
+        </span>
         <h3 className={s.band}>{keep.name}</h3>
       </div>
       {keep.text && <p className={s.dossier}>{keep.text}</p>}

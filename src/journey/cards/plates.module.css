@@ -336,7 +336,28 @@
       transparent 72%
     ),
     var(--color-bg);
-  color: var(--color-character);
+}
+
+/* The plate's own mount. `Avatar` draws a letter and no ground at all, so each
+   card that shows one has to say what it is stamped into — and each says
+   something different, which is the point of having three of them. The journey
+   card presses a small oval into the paper; the specimen slip cuts an aperture
+   and inks the letter inside it; this one, being a framed portrait with a
+   caption band under it, hangs the mount in the frame at portrait scale.
+
+   92 × 112 is the journey card's 46 × 56 at double size, so the letter sits at
+   the same fraction of its mount in both and the two read as one object seen
+   near and far. Without a mount at all the letter floated in the frame like a
+   watermark — a picture of nothing, which is what the frame is there to
+   prevent. */
+.mount {
+  display: grid;
+  place-items: center;
+  inline-size: 92px;
+  block-size: 112px;
+  border-radius: 50%;
+  background: var(--color-character);
+  color: var(--color-bg);
 }
 
 .band {

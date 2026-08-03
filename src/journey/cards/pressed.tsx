@@ -142,7 +142,7 @@ export function Character({ keep, onMotif }: CardProps) {
   return (
     <article className={`${s.sheet} ${s.slip}`}>
       <div className={s.aperture}>
-        <Avatar id={keep.avatar} size={52} />
+        <Avatar name={keep.name} size={52} />
       </div>
       <h3 className={s.written}>{keep.name}</h3>
       {keep.text && <p className={s.known}>{keep.text}</p>}

@@ -34,7 +34,6 @@ export interface Draft {
   keptOn: string
   motifs?: string[]
   name?: string
-  avatar?: string
   stance?: Stance
 }
 

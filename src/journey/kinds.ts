@@ -33,8 +33,6 @@ export interface Asks {
   text: { label: string; placeholder: string } | null
   /** A title of its own, above the body. */
   name: { label: string; placeholder: string } | null
-  /** Pick a drawn person. */
-  avatar: boolean
   /** How sure the reader is. */
   stance: boolean
   /** What can be attached, if anything. `optional` is the place card: a map is
@@ -106,7 +104,6 @@ export const KIND: Record<EntryType, Kind> = {
     asks: {
       text: { label: 'The line', placeholder: 'Copy it out exactly as it is written…' },
       name: null,
-      avatar: false,
       stance: false,
       media: 'none',
     },
@@ -123,7 +120,6 @@ export const KIND: Record<EntryType, Kind> = {
     asks: {
       text: { label: 'The note', placeholder: 'What you thought, while you still think it…' },
       name: null,
-      avatar: false,
       stance: false,
       media: 'none',
     },
@@ -142,7 +138,6 @@ export const KIND: Record<EntryType, Kind> = {
          recording rather than the keep itself — the recording is the keep. */
       text: { label: 'Label', placeholder: 'What this one is about…' },
       name: null,
-      avatar: false,
       stance: false,
       media: 'audio',
     },
@@ -159,7 +154,6 @@ export const KIND: Record<EntryType, Kind> = {
     asks: {
       text: { label: 'Caption', placeholder: 'A line under it…' },
       name: null,
-      avatar: false,
       stance: false,
       media: 'image',
     },
@@ -176,7 +170,6 @@ export const KIND: Record<EntryType, Kind> = {
     asks: {
       text: { label: 'What you know', placeholder: 'Who they are, what they want, what you make of them…' },
       name: { label: 'Name', placeholder: 'What they are called' },
-      avatar: true,
       stance: false,
       media: 'none',
     },
@@ -197,7 +190,6 @@ export const KIND: Record<EntryType, Kind> = {
     asks: {
       text: { label: 'The lore', placeholder: 'What happens here, and what the book says about it…' },
       name: { label: 'Location', placeholder: 'What it is called' },
-      avatar: false,
       stance: false,
       /* A reader who has a map of the place can pin it; one who does not gets
          a drawn field instead, and neither looks like the poor relation. */
@@ -216,7 +208,6 @@ export const KIND: Record<EntryType, Kind> = {
     asks: {
       text: { label: 'The thread', placeholder: 'What you think is going on…' },
       name: { label: 'Calling it', placeholder: 'A few words to find it by' },
-      avatar: false,
       stance: true,
       media: 'none',
     },
