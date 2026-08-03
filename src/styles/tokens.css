@@ -484,6 +484,23 @@
   --track-title: -0.01em;
   --track-label: 0.07em;
 
+  /* Every journey card but the note ends in a line of prose, and a line box
+     carries half its leading below the last glyph. At --leading-body on
+     --text-sm that is ~4px of empty box the foot padding then sits on top of,
+     so a card that says 24 at the foot measures 27–29.5 to the eye while its
+     head — which starts at a real box, a plate or a rule — measures 20–25.5.
+     Measured on the rendered pixels, all six prose-ending cards: quote 27,
+     voice 28, character 28, location 28, picture 28.5, thread 29.5.
+
+     The number is not the padding's fault and it is not fixable by taking
+     another step off the scale — 20 would put the ink at 24 and the *box* at
+     20, which is the same lie pointing the other way. Subtract the slack once,
+     here, so the step stays 24 and 24 is what lands on the screen.
+
+     Only for a foot that ends in text. The note card ends in a ruled line,
+     which is ink at its own edge and has no leading under it. */
+  --leading-slack: 4px;
+
   /* ---- Space (4px rhythm) ---- */
   --space-1: 0.25rem;
   --space-2: 0.5rem;

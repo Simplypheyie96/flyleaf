@@ -59,9 +59,24 @@
      down and now meet the date line, which costs nothing — the date is not a
      control, so there is no second hit area to collide with, and that was
      checked on every card in the journey rather than assumed. */
-  --journey-gap: var(--space-5);
+  --journey-gap: calc(var(--space-5) + 6px);
   --gutter: 26px;
   --knot-size: 26px;
+
+  /* Where the verb row starts, in from the card's trailing edge. The FAB is
+     fixed to that corner and paints over anything parked under it, so on a
+     phone the row clears the FAB's own width; on a wide screen, where the
+     column has pulled away from the corner and --sky is positive, it
+     collapses to the plain 32. Lifted out of `.acts` so the row and the cards
+     read the same number.
+
+     The 5 is the row's overhang: the circles are drawn at 34 and reach the
+     44px tap minimum, so each target hangs (44 - 34) / 2 past the drawing.
+     Stated rather than derived because --act-size belongs to `.acts` and is
+     not in scope here; the reasoning for it lives with the row, in
+     Keep.module.css. */
+  --sky: max(0px, (100vw - 2 * var(--space-5) - var(--column-max, 560px)) / 2);
+  --acts-inset: max(var(--space-6), calc(var(--fab-size) - var(--sky) + 5px));
   /* Nudges the knot down onto the cap height of the card's first line, so the
      circle reads as level with the text rather than with its line box. */
   --knot-top: 3px;
@@ -880,8 +895,21 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  /* This row is not prose, and the reset in index.css caps every <p> at
+     --measure so that it is. That cap is right for a paragraph and wrong for a
+     two-ended rule: at --t-micro, 60ch resolves to 328px, so inside a 534px
+     card the row stopped 206px short of the card's trailing edge and
+     `space-between` dutifully pushed "your own ink" to the end of a line that
+     ended nowhere. The date read as belonging to the card and the substance
+     read as floating in the gutter beside it, which is exactly the alignment
+     the eye is looking for and exactly where it wasn't.
+
+     Nothing here can run long: the day ellipses (see .whenDay) and the
+     substance is one word, so there is no measure to protect. The row is as
+     wide as the card, and both ends land on the card's own edges. */
+  max-inline-size: none;
   gap: var(--space-3);
-  margin: 0 0 var(--space-2);
+  margin: 0 0 var(--space-1);
   font-family: var(--font-sans);
   font-size: var(--t-micro);
   letter-spacing: var(--track-label);
@@ -974,22 +1002,6 @@
   color: var(--color-accent-text);
   opacity: 0.7;
   pointer-events: none;
-}
-
-/* The line under the inscription, set the way every other caption on the
-   thread is set — mono, small, spaced — so the inscription above it is the
-   only thing on the page wearing that voice. `clear` because the raised
-   initial is floated. */
-.openHint {
-  clear: both;
-  margin: var(--space-3) 0 0;
-  font-family: var(--font-sans);
-  font-size: var(--t-micro);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  line-height: var(--leading-body);
-  color: var(--color-ink-faint);
-  max-inline-size: var(--measure);
 }
 
 /* ── Nothing matched ────────────────────────────────────────────────────── */
