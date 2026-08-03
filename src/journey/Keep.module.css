@@ -53,10 +53,59 @@
 
    The one thing that would buy more is not a number: it is moving the verbs
    off the corner entirely, which is a redrawing and not a spacing fix. */
+
+/* THE TRAILING INSET IS NOT A SPACING NUMBER. It is a clearance, and what it
+   has to clear is the floating action.
+
+   Both objects are pinned to the same edge at the same offset: the journey's
+   scroller insets its column by --space-5, and .keepIt sits --space-5 off the
+   viewport. On a phone the column fills the screen, so those two edges are the
+   *same edge* — which means the action reaches exactly --fab-size into every
+   card, along the bottom --fab-size of the screen. Anything a keep draws in
+   that corner is behind a fixed button.
+
+   The row was drawing there. At --space-6 the delete target ran 51→95 in from
+   the trailing edge and the action ran 24→80: 29px of overlap, which is 71% of
+   the drawn circle and 66% of its target, and the action owns the pixel at the
+   circle's centre — so the third verb was not merely hidden, it was answering
+   to the wrong button. Measured over a 13-keep thread, 264 of 734 scroll stops
+   put a delete target under the action.
+
+   Why the fix is here and not on the action. The action already leaves while
+   the reader travels *down* (see `keepShown` in BookJourney) and that works —
+   3 of 127 down-stops were live. It is travelling back up, and standing still,
+   that this misses, and standing still is the case that matters: at rest the
+   covered button stays covered. Fading on contact instead would fire 12 times
+   per traverse of the same thread, which is worse than the bug. And no amount
+   of bottom padding helps, because a reader can stop anywhere — padding only
+   ever settles the tail, which --bar-clear already does.
+
+   So the row stands off the corner by the action's own reach. Two terms:
+
+     --sky        how far the card's trailing edge has already pulled away
+                  from the viewport's. Nothing while the column fills the
+                  screen; half the leftover once it stops. Derived from the
+                  column rather than stated, so it cannot go stale when
+                  --column-max moves.
+     --act-overhang  the row's drawn edge is not its real one — the circles
+                  reach --tap-min from a smaller drawing, so the target hangs
+                  this much further out.
+
+   The action reaches (--fab-size - --sky) past the card's edge, so the row
+   starts that plus the overhang inward — and never tighter than the --space-6
+   it always wanted. The floor is what takes over from about 666px up, where
+   the centred column has pulled clear on its own and the corner is free. */
 .acts {
+  --act-size: 34px;
+  --act-overhang: calc((var(--tap-min) - var(--act-size)) / 2);
+  --sky: max(0px, (100vw - 2 * var(--space-5) - var(--column-max, 560px)) / 2);
+
   position: absolute;
   inset-block-end: calc(-1 * var(--space-4) - 2px);
-  inset-inline-end: var(--space-6);
+  inset-inline-end: max(
+    var(--space-6),
+    calc(var(--fab-size) - var(--sky) + var(--act-overhang))
+  );
   z-index: 2;
   display: flex;
   align-items: center;
@@ -99,8 +148,8 @@
   flex: none;
   display: grid;
   place-items: center;
-  inline-size: 34px;
-  block-size: 34px;
+  inline-size: var(--act-size);
+  block-size: var(--act-size);
   padding: 0;
   border: 1px solid var(--tint-border);
   border-radius: 50%;
