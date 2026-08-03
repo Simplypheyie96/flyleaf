@@ -250,9 +250,20 @@
    Every length here is the rule width or the rise, and the three that look
    arbitrary are the ones holding the silhouette together:
 
-   Its outer leading edge is the card's outer leading edge, so the inline start
-   is minus one rule width — an absolute inset resolves against the padding
-   box, and the card's border is that much outside it.
+   It stands in from the card's leading edge rather than flush with it. Flush
+   was wrong twice over: the tab's rounded corner landed directly on top of the
+   card's, so the card's own corner never got drawn and the two shapes read as
+   one continuous edge rather than a tab sitting on a folder — and a real
+   folder tab is cut a little in from the spine, never at the very corner. 12
+   in, which is the smallest inset that lets the card's radius complete.
+
+   The 12 is spent from the tab's own leading padding rather than added to the
+   card, so the dot underneath still stands on the same vertical as the first
+   character of the title below it: 12 (inset) + 2 (rule) + 12 (padding) = the
+   26 the card's content starts at. Moving the tab in did not move its mark.
+
+   An absolute inset resolves against the padding box, and the card's rule is
+   one width outside that, hence the subtraction.
 
    Its bottom lands one rule width *past* the card's top edge rather than on
    it, so the tab's own paper covers the segment of the card's top rule running
@@ -283,22 +294,21 @@
    than half the height of this shape and turns a tab into a lozenge; 8 on a 24
    is the corner a real folder tab is cut with.
 
-   Inline padding is not symmetric on purpose. The leading side is the card's
-   own padding plus the rule width, which is what it takes to stand the tab's
-   first mark on the same vertical as the first character of the title below it
-   — the tab's box starts a rule further out than the card's content does. 16
-   at the trailing side keeps the word from sitting dead centre in a box that
-   has no reason to be centred. */
+   Inline padding is not symmetric on purpose. The leading side is whatever is
+   left of the card's content inset once the tab's own inset and rule are taken
+   out of it, which is what stands the dot on the title's vertical. 16 at the
+   trailing side keeps the word from sitting dead centre in a box that has no
+   reason to be centred. */
 .standing {
   position: absolute;
   inset-block-start: calc(-1 * (var(--edge) + var(--tab-rise)));
-  inset-inline-start: calc(-1 * var(--edge));
+  inset-inline-start: calc(var(--space-3) - var(--edge));
   display: flex;
   align-items: center;
   gap: var(--space-2);
   block-size: calc(var(--tab-rise) + var(--edge));
   margin: 0;
-  padding: 0 var(--space-4) var(--edge) calc(var(--space-5) + var(--edge));
+  padding: 0 var(--space-4) var(--edge) var(--space-3);
   border: var(--edge) solid color-mix(in oklab, var(--color-thread) 76%, transparent);
   border-block-end: 0;
   border-start-start-radius: var(--radius-sm);
