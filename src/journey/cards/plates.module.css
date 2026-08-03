@@ -94,8 +94,9 @@
   /* 32 at the head, 24 at the foot, no longer the same number top and bottom.
      The head is holding the ghost mark up off the line — it hangs into that
      band and the panel clips whatever leaves it — and the foot is holding
-     nothing but the verb circles off the last line, which takes 24. */
-  padding-block: var(--space-6) var(--space-5);
+     nothing but the verb circles off the last line, which takes 24 — less the
+     leading slack under that line, see `--leading-slack`. */
+  padding-block: var(--space-6) calc(var(--space-5) - var(--leading-slack));
 }
 
 /* The mark has to be big enough to read as a *shape* rather than as
@@ -240,8 +241,10 @@
      The foot is no longer buying the caption any clearance either. It is the
      last line on the card and the nearest one to the verb circles, and 24 is
      what the other six proved is enough for that — see the budget in
-     Keep.module.css `.acts`. */
-  padding: var(--space-4) var(--space-4) var(--space-5);
+     Keep.module.css `.acts`. Less the leading slack under the scrawl, so the
+     24 is what the eye gets and not what the box gets — see
+     `--leading-slack`. */
+  padding: var(--space-4) var(--space-4) calc(var(--space-5) - var(--leading-slack));
   border-radius: 3px;
   box-shadow:
     inset 0 1px 0 var(--card-edge-light),
