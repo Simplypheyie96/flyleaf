@@ -1,0 +1,893 @@
+/* The print shared by the journey's five sheets — add a keep, the keep menu,
+   sift, fair copy, and the book itself.
+
+   The panel they all sit on is Sheet.module.css. This is only what goes on it,
+   and it is one file rather than five because they are five doors into the
+   same room: the same header, the same field material, the same row height,
+   the same distance from the edge. Five copies of that would be five drifts
+   waiting to happen. */
+
+/* ---- Header ---- */
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.title {
+  margin-inline-end: auto;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+/* Close is not the point of any of these sheets, so it stops being a word: a
+   word in the header competes with the title beside it for the same reading,
+   a disc is read as an object and dismissed in a glance. Same frosted material
+   as the fields below, so everything touchable in the sheet is one family. */
+.iconButton {
+  flex: none;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  color: var(--color-ink);
+}
+
+/* ---- The scrolling middle ----
+
+   Every sheet here is a header that stays, a body that scrolls and — where
+   there is one — the button that finishes the job pinned under it. A sheet
+   whose submit scrolls away is a sheet that looks like it has no way out. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Room for a focus ring, and the reason the fields looked sliced flat down
+     both sides on a phone. CSS will not give one axis `auto` and the other
+     `visible`: asking for a vertical scroller computes `overflow-x: auto` with
+     it, so this element clipped its own children horizontally. A field is
+     `width: 100%` of it, and its outline sits 2px wide at 1px offset — three
+     pixels each side that had nowhere to go.
+
+     The padding gives them that room and the negative margin takes the same
+     amount back off the outside, so nothing on the sheet moves; the fields
+     stay flush to the same edge they were on and the ring is simply no longer
+     amputated. */
+  padding-inline: 3px;
+  margin-inline: -3px;
+}
+
+/* ---- Rows: a list of things to do ---- */
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  /* Space, not rules. A menu of six actions separated by hairlines reads as a
+     table; the same six with air between them read as choices. */
+  gap: var(--space-1);
+  margin-inline: calc(-1 * var(--space-2));
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  text-align: start;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.row:hover,
+.row:focus-visible {
+  background: var(--field-fill);
+}
+
+.row svg {
+  flex: none;
+  color: var(--color-ink-soft);
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rowHint {
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+  text-wrap: pretty;
+}
+
+.rowValue {
+  margin-inline-start: auto;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+}
+
+/* The mark on the row you are already on.
+
+   A tick at the trailing edge rather than a filled row or a heavier weight:
+   the rows are a list of four sentences, and shading one of them makes the
+   other three look disabled. The tick is the only thing in the list that is
+   not text, so the eye finds it before it reads anything, which is the whole
+   job — a reader opening this sheet wants to know where they are standing
+   before they decide where to go.
+
+   `.row svg` paints every glyph in a row soft grey, which is right for a
+   leading icon that labels an action and wrong for the one mark that answers
+   the question. Scoped a class deeper so it wins on specificity rather than on
+   bundle order. */
+.tick {
+  margin-inline-start: auto;
+  flex: none;
+  display: inline-flex;
+}
+
+.row .tick svg {
+  color: var(--color-action);
+}
+
+/* The one row in the app that takes something away. Set apart by real space
+   above it rather than by shouting, and worded plainly — "Delete", never a
+   word from the lexicon. A reader about to lose something reads the sentence
+   in the language they would use to describe the loss. */
+.destructive {
+  margin-block-start: var(--space-3);
+  color: var(--color-danger);
+}
+
+.destructive svg {
+  color: inherit;
+}
+
+/* The one confirmation in the app. It replaces the row it came from rather
+   than opening a dialog over it, so the reader's eye never leaves the place
+   they tapped, and the sentence explaining what goes is right there in the
+   flow instead of in a box that has to be dismissed to read the screen again.
+   The two answers are the same size — a "keep it" the reader has to hunt for
+   is a confirmation that has already made the decision for them. */
+.warn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklch, var(--color-danger), transparent 70%);
+  /* oklab: 92% of the way from danger's red (25) to paper's blue-white (240)
+     is 92% of the way round the hue wheel too, which landed this wash on 252 —
+     a faintly blue panel behind a delete warning. Across the neutral axis it
+     is what it should be, the palest possible red. */
+  background: color-mix(in oklab, var(--color-danger), var(--color-paper) 92%);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-ink);
+}
+
+.warnRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.warnRow > * {
+  flex: 1;
+  justify-content: center;
+  min-width: 10ch;
+}
+
+.reallyDelete {
+  border-color: transparent;
+  background: var(--color-danger);
+  /* The danger red is dark by day and light by night, so the word on it has to
+     flip with it — which is the whole job of the on-action token. */
+  color: var(--color-on-action);
+}
+
+/* ---- Fields ---- */
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.labelLine {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+/* An aside about the field, not a second label for it. Bracketed, because a
+   bare word set beside a label reads as part of the label — "Page optional"
+   is a field called Page optional. The parentheses are drawn here rather than
+   typed into the JSX so no string in the app carries its own punctuation. */
+.optional {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-ink-faint);
+}
+
+.optional::before {
+  content: '(';
+}
+
+.optional::after {
+  content: ')';
+}
+
+.input,
+.area {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  /* 16px flat: anything smaller and iOS zooms the whole sheet on focus. */
+  font-size: var(--text-field);
+  line-height: var(--leading-body);
+}
+
+.input {
+  min-height: var(--tap-min);
+  padding-block: 0;
+}
+
+.area {
+  min-height: 7.5rem;
+  resize: vertical;
+}
+
+/* A piece of writing rather than a field — the fair copy, and the plain-text
+   keepsake. It takes the whole stage and scrolls inside itself.
+
+   It used to have no height of its own: a script measured the draft and grew
+   the box to fit, so the box never scrolled and the sheet's scroller carried
+   it. That measurement ran before the serif finished loading, which set the
+   height from a fallback face and — with `overflow: hidden` holding the box to
+   that number — quietly cut the last lines off a long review. A box that is
+   simply the size of the space it is in has nothing to measure and nothing to
+   get wrong. `resize` stays off: the box is already exactly the stage. */
+.write {
+  min-height: 0;
+  block-size: 100%;
+  resize: none;
+  line-height: var(--leading-body);
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--color-ink), transparent 70%) transparent;
+}
+
+.input:focus-visible,
+.area:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 1px;
+}
+
+/* Two fields on one line — page beside chapter, from beside to. */
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+/* A fieldset is the right element for a group of controls answering one
+   question, but the UA dresses it as a box: `margin-inline: 2px` and
+   `min-inline-size: min-content`. Reset to the plain stack it looks like. */
+.group {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* A legend renders outside its fieldset's flex flow, so the gap above never
+   reaches it. Restated here, where it can land. */
+.group > legend {
+  margin-block-end: var(--space-2);
+}
+
+/* ---- Chips: the app's one selectable pill ---- */
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  min-width: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  /* Transparent rather than absent, so taking the hairline on selection does
+     not move the pill or its neighbours by a pixel. */
+  border: 1px solid transparent;
+  background: var(--field-fill);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
+}
+
+.chip:hover {
+  color: var(--color-ink);
+}
+
+.chip[aria-pressed='true'],
+.chip[aria-checked='true'] {
+  background: var(--color-chip-active);
+  border-color: var(--border-hairline);
+  color: var(--color-ink);
+  box-shadow: var(--elevation-1);
+}
+
+/* A kind's chip wears that kind's own colour, so choosing "place" in a sheet
+   and finding the place notch on the thread is one recognition and not two.
+   Only when chosen: seven tinted pills sitting side by side would be a paint
+   chart, and the card itself is told apart by its shape, not its tint. */
+.chip[data-kind][aria-checked='true'] {
+  background: color-mix(in oklch, var(--kind), transparent 84%);
+  border-color: color-mix(in oklch, var(--kind), transparent 50%);
+}
+
+.chip[data-kind][aria-checked='true'] svg {
+  color: var(--kind);
+}
+
+/* ---- Dictation ----
+
+   Sits on the field's own label line, at the trailing end, because it belongs
+   to that one field and not to the sheet. Kept to text and a small glyph: a
+   second filled pill beside the kind chips would read as a second choice to
+   make, when it is only another way to answer the one already in front of
+   the reader. */
+
+.dictate {
+  margin-inline-start: auto;
+  /* The full tap target, taken back out of the layout so an accessible hit
+     area does not push the label away from its field. */
+  min-height: var(--tap-min);
+  margin-block: calc(var(--space-3) * -1);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-3);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+  cursor: pointer;
+  transition: color var(--dur-quick) var(--ease-out);
+}
+
+/* Listening is a state the reader needs to be sure of — the microphone is
+   open — so it is the one place in this sheet that fills. */
+.dictate[data-on] {
+  background: color-mix(in oklch, var(--color-voice), transparent 80%);
+  color: var(--color-ink);
+}
+
+/* ---- Capture: the microphone and the camera roll ----
+
+   Both kinds of keep that are not typed share one frame, so choosing a
+   picture and recording a note feel like the same act performed on different
+   material rather than two features bolted on at different times. */
+
+.recorder {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+}
+
+.recorder .rowHint {
+  flex: 1;
+  min-width: 12ch;
+}
+
+/* The recorder is itself a field, so its buttons cannot be the field fill they
+   are sitting on — that is one flat rectangle with a hairline drawn across it.
+   Raised to the level a chip uses when it is on: away from the field in both
+   themes, and a token that already means "a control standing off a control"
+   rather than a third grey invented here. */
+.recorder .capture {
+  background: var(--color-chip-active);
+  border-color: var(--color-chip-active-border);
+}
+
+/* The same fill as every other control on a sheet, which it was not: it took
+   `--card-fallback`, and on this panel that reads as 0.985 against a 0.978
+   sheet — a button brighter than the surface holding it, sitting in a row with
+   a segmented control at 0.948. A control has to be a step off its sheet, and
+   the direction of that step is set once for the whole app by `--field-fill`:
+   down by day, up by night. Borrowing a card token for a control was what put
+   this one the wrong side of the paper. */
+.capture {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding-inline: var(--space-5);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+/* The one that starts the act, rather than the one that repeats it. */
+.capture[data-lead='true'] {
+  background: var(--color-accent-tint);
+  border-color: transparent;
+}
+
+.capture:disabled {
+  color: var(--color-on-action-disabled);
+  cursor: not-allowed;
+}
+
+/* Recording. A single slow pulse rather than a level meter: a meter that
+   moves with the room is a toy, and it is the only thing on the screen a
+   reader would then watch instead of thinking about what they are saying. */
+.recorder[data-live='true'] {
+  border-color: color-mix(in oklch, var(--color-voice), transparent 50%);
+}
+
+.pulse {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-voice);
+  animation: breathe 1.8s var(--ease-move) infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+  50% {
+    opacity: 0.45;
+    scale: 0.78;
+  }
+}
+
+/* Tabular, so a running clock does not shuffle the buttons beside it. */
+.elapsed {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+/* ── The character's face ───────────────────────────────────────────────────
+
+   Not a panel and not a row of its own. The recorder and the picture chooser
+   are framed because they are asking for something the reader has not given
+   yet; this is the opposite — the face is made out of the name in the box
+   beside it, so it stands in that box's own row and reads as what the field
+   just produced rather than as a second thing to deal with. */
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The field still owns the row; the face is what is left over. Stated rather
+   than left to `width: 100%` and flex-shrink, because that pair happens to
+   work and reads like an accident. */
+.nameRow .input {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* The card's cameo, sized to the field it stands beside — a circle the height
+   of the input, so the two read as one row rather than as a picture with a
+   text box parked under its chin. */
+.facePlate {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+  border-radius: 50%;
+  /* The bust is drawn past the foot of its own sheet; the mount ends it. */
+  overflow: hidden;
+  background: var(--tint-reverse);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-character) 32%, transparent);
+  color: color-mix(in oklab, var(--tint-character), var(--tint-ink) 32%);
+}
+
+/* Dictate's button, said again, on the label line Dictate uses — no fill and no
+   border, because nothing here is waiting on the reader and a filled control
+   would say it was. What it does carry is Dictate's mark, at Dictate's size and
+   Dictate's gap: without one, an uppercase word in the accent beside an
+   uppercase word in the label ink is two labels, and only one of them happens
+   to be pressable. The tap target is the full 44px and is taken back out of the
+   layout, so the label line stays a label line. */
+.faceSwap {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  margin-block: calc(var(--space-3) * -1);
+  padding-inline: var(--space-3);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+  cursor: pointer;
+}
+
+/* A file input styled by anybody is a file input styled by nobody. The real
+   control is the button above; this one only has to stay reachable. */
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---- The date ---- */
+
+.dateBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  color: var(--color-ink-soft);
+  text-align: start;
+  cursor: pointer;
+}
+
+.dateValue {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-field);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dateBox[aria-expanded='true'] {
+  border-color: var(--color-accent-text);
+}
+
+.datePicker {
+  margin-block-start: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+}
+
+/* ---- Sharing: a stage, a band of controls, and two ways out ----
+
+   A share sheet is one object and a few decisions about it, and the object has
+   to be the biggest thing in the room. The old shape made the whole sheet a
+   scroller: the picture sat 176px tall under about 550px of controls, so
+   choosing a palette scrolled the picture off the top and every choice after
+   that was made blind. Three panes, four scrollbars, and the thing being sent
+   was the smallest item on screen.
+
+   Now the sheet does not scroll at all. The preview takes every pixel the
+   controls do not, the controls are a short fixed band beneath it, and the two
+   buttons are under that. Nothing moves; you look at the thing and change it. */
+
+/* Stage, caption and band as one block, so the sheet's own 24px rhythm falls
+   between the header, this, and the two buttons — and not between a picture
+   and the sentence describing it. */
+.compose {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.stage {
+  flex: 1;
+  /* Everything the caption, the band and the two buttons do not need — which
+     is a real number only because the sheet asks for a height of its own
+     (`Sheet`'s `fill`) instead of taking one from what is on the stage.
+
+     `min-height: 0` and nothing else. A floor was tried here first, and it was
+     both wrong and inert: wrong because a stage that refuses to shrink pushes
+     the buttons out through the bottom of a panel that clips them, and inert
+     because `min-block-size` and `min-height` are the same property, so the
+     zero written under it had been quietly cancelling the floor all along. */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* Centred by auto margins rather than by `align-items`, which is the one
+     difference that matters here: an over-tall child in a centred flex box has
+     its head clipped off with no way to scroll back to it, and auto margins
+     simply resolve to zero once the content outgrows the box. */
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* Thin and drawn in the page's own ink, for the one stage that can outgrow
+     itself: the fair copy's own text, on a short phone in landscape. The
+     keepsake's plate is fitted to the stage and never asks for it, and one
+     hairline track is a long way from the four the old sheet had. */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--color-ink), transparent 72%) transparent;
+  /* Room for a focus ring, taken back off the outside. Same pair as `.body`,
+     and the same reason: a vertical scroller computes `overflow-x: auto` with
+     it, so without this the stage clips its own children's outlines. */
+  padding-inline: 3px;
+  margin-inline: -3px;
+}
+
+.stage > * {
+  flex: none;
+  margin-block: auto;
+}
+
+/* The fair copy is the exception: the writing is the preview, so it takes the
+   stage rather than sitting in the middle of it. */
+.stage > .write {
+  flex: 1;
+  margin-block: 0;
+}
+
+/* One quiet line between the stage and the controls, saying what the thing in
+   front of you is. It replaced a paragraph per pane plus a hint under the shape
+   chips — four blocks of explanation for a screen whose whole job is to show
+   you the answer instead of describing it. */
+.caption {
+  flex: none;
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
+  font-style: italic;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  text-align: center;
+  text-wrap: pretty;
+  color: var(--color-ink-soft);
+}
+
+/* The band. Fixed height, no scroll, and the reason the stage can be as big as
+   it is: everything in here is one row tall. */
+.band {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ---- The rail: one row, one question ----
+
+   A row of the options for a single axis. There were three of these on one
+   line once, each behind its own stamped label with hairlines between them, in
+   a scroller — and on a 390px phone that put the shapes on screen and the
+   colours and the papers past the right-hand edge, with a mask over the end
+   instead of anything saying they were there. An option nobody can see is an
+   option nobody has.
+
+   So: one axis per rail, two rails stacked, and it wraps rather than scrolls.
+   Wrapping costs a row of height on the narrowest phone in the worst case and
+   hides nothing ever, which is the trade every time. */
+.rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Stamped, not written: the axis name is the caption on a printer's strip, and
+   at this size it has to be soft ink rather than faint — 11px tracked
+   uppercase is already working hard enough to be read. */
+.railLabel {
+  flex: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+/* A palette is a thing you look at, not a word you read, so its button is the
+   disc. Full tap height, and the disc sits in the middle of it. */
+.swatchPick {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: none;
+  cursor: pointer;
+  transition: background-color var(--dur-quick) var(--ease-out);
+}
+
+.swatchPick[aria-checked='true'] {
+  background: var(--color-chip-active);
+  border-color: var(--border-hairline);
+  box-shadow: var(--elevation-1);
+}
+
+.swatchPick:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -1px;
+}
+
+/* Short screen: everything the stage does not need gives a little back. The
+   caption stays — it is the only place that says what "The tally" draws, and
+   twenty pixels of picture is a poor trade for not knowing what you are
+   choosing between. */
+@media (max-height: 700px) {
+  .compose {
+    gap: var(--space-2);
+  }
+
+  .band {
+    gap: var(--space-1);
+  }
+
+  .footRow {
+    padding-block-start: var(--space-2);
+  }
+}
+
+/* ---- The foot ---- */
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+}
+
+.submit {
+  align-self: stretch;
+}
+
+/* Two ways out, weighted the same. The stacked version read as one real button
+   with a footnote under it, which is wrong twice over: copying is a first-class
+   answer, and on any machine without a system share sheet it is the only one
+   that does anything. Equal columns, wrapping to a stack only when the words
+   genuinely stop fitting side by side. */
+.footRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+}
+
+/* A rem basis, not a `ch` one. `ch` resolves against each element's own font,
+   so the sans-serif pill and the semibold slab beside it came out ten pixels
+   apart from the same declaration — and on a phone the pair squeezed onto one
+   line just tightly enough to break "Send it somewhere" over two. 12rem is
+   wider than half a phone sheet, so the row stacks cleanly there and sits side
+   by side the moment there is honest room for it. */
+.footRow > * {
+  flex: 1 1 12rem;
+  justify-content: center;
+}
+
+/* The count under the fair copy, and the note about what could not be written
+   out. Quiet, and never in the way of the text it is counting. */
+.tally {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-faint);
+}
+
+/* The count keeps its own line — left to itself it broke after the number and
+   set "285" over "words" in a column two characters wide, which reads as a
+   heading over a caption rather than as one short fact. The note beside it is
+   the part with words to spare, so it is the part that wraps. */
+.tally > span {
+  flex: none;
+  white-space: nowrap;
+}
+
+.tally em {
+  flex: 1;
+  font-style: normal;
+  text-wrap: pretty;
+}
+
+.quiet {
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
+  font-style: italic;
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-ink-soft);
+  padding-block: var(--space-4);
+}

@@ -30,15 +30,25 @@
    know there are two lamps in the room. */
 .toneQuote,
 .toneNote,
-.toneVoice {
+.toneVoice,
+.toneImage,
+.tonePlace,
+.toneCharacter,
+.toneThread {
   --color-ink: var(--tint-ink);
   --color-ink-soft: var(--tint-ink-soft);
   --color-ink-faint: var(--tint-ink-faint);
   --color-bg: var(--tint-reverse);
+  /* Paper is the other half of ink, so it flips with it. Anything on a toned
+     surface that reverses out of a dark fill reaches for --color-paper, and
+     the room's paper after dark is the slate the page is made of. */
+  --color-paper: var(--tint-reverse);
   --card-border: var(--tint-border);
   --card-edge-light: var(--tint-edge);
   --card-chip: var(--tint-chip);
   --note-rule: var(--tint-rule);
+  --tape-fill: var(--tint-tape);
+  --tape-edge: var(--tint-tape-edge);
   color: var(--color-ink);
 }
 
@@ -58,6 +68,50 @@
   --paper-tone: var(--card-voice);
   --paper-tone-solid: var(--card-voice-solid);
   --color-voice: var(--tint-voice);
+}
+
+.toneImage {
+  --paper-tone: var(--card-image);
+  --paper-tone-solid: var(--card-image-solid);
+  --color-image: var(--tint-image);
+}
+
+.tonePlace {
+  --paper-tone: var(--card-place);
+  --paper-tone-solid: var(--card-place-solid);
+  --color-place: var(--tint-place);
+}
+
+.toneCharacter {
+  --paper-tone: var(--card-character);
+  --paper-tone-solid: var(--card-character-solid);
+  --color-character: var(--tint-character);
+}
+
+/* The one cool sheet in a warm pile. A thread card is the reader talking about
+   the book rather than the book talking, and the material says so before a
+   word is read. */
+.toneThread {
+  --paper-tone: var(--card-thread);
+  --paper-tone-solid: var(--card-thread-solid);
+  --color-thread: var(--tint-thread);
+}
+
+/* Paper laid on glass.
+
+   A sheet is a GlassSurface, and a backdrop-filter inside another
+   backdrop-filter has no defined backdrop to sample. Chromium hands the nested
+   layer garbage and the card came out fluorescent yellow — a real bug, on a
+   real screen, not a screenshot artefact.
+
+   There was nothing to see through in there anyway: the glass behind it is
+   already frosted, so a second frosting only blurs a blur. Paper resting on a
+   sheet is opaque paper, which is also what paper resting on a table looks
+   like. Stated after `.paper` so it wins on source order without a fight. */
+.solid {
+  background-color: var(--paper-tone-solid, var(--card-fallback));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 /* Aged paper grain. */

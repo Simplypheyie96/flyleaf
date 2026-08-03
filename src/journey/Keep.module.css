@@ -1,0 +1,143 @@
+/* The three verbs, and nothing else.
+
+   The seven drawings moved out to `cards/`, where each direction carries its
+   own stylesheet. What is left here is the furniture that has to sit the same
+   way whichever direction is drawing: the round share / edit / delete buttons
+   riding a keep's bottom trailing corner.
+
+   Everything directional is logical (inline-start / inline-end), so it mirrors
+   correctly without a second stylesheet. */
+
+/* Separate little circles riding the keep's bottom trailing corner, the way
+   the reference floats them — a shared pill is the app chrome's language, and
+   an entry is not chrome. Positioned against the notch's own hang (the journey
+   sets it relative), so they land the same way on every direction, including
+   the cards that clip their own overflow — and inset far enough to leave the
+   spiral note's folded corner alone.
+
+   18 of hang, up from 10. The circle is 34 and reaches 44, so five of it is
+   air above the drawn edge: at 10 of hang the drawn circle stood 24px up
+   inside the card and its target stood 29, which is more than most drawings
+   had spare at the foot. Measured across the whole thread, the picture's
+   caption and the note's last ruled line were losing outright — the buttons
+   were painting over them — and every other card cleared the target by three
+   pixels, which is touching rather than clearing.
+
+   18 puts the circle 16 inside and the target 21, which is eight pixels back
+   to every drawing at once. Eight is not enough on its own for the picture
+   and the note, and those two took a step of foot padding as well; but no
+   amount of foot padding would have fixed the other five, because three
+   pixels of clearance on five different cards is not five drawings each
+   getting their spacing wrong, it is the buttons hanging too high.
+
+   What the extra hang spends, it spends downward: the target now reaches 23
+   below the card into the 32 of journey gap, leaving 9 clear of the next
+   keep's edge and about 33 clear of its first line. That gap was always the
+   cheaper place to spend it, because nothing is drawn in it. */
+.acts {
+  position: absolute;
+  inset-block-end: calc(-1 * var(--space-4) - 2px);
+  inset-inline-end: var(--space-6);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  /* 10px, two off the scale, and the two pixels are the whole reason. The
+     circles are drawn at 34 and reach 44 by taking five all round out of the
+     air beside them (see .act::after). Five each side of a gap needs ten of
+     gap: at the scale's eight, share's target would have reached two pixels
+     into edit's, and a thumb landing in that seam would get whichever of the
+     two the browser felt like. Ten makes the targets meet exactly and never
+     overlap, and costs the row four pixels of width nobody will see. */
+  gap: 10px;
+}
+
+/* Card-side colours, not page-side: these ride the cards, and the cards stay
+   pale after dark while the page's own ink flips. The --tint-* stand-ins are
+   exactly "what ink and paper look like on a card", in both themes, and they
+   are defined at the root as well so a direction that draws no card at all
+   still gets a sane pair.
+
+   No hue. The fill used to carry a tenth of the entry's own colour and the
+   hairline three tenths, on the theory that white coins read as *placed on*
+   the card rather than belonging to it. Both were wrong, and the border was
+   wrong twice.
+
+   The fill: a tenth of a mid-lightness hue costs five points of lightness, so
+   the "nearly white" disc rendered at L 0.94 — a grey coin, and grey is the
+   one thing the app's paper never is.
+
+   The border: --kind is opaque and --tint-border is a 22% wash, so mixing 30%
+   of the first into the second lands at 0.3 + 0.7 × 0.22 = 45% — double the
+   hairline everything else on the card is drawn with, in lavender on a thread
+   and rose on a character. What was described as a tint was the heaviest ring
+   on the screen.
+
+   So they are the page's own buttons now: the card's paper, the card's
+   hairline, the card's soft ink — the same three values the header's share /
+   review / delete wear, which is what these three verbs are. */
+.act {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 34px;
+  block-size: 34px;
+  padding: 0;
+  border: 1px solid var(--tint-border);
+  border-radius: 50%;
+  background: var(--tint-reverse);
+  box-shadow: var(--elevation-1);
+  color: var(--tint-ink-soft);
+  cursor: pointer;
+  transition:
+    color var(--dur-press) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
+}
+
+/* 34px of circle, 44px of target. Three coins riding a card's corner are the
+   size they are on purpose — drawn at the tap minimum they stop being a mark
+   on the keep and become a toolbar bolted to it, which is the thing that was
+   taken off these cards in the first place. So the five pixels all round are
+   taken rather than drawn: above and below into the card's own bottom margin,
+   left and right into half the gap the row now holds open for exactly this.
+
+   The size is stated rather than inset by five all round, because an inset
+   resolves against the padding box and these circles carry a hairline — the
+   inset version drew 42 while reading as though it drew 44. */
+.act::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+}
+
+.act:hover {
+  color: var(--tint-ink);
+}
+
+.act:active {
+  transform: translateY(var(--press));
+}
+
+/* Delete rests in the same ink as its two neighbours and only turns when it is
+   being reached for. A hot red circle sitting permanently on every keep was
+   the loudest colour on the thread and the odd one out in its own set of
+   three — it read as a warning the card was giving off rather than as the
+   third verb. This is how the same verb behaves in the header chrome. */
+.actDanger:hover,
+.actDanger:focus-visible,
+.actDanger:active {
+  color: var(--color-danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .act {
+    transition-duration: 0.01ms;
+  }
+  .act:active {
+    transform: none;
+  }
+}

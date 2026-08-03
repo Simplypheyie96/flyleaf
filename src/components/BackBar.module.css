@@ -1,0 +1,127 @@
+/* Sticky rather than fixed, so it belongs to the page it heads and cannot end
+   up floating over another one. It spans the viewport because chrome does; the
+   column inside it is the same column the page uses, so the back word lines up
+   with the page's own leading edge instead of with the glass. */
+.bar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 3;
+  margin-inline: calc(-1 * var(--space-5));
+  padding-inline: var(--space-5);
+  padding-block-start: env(safe-area-inset-top, 0px);
+  /* Nothing at rest: at the top of the page the bar is just a link on the sky,
+     the way a bar with a large title below it should be. The material arrives
+     with the title. */
+  background: transparent;
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+/* The page's own colour, not a card's, and not saturated. Chrome is a lid over
+   the page: it should read as the same surface wherever you are in the scroll.
+   Saturating a backdrop is right for a card, which is meant to pick up what is
+   behind it, and wrong for a bar — over the lit pale keeps this route uses at
+   night it turned the bar whatever colour happened to be passing under it. The
+   fill is the page's, so the bar reads as the sky it sits on rather than as a
+   slab laid over it.
+
+   Only 3% through, where the day headings a few pixels below are 8%. They can
+   afford it: the only thing that ever passes under a day heading is the fill
+   of a card. Everything passes under the bar, including a line of a keep, and
+   at 8% those words stayed readable through it — two sentences at once, one of
+   them the title. The blur alone does not save it, so the fill has to. What is
+   left is enough that a card still blooms pale as it goes under. */
+.bar[data-collapsed] {
+  background: color-mix(in oklch, var(--color-bg), transparent 3%);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 1px 0 var(--border-hairline);
+}
+
+/* Without the blur the bar has to carry the page on its own, or the words sit
+   on top of whatever scrolls under them. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .bar[data-collapsed] {
+    background: var(--color-bg);
+  }
+}
+
+.inner {
+  display: grid;
+  /* Three tracks, with the title in the middle one. Centring by grid rather
+     than by `justify-content` keeps the title on the page's centre line
+     whatever the back word says — otherwise "Library" and "Currently reading"
+     would centre it in two different places. */
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+}
+
+.back {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  /* The chevron sits against the word, the way it does on iOS. The negative
+     start margin pulls the optical mass of the glyph back to the column edge
+     so the word, not the stroke, lines up with the text below. */
+  gap: 1px;
+  margin-inline-start: -5px;
+  min-height: var(--tap-min);
+  padding-inline-end: var(--space-2);
+  color: var(--color-accent-text);
+  text-decoration: none;
+}
+
+.from {
+  /* 17px, the interface reading size, in the interface face. The old back
+     control was serif at heading size and read as a title. */
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.back:active {
+  opacity: 0.5;
+}
+
+.title {
+  grid-column: 2;
+  max-width: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  /* Not `display: none`: the words stay measured, so arriving and leaving
+     never changes the height of the bar or the width of the tracks. */
+  transform: translateY(6px);
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+.bar[data-collapsed] .title {
+  opacity: 1;
+  transform: none;
+}
+
+.trailing {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title {
+    transform: none;
+  }
+}

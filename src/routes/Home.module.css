@@ -17,7 +17,8 @@
 /* Handwriting is rationed to note cards now, so this is an italic standfirst
    under the masthead rather than a second handwritten thing above the fold. */
 .subtitle {
-  font-family: var(--font-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-style: italic;
   font-size: var(--text-md);
   color: var(--color-ink-soft);
@@ -72,13 +73,31 @@
 
 /* Italic serif, a clear step below the masthead so the two don't compete. */
 .sectionLabel {
-  font-family: var(--font-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-style: italic;
   font-size: var(--text-md);
   color: var(--color-ink);
 }
 
 /* ---- Currently reading hero — the book gets room to breathe ---- */
+/* The whole card is the way into the book. Nothing here draws a link — the
+   card already looks like an object you can pick up, and underlining a title
+   inside it would say the title is the target when the card is. What the link
+   contributes is the focus ring, drawn round the paper's own silhouette rather
+   than round a rectangle that ignores its tilt. */
+.heroLink {
+  display: block;
+  border-radius: var(--radius-lg);
+  color: inherit;
+  text-decoration: none;
+}
+
+.heroLink:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
 .heroCard {
   padding: var(--space-6) var(--space-5);
 }
@@ -108,7 +127,7 @@
 }
 
 .heroAuthor {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -123,7 +142,12 @@
   border: 1px solid color-mix(in oklch, var(--color-ink), transparent 82%);
   border-radius: 10px;
   padding: var(--space-3);
-  background: color-mix(in oklch, var(--color-ink), transparent 95%);
+  /* 97%, not 95%. The panel tints itself by laying ink over the card, which
+     also darkens the paper under the 11px readout printed on it — soft ink on
+     that slightly muddied wash measured 4.48:1, under AA by a rounding error
+     at the smallest size in the app. Two points of wash is the whole fix; the
+     panel still reads as inset because the hairline is doing that work. */
+  background: color-mix(in oklch, var(--color-ink), transparent 97%);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -135,8 +159,8 @@
   display: flex;
   justify-content: space-between;
   gap: var(--space-3);
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
   letter-spacing: 0.06em;
   /* the page count and percentage both climb as you read; proportional digits
      would shift the row on every update */
@@ -246,8 +270,8 @@
 /* Typewriter meta */
 .memoryType {
   display: block;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-ink-soft);
@@ -261,6 +285,7 @@
 .quoteMark {
   display: block;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: 3rem;
   line-height: 0.6;
   color: var(--color-quote);
@@ -268,7 +293,8 @@
 }
 
 .quoteText {
-  font-family: var(--font-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-style: italic;
   font-size: var(--text-md);
   line-height: 1.55;

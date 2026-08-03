@@ -1,34 +1,64 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { CSSProperties, PointerEvent } from 'react'
+import type { CSSProperties, MouseEvent, PointerEvent } from 'react'
+import { Link } from 'react-router-dom'
 import BookCover from '../components/BookCover'
 import { floss, palette } from '../books/CoverArt'
 import SpineArt from '../books/SpineArt'
 import SpineMark from '../books/SpineMark'
 import { seedFrom } from '../books/seed'
 import GlassSurface from '../components/GlassSurface'
+import Sparkle from '../components/Sparkle'
+import PaperSurface from '../components/PaperSurface'
+import Sheet from '../components/Sheet'
 import {
+  CaretIcon,
+  CheckIcon,
   ChevronIcon,
+  FeedIcon,
   GridIcon,
   SearchIcon,
   ShelfIcon,
   StackIcon,
 } from '../components/TabIcons'
-import type { Book } from '../data/db'
-import { useLibrary } from '../data/useLibrary'
+import type { Book, Entry } from '../data/db'
+import { KIND } from '../journey/kinds'
+import { KEEP, keptLabel } from '../journey/lexicon'
+import { useLatestKeeps, useLibrary } from '../data/useLibrary'
 import { shelved } from '../motion/shelfLanding'
 import { runSwitch } from '../motion/viewSwitch'
 import type { FadePhase } from '../motion/viewSwitch'
 import pageStyles from './page.module.css'
 import styles from './Library.module.css'
 
-type ShelfView = 'Stack' | 'Shelf' | 'Grid'
+type ShelfView = 'Stack' | 'Shelf' | 'Grid' | 'Feed'
 const VIEW_KEY = 'flyleaf-shelf-view'
 
 const VIEWS: { id: ShelfView; Icon: typeof StackIcon; hint: string }[] = [
   { id: 'Stack', Icon: StackIcon, hint: 'piled, one on top of another' },
   { id: 'Shelf', Icon: ShelfIcon, hint: 'standing, spines out' },
   { id: 'Grid', Icon: GridIcon, hint: 'covers in a grid' },
+  { id: 'Feed', Icon: FeedIcon, hint: 'one to a row, with the last thing kept' },
 ]
+
+/** The way into a book's journey, laid over the book itself.
+
+    An overlay rather than a wrapper because all three views draw a book
+    differently and two of them care exactly where their children sit: a spine
+    is a vertical flex row of stitching, title, mark and author, and a link
+    around that lot would be a new box in the middle of it. Sitting on top
+    instead means the shelf keeps the layout it was built with, and the whole
+    cover — not just its title — is the target, which is the 44px rule met by
+    the object rather than by padding added around a word.
+
+    The label is real text, hidden by `.reach`, so this reads as "Open The
+    Bell Jar" to a screen reader rather than as an unlabelled link. */
+function OpenJourney({ book }: { book: Book }) {
+  return (
+    <Link to={`/book/${book.id}`} className={styles.reach}>
+      Open {book.title}
+    </Link>
+  )
+}
 
 /* ---- Shelf geometry ----
    A real shelf is not a row of identical blocks: books differ in thickness and
@@ -166,7 +196,7 @@ function fitSpine(title: string, author: string, spineHeight: number) {
 
 function getStoredView(): ShelfView {
   const stored = localStorage.getItem(VIEW_KEY)
-  return stored === 'Shelf' || stored === 'Grid' ? stored : 'Stack'
+  return VIEWS.some((v) => v.id === stored) ? (stored as ShelfView) : 'Stack'
 }
 
 /* ---- Stack: a deck you deal through ----
@@ -213,6 +243,12 @@ function StackDeck({ books }: { books: Book[] }) {
   const [dealing, setDealing] = useState<number | null>(null)
   const clear = useRef(0)
   const from = useRef<{ x: number; y: number } | null>(null)
+  /* A swipe that started on the front book ends on it too, and the browser
+     fires a click for that — which, now that the front book is a link to its
+     journey, would mean every turn of the deck also opened a book. The pointer
+     handler knows it was a swipe before the click arrives, so it leaves this
+     flag for the capture-phase handler below to act on. */
+  const swiped = useRef(false)
 
   // A book removed from under the front one must not leave the deck pointing
   // past its own end.
@@ -241,6 +277,7 @@ function StackDeck({ books }: { books: Book[] }) {
      book, so a swipe that begins on a buried corner still turns the pile. */
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
     from.current = { x: event.clientX, y: event.clientY }
+    swiped.current = false
   }
 
   function onPointerUp(event: PointerEvent<HTMLDivElement>) {
@@ -251,7 +288,18 @@ function StackDeck({ books }: { books: Book[] }) {
     // Vertical wins ties: the page scrolls, and a scroll that turned the deck
     // on the way past would be maddening.
     if (Math.abs(dx) < SWIPE_MIN || Math.abs(dx) < Math.abs(event.clientY - start.y)) return
+    swiped.current = true
     turn(dx < 0 ? 1 : -1)
+  }
+
+  /* Capture, so this runs before the link's own handling rather than after it
+     has already navigated. Only ever swallows a click the pointer handler has
+     just declared a swipe, so a plain tap on the front book still opens it. */
+  function onClickCapture(event: MouseEvent<HTMLDivElement>) {
+    if (!swiped.current) return
+    swiped.current = false
+    event.preventDefault()
+    event.stopPropagation()
   }
 
   return (
@@ -270,6 +318,7 @@ function StackDeck({ books }: { books: Book[] }) {
           onPointerCancel={() => {
             from.current = null
           }}
+          onClickCapture={onClickCapture}
         >
           {books.map((book, i) => {
             const slot = (i - active + n) % n
@@ -301,9 +350,14 @@ function StackDeck({ books }: { books: Book[] }) {
                   />
                 </span>
 
-                {/* Only what is showing can be reached. The front book has no
-                    button over it: it is the one you are already looking at,
-                    and a control that does nothing is worse than none. */}
+                {/* Only what is showing can be reached, and what each showing
+                    book does depends on where it is in the pile. Behind the
+                    front one, the useful action is to bring it forward — you
+                    cannot read a cover you are looking at edge-on. The front
+                    book is already chosen, so tapping it does the next thing
+                    instead and opens its journey. */}
+                {slot === 0 && <OpenJourney book={book} />}
+
                 {slot > 0 && !buried && (
                   <button
                     type="button"
@@ -377,11 +431,108 @@ function StackDeck({ books }: { books: Book[] }) {
   )
 }
 
-/* The full bookshelf: Stack (emotional default) · Shelf · Grid.
+/* ---- Feed: the shelf as a reading log ----
+
+   The other three views all answer "which books do I have". This one answers
+   "what have I been doing in them", which is a different question and the one
+   a reader actually opens the app holding. So the row leads with the book but
+   is mostly the last thing kept from it, printed on that keep's own tint — the
+   same surface the journey prints it on, so a reader recognises a quote as a
+   quote before reading a word of it.
+
+   A book with nothing kept yet is not hidden and not apologised for. It gets a
+   line saying so, because an empty row is the most useful thing on the screen:
+   it is the book you meant to write something about. */
+
+/** What the excerpt says when the keep has no words of its own. A voice note
+    and a picture are not text, and printing an empty string under a title
+    would read as a bug rather than as a recording. */
+function excerpt(keep: Entry) {
+  if (keep.text?.trim()) return keep.text.trim()
+  if (keep.type === 'voice') {
+    const secs = Math.round(keep.duration ?? 0)
+    return secs > 0 ? `${secs} seconds, in your own voice.` : 'A recording.'
+  }
+  if (keep.type === 'image') return 'A picture from the page.'
+  return `A ${KEEP[keep.type].one}.`
+}
+
+/** Where the reader is in the book, said the way the shelf can say it without
+    the journey's whole colophon: a page if there is one, otherwise nothing.
+    Deliberately not a percentage — see `Book.pagesRead`. */
+function bookmark(book: Book) {
+  if (book.finishedOn) return 'Finished'
+  if (!book.pagesRead) return null
+  return book.pages
+    ? `page ${book.pagesRead} of ${book.pages}`
+    : `page ${book.pagesRead}`
+}
+
+function FeedRow({
+  book,
+  keep,
+  style,
+}: {
+  book: Book
+  keep: Entry | undefined
+  style?: CSSProperties
+}) {
+  const where = bookmark(book)
+  const kind = keep ? KIND[keep.type] : null
+
+  return (
+    <li className={`${styles.feedRow} ${styles.book}`} style={style}>
+      {/* Thumb, so the drawn board carries its motif and nothing else. At a
+          68px jacket the typeset title is a grey smudge, and the row sets the
+          same title beside it in type you can actually read — printing it on
+          both made the board look like a mistake, and made a screen reader say
+          every book's name twice before reaching what was kept from it. */}
+      <div className={styles.feedJacket}>
+        <BookCover
+          title={book.title}
+          author={book.author}
+          covers={book.covers}
+          size="thumb"
+        />
+      </div>
+
+      <div className={styles.feedBody}>
+        <h2 className={styles.feedTitle}>{book.title}</h2>
+        <p className={styles.feedAuthor}>{book.author}</p>
+        {where && <p className={styles.feedWhere}>{where}</p>}
+
+        {keep && kind ? (
+          <PaperSurface tone={kind.tone} className={styles.feedKeep}>
+            <span className={styles.feedKeepHead}>
+              <kind.Icon size={15} />
+              <span className={styles.feedKeepKind}>{kind.one}</span>
+              <span className={styles.feedKeepWhen}>{keptLabel(keep.keptOn)}</span>
+            </span>
+            {/* Clamped rather than cut in the string, so the whole keep is
+                still on the page for anything that reads it rather than
+                looks at it — and so the clamp follows the column width
+                instead of guessing at it. */}
+            <p className={styles.feedKeepText}>{excerpt(keep)}</p>
+          </PaperSurface>
+        ) : (
+          <p className={styles.feedNothing}>Nothing kept from this one yet.</p>
+        )}
+      </div>
+
+      <OpenJourney book={book} />
+    </li>
+  )
+}
+
+/* The full bookshelf: Stack (emotional default) · Shelf · Grid · Feed.
    Search here is the entry point to the archive search surface (06). */
 function Library() {
   const books = useLibrary()
   const libraryBooks = books ?? []
+  /* Asked for unconditionally rather than only in the Feed view: it is one
+     indexed row per book, and running it here means switching into the Feed
+     shows the keeps in the same frame as the covers instead of a beat later. */
+  const latest = useLatestKeeps(libraryBooks.map((book) => book.id))
 
   /* Tell the add sheet the moment a book it is waiting for is on screen, so
      the cover it is holding can finish travelling here. Before paint, because
@@ -392,6 +543,9 @@ function Library() {
   })
   const [view, setView] = useState<ShelfView>(getStoredView)
   const [phase, setPhase] = useState<FadePhase>('idle')
+  // Only ever true on a narrow column, where the four view pills are folded
+  // away behind the masthead button rather than laid out in the toolbar.
+  const [picking, setPicking] = useState(false)
   const [fitted, setFitted] = useState<
     Record<string, { title: string; author: string }>
   >({})
@@ -399,9 +553,9 @@ function Library() {
 
   /* Measure before paint, so a title is never briefly shown at a length that
      doesn't fit. Then measure again when the fonts land: on a cold load the
-     first pass runs against the fallback serif, whose metrics aren't
-     Instrument Serif's, and a budget measured against the wrong face is the
-     wrong budget. */
+     first pass runs against the fallback serif, whose metrics are not the
+     book face's, and a budget measured against the wrong face is the wrong
+     budget. */
   useLayoutEffect(() => {
     if (view !== 'Shelf') return
 
@@ -453,22 +607,68 @@ function Library() {
   const phaseClass = phase !== 'idle' ? styles[phase] : ''
 
   const hasBooks = libraryBooks.length > 0
+  const laid = VIEWS.find((v) => v.id === view) ?? VIEWS[0]
 
   return (
     <main className={pageStyles.page}>
       <div className={`${pageStyles.column} ${styles.shelfColumn}`}>
+        {/* The name and, on a narrow column, the folded-up display control.
+            Nothing else may share this line: the only way "The Library" is
+            never allowed to wrap is that a display serif never competes for
+            the row with anything that grows. */}
         <header className={styles.masthead}>
-          <div className={styles.mastheadText}>
-            <h1 className={styles.title}>The Library</h1>
+          <div className={styles.mastheadName}>
+            <h1 className={styles.title}>
+              The Library <Sparkle size={15} className={styles.spark} />
+            </h1>
             <p className={styles.subtitle}>every book you keep</p>
           </div>
 
-          {/* Three ways to look at nothing is not a choice, and a search field
-              over an empty shelf is a promise the screen cannot keep. Both
-              arrive with the first book, on the same condition as the count at
-              the foot — including while Dexie is still answering, so a reader
-              who does have books never sees the controls appear twice. */}
+          {/* Four view pills want 190px. On a phone the column is about 327,
+              which leaves the search field a slot too narrow to type a title
+              into — so the display choice is what gives: it folds up here
+              beside the name and only unfolds into the toolbar when the
+              column can carry both. Both are always in the markup and the
+              container query hides one outright; `display: none` takes it out
+              of the accessibility tree as well, so there is never a second
+              copy of the same control to tab through. */}
           {hasBooks && (
+            <GlassSurface className={styles.display}>
+              <button
+                type="button"
+                className={styles.displayBtn}
+                aria-haspopup="dialog"
+                aria-label={`${view} — change how the shelf is laid out`}
+                onClick={() => setPicking(true)}
+              >
+                <laid.Icon size={18} />
+                <span className={styles.displayName}>{view}</span>
+                <CaretIcon size={14} />
+              </button>
+            </GlassSurface>
+          )}
+        </header>
+
+        {/* One toolbar: search flexes, the view switcher holds its corner.
+            They share a row because they are the same kind of thing — chrome
+            over the shelf — and neither arrives until there are books; a
+            search field over an empty shelf is a promise the screen cannot
+            keep. */}
+        {hasBooks && (
+          <div className={styles.toolbar}>
+            <GlassSurface className={styles.search}>
+              <div className={styles.searchInner}>
+                <SearchIcon size={18} />
+                <input
+                  type="search"
+                  className={styles.searchInput}
+                  placeholder="Search"
+                  aria-label="Search your books and memories"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </div>
+            </GlassSurface>
             <GlassSurface className={styles.switcher}>
               <div
                 className={styles.switcherInner}
@@ -490,23 +690,7 @@ function Library() {
                 ))}
               </div>
             </GlassSurface>
-          )}
-        </header>
-
-        {hasBooks && (
-          <GlassSurface className={styles.search}>
-            <div className={styles.searchInner}>
-              <SearchIcon size={18} />
-              <input
-                type="search"
-                className={styles.searchInput}
-                placeholder="Search books and memories"
-                aria-label="Search your books and memories"
-                autoComplete="off"
-                spellCheck={false}
-              />
-            </div>
-          </GlassSurface>
+          </div>
         )}
 
         {/* `data-shelf` is how the add sheet knows there is somewhere for a
@@ -576,12 +760,34 @@ function Library() {
                       <span className={styles.spineAuthor} title={book.author}>
                         {fitted[book.id]?.author ?? book.author}
                       </span>
+                      <OpenJourney book={book} />
                     </div>
                   )
                 })}
               </div>
               <div className={styles.ledge} aria-hidden="true" />
             </div>
+          )}
+
+          {hasBooks && view === 'Feed' && (
+            <ol className={styles.feed}>
+              {libraryBooks.map((book, i) => (
+                <FeedRow
+                  key={book.id}
+                  book={book}
+                  keep={latest?.[book.id]}
+                  /* The stagger and the shared name are on the row rather
+                     than inside it, so the cover that flies here from the
+                     add sheet lands in the same place it does in the Grid. */
+                  style={
+                    {
+                      viewTransitionName: `book-${book.id}`,
+                      '--enter-delay': `calc(${i} * var(--stagger))`,
+                    } as CSSProperties
+                  }
+                />
+              ))}
+            </ol>
           )}
 
           {hasBooks && view === 'Grid' && (
@@ -603,6 +809,7 @@ function Library() {
                     covers={book.covers}
                     size="small"
                   />
+                  <OpenJourney book={book} />
                 </div>
               ))}
             </div>
@@ -614,6 +821,44 @@ function Library() {
             {libraryBooks.length} {libraryBooks.length === 1 ? 'book' : 'books'}
           </p>
         )}
+
+        {/* The folded display control, opened. Written out in words here
+            because there is room for them: the toolbar version has to make do
+            with four glyphs, and this is where a reader finds out what they
+            mean. */}
+        <Sheet
+          open={picking}
+          onClose={() => setPicking(false)}
+          label="How the shelf is laid out"
+          name="display"
+        >
+          <h2 className={styles.sheetTitle}>How to lay it out</h2>
+          <div className={styles.viewList} role="group" aria-label="Shelf view">
+            {VIEWS.map(({ id, Icon, hint }) => (
+              <button
+                key={id}
+                type="button"
+                className={styles.viewRow}
+                aria-pressed={view === id}
+                onClick={() => {
+                  setPicking(false)
+                  choose(id)
+                }}
+              >
+                <Icon size={22} />
+                <span className={styles.viewText}>
+                  <span className={styles.viewLabel}>{id}</span>
+                  <span className={styles.viewHint}>{hint}</span>
+                </span>
+                {view === id && (
+                  <span className={styles.viewTick}>
+                    <CheckIcon size={18} />
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </Sheet>
       </div>
     </main>
   )

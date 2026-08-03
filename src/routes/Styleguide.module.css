@@ -9,7 +9,8 @@
    reference has to show the same italic-serif standfirst the screens use —
    otherwise the styleguide documents a system the app no longer has. */
 .greeting {
-  font-family: var(--font-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-style: italic;
   font-size: var(--text-md);
   color: var(--color-accent-text);
@@ -25,7 +26,8 @@
 }
 
 .cardLine {
-  font-family: var(--font-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-style: italic;
   font-size: var(--text-md);
   line-height: 1.5;
@@ -33,7 +35,7 @@
 
 .cardCaption {
   margin-top: var(--space-3);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;

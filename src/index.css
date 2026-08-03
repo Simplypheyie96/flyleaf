@@ -29,6 +29,41 @@ body {
   line-height: var(--leading-body);
 }
 
+/* Scrollbars, once, for everything.
+
+   This app nests scrollers by design — a thread under a pinned head, a sheet
+   body under a fixed foot, a filter run inside a band — and every one of them
+   was drawing its own default gutter. Four grey tracks on one phone screen is
+   four pieces of furniture the reader did not ask for, and none of them said
+   anything the content wasn't already saying.
+
+   So: a thin bar, no track, and a thumb the colour of quiet ink. It appears
+   where there is genuinely more to reach and disappears into the paper the
+   rest of the time. Set globally rather than per-scroller because the failure
+   mode is a scroller somebody adds later and forgets to quiet. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--color-ink) 22%, transparent) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--color-ink) 22%, transparent);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* Soft cloud masses drifting behind everything — pure gradients, no images. */
 body::before {
   content: '';
@@ -71,10 +106,11 @@ h1,
 h2,
 h3 {
   font-family: var(--font-serif);
-  /* Instrument Serif ships 400 and nothing else. Ask for more and the browser
-     synthesises it, which on a hairline serif is unmissable — the strokes
-     smear instead of thickening. Size carries the hierarchy here, not weight. */
-  font-weight: 400;
+  /* Stated, not inherited: the page is set in the sans at 400, and a heading
+     that took that weight would come out a step lighter than the body it sits
+     over, because the serif carries less ink per stem. Size still carries the
+     hierarchy between h1 and h3 — the weight is one value for all three. */
+  font-weight: var(--weight-serif);
   line-height: var(--leading-tight);
   color: var(--color-ink);
   text-wrap: balance;

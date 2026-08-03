@@ -1,0 +1,438 @@
+/* DIRECTION B — MARGINALIA
+
+   No cards. Every keep is a two-column setting: a small drawn mark in the
+   margin, and the words on the page beside it. Because nothing here is a
+   tinted surface, these use the room's own ink and paper directly — there is
+   no --tint-* layer, and after dark the text flips with the page rather than
+   staying on a pale sheet.
+
+   Turn the colour off and the seven are still distinct: a heavy rule, a nib, a
+   play triangle, a corner, a bust, a pin, and one to three tally strokes. */
+
+/* The bottom padding is the one thing this direction has to pay for having no
+   card. The three verb circles hang against the row's own bottom edge — 34
+   tall, 18 of it below the row, so they reach 16px up into it and their 44px
+   targets reach 21 — and Pressed and Plates get that clearance free out of
+   the card's own bottom padding. With the words set straight on the page there
+   is nothing to pay it with, so the circles were landing on the last line of
+   every keep that ends in text. 32 is the 21 they need plus a line's worth of
+   air. */
+.set {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: var(--space-4);
+  align-items: start;
+  padding-block-end: var(--space-6);
+}
+
+.body {
+  min-inline-size: 0;
+}
+
+/* The seven settings. Most need nothing beyond the grid — that is the point of
+   the direction — but each is named so a keep announces its own kind in the
+   markup, and so the four that do need a tweak have somewhere to put it. */
+.pulled,
+.spoken,
+.listed,
+.marked {
+  /* nothing: the mark and the setting carry it */
+}
+
+.written .mark,
+.plated .mark {
+  /* A nib and a crop mark are drawn from their own top edge rather than
+     centred in the 24px box, so they need the optical offset removed. */
+  margin-block-start: 4px;
+}
+
+.surveyed {
+  /* The vignette is a picture, not a line of type: the mark hangs from its top
+     edge rather than from a cap height that isn't there. */
+  align-items: start;
+}
+
+/* Every margin mark is the same box, so all seven line up down the page even
+   though no two are the same drawing. */
+.mark {
+  display: block;
+  inline-size: 24px;
+  block-size: 24px;
+  /* Optical: sits on the first line's cap height rather than its line box. */
+  margin-block-start: 3px;
+  color: var(--color-ink-faint);
+}
+
+/* ── Shared: the stance ───────────────────────────────────────────────── */
+
+/* Trailing space so the stance's tap-sized row clears the verb circles that
+   hang off the keep's bottom-right — see the long note on the same rule in
+   pressed.module.css. */
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+  margin-block-end: 10px;
+}
+
+/* The stance, and in this direction it gets no pill at all. A margin is a
+   place where you write, not a place where you put badges — so the strokes in
+   the gutter get their word as a small letter-spaced label with a rule run in
+   front of it, the way an annotation is introduced.
+
+   Ink-soft rather than the thread's mallow: at this size the word is text and
+   owes 4.5:1, which mallow on paper does not make in daylight. The rule is a
+   graphical mark and can carry the hue instead. */
+.stance {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 34px;
+  color: var(--color-ink-soft);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+.stance::before {
+  content: '';
+  inline-size: 14px;
+  block-size: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--color-thread);
+}
+
+/* ── 1. Quote — a pulled quote ────────────────────────────────────────────
+   The only thing in the set with a heavy rule in the margin, and the only
+   thing set this large. A book pulls a quote by making it bigger and moving it
+   away from the text; so does this. */
+
+.rule {
+  inline-size: 3px;
+  block-size: auto;
+  align-self: stretch;
+  margin-block: 6px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-quote);
+}
+
+.said {
+  margin: 0;
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
+  font-size: var(--text-lg);
+  font-style: italic;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+  color: var(--color-ink);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+}
+
+/* ── 2. Note — the reader's hand on a writing guide ─────────────────────── */
+
+.nib {
+  background: currentColor;
+  color: var(--color-note);
+  /* A nib: a narrow blade with a slit and a vent hole. */
+  clip-path: polygon(50% 100%, 18% 30%, 32% 0, 68% 0, 82% 30%);
+  block-size: 22px;
+  inline-size: 16px;
+  margin-inline-start: 4px;
+}
+
+.hand {
+  margin: 0;
+  padding-block-end: 2px;
+  font-family: var(--font-hand);
+  font-size: var(--text-lg);
+  line-height: 1.7;
+  color: var(--color-ink);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+  /* The writing guide: a dotted rule under each line, faint enough that the
+     writing sits on it rather than in a table. */
+  background-image: radial-gradient(
+    circle 0.6px,
+    color-mix(in oklab, var(--color-note) 38%, transparent) 0 0.6px,
+    transparent 0.6px
+  );
+  background-size: 6px calc(1.7 * var(--text-lg));
+  background-position: 0 calc(1.7 * var(--text-lg) + 1px);
+  background-repeat: repeat;
+}
+
+/* ── 3. Voice — a bare waveform ───────────────────────────────────────── */
+
+.play {
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-voice);
+  cursor: pointer;
+  /* A solid triangle, drawn rather than typed — a dingbat would arrive at
+     whatever weight the font felt like. */
+  clip-path: polygon(22% 8%, 22% 92%, 90% 50%);
+  transition: opacity var(--dur-press) var(--ease-out);
+}
+
+.play::before {
+  content: '';
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  background: currentColor;
+}
+
+.play[data-playing] {
+  /* Playing: the triangle becomes a pause bar pair. Same box, same colour, so
+     nothing on the page moves. */
+  clip-path: polygon(20% 8%, 42% 8%, 42% 92%, 20% 92%, 20% 8%, 58% 8%, 80% 8%, 80% 92%, 58% 92%);
+}
+
+.play:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  block-size: 34px;
+}
+
+.bar {
+  flex: 1;
+  min-inline-size: 0;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--color-voice) 34%, transparent);
+  transition: background-color var(--dur-press) var(--ease-out);
+}
+
+.bar[data-played] {
+  background: var(--color-voice);
+}
+
+.aside {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+.stamp {
+  flex: none;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-faint);
+}
+
+/* ── 4. Picture — full measure, no frame ────────────────────────────────── */
+
+.corner {
+  /* A printer's crop mark: the corner of a plate, nothing else. */
+  background:
+    linear-gradient(to right, currentColor 0 14px, transparent 14px) 0 0 / 100% 2px no-repeat,
+    linear-gradient(to bottom, currentColor 0 14px, transparent 14px) 0 0 / 2px 100% no-repeat;
+  color: var(--color-image);
+}
+
+.bleed {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: var(--radius-sm);
+}
+
+.gone {
+  margin: 0;
+  padding-block: var(--space-6);
+  border: 1px dashed var(--border-hairline);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  color: var(--color-ink-faint);
+}
+
+/* The plate line: what is printed under an illustration in a book. */
+.plate {
+  margin-block-start: var(--space-3);
+  padding-inline-start: var(--space-3);
+  border-inline-start: 2px solid color-mix(in oklab, var(--color-image) 55%, transparent);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-xs);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+/* ── 5. Character — a dramatis personae entry ─────────────────────────────
+   Name in small caps, an em rule, then the description running on. One
+   paragraph, set the way a play sets its cast list. */
+
+.bust {
+  color: var(--color-character);
+}
+
+.entry {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+}
+
+.who {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  color: var(--color-ink);
+}
+
+.about::before {
+  content: ' \2014\A0';
+  color: var(--color-ink-faint);
+}
+
+/* ── 6. Location & lore — a chapter-head vignette ─────────────────────────
+   The drawn view runs the full measure with the ink fading out at both ends,
+   the way a vignette is printed. Nothing frames it; it sits on the page. */
+
+.pinMark {
+  /* A surveyor's pin: a stem with a ringed head. */
+  background:
+    radial-gradient(circle at 50% 32%, transparent 0 2.4px, currentColor 2.4px 4px, transparent 4px)
+      no-repeat,
+    linear-gradient(to bottom, currentColor 0 100%) no-repeat;
+  background-size:
+    100% 100%,
+    1.5px 15px;
+  background-position:
+    center,
+    calc(50% - 0.75px) 8px;
+  color: var(--color-place);
+}
+
+.vignette {
+  position: relative;
+  block-size: 92px;
+  overflow: hidden;
+  color: var(--color-place);
+  /* Faded at both ends: a vignette has no edges, which is what separates it
+     from a picture in a frame. */
+  mask-image: linear-gradient(to right, transparent 0, black 12%, black 88%, transparent 100%);
+}
+
+.horizon,
+.pinned {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+/* Small caps and wide tracking: the lettering a map uses, and the one place in
+   the set where a heading is not the serif. */
+.legend {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.lore {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+}
+
+/* ── 7. Plot thread — a reader's own mark ─────────────────────────────────
+   One stroke, two strokes, three. The marks lean the way a pencil leans, and
+   they darken as the reader gets surer. Nothing to read, everything to see. */
+
+.strokes {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+  color: var(--color-thread);
+  opacity: 0.55;
+}
+
+.stroke {
+  inline-size: 2px;
+  block-size: 20px;
+  border-radius: var(--radius-pill);
+  rotate: 9deg;
+  background: currentColor;
+}
+
+.marked[data-stance='suspicion'] .strokes {
+  opacity: 0.78;
+}
+
+.marked[data-stance='certain'] .strokes {
+  opacity: 1;
+}
+
+.marked[data-stance='certain'] .stroke {
+  inline-size: 3px;
+}
+
+.calling {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
+  font-size: var(--text-sm);
+  line-height: var(--leading-tight);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+.working {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  .play {
+    transition-duration: 0.01ms;
+  }
+}

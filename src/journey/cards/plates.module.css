@@ -1,0 +1,527 @@
+/* DIRECTION C — PLATES
+
+   Seven objects with seven outlines: a bled panel, a ruled index card, a dark
+   slab, a polaroid, a portrait plate, a map plaque, a ledger strip. Four of
+   them carry a reversed band, and the band is always the name of the thing —
+   never the name of its *kind*, which would be a tag by another route.
+
+   Same tint discipline as Pressed: the room's token names are re-pointed at
+   the --tint-* set so a pale plate stays lit from inside after dark. */
+
+.plate {
+  position: relative;
+  border-radius: var(--radius-md);
+  background-color: var(--paper-tone, var(--card-fill));
+  -webkit-backdrop-filter: blur(var(--card-blur)) saturate(140%);
+  backdrop-filter: blur(var(--card-blur)) saturate(140%);
+  box-shadow: inset 0 1px 0 var(--card-edge-light);
+  padding: var(--space-5);
+
+  --color-ink: var(--tint-ink);
+  --color-ink-soft: var(--tint-ink-soft);
+  --color-ink-faint: var(--tint-ink-faint);
+  --color-bg: var(--tint-reverse);
+  /* Paper is the other half of ink and has to travel with it. The slab plate
+     is a dark block that reverses its caption out in --color-paper, and after
+     dark the room's paper IS the dark slate the whole page is made of — so the
+     caption was L 0.285 text on an L 0.30 block, 1.04:1. A card that stays
+     pale needs a paper that stays pale, in both themes. */
+  --color-paper: var(--tint-reverse);
+  --card-border: var(--tint-border);
+  --card-edge-light: var(--tint-edge);
+  --card-chip: var(--tint-chip);
+  --note-rule: var(--tint-rule);
+  /* The entry hue, card-side. This direction is the one that needed it most:
+     a plate fills its caption band with the hue and reverses the name out of
+     it, so on the room's night hue the band was L 0.73 under L 0.95 text and
+     the name all but vanished. The card-side set holds the daylight weight,
+     which is what a pale plate needs in both themes. */
+  --color-quote: var(--tint-quote);
+  --color-note: var(--tint-note);
+  --color-voice: var(--tint-voice);
+  --color-image: var(--tint-image);
+  --color-place: var(--tint-place);
+  --color-thread: var(--tint-thread);
+  --color-character: var(--tint-character);
+  color: var(--color-ink);
+}
+
+/* ── Shared: the stance ───────────────────────────────────────────────── */
+
+/* Trailing space so the stamp's tap-sized row clears the verb circles that
+   hang off the keep's bottom-right — see the long note on the same rule in
+   pressed.module.css. */
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+  margin-block-end: 10px;
+}
+
+/* The stance as a struck stamp: reversed out of the ink, mono, letter-spaced,
+   square-cornered like everything else in the ledger. The ticks in the header
+   already score how sure the reader was, and this is the line of the entry
+   that says which score it is.
+
+   Reversed rather than tinted because a tinted pill on a tinted card is a
+   second surface at the same weight as the paper it sits on. Ink-on-paper
+   flips it out of that set entirely, and both tokens are card-side, so it is
+   dark-on-light in either theme. */
+.stance {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 34px;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  color: var(--color-bg);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+/* ── 1. Quote — a bled panel ──────────────────────────────────────────────
+   One oversized mark, ghosted, running off the leading edge and the head. The
+   line is set over it. Nothing else in the set has a drawing behind its text. */
+
+.panel {
+  --paper-tone: var(--card-quote-solid);
+  overflow: hidden;
+  padding-block: var(--space-6);
+}
+
+/* The mark has to be big enough to read as a *shape* rather than as
+   punctuation someone forgot to delete, and it has to sit low enough that the
+   panel's own overflow does not eat the curl. Both were wrong the first time:
+   at 8rem, hung -0.34em up, only the flat top of the glyph survived the clip. */
+.ghost {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: -0.09em;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: 11rem;
+  /* line-height 1 keeps the ink inside the box: the glyph sits just under the
+     ascender, so anything tighter walks it up out of the panel's clip. */
+  line-height: 1;
+  color: var(--color-quote);
+  opacity: 0.22;
+  pointer-events: none;
+  user-select: none;
+}
+
+.said {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
+  font-size: var(--text-md);
+  font-style: italic;
+  line-height: 1.45;
+  color: var(--color-ink);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+}
+
+/* ── 2. Note — a ruled index card ─────────────────────────────────────────
+   Red rule under the head, blue rules under the writing, a margin down the
+   leading edge. The one plate with a square-ish corner radius, because that is
+   how the stock is cut. */
+
+.index {
+  --paper-tone: var(--card-note-solid);
+  --rule-pitch: 1.75rem;
+  border-radius: var(--radius-sm);
+  padding-block-start: var(--space-6);
+  overflow: hidden;
+}
+
+/* The red header rule, full bleed. */
+.index::before {
+  content: '';
+  position: absolute;
+  inset-block-start: var(--space-5);
+  inset-inline: 0;
+  block-size: 2px;
+  background: color-mix(in oklab, var(--color-danger) 55%, transparent);
+}
+
+/* The margin. */
+.index::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: var(--space-4);
+  inline-size: 1px;
+  background: color-mix(in oklab, var(--color-danger) 30%, transparent);
+}
+
+.lines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--rule-pitch) - 1px),
+    var(--note-rule) calc(var(--rule-pitch) - 1px),
+    var(--note-rule) var(--rule-pitch)
+  );
+}
+
+.hand {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: var(--text-md);
+  line-height: var(--rule-pitch);
+  color: var(--color-ink);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+}
+
+/* ── 3. Voice — the dark slab ─────────────────────────────────────────────
+   The only object on the page printed in reverse, in both themes. */
+
+.slab {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  background: var(--color-ink);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: var(--color-paper);
+
+  --orb-body: var(--color-voice);
+  --orb-core: color-mix(in oklch, var(--color-voice), white 26%);
+  --orb-rim: color-mix(in oklch, var(--color-voice), black 24%);
+  --orb-glow: color-mix(in oklch, var(--color-voice), transparent 62%);
+  --orb-wave: var(--color-paper);
+  --color-bg: var(--color-ink);
+}
+
+/* Declared on the children: the slab needs the page's real ink for its own
+   fill, and one token cannot be both that fill and its own opposite. */
+.slab > * {
+  --color-ink: var(--color-paper);
+  --color-ink-soft: color-mix(in oklch, var(--color-paper), transparent 22%);
+  --color-ink-faint: color-mix(in oklch, var(--color-paper), transparent 40%);
+  --card-chip: color-mix(in oklch, var(--color-paper), transparent 86%);
+  --color-accent-tint: color-mix(in oklch, var(--color-accent), transparent 68%);
+  --color-accent-text: var(--color-paper);
+}
+
+.slabCaption {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: color-mix(in oklch, var(--color-paper), transparent 14%);
+  max-inline-size: var(--measure);
+}
+
+/* ── 4. Picture — a polaroid ──────────────────────────────────────────────
+   Even white all round, heavy at the foot, written across the wide edge. */
+
+.polaroid {
+  --paper-tone: var(--tint-reverse);
+  margin: 0;
+  /* 16 on three sides, 32 at the foot — the deep bottom border is the whole
+     proportion of the object, and it had been running at 24, which is heavy
+     but not a polaroid's kind of heavy. The extra eight is also what the
+     caption needed: it is the last line on the card and it sits nearest the
+     verb circles, so it was the worst-off line in the journey. */
+  padding: var(--space-4) var(--space-4) var(--space-6);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 var(--card-edge-light),
+    var(--elevation-2);
+  rotate: 0.5deg;
+}
+
+.window {
+  background: color-mix(in oklab, var(--color-ink) 8%, transparent);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.shot {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+}
+
+.gone {
+  margin: 0;
+  padding-block: var(--space-7);
+  text-align: center;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  color: var(--color-ink-faint);
+}
+
+/* A caption, not a note. It used to be set in the hand, which put a fourth
+   face on a card that already had three and made a printed caption pretend to
+   be something the reader wrote. The hand is now the note card's alone. */
+.scrawl {
+  margin-block-start: var(--space-4);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+}
+
+/* ── 5. Character — a portrait plate ──────────────────────────────────────
+   The drawn person large on a tinted ground, named in a band reversed out of
+   the foot of the portrait, the way a plate in an illustrated edition is
+   captioned. */
+
+/* Sixteen all round would frame the portrait evenly and then hand the verb
+   circles the last line of the description to sit on: their targets reach 21px
+   up into the plate and the dossier was ending at 16. The foot is the one edge
+   that is not decoration — it is the strip the three verbs ride — so it gets 32,
+   which clears them whether the plate ends in a paragraph or in the name
+   band itself. */
+.portrait {
+  --paper-tone: var(--card-character-solid);
+  padding: var(--space-4) var(--space-4) var(--space-6);
+}
+
+.ground {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding-block: var(--space-6) var(--space-8);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background:
+    radial-gradient(
+      120% 90% at 50% 12%,
+      color-mix(in oklab, var(--color-character) 26%, transparent) 0,
+      transparent 72%
+    ),
+    var(--color-bg);
+}
+
+/* The plate's own mount. `Avatar` draws a figure and no ground at all, so each
+   card that shows one has to say what it is set into — and each says something
+   different, which is the point of having three of them. The journey card
+   presses a small oval into the paper; the specimen slip cuts an aperture and
+   draws the person inside it; this one, being a framed portrait with a caption
+   band under it, hangs the mount in the frame at portrait scale.
+
+   92 × 112 is the journey card's 46 × 56 at double size, so the figure sits at
+   the same fraction of its mount in both and the two read as one object seen
+   near and far. Without a mount at all the drawing floated in the frame like a
+   watermark — a picture of nothing, which is what the frame is there to
+   prevent. */
+.mount {
+  display: grid;
+  place-items: center;
+  inline-size: 92px;
+  block-size: 112px;
+  border-radius: 50%;
+  /* A bust runs off the foot of its own sheet; the mount is what ends it. */
+  overflow: hidden;
+  /* The card's own paper rather than the frame's, so the oval is findable
+     against a ground that is already --color-bg, and a ring at the edge to say
+     it was set in rather than laid on. */
+  background: var(--paper-tone);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-character) 38%, transparent);
+  color: color-mix(in oklab, var(--color-character), var(--color-ink) 34%);
+}
+
+.band {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-character);
+  color: var(--color-bg);
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.dossier {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+/* ── 6. Location & lore — a map plaque ────────────────────────────────────
+   The survey runs the whole plate and the name is cut into a scrim across its
+   foot. This is the treatment that says "somewhere" before a word is read. */
+
+.plaque {
+  --paper-tone: var(--card-place-solid);
+  padding: 0;
+  overflow: hidden;
+}
+
+.chart {
+  position: relative;
+  block-size: 190px;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--color-place) 14%, var(--color-bg));
+  color: var(--color-place);
+}
+
+.survey,
+.pinned {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.scrim {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  padding: var(--space-6) var(--space-5) var(--space-4);
+  /* The fade has to happen ABOVE the words, not through them. Running the
+     gradient from solid at the foot to transparent at the top edge put the
+     first line of the title in the thin end of it, so white lettering was
+     sitting on a pale drawn map at about 1.2:1. The solid stop is therefore
+     pinned to the top padding — which is exactly where the text starts — and
+     the whole feather happens in the band above it. This tracks any number of
+     lines, because the padding is a fixed length and the box grows downward
+     from it. */
+  background: linear-gradient(
+    to top,
+    color-mix(in oklab, var(--color-place) 88%, black) 0,
+    color-mix(in oklab, var(--color-place) 88%, black) calc(100% - var(--space-6)),
+    transparent 100%
+  );
+}
+
+.engraved {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  letter-spacing: 0.01em;
+  /* Reversed out of the scrim: white in both themes, because the scrim itself
+     is dark in both themes. */
+  color: oklch(0.98 0.005 250);
+  text-shadow: 0 1px 2px oklch(0.2 0.02 250 / 0.45);
+  text-wrap: balance;
+}
+
+.plaqueBody {
+  padding: var(--space-5);
+}
+
+.lore {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+/* ── 7. Plot thread — a ledger strip ──────────────────────────────────────
+   A reversed mono band with the case in it, three tick boxes at the trailing
+   edge struck up to how sure the reader is, and the working under. Nothing to
+   read: you count the struck boxes. */
+
+.ledger {
+  --paper-tone: var(--card-thread-solid);
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-thread);
+}
+
+.calling {
+  flex: 1;
+  min-inline-size: 0;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  /* Reversed out of the band. The thread hue is dark enough in both themes for
+     this to be the readable direction. */
+  color: oklch(0.98 0.004 250);
+}
+
+.ticks {
+  flex: none;
+  display: flex;
+  gap: 4px;
+}
+
+.tick {
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1.5px oklch(0.98 0.004 250 / 0.55);
+}
+
+.tick[data-struck] {
+  background: oklch(0.98 0.004 250);
+  box-shadow: none;
+}
+
+.ledgerBody {
+  padding: var(--space-5) var(--space-4);
+  /* Ledger ruling: one hairline every other line, the way an account book is
+     printed. Faint enough to be a texture, not a table. */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(2 * var(--leading-body) * var(--text-sm) - 1px),
+    var(--note-rule) calc(2 * var(--leading-body) * var(--text-sm) - 1px),
+    var(--note-rule) calc(2 * var(--leading-body) * var(--text-sm))
+  );
+}
+
+.working {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink);
+  max-inline-size: var(--measure);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .plate {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .plate {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

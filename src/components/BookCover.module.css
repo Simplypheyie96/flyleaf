@@ -72,6 +72,7 @@
 
 .title {
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: 10.8cqw;
   line-height: 1.2;
   text-wrap: balance;
@@ -93,7 +94,7 @@
 
 /* One line. A wrapped byline reads as two authors rather than one. */
 .author {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 6.7cqw;
   letter-spacing: 0.09em;
   text-transform: uppercase;

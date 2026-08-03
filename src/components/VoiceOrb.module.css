@@ -1,0 +1,220 @@
+/* The voice orb — the one futuristic object in a hand-made scrapbook.
+
+   Everything else on this screen is paper, tape and thread. This is glass and
+   light, and it is allowed to be, because a recording is the one thing on the
+   page that is not a mark someone made by hand. What it must not be is cold:
+   the reference for the glow is a lit sphere on a black field, and the part
+   borrowed is the calm of it and the depth of the bloom — not the temperature,
+   and not the mood. It sits on a warm pale sheet and stays warm-lit. */
+
+.memo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* ---- The orb ---- */
+
+.orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* Above the 44px floor but no longer 56: the slab got denser with the rest
+     of the cards, and the orb reads as its centrepiece at this size without
+     crowding the wave. */
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* A sphere, which is three things: the body, a lit face up and to the left
+     where the light in this app always comes from, and a rim that turns away
+     from it. Drawn rather than lit with box-shadows so the whole thing is one
+     painted layer that never has to be recomposited. */
+  background:
+    radial-gradient(
+      circle at 34% 28%,
+      var(--orb-core) 0%,
+      transparent 46%
+    ),
+    radial-gradient(
+      circle at 62% 74%,
+      var(--orb-rim) 0%,
+      transparent 62%
+    ),
+    var(--orb-body);
+  box-shadow:
+    inset 0 1px 1px oklch(1 0 0 / 0.5),
+    inset 0 -2px 6px oklch(from var(--orb-rim) l c h / 0.45);
+  transition:
+    scale var(--dur-quick) var(--ease-out),
+    filter var(--dur-base) var(--ease-out);
+}
+
+.orb:disabled {
+  cursor: default;
+  /* Nothing to play back yet. Dimmed rather than removed: the memo is real,
+     its recording just is not on this device. */
+  filter: saturate(0.5) opacity(0.55);
+}
+
+.orb:not(:disabled):active {
+  scale: 0.96;
+}
+
+/* The bloom on the card. Sits behind the sphere and is the only part that
+   moves while playing — growing the sphere itself would drag the glyph out of
+   shape with it. */
+.halo {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    var(--orb-glow) 0%,
+    transparent 68%
+  );
+  opacity: 0.55;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+
+.glyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* Reversed out of the sphere, in the surface's own reverse token so it is
+     the card's white by day and the card's white after dark too. */
+  color: var(--color-bg);
+  /* The play triangle is optically off-centre in its own box; a hair right
+     puts its mass in the middle of the circle. */
+  translate: 1px 0;
+}
+
+.memo[data-playing] .glyph {
+  translate: 0 0;
+}
+
+/* Playing: the sphere breathes and the bloom opens with it. Slow — one breath
+   every three seconds, which is a resting rate, not an alert. Nothing here
+   moves until a memo is actually playing, so the motion is never ambient
+   decoration; it is which memo is talking. */
+.memo[data-playing] .orb {
+  animation: breathe 3s var(--ease-move) infinite;
+}
+
+.memo[data-playing] .halo {
+  opacity: 1;
+  animation: bloom 3s var(--ease-move) infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.045;
+  }
+}
+
+@keyframes bloom {
+  0%,
+  100% {
+    opacity: 0.75;
+    scale: 1;
+  }
+  50% {
+    opacity: 1;
+    scale: 1.09;
+  }
+}
+
+/* ---- The trace ---- */
+
+.trace {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 32px;
+}
+
+.bars,
+.barsPlayed {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+}
+
+.bar {
+  flex: 1 1 0;
+  height: var(--h);
+  min-width: 2px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+}
+
+/* While a memo is talking the trace ripples: each bar bobs on a scale of its
+   own height, offset a beat from its neighbour, so the wave reads as sound
+   moving through the bubble. Transform only — no layout, no paint storm —
+   and nothing moves until the reader presses play. */
+.memo[data-playing] .bar {
+  transform-origin: center;
+  animation: bob 860ms var(--ease-move) calc(var(--i, 0) * -70ms) infinite alternate;
+}
+
+@keyframes bob {
+  from {
+    transform: scaleY(0.55);
+  }
+  to {
+    transform: scaleY(1.12);
+  }
+}
+
+.bars {
+  color: color-mix(in oklch, var(--orb-wave), transparent 72%);
+}
+
+/* The same trace, lit, cut off at how far in we are. A clip rather than a
+   width, so the boundary can fall inside a bar instead of snapping between
+   them, and so the two rows can never disagree about where a bar is. */
+.barsPlayed {
+  color: var(--orb-wave);
+  clip-path: inset(0 calc(100% - var(--played, 0) * 100%) 0 0);
+}
+
+.elapsed {
+  flex: 0 0 auto;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  /* The figure counts up a second at a time while playing; proportional
+     digits would shuffle the trace beside it on every tick. */
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-soft);
+}
+
+/* ---- Reduced motion ----
+
+   Tier 1 removed: the breath and the bloom are scale on a lit object, which
+   is exactly the class of motion the preference is asking about. Tier 3 kept:
+   the bloom still brightens on play, as a plain opacity step, so it is still
+   visible which memo is playing — and the trace still fills, because that is
+   not decoration, it is the position in the recording. */
+@media (prefers-reduced-motion: reduce) {
+  .memo[data-playing] .orb,
+  .memo[data-playing] .halo,
+  .memo[data-playing] .bar {
+    animation: none;
+  }
+  .orb:not(:disabled):active {
+    scale: 1;
+  }
+}

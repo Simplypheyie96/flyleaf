@@ -31,6 +31,7 @@
   border-radius: var(--radius-pill);
   background: transparent;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-md);
   color: var(--color-ink);
   cursor: pointer;
@@ -89,17 +90,32 @@
 
 /* One track definition shared by the column heads and the days, so a head is
    never a pixel off the column it names. */
+/* No gap, and the arithmetic is the reason. A calendar is a grid of adjacent
+   targets, so the overhang used on the tag chips is unavailable here — an
+   overhang would put the 5th over the 12th. That leaves the space between the
+   cells as the only slack in the row, and there is not enough of it: seven
+   cells at the 44px tap minimum need 308px, and the grid is 310 wide on a 360
+   screen. Six gaps of even 2px each ask for 320, which the row cannot give, so
+   it took the 10 by overflowing — the Saturday column hung ten pixels past the
+   grid's own right edge, closer to the sheet wall than any other column, and
+   the next narrower phone would have clipped it.
+
+   At zero the columns are the width divided by seven and nothing has to be
+   negotiated: 44.3 at 360, 46.7 at 375, 48.9 at 390. The air the gap used to
+   provide is drawn inside each cell instead (see .day::before), which is the
+   better place for it anyway — the space between two dates now belongs to the
+   dates rather than to the grid. */
 .heads,
 .grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0;
 }
 
 .heads {
-  gap: var(--space-1);
   padding-block-end: var(--space-1);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
   letter-spacing: 0.08em;
   text-align: center;
   text-transform: uppercase;
@@ -111,35 +127,57 @@
   color: var(--color-ink-soft);
 }
 
-.grid {
-  gap: var(--space-1);
-}
-
-.blank { aspect-ratio: 1; }
+.blank { min-height: var(--tap-min); }
 
 .day {
   position: relative;
   display: grid;
   place-items: center;
-  /* Square cells, sized by the column so the grid fits any sheet width. The
-     minimum keeps a thumb target on the narrowest phone this ships to. */
-  aspect-ratio: 1;
-  min-height: 38px;
+  /* Height is stated; width is whatever a seventh of the grid comes to. The
+     cell was square — `aspect-ratio: 1` — and that is exactly what broke the
+     row: a square with a 44px floor has a 44px *automatic minimum width* too,
+     because the ratio carries the minimum across. The track then could not
+     shrink to fit and the row overflowed instead. Height alone leaves the
+     column free, and at every width this ships to the cell is within half a
+     pixel of square anyway. */
+  min-height: var(--tap-min);
+  min-inline-size: 0;
   padding: 0;
   border: none;
-  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--color-ink-soft);
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-base);
   cursor: pointer;
-  transition: background var(--dur-press) var(--ease-out),
-    color var(--dur-press) var(--ease-out);
+  transition: color var(--dur-press) var(--ease-out);
+}
+
+/* The disc a press lands on, drawn inside the cell rather than filling it.
+   With the cells edge to edge, a fill on the cell itself would run into its
+   neighbours; a stated 38 leaves six pixels of air on every side, which is the
+   breathing room the old 2px gap was trying and failing to buy. Stated rather
+   than inset, so it stays a circle no matter what width the column resolves
+   to — an inset would draw an oval the moment the cell stopped being square. */
+.day::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  inline-size: 38px;
+  block-size: 38px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background var(--dur-press) var(--ease-out);
 }
 
 .day:hover:not(:disabled):not([data-selected]) {
-  background: var(--card-chip);
   color: var(--color-ink);
+}
+
+.day:hover:not(:disabled):not([data-selected])::before {
+  background: var(--card-chip);
 }
 
 .day:active:not(:disabled) { transform: scale(0.92); }
@@ -149,7 +187,13 @@
   cursor: default;
 }
 
+/* The ring goes round the disc, not round the cell. On the cell it would sit a
+   pixel from the 6th and the 8th, since the columns now touch. */
 .day:focus-visible {
+  outline: none;
+}
+
+.day:focus-visible::before {
   outline: 2px solid var(--color-accent-text);
   outline-offset: 1px;
 }
