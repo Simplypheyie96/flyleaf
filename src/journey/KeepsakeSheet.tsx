@@ -1,29 +1,29 @@
-/* Share this journey — one picture, one set of facts.
+/* Share this journey — one picture, made out of what you kept.
 
    The journey and not the book. The book belongs to its author and there is
    nothing of the reader's in it; what this sends is the reading — when it was
    opened, what was kept, who was followed. Naming it after the book gave the
    credit to the wrong person.
 
+   This sheet used to offer three materials: a card, a picture, and the plain
+   text, with the card doubling as an editing surface where any fact could be
+   tapped out of the set. Three renderings of one reading, kept in step with
+   each other.
 
-   The old version of this sheet had a single answer: a card, sent as its
-   plain-text setting. Which meant "send it somewhere" and "copy the text" did
-   the same thing in different words, and there was no way to send a reading to
-   somebody who reads in pictures.
+   It is one now, because the other two were answers to a question nobody
+   asked. The card was the picture with the drawing taken out — the same facts,
+   set in HTML — and nobody wants the version of a keepsake that can't be sent
+   as one. The plain text is what "Copy the words" hands over, which is a
+   button and not a mode. And the tap-a-line editing was a fifth control on a
+   screen already carrying four, guarding against an embarrassment ("BEEN TO —
+   2 places") that was never embarrassing. What is left is the thing anybody
+   would actually send.
 
-   So: one editing surface and three outputs. The card is where the reading is
-   assembled — tap a line to leave it out — and the picture and the plain text
-   are that same edited set in another material. Change what the card says and
-   all three change together, because three versions of one reading that
-   disagree is worse than one version.
-
-   The shape of the sheet is the second thing it got wrong. Every part of it —
-   the way-picker, three fieldsets of chips, a hint — was stacked
-   in one scroller with the picture pinned under them at 176px, so the thing
-   being sent was the smallest item on a screen whose only job was to show it,
-   and choosing a palette scrolled it out of sight. Nothing scrolls now. The
-   preview takes every pixel the controls do not, the controls are one short
-   fixed band beneath it, and the two ways out are under that.
+   So: one picture, and two questions about it. What it shows, and what it is
+   printed on. Both are a single row, both are on screen at once, and neither
+   scrolls sideways — the old rail packed three labelled fieldsets into one
+   horizontal scroller, which on a phone meant the colours and the papers sat
+   off the right-hand edge with nothing to say they were there at all.
 
    Still no model, no network and no key. The picture is drawn on a canvas from
    the reader's own keeps, and nothing anywhere in it says "Flyleaf": a keepsake
@@ -34,21 +34,18 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import Sheet from '../components/Sheet'
 import LeafButton from '../components/LeafButton'
-import PaperSurface from '../components/PaperSurface'
-import { CheckIcon, CloseIcon, SaveIcon, ShareIcon } from '../components/TabIcons'
+import { CheckIcon, CloseIcon, ShareIcon } from '../components/TabIcons'
 import type { Book, Entry } from '../data/db'
 import {
-  GRAINS,
   PALETTES,
   SHAPES,
   drawKeepsake,
   keepsakeOf,
   readyFonts,
-  saveKeepsake,
   sendKeepsake,
   shapeWorks,
 } from './keepsake'
-import type { Grain, Keepsake, Look, Shape } from './keepsake'
+import type { Keepsake, Look, Shape } from './keepsake'
 import styles from './sheet.module.css'
 import card from './keepsake.module.css'
 
@@ -59,22 +56,14 @@ interface Props {
   keeps: Entry[]
 }
 
-type Way = 'card' | 'picture' | 'text'
-
-const WAYS: { id: Way; label: string }[] = [
-  { id: 'card', label: 'Card' },
-  { id: 'picture', label: 'Picture' },
-  { id: 'text', label: 'Text' },
-]
-
-/** The set as text. Terms and details on their own lines rather than run
-    together, because a message app wraps a long line wherever it likes and the
-    whole point of the set is that it is set. */
+/** The same reading as words, for wherever a picture won't go. Terms and
+    details on their own lines rather than run together, because a message app
+    wraps a long line wherever it likes and the whole point of a set is that it
+    is set. */
 function asText(k: Keepsake) {
-  const parts = [
-    `${k.title}\n${k.author}`,
-    ...k.lines.map(({ term, detail }) => `${term.toUpperCase()}\n${detail}`),
-  ]
+  const parts = [`${k.title}\n${k.author}`]
+  if (k.line) parts.push(`“${k.line.text}”`)
+  parts.push(...k.lines.map(({ term, detail }) => `${term.toUpperCase()}\n${detail}`))
   return parts.join('\n\n')
 }
 
@@ -85,43 +74,23 @@ function sentence(s: string) {
 }
 
 function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
-  const [way, setWay] = useState<Way>('card')
-  /* Terms the reader has tapped out of the card. By term rather than by index
-     so the choice survives a keep being added while the sheet is open. */
-  const [omit, setOmit] = useState<Set<string>>(new Set())
   const [shape, setShape] = useState<Shape>('colophon')
   const [paletteId, setPaletteId] = useState(PALETTES[0].id)
-  const [grain, setGrain] = useState<Grain>('plain')
-  const [draft, setDraft] = useState('')
   const [copied, setCopied] = useState(false)
   const [done, setDone] = useState<'' | 'shared' | 'saved'>('')
 
   const plate = useRef<HTMLCanvasElement>(null)
 
-  const base = useMemo(() => keepsakeOf(book, keeps), [book, keeps])
-
-  /* What every output is made of: the card minus whatever was tapped out. One
-     object, three renderings. */
-  const made = useMemo<Keepsake>(
-    () => ({ ...base, lines: base.lines.filter((l) => !omit.has(l.term)) }),
-    [base, omit],
-  )
+  const made = useMemo(() => keepsakeOf(book, keeps), [book, keeps])
 
   const look = useMemo<Look>(
-    () => ({ shape, palette: PALETTES.find((p) => p.id === paletteId) ?? PALETTES[0], grain }),
-    [shape, paletteId, grain],
+    () => ({ shape, palette: PALETTES.find((p) => p.id === paletteId) ?? PALETTES[0] }),
+    [shape, paletteId],
   )
 
-  const text = useMemo(() => asText(made), [made])
   const shapes = SHAPES.filter((s) => shapeWorks(made, s.id))
-  const empty = base.lines.length === 0 && !base.line && base.tally.length === 0
+  const empty = made.lines.length === 0 && !made.line && made.tally.length === 0
   const hint = SHAPES.find((s) => s.id === shape)?.hint ?? ''
-
-  /* A different book is a different reading: the lines left out of the last one
-     mean nothing here. */
-  useEffect(() => {
-    setOmit(new Set())
-  }, [book.id])
 
   useEffect(() => {
     if (!open) return
@@ -129,16 +98,8 @@ function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
     setDone('')
   }, [open])
 
-  /* The plain text follows the card until the reader starts typing into it —
-     editing the text is the last word, but toggling a line is a new starting
-     point and has to show up. */
-  useEffect(() => {
-    setDraft(text)
-  }, [text])
-
   /* A shape with nothing left to put in it stops being offered, so the picture
-     can't end up drawing an empty plate the moment somebody taps out the last
-     line it needed. */
+     can't end up drawing an empty plate. */
   useEffect(() => {
     if (shapeWorks(made, shape)) return
     const next = SHAPES.find((s) => shapeWorks(made, s.id))
@@ -148,7 +109,7 @@ function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
   /* Canvas takes no font it has not been told to load, and the first paint
      after opening would otherwise be set in Times. */
   useEffect(() => {
-    if (!open || way !== 'picture') return
+    if (!open) return
     let alive = true
     void (async () => {
       await readyFonts()
@@ -157,41 +118,23 @@ function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
     return () => {
       alive = false
     }
-  }, [open, way, made, look])
+  }, [open, made, look])
 
   /** Anything that changes what would be sent invalidates "Copied" and "Sent".
-      A tick left standing next to a card that has since been edited is a lie
-      about what is on the clipboard. */
+      A tick left standing next to a picture that has since been redrawn is a
+      lie about what is on the clipboard. */
   function touched() {
     setCopied(false)
     setDone('')
   }
 
-  function toggle(term: string) {
-    setOmit((prev) => {
-      const next = new Set(prev)
-      if (!next.delete(term)) next.add(term)
-      return next
-    })
-    touched()
-  }
-
-  async function copy(what: string) {
+  async function copyWords() {
     try {
-      await navigator.clipboard.writeText(what)
+      await navigator.clipboard.writeText(asText(made))
       setCopied(true)
     } catch {
       /* Clipboard refused — an insecure origin, or a browser that wants a
-         closer gesture. The words are on screen and selectable either way. */
-    }
-  }
-
-  async function sendWords(what: string) {
-    try {
-      if (navigator.share) await navigator.share({ text: what, title: book.title })
-      else await copy(what)
-    } catch {
-      /* Cancelled. */
+         closer gesture. Nothing is lost; the picture is still the way out. */
     }
   }
 
@@ -200,14 +143,6 @@ function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
     const went = await sendKeepsake(plate.current, book.title)
     if (went !== 'cancelled') setDone(went)
   }
-
-  async function savePicture() {
-    if (!plate.current) return
-    await saveKeepsake(plate.current, book.title)
-    setDone('saved')
-  }
-
-  const words = way === 'text' ? draft : text
 
   return (
     <Sheet open={open} onClose={onClose} label="Share this journey" name="keepsake" fill={!empty}>
@@ -228,202 +163,92 @@ function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
       ) : (
         <>
           <div className={styles.compose}>
-            {/* The stage. Whichever way is chosen, the thing that would be sent
-                is here at the size of the sheet — not a thumbnail of it under
-                the controls that make it. */}
-            <div className={way === 'card' ? `${styles.stage} ${styles.fades}` : styles.stage}>
-              {way === 'card' && (
-                <PaperSurface onGlass className={card.card}>
-                  <p className={card.bookTitle}>{book.title}</p>
-                  <p className={card.author}>{book.author}</p>
-                  <span className={card.rule} aria-hidden="true" />
-                  <ul className={card.set}>
-                    {base.lines.map(({ term, detail }) => (
-                      <li key={term}>
-                        <button
-                          type="button"
-                          className={card.line}
-                          aria-pressed={!omit.has(term)}
-                          onClick={() => toggle(term)}
-                        >
-                          <span className={card.term}>{term}</span>
-                          <span className={card.detail}>{detail}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </PaperSurface>
-              )}
-
-              {way === 'picture' && (
-                <div className={card.frame}>
-                  <canvas
-                    ref={plate}
-                    className={card.plate}
-                    role="img"
-                    aria-label={`A picture of your reading of ${book.title}`}
-                  />
-                </div>
-              )}
-
-              {way === 'text' && (
-                <textarea
-                  className={`${styles.area} ${styles.write}`}
-                  aria-label="The text, yours to edit"
-                  value={draft}
-                  onChange={(e) => {
-                    setDraft(e.target.value)
-                    setCopied(false)
-                  }}
+            {/* The stage. The thing that would be sent, at the size of the
+                sheet — not a thumbnail of it under the controls that make it. */}
+            <div className={styles.stage}>
+              <div className={card.frame}>
+                <canvas
+                  ref={plate}
+                  className={card.plate}
+                  role="img"
+                  aria-label={`A picture of your reading of ${book.title}`}
                 />
-              )}
+              </div>
             </div>
 
-            {/* One line about what is on the stage. It used to be a paragraph
-                per way plus a hint under the shape chips — four blocks of
+            {/* One line about what is on the stage, which is the shape's own
+                hint. It used to sit under a row of chips as a fourth block of
                 explanation on a screen that shows you the answer. */}
-            <p className={styles.caption}>
-              {way === 'card' && 'The whole reading, set small. Tap any line to leave it out.'}
-              {way === 'picture' && sentence(hint)}
-              {way === 'text' && 'The same lines as words, yours to edit before they go.'}
-            </p>
+            <p className={styles.caption}>{sentence(hint)}</p>
 
             <div className={styles.band}>
-              {/* Three materials, one reading. Named rather than drawn, because
-                  "a picture" and "plain text" are not things a glyph can say —
-                  and set in one track, because three answers to one question
-                  are one control. */}
-              <div className={styles.segment} role="radiogroup" aria-label="How to send it">
-                {WAYS.map(({ id, label }) => (
+              {/* What it shows. Unlabelled: the caption under the picture is
+                  already saying what the chosen one does, and a word reading
+                  "Shape" above three named shapes explains nothing twice. */}
+              <div className={styles.rail} role="radiogroup" aria-label="What the picture shows">
+                {shapes.map((s) => (
                   <button
-                    key={id}
+                    key={s.id}
                     type="button"
                     role="radio"
-                    aria-checked={way === id}
-                    className={styles.segmentItem}
+                    aria-checked={shape === s.id}
+                    className={styles.chip}
                     onClick={() => {
-                      setWay(id)
+                      setShape(s.id)
                       touched()
                     }}
                   >
-                    {label}
+                    {s.label}
                   </button>
                 ))}
               </div>
 
-              {/* The printer's spec for the plate: what it shows, what it is
-                  printed in, what it is printed on. Along one line rather than
-                  stacked in three labelled boxes — those were 200px of a sheet
-                  that had none to spare, and the picture paid for all of it. */}
-              {way === 'picture' && (
-                <div className={styles.rail}>
-                  <fieldset className={styles.railGroup} role="radiogroup" aria-label="What it shows">
-                    <span className={styles.railLabel} aria-hidden="true">
-                      Shape
-                    </span>
-                    {shapes.map((s) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={shape === s.id}
-                        className={styles.chip}
-                        onClick={() => {
-                          setShape(s.id)
-                          touched()
-                        }}
-                      >
-                        {s.label}
-                      </button>
-                    ))}
-                  </fieldset>
-
-                  <span className={styles.railSep} aria-hidden="true" />
-
-                  <fieldset className={styles.railGroup} role="radiogroup" aria-label="Colours">
-                    <span className={styles.railLabel} aria-hidden="true">
-                      Colour
-                    </span>
-                    {PALETTES.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={paletteId === p.id}
-                        aria-label={p.label}
-                        className={styles.swatchPick}
-                        style={
-                          { '--swatch-paper': p.paper, '--swatch-core': p.accent } as CSSProperties
-                        }
-                        onClick={() => {
-                          setPaletteId(p.id)
-                          touched()
-                        }}
-                      >
-                        <span className={card.swatch} aria-hidden="true" />
-                      </button>
-                    ))}
-                  </fieldset>
-
-                  <span className={styles.railSep} aria-hidden="true" />
-
-                  <fieldset className={styles.railGroup} role="radiogroup" aria-label="Paper">
-                    <span className={styles.railLabel} aria-hidden="true">
-                      Paper
-                    </span>
-                    {GRAINS.map((g) => (
-                      <button
-                        key={g.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={grain === g.id}
-                        className={styles.chip}
-                        onClick={() => {
-                          setGrain(g.id)
-                          touched()
-                        }}
-                      >
-                        {g.label}
-                      </button>
-                    ))}
-                  </fieldset>
-                </div>
-              )}
+              {/* What it is printed on. This one keeps its label, because four
+                  coloured discs on their own are a question rather than an
+                  answer — and because "Paper" is what the choice actually is:
+                  the stock and the ink that goes on it, not a theme. */}
+              <div className={styles.rail} role="radiogroup" aria-label="Paper">
+                <span className={styles.railLabel} aria-hidden="true">
+                  Paper
+                </span>
+                {PALETTES.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={paletteId === p.id}
+                    aria-label={p.label}
+                    className={styles.swatchPick}
+                    style={
+                      { '--swatch-paper': p.paper, '--swatch-core': p.accent } as CSSProperties
+                    }
+                    onClick={() => {
+                      setPaletteId(p.id)
+                      touched()
+                    }}
+                  >
+                    <span className={card.swatch} aria-hidden="true" />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Two ways out, the same size, on every way. Sending and keeping are
-              both real answers, and on a laptop — where there is no system share
-              sheet — the second one is the only one that does anything. */}
+          {/* Two ways out, the same size. The picture is the point, so it goes
+              first; the words are for the places a picture can't go — a plain
+              text field, a note to yourself, somebody who reads by ear. There
+              is no separate "Save" any more: on a phone the system sheet has
+              saving in it, and on a laptop, where there is no system sheet,
+              sending IS saving, and the button says so once it has. */}
           <footer className={styles.footRow}>
-            {way === 'picture' ? (
-              <>
-                <LeafButton onClick={sendPicture}>
-                  <ShareIcon size={18} />
-                  {done === 'shared' ? 'Sent' : 'Send it somewhere'}
-                </LeafButton>
-                <button type="button" className={styles.capture} onClick={savePicture}>
-                  {done === 'saved' ? <CheckIcon size={18} /> : <SaveIcon size={18} />}
-                  {done === 'saved' ? 'Saved' : 'Save the picture'}
-                </button>
-              </>
-            ) : (
-              <>
-                <LeafButton onClick={() => sendWords(words)} disabled={!words.trim()}>
-                  <ShareIcon size={18} />
-                  Send it somewhere
-                </LeafButton>
-                <button
-                  type="button"
-                  className={styles.capture}
-                  onClick={() => copy(words)}
-                  disabled={!words.trim()}
-                >
-                  {copied ? <CheckIcon size={18} /> : null}
-                  {copied ? 'Copied' : 'Copy the text'}
-                </button>
-              </>
-            )}
+            <LeafButton onClick={sendPicture}>
+              {done ? <CheckIcon size={18} /> : <ShareIcon size={18} />}
+              {done === 'shared' ? 'Sent' : done === 'saved' ? 'Saved' : 'Send the picture'}
+            </LeafButton>
+            <button type="button" className={styles.capture} onClick={copyWords}>
+              {copied ? <CheckIcon size={18} /> : null}
+              {copied ? 'Copied' : 'Copy the words'}
+            </button>
           </footer>
         </>
       )}
