@@ -57,13 +57,24 @@
    are defined at the root as well so a direction that draws no card at all
    still gets a sane pair.
 
-   The fill carries a tenth of the entry's own hue on top of that paper. Flat
-   white discs were the previous answer and they were better than the pale blue
-   they replaced, but three white coins on rose paper still read as *placed on*
-   the card rather than *belonging to* it. A tenth is enough that the verbs on
-   the character slip are faintly rose and the verbs on a note are faintly
-   straw, and not nearly enough to touch the icon's contrast. --kind comes off
-   the notch, so a card with no entry hue still lands on plain paper. */
+   No hue. The fill used to carry a tenth of the entry's own colour and the
+   hairline three tenths, on the theory that white coins read as *placed on*
+   the card rather than belonging to it. Both were wrong, and the border was
+   wrong twice.
+
+   The fill: a tenth of a mid-lightness hue costs five points of lightness, so
+   the "nearly white" disc rendered at L 0.94 — a grey coin, and grey is the
+   one thing the app's paper never is.
+
+   The border: --kind is opaque and --tint-border is a 22% wash, so mixing 30%
+   of the first into the second lands at 0.3 + 0.7 × 0.22 = 45% — double the
+   hairline everything else on the card is drawn with, in lavender on a thread
+   and rose on a character. What was described as a tint was the heaviest ring
+   on the screen.
+
+   So they are the page's own buttons now: the card's paper, the card's
+   hairline, the card's soft ink — the same three values the header's share /
+   review / delete wear, which is what these three verbs are. */
 .act {
   position: relative;
   flex: none;
@@ -72,16 +83,9 @@
   inline-size: 34px;
   block-size: 34px;
   padding: 0;
-  /* oklab, not oklch, and the difference is the whole point of the paragraph
-     above. oklch interpolates the hue *angle*, so mixing a hue with a
-     near-neutral drags it most of the way round to the neutral's nominal
-     angle: a note's straw (85) mixed 90% toward the reverse (250) came out at
-     233 — blue. oklab crosses the neutral axis instead, which is what "a tenth
-     of the entry's own hue on paper" actually means, and what these two lines
-     claimed to be doing all along. */
-  border: 1px solid color-mix(in oklab, var(--kind, var(--tint-ink)) 30%, var(--tint-border));
+  border: 1px solid var(--tint-border);
   border-radius: 50%;
-  background: color-mix(in oklab, var(--kind, transparent) 10%, var(--tint-reverse));
+  background: var(--tint-reverse);
   box-shadow: var(--elevation-1);
   color: var(--tint-ink-soft);
   cursor: pointer;
