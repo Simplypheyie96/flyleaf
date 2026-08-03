@@ -532,64 +532,51 @@
 
 /* ── The character's face ───────────────────────────────────────────────────
 
-   The same frame the recorder and the picture chooser use, because it is the
-   same kind of row: a piece of the keep that is not typed, sitting beside the
-   one control that changes it. Three of these on three different sheets, all
-   built out of one rule, is what keeps a sheet from reading as features bolted
-   on at different times.
-
-   What is inside it is a portrait plate rather than a control. The reader is
-   not choosing here — the app has already drawn somebody — so the face has to
-   look settled, not like an empty slot waiting to be filled. It is the cameo
-   mount off the character card at a size you can actually judge a face at,
-   which also means the reader is looking at the thing they will see on the
-   card rather than at a preview of it. */
+   Not a panel. The recorder and the picture chooser are framed because they
+   are asking for something the reader has not given yet; this is the opposite
+   — the app has already drawn somebody, and there is nothing to fill in. A box
+   around a face and one word promises more work than one tap. */
 .faceRow {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--field-border);
-  background: var(--field-fill);
+  gap: var(--space-2);
 }
 
-/* 64 × 78 — the card's 46 × 56 at the same ratio, grown enough that a mouth
-   and a pair of brows are decidable. Below about sixty the reader cannot tell
-   two faces apart, and a swap button whose result you cannot read is a button
-   that does nothing. */
+/* The card's cameo at the card's size, because that is where this face is
+   going: the reader is looking at the thing itself, not a preview of it. */
 .facePlate {
   display: grid;
   place-items: center;
   flex: none;
-  inline-size: 64px;
-  block-size: 78px;
+  inline-size: 46px;
+  block-size: 56px;
   border-radius: 50%;
   /* The bust is drawn past the foot of its own sheet; the mount ends it. */
   overflow: hidden;
   background: var(--tint-reverse);
-  box-shadow:
-    0 0 0 3px var(--field-fill),
-    0 0 0 4px color-mix(in oklab, var(--color-character) 34%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-character) 32%, transparent);
   color: color-mix(in oklab, var(--tint-character), var(--tint-ink) 32%);
 }
 
-/* The button over its own explanation, both starting on the same edge, so the
-   pair reads as one thing said twice rather than as two rows. */
-.faceSide {
-  display: flex;
-  flex: 1;
-  min-inline-size: 12ch;
-  flex-direction: column;
-  align-items: start;
-  gap: var(--space-2);
-}
-
-/* Standing off the field it sits on, the same step the recorder's buttons
-   take. Without it the button is one flat rectangle with a hairline on it. */
-.faceRow .capture {
-  background: var(--color-chip-active);
-  border-color: var(--color-chip-active-border);
+/* Dictate's button, said again — a small label rather than a pill, because
+   nothing here is waiting on the reader and a filled control would say it was.
+   The tap target is the full 44px and is taken back out of the layout, so the
+   row stands as tall as the face and not as tall as the hit area. */
+.faceSwap {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  margin-block: calc(var(--space-3) * -1);
+  padding-inline: var(--space-3);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+  cursor: pointer;
 }
 
 /* A file input styled by anybody is a file input styled by nobody. The real
