@@ -972,6 +972,7 @@ Not skills — these are live tool connections and outside sites. Skills are *kn
 | **originkit** | Component library — list and pull ready-made components into a build. [originkit.dev](https://originkit.dev) | "check **originkit** for a…" |
 | **pencil** | Editor for `.pen` design files (encrypted — only Pencil tools can read them). | "in **pencil**…" |
 | **paper** | Paper Design — HTML writing surface. Runs locally on port 29979. | "use **paper** to…" |
+| **motion** | Text-to-video motion design agent. Describe a video and it designs, animates, and renders it: launch videos, product demos, logo animations, social ads. [motion.so](https://motion.so) · **needs OAuth, see below** | "use **motion** to render…" |
 
 Companion skills for Efecto: `/efecto-web-design` · `/efecto-graphic-design` · `/efecto-social-media`
 
@@ -980,6 +981,10 @@ Check what's connected: `claude mcp list`. Re-add originkit if it ever drops (to
 ```
 claude mcp add originkit https://mcp.originkit.dev/mcp --transport http --header "Authorization: Bearer <token>" --scope user
 ```
+
+> **Motion needs authorizing before its tools appear.** It is added at user scope but sits at "Needs authentication" until you complete an OAuth sign-in, which only works from an interactive terminal. Run `claude mcp` or `/mcp` in a terminal `claude` session and approve it once. Claude cannot complete this for you.
+>
+> **Motion is a renderer, not a code skill.** It returns finished video. Your animation skills (`/transitions-dev`, `/gsap-*`, `/threejs-*`, `/lottie-animation`) return code you own and can edit. Reach for Motion when you want a demo, a launch clip, or an ad, not when you want the animation to live inside a product.
 
 ## External sites (no MCP — you drive these, then bring the output back)
 
