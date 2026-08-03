@@ -23,7 +23,6 @@ import Recorder from './Recorder'
 import { CloseIcon, ImageIcon, VoiceIcon } from '../components/TabIcons'
 import { todayISO } from '../components/date/dates'
 import type { Book, Entry, EntryType, Stance } from '../data/db'
-import { AVATARS, Avatar } from './avatars'
 import { KIND, KINDS, STANCE, STANCES } from './kinds'
 import { useDictation } from './dictation'
 import { addKeep, editKeep } from './keeps'
@@ -44,7 +43,6 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
   const [type, setType] = useState<EntryType>(start)
   const [text, setText] = useState('')
   const [name, setName] = useState('')
-  const [avatar, setAvatar] = useState<string>()
   const [stance, setStance] = useState<Stance>('hunch')
   const [page, setPage] = useState('')
   const [chapter, setChapter] = useState('')
@@ -74,7 +72,6 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       setType(editing.type)
       setText(editing.text ?? '')
       setName(editing.name ?? '')
-      setAvatar(editing.avatar)
       setStance(editing.stance ?? 'hunch')
       setPage(editing.page !== undefined ? `${editing.page}` : '')
       setChapter(editing.chapter ?? '')
@@ -87,7 +84,6 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
     setType(start)
     setText('')
     setName('')
-    setAvatar(undefined)
     setStance('hunch')
     setPage('')
     setChapter('')
@@ -143,7 +139,6 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
         media: asks.media === 'none' ? undefined : media,
         duration: asks.media === 'audio' ? duration : undefined,
         name: asks.name ? name.trim() || undefined : undefined,
-        avatar: asks.avatar ? avatar : undefined,
         stance: asks.stance ? stance : undefined,
       }
       if (editing) await editKeep(editing.id, shared)
@@ -224,34 +219,6 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
               autoFocus
             />
           </label>
-        )}
-
-        {asks.avatar && (
-          <fieldset className={styles.group}>
-            <legend className={styles.label}>
-              <span className={styles.labelLine}>
-                Face <span className={styles.optional}>however you picture them</span>
-              </span>
-            </legend>
-            {/* Twelve drawn people, told apart by how they look and nothing
-                else. No labels under them, and nothing in the data says what
-                any of them is. */}
-            <div className={styles.avatarRow} role="radiogroup" aria-label="Choose a face">
-              {AVATARS.map((id, index) => (
-                <button
-                  key={id}
-                  type="button"
-                  role="radio"
-                  aria-checked={avatar === id}
-                  aria-label={`Face ${index + 1} of ${AVATARS.length}`}
-                  className={styles.avatarPick}
-                  onClick={() => setAvatar(id)}
-                >
-                  <Avatar id={id} size={34} />
-                </button>
-              ))}
-            </div>
-          </fieldset>
         )}
 
         {asks.media === 'audio' && (

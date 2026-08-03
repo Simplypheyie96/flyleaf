@@ -1,0 +1,29 @@
+/* The stamped initial. Everything about the mount — the oval, its fill, what
+   colour the letter comes out — belongs to the card that mounts it, so all
+   this owns is the letterform and where it sits. */
+
+.monogram {
+  display: block;
+  font-family: var(--font-serif);
+  /* Instrument Serif ships one weight. Stated rather than inherited, because a
+     card that sets a heavier weight on its own text would otherwise ask this
+     for a face that does not exist and get a synthesised one. */
+  font-weight: 400;
+  /* A line box exactly one em tall, so the glyph is centred by its own metrics
+     and not by whatever leading the card happens to be running. */
+  line-height: 1;
+  /* One glyph, and letter-spacing is applied *after* it — inheriting a tracked
+     label's value would push the letter off its own centre by that much. */
+  letter-spacing: 0;
+  /* Optical centring. A capital is ink between the baseline and the cap line,
+     which is not the same span as the em box the grid centres, so the letter
+     can land off its mount by a fraction nobody would find by eye but everyone
+     would feel. Measured rather than guessed: with this face at `line-height:
+     1` the cap sits 0.012em high, so that is all this puts back. Instrument
+     Serif turns out to be nearly self-centring here — the number is small
+     because the font is good, not because the correction is a token gesture. */
+  translate: 0 0.012em;
+  /* The letter is the plate's own name, not a word anyone needs to copy, and a
+     drag across the card should take the sentences rather than this. */
+  user-select: none;
+}

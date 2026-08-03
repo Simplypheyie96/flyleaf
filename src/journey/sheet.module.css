@@ -388,46 +388,6 @@
   color: var(--kind);
 }
 
-/* ---- Faces ----
-
-   Twelve drawn people, and every one of them visible at once. A picker that
-   scrolls sideways hides most of the set behind a gesture, and the whole point
-   of this row is that a reader looks at all of them and finds the one that
-   matches how they picture someone. */
-
-.avatarRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.avatarPick {
-  display: grid;
-  place-items: center;
-  inline-size: var(--tap-min);
-  block-size: var(--tap-min);
-  padding: 0;
-  border-radius: 50%;
-  border: 1px solid transparent;
-  background: var(--field-fill);
-  color: var(--color-ink-soft);
-  cursor: pointer;
-  transition:
-    background-color var(--dur-quick) var(--ease-out),
-    color var(--dur-quick) var(--ease-out);
-}
-
-.avatarPick:hover {
-  color: var(--color-ink);
-}
-
-.avatarPick[aria-checked='true'] {
-  background: color-mix(in oklch, var(--color-character), transparent 84%);
-  border-color: color-mix(in oklch, var(--color-character), transparent 45%);
-  color: var(--color-ink);
-  box-shadow: var(--elevation-1);
-}
-
 /* ---- Dictation ----
 
    Sits on the field's own label line, at the trailing end, because it belongs
