@@ -1,4 +1,10 @@
-/* Share this book — three ways, one set of facts.
+/* Share this journey — one picture, one set of facts.
+
+   The journey and not the book. The book belongs to its author and there is
+   nothing of the reader's in it; what this sends is the reading — when it was
+   opened, what was kept, who was followed. Naming it after the book gave the
+   credit to the wrong person.
+
 
    The old version of this sheet had a single answer: a card, sent as its
    plain-text setting. Which meant "send it somewhere" and "copy the text" did
@@ -6,13 +12,13 @@
    somebody who reads in pictures.
 
    So: one editing surface and three outputs. The card is where the reading is
-   assembled — tap a line to leave it out, add a closing line of your own — and
-   the picture and the plain text are that same edited set in another material.
-   Change what the card says and all three change together, because three
-   versions of one reading that disagree is worse than one version.
+   assembled — tap a line to leave it out — and the picture and the plain text
+   are that same edited set in another material. Change what the card says and
+   all three change together, because three versions of one reading that
+   disagree is worse than one version.
 
    The shape of the sheet is the second thing it got wrong. Every part of it —
-   the way-picker, three fieldsets of chips, a hint, a note field — was stacked
+   the way-picker, three fieldsets of chips, a hint — was stacked
    in one scroller with the picture pinned under them at 176px, so the thing
    being sent was the smallest item on a screen whose only job was to show it,
    and choosing a palette scrolled it out of sight. Nothing scrolls now. The
@@ -69,7 +75,6 @@ function asText(k: Keepsake) {
     `${k.title}\n${k.author}`,
     ...k.lines.map(({ term, detail }) => `${term.toUpperCase()}\n${detail}`),
   ]
-  if (k.note) parts.push(k.note)
   return parts.join('\n\n')
 }
 
@@ -84,7 +89,6 @@ function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
   /* Terms the reader has tapped out of the card. By term rather than by index
      so the choice survives a keep being added while the sheet is open. */
   const [omit, setOmit] = useState<Set<string>>(new Set())
-  const [note, setNote] = useState('')
   const [shape, setShape] = useState<Shape>('colophon')
   const [paletteId, setPaletteId] = useState(PALETTES[0].id)
   const [grain, setGrain] = useState<Grain>('plain')
@@ -96,15 +100,11 @@ function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
 
   const base = useMemo(() => keepsakeOf(book, keeps), [book, keeps])
 
-  /* What every output is made of: the card minus whatever was tapped out, plus
-     the reader's own closing line. One object, three renderings. */
+  /* What every output is made of: the card minus whatever was tapped out. One
+     object, three renderings. */
   const made = useMemo<Keepsake>(
-    () => ({
-      ...base,
-      lines: base.lines.filter((l) => !omit.has(l.term)),
-      note: note.trim() || undefined,
-    }),
-    [base, omit, note],
+    () => ({ ...base, lines: base.lines.filter((l) => !omit.has(l.term)) }),
+    [base, omit],
   )
 
   const look = useMemo<Look>(
@@ -118,10 +118,9 @@ function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
   const hint = SHAPES.find((s) => s.id === shape)?.hint ?? ''
 
   /* A different book is a different reading: the lines left out of the last one
-     mean nothing here, and neither does its closing note. */
+     mean nothing here. */
   useEffect(() => {
     setOmit(new Set())
-    setNote('')
   }, [book.id])
 
   useEffect(() => {
@@ -211,9 +210,9 @@ function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
   const words = way === 'text' ? draft : text
 
   return (
-    <Sheet open={open} onClose={onClose} label="Share this book" name="keepsake" fill={!empty}>
+    <Sheet open={open} onClose={onClose} label="Share this journey" name="keepsake" fill={!empty}>
       <header className={styles.head}>
-        <h2 className={styles.title}>Share this book</h2>
+        <h2 className={styles.title}>Share this journey</h2>
         <button type="button" className={styles.iconButton} onClick={onClose} aria-label="Close">
           <CloseIcon size={20} />
         </button>
@@ -253,7 +252,6 @@ function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
                       </li>
                     ))}
                   </ul>
-                  {made.note && <p className={card.note}>{made.note}</p>}
                 </PaperSurface>
               )}
 
@@ -389,28 +387,6 @@ function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
                       </button>
                     ))}
                   </fieldset>
-                </div>
-              )}
-
-              {/* The one thing on a keepsake that did not come out of the book.
-                  Written straight onto the band, because a labelled field with
-                  an "optional" tag on it asks to be filled in, and this is an
-                  offer rather than a question. The text way has no use for it:
-                  the writing there is already the reader's to change. */}
-              {way !== 'text' && (
-                <div className={styles.inscribe}>
-                  <textarea
-                    className={styles.inscribeField}
-                    rows={1}
-                    value={note}
-                    maxLength={180}
-                    placeholder="A closing line, if you like"
-                    aria-label="A closing line"
-                    onChange={(e) => {
-                      setNote(e.target.value)
-                      touched()
-                    }}
-                  />
                 </div>
               )}
             </div>

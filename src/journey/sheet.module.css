@@ -858,52 +858,6 @@
   outline-offset: -1px;
 }
 
-/* ---- The closing line ----
-
-   The one thing on a keepsake that did not come out of the book, so it is
-   written straight onto the band rather than filed under a label in a form.
-   One line at rest, up to three once there is something to say. */
-.inscribe {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding-inline: var(--space-4);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--field-border);
-  background: var(--field-fill);
-}
-
-.inscribeField {
-  flex: 1;
-  min-inline-size: 0;
-  min-block-size: var(--tap-min);
-  max-block-size: 5.25rem;
-  padding-block: var(--space-3);
-  border: none;
-  background: none;
-  color: var(--color-accent-text);
-  font-family: var(--font-serif);
-  font-style: italic;
-  /* 16px flat: anything smaller and iOS zooms the whole sheet on focus. */
-  font-size: var(--text-field);
-  line-height: var(--leading-snug);
-  resize: none;
-  scrollbar-width: none;
-}
-
-.inscribeField::placeholder {
-  font-style: normal;
-  color: var(--color-ink-faint);
-}
-
-.inscribeField:focus {
-  outline: none;
-}
-
-.inscribe:focus-within {
-  border-color: var(--color-accent-text);
-}
-
 /* Short screen: everything the stage does not need gives a little back. The
    caption stays — it is the only place that says what "The tally" draws, and
    twenty pixels of picture is a poor trade for not knowing what you are
