@@ -12,6 +12,23 @@
 - [ ] Warm accent used with restraint, not everywhere.
 - [ ] Generous, rhythmic spacing; clear hierarchy; nothing cramped.
 - [ ] Matches the rest of the app — no screen feels older or "off."
+- [ ] Each content type has its own visual identity — not one pattern repeated.
+
+### Geometry (measured, not eyeballed)
+
+Read the real numbers off the rendered page at 390 and at desktop. "Looks right"
+does not pass this section.
+
+- [ ] Every box's leading and trailing gap match. The leading edge is almost always
+      right; it is the trailing edge that drifts.
+- [ ] Text and artwork run the full width of the box they sit in — no invisible
+      second gutter from an inherited cap (`--measure`, a global `p` rule, a token).
+- [ ] Components are aligned to the same edges as their neighbours: a label, its
+      card, and the column all end on the same x.
+- [ ] Nothing overlaps a control or a tap target at the longest realistic content.
+- [ ] No dead space inside a component. If a region is empty, it is empty on purpose
+      and the reason is written down.
+- [ ] Element sizes track their importance — nothing dominating or shrunken by accident.
 
 ### States (the premium tell)
 - [ ] Hover, press, and visible focus states on interactive elements.
