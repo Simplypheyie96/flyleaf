@@ -3,18 +3,23 @@ import { createRoot } from 'react-dom/client'
 /* Self-hosted so the archive still reads with no network, and so the share
    canvas can draw with them without tainting.
 
-   Instrument Serif is the book's voice: one weight, one italic, and about a
-   quarter narrower than a text serif at the same size, which is what lets a
-   long book title sit at a readable size instead of being shrunk to fit.
-   Both faces are loaded — the italic carries every quote in the app, and
-   without the real file the browser would slant the upright one. Instrument
-   Sans is the app's own voice and shares the family's skeleton, which is why
-   it can also set the small stamped labels — dates, page numbers, counts —
-   that a monospace used to. Two families, three files, one skeleton.
+   Both text faces were replaced because the pair before them ran tall and
+   narrow. Instrument Serif and Instrument Sans share a skeleton with long
+   stems, tight sidebearings and a high x-height, and a screen of it reads as
+   a picket fence: every line is dense, nothing has air in it, and the eye has
+   to work at a page it is supposed to linger over.
+
+   EB Garamond is the book's voice now. It is an old-style face with wide
+   round bowls, short stems and a small x-height, so the same sentence takes
+   more width and less height and reads slower in the way a book reads slower.
+   Source Sans 3 is the app's own voice: a humanist sans with open apertures
+   and generous counters, which is what makes an 11px capital label legible
+   without shouting. Both are variable, so weight is now an axis on both
+   voices rather than only on the sans.
+
    Patrick Hand is the reader's hand and is deliberately left alone. */
-import '@fontsource/instrument-serif/400.css'
-import '@fontsource/instrument-serif/400-italic.css'
-import '@fontsource-variable/instrument-sans'
+import '@fontsource-variable/eb-garamond'
+import '@fontsource-variable/source-sans-3'
 import '@fontsource/patrick-hand'
 import './styles/tokens.css'
 import './styles/motion.css'

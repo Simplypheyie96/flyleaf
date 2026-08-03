@@ -15,6 +15,7 @@
 
 .subtitle {
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-style: italic;
   font-size: var(--text-md);
   color: var(--color-ink-soft);

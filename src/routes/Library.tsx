@@ -553,9 +553,9 @@ function Library() {
 
   /* Measure before paint, so a title is never briefly shown at a length that
      doesn't fit. Then measure again when the fonts land: on a cold load the
-     first pass runs against the fallback serif, whose metrics aren't
-     Instrument Serif's, and a budget measured against the wrong face is the
-     wrong budget. */
+     first pass runs against the fallback serif, whose metrics are not the
+     book face's, and a budget measured against the wrong face is the wrong
+     budget. */
   useLayoutEffect(() => {
     if (view !== 'Shelf') return
 

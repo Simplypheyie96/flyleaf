@@ -31,6 +31,7 @@
   border-radius: var(--radius-pill);
   background: transparent;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-md);
   color: var(--color-ink);
   cursor: pointer;
@@ -146,6 +147,7 @@
   background: transparent;
   color: var(--color-ink-soft);
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-base);
   cursor: pointer;
   transition: color var(--dur-press) var(--ease-out);

@@ -36,6 +36,7 @@
 .title {
   margin: 0;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-2xl);
   line-height: var(--leading-tight);
   letter-spacing: -0.02em;
@@ -114,6 +115,7 @@
 .kindName {
   margin: 0;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-xl);
   line-height: var(--leading-tight);
   letter-spacing: -0.015em;

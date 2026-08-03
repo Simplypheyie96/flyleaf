@@ -153,6 +153,7 @@
 
 .viewHint {
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-style: italic;
   font-size: var(--text-sm);
   line-height: var(--leading-body);
@@ -201,6 +202,7 @@
 /* Matches Home: italic serif standfirst, not a second handwritten thing. */
 .subtitle {
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-style: italic;
   font-size: var(--text-md);
   color: var(--color-ink-soft);
@@ -322,6 +324,7 @@
   margin-inline: auto;
   padding: var(--space-6) var(--space-4);
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-style: italic;
   font-size: var(--text-md);
   line-height: var(--leading-body);
@@ -937,6 +940,7 @@
 .spineTitle {
   position: relative; /* above the shading, not under it */
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-sm);
   line-height: 1;
   white-space: nowrap;
@@ -1053,7 +1057,7 @@
 .feedTitle {
   margin: 0;
   font-family: var(--font-serif);
-  font-weight: 400;
+  font-weight: var(--weight-serif);
   font-size: var(--text-md);
   line-height: var(--leading-tight);
   color: var(--color-ink);
@@ -1115,6 +1119,7 @@
   overflow: hidden;
   margin: var(--space-2) 0 0;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   color: var(--color-ink);
@@ -1123,6 +1128,7 @@
 .feedNothing {
   margin: var(--space-3) 0 0;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-style: italic;
   font-size: var(--text-sm);
   line-height: var(--leading-body);
