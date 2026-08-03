@@ -355,12 +355,21 @@ export const FACE_VIEW = { x: 6, y: 4, w: 88, h: 107 }
              the outside of the mass sits about 0.72 up, and a temple above
              that puts the inside of the shape outside it. The ring then
              crosses itself and the corners render as two spikes. */
+/* `fringe` and `temple` are both heights above the eye line, and together they
+   are the hairline: `temple` where it crosses ±0.7 of the head's width,
+   `fringe` at the parting. Which of the two is larger is the whole character
+   of the style, and five of these seven had it backwards — a centre sitting
+   *higher* than the temples bows the hairline upward, and an upward bow across
+   a forehead is the brim of a hat. Hair that falls forward has to come down in
+   the middle, so on every style but the two that are deliberately pulled off
+   the face (Gathered, flat) or off the crown (Swept and Receding, low on
+   purpose) the fringe now sits at or below its own temples. */
 const HAIR = [
-  /* Cropped   */ { stop: 0.06, side: 0, out: 1, grow: 1.05, lift: 0, fringe: 0.5, temple: 0.42, ears: true },
-  /* Bob       */ { stop: 0, side: 0.72, out: 1.08, grow: 1.08, lift: 1, fringe: 0.42, temple: 0.34, ears: false },
-  /* Long      */ { stop: 0, side: 1.24, out: 1.06, grow: 1.08, lift: 1, fringe: 0.38, temple: 0.32, ears: false },
-  /* Gathered  */ { stop: 0.14, side: 0, out: 1, grow: 1.04, lift: 0, fringe: 0.52, temple: 0.44, ears: true },
-  /* Curled    */ { stop: 0, side: 0.34, out: 1.1, grow: 1.16, lift: 3, fringe: 0.44, temple: 0.36, ears: false },
+  /* Cropped   */ { stop: 0.06, side: 0, out: 1, grow: 1.05, lift: 0, fringe: 0.4, temple: 0.42, ears: true },
+  /* Bob       */ { stop: 0, side: 0.72, out: 1.08, grow: 1.08, lift: 1, fringe: 0.32, temple: 0.34, ears: false },
+  /* Long      */ { stop: 0, side: 1.24, out: 1.06, grow: 1.08, lift: 1, fringe: 0.3, temple: 0.32, ears: false },
+  /* Gathered  */ { stop: 0.14, side: 0, out: 1, grow: 1.04, lift: 0, fringe: 0.44, temple: 0.44, ears: true },
+  /* Curled    */ { stop: 0, side: 0.34, out: 1.1, grow: 1.16, lift: 3, fringe: 0.34, temple: 0.36, ears: false },
   /* Swept     */ { stop: 0.02, side: 0, out: 1, grow: 1.09, lift: 2, fringe: 0.26, temple: 0.44, ears: true },
   /* Receding  */ { stop: 0.16, side: 0, out: 1, grow: 1.02, lift: 0, fringe: 0.44, temple: 0.66, ears: true },
 ]
@@ -575,6 +584,73 @@ export function faceMarks(seed: number): PlaceMark[] {
   )
   const mane = loop(ring)
 
+  /* Hair as strokes, not as a painted silhouette.
+
+     The mass used to be filled at 0.24 and outlined at 1.6, and a solid shape
+     with a hard edge around it is not hair — it is a helmet, which is what
+     every head on this screen was wearing. Nothing else the pen draws in this
+     app is filled: the maps, the plates and the covers are all line, and the
+     one drawing that broke that rule was the one drawing that kept getting
+     called out for not matching the app.
+
+     So the ring keeps its outline and loses its fill, and the inside is given
+     what actually says hair at 46px — a handful of strokes running the way the
+     mass runs, lying inside the silhouette rather than crossing it.
+
+     They have to run the way hair grows, which is the one thing that decides
+     whether this looks drawn or manufactured. The first attempt sent each
+     stroke straight out from the crown to the silhouette, and a fan of spokes
+     between a domed outline and a hairline is not hair — it is the panel
+     seams of a swim cap, and every head was wearing one.
+
+     So each stroke is a sweep, not a spoke: it starts near the parting just
+     above the hairline and travels *around* to a temple, gaining radius as it
+     goes. That is the path a comb takes. Alternating sides keeps the parting a
+     parting rather than a point everything radiates from, and starting each
+     one at its own angle and depth stops the set converging into a starburst
+     at the crown. Crossing the hairline diagonally on the way is what breaks
+     up the brim the return path would otherwise read as. */
+  const strandCount = 3 + Math.floor(r() * 3)
+  const strands: string[] = []
+  for (let i = 0; i < strandCount; i += 1) {
+    const side = i % 2 ? 1 : -1
+    const aFrom = start + span * (0.5 + side * (0.03 + r() * 0.12))
+    const aTo = start + span * (0.5 + side * (0.3 + r() * 0.2))
+    const rFrom = 0.44 + r() * 0.16
+    const rTo = 0.84 + r() * 0.06
+    const pts: Pt[] = []
+    for (let k = 0; k < 5; k += 1) {
+      const u = k / 4
+      const rad = rFrom + (rTo - rFrom) * u
+      const a = aFrom + (aTo - aFrom) * u
+      pts.push([
+        cx + Math.cos(a) * hw * g * rad + part * 0.4 * (1 - u),
+        cy + Math.sin(a) * hh * g * rad - hair.lift * (1 - u) * 0.6,
+      ])
+    }
+    strands.push(drawn(r, pts, false, 0.22))
+  }
+  /* The curtains on the hanging styles fall outside the sweep entirely, so the
+     strokes above never reach them. Without these two the bob and the long
+     were an inked outline around nothing. */
+  if (hangs) {
+    for (const s of [-1, 1]) {
+      const x = cx + s * hw * (0.78 + r() * 0.12)
+      strands.push(
+        drawn(
+          r,
+          [
+            [x, browY + 3],
+            [x + s * 1.5, (browY + sideY) / 2],
+            [x + s * 0.5, sideY - 5],
+          ],
+          false,
+          0.4,
+        ),
+      )
+    }
+  }
+
   /* Gathered up: the knot is a second closed shape rather than a bump on the
      ring, because a bump big enough to read as a bun deforms the crown under
      it and the head stops looking like a head. */
@@ -623,6 +699,29 @@ export function faceMarks(seed: number): PlaceMark[] {
   const noseW = 2.2 + r() * 1.4
   const nose = `M ${n2(nx)} ${n2(noseY - 4.5)} Q ${n2(nx - noseW)} ${n2(noseY)} ${n2(nx + noseW * 0.9)} ${n2(noseY - 0.4)}`
 
+  /* Brows on most faces, and none on the rest.
+
+     Seven haircuts is not seven people. Two names landing on the same one is a
+     one-in-seven coincidence, and when it happened the two cards were
+     indistinguishable, because everything else the seed varies — head width by
+     three pixels, jaw taper, eye offset — is under the threshold at which the
+     eye reads a difference at this size. Brows are the cheapest axis that
+     clears it: present or absent is visible across a room, and it multiplies
+     the number of faces that read as distinct rather than adding one more
+     shade of the same face.
+
+     Like the nose, a brow is a fact rather than an expression, but only while
+     it stays level. The lift is one number used for both sides — drawn with
+     its own random each, one brow rises and the other doesn't, and that is not
+     two eyebrows, it is a smirk. */
+  const browLift = 0.8 + r() * 1.1
+  const bw = ew * (1.05 + r() * 0.45)
+  const by = ey - 4.2 - r() * 2.4
+  const brows =
+    r() < 0.66
+      ? `${arch([cx - ex - bw, by], [cx - ex + bw, by], browLift)} ${arch([cx + ex - bw, by], [cx + ex + bw, by], browLift)}`
+      : ''
+
   /* Back to front, and the hair goes on *after* the head rather than behind
      it: the fringe crosses the forehead, so it has to be able to tint it. */
   return [
@@ -632,9 +731,13 @@ export function faceMarks(seed: number): PlaceMark[] {
     ...necks.map((d) => ({ d, stroke: 0.4, w: 1.5 })),
     ...(ears ? [{ d: ears, stroke: 0.36, w: 1.3 }] : []),
     { d: head, stroke: 0.6, w: 1.7 },
-    { d: mane, fill: 0.24 },
     { d: mane, stroke: 0.55, w: 1.6 },
-    ...(knot ? [{ d: knot, fill: 0.24 }, { d: knot, stroke: 0.55, w: 1.6 }] : []),
+    /* Lighter and thinner than the silhouette that holds them, so the mass
+       still reads as one shape at a glance and the strokes are texture inside
+       it rather than seven more outlines. */
+    ...strands.map((d) => ({ d, stroke: 0.34, w: 1.1 })),
+    ...(knot ? [{ d: knot, stroke: 0.55, w: 1.6 }] : []),
+    ...(brows ? [{ d: brows, stroke: 0.5, w: 1.5 }] : []),
     { d: eyes, stroke: 0.72, w: 1.7 },
     { d: nose, stroke: 0.5, w: 1.4 },
   ]
