@@ -573,6 +573,25 @@ export function SaveIcon({ size = 22 }: IconProps) {
   )
 }
 
+/** Two arrows chasing each other: draw the next one. It sits beside "Another
+    face", which without it is a piece of small uppercase text standing next to
+    another piece of small uppercase text — the field's own label — at the same
+    size and weight, and nothing said which of the two could be pressed. Dictate
+    is legible as a control on the line below only because it carries a
+    microphone, so this carries the same weight of mark. */
+export function CycleIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M4.8 12 A 7.2 7.2 0 0 1 17.6 7.6" />
+        <path d="M14.2 7.1 L 17.9 7.7 L 18.5 4" />
+        <path d="M19.2 12 A 7.2 7.2 0 0 1 6.4 16.4" />
+        <path d="M9.8 16.9 L 6.1 16.3 L 5.5 20" />
+      </g>
+    </svg>
+  )
+}
+
 /** A tick, for marking a book finished and for confirming in menus. */
 export function CheckIcon({ size = 22 }: IconProps) {
   return (

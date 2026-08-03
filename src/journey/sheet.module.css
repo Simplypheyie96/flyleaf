@@ -568,14 +568,18 @@
   color: color-mix(in oklab, var(--tint-character), var(--tint-ink) 32%);
 }
 
-/* Dictate's button, said again, on the label line Dictate uses — a small label
-   rather than a pill, because nothing here is waiting on the reader and a
-   filled control would say it was. The tap target is the full 44px and is
-   taken back out of the layout, so the label line stays a label line. */
+/* Dictate's button, said again, on the label line Dictate uses — no fill and no
+   border, because nothing here is waiting on the reader and a filled control
+   would say it was. What it does carry is Dictate's mark, at Dictate's size and
+   Dictate's gap: without one, an uppercase word in the accent beside an
+   uppercase word in the label ink is two labels, and only one of them happens
+   to be pressable. The tap target is the full 44px and is taken back out of the
+   layout, so the label line stays a label line. */
 .faceSwap {
   margin-inline-start: auto;
   display: inline-flex;
   align-items: center;
+  gap: var(--space-2);
   min-height: var(--tap-min);
   margin-block: calc(var(--space-3) * -1);
   padding-inline: var(--space-3);

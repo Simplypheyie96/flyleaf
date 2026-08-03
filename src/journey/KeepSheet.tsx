@@ -21,7 +21,7 @@ import LeafButton from '../components/LeafButton'
 import DateField from './DateField'
 import Recorder from './Recorder'
 import { Avatar } from './avatars'
-import { CloseIcon, ImageIcon, VoiceIcon } from '../components/TabIcons'
+import { CloseIcon, CycleIcon, ImageIcon, VoiceIcon } from '../components/TabIcons'
 import { todayISO } from '../components/date/dates'
 import type { Book, Entry, EntryType, Stance } from '../data/db'
 import { KIND, KINDS, STANCE, STANCES } from './kinds'
@@ -232,6 +232,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
               <label htmlFor={nameId}>{asks.name.label}</label>
               {type === 'character' && name.trim() && (
                 <button type="button" className={styles.faceSwap} onClick={() => setFace(face + 1)}>
+                  <CycleIcon size={15} />
                   Another face
                 </button>
               )}
