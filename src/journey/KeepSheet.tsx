@@ -12,10 +12,10 @@
    holding seven branching opinions about it.
 
    The order of the fields is the order of the thought: what kind of thing is
-   this, what it is called, the thing itself, then where it came from, when, and
-   what it is about. Everything after the first two is optional and looks it. */
+   this, what it is called, the thing itself, then where it came from and when.
+   Everything after the first two is optional and looks it. */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import Sheet from '../components/Sheet'
 import LeafButton from '../components/LeafButton'
 import DateField from './DateField'
@@ -49,12 +49,23 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
   const [page, setPage] = useState('')
   const [chapter, setChapter] = useState('')
   const [keptOn, setKeptOn] = useState(todayISO())
-  const [motifs, setMotifs] = useState<string[]>([])
-  const [motif, setMotif] = useState('')
   const [media, setMedia] = useState<Blob>()
   const [duration, setDuration] = useState<number>()
   const [busy, setBusy] = useState(false)
   const photo = useRef<HTMLInputElement>(null)
+
+  /* Two fields on this sheet carry a button on their label line — the face
+     swap and Dictate — so those two are labelled by reference rather than by
+     being wrapped.
+
+     A <label> that wraps its field swallows its whole subtree into the field's
+     accessible name, and the browser then prunes what it swallowed: a button
+     inside the wrapper renders, takes taps, and is missing from the
+     accessibility tree entirely. Screen-reader users could not reach Dictate
+     at all. `htmlFor` ties the word to the field without claiming everything
+     standing next to it. */
+  const nameId = useId()
+  const textId = useId()
 
   /* Dictation drops finished phrases at the end of whatever is already there,
      with a space in front unless the field is empty — so a reader can type
@@ -69,7 +80,6 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
   useEffect(() => {
     if (!open) return
     setBusy(false)
-    setMotif('')
     if (editing) {
       setType(editing.type)
       setText(editing.text ?? '')
@@ -79,7 +89,6 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       setPage(editing.page !== undefined ? `${editing.page}` : '')
       setChapter(editing.chapter ?? '')
       setKeptOn(editing.keptOn)
-      setMotifs(editing.motifs ?? [])
       setMedia(editing.media)
       setDuration(editing.duration)
       return
@@ -92,7 +101,6 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
     setPage('')
     setChapter('')
     setKeptOn(todayISO())
-    setMotifs([])
     setMedia(undefined)
     setDuration(undefined)
   }, [open, editing, start])
@@ -103,16 +111,6 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
   }, [open, speech])
 
   const asks = KIND[type].asks
-
-  function addMotif() {
-    const word = motif.trim()
-    if (!word || motifs.includes(word)) {
-      setMotif('')
-      return
-    }
-    setMotifs([...motifs, word])
-    setMotif('')
-  }
 
   /* What has to be there before the sheet will let go of it — the one thing
      the card is *of*. A picture with no picture, a character with no name and
@@ -139,7 +137,6 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
         page: page ? Number(page) : undefined,
         chapter: chapter.trim() || undefined,
         keptOn,
-        motifs: motifs.length ? motifs : undefined,
         media: asks.media === 'none' ? undefined : media,
         duration: asks.media === 'audio' ? duration : undefined,
         name: asks.name ? name.trim() || undefined : undefined,
@@ -215,36 +212,46 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
           </fieldset>
         )}
 
-        {asks.name && (
-          <label className={styles.label}>
-            {asks.name.label}
-            <input
-              className={styles.input}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={asks.name.placeholder}
-              maxLength={60}
-              autoFocus
-            />
-          </label>
-        )}
+        {/* The name, and — for a character — the face that name drew, standing
+            beside it.
 
-        {/* The face the app drew, and the one word for "not that one".
+            The face belongs to this field and nowhere else: it is made out of
+            what is typed in the box next to it, and it changes as the letters
+            land. On its own row underneath it read as a second thing to deal
+            with. Here it reads as what the field just produced.
 
             The reader is never asked to pick. A grid of strangers asks them to
             decide which one is Bel, and somebody who wrote down a habit rather
             than a face has nothing to decide with. Tapping hands back another
-            from the same pool, for as long as they keep tapping.
-
-            It waits for a name because the name is what it draws from. */}
-        {type === 'character' && name.trim() && (
-          <div className={styles.faceRow}>
-            <span className={styles.facePlate}>
-              <Avatar name={name} note={text} face={face} />
+            from the same pool, for as long as they keep tapping — so the one
+            word sits on the label line at the trailing edge, exactly where
+            Dictate sits on the field below. */}
+        {asks.name && (
+          <div className={styles.label}>
+            <span className={styles.labelLine}>
+              <label htmlFor={nameId}>{asks.name.label}</label>
+              {type === 'character' && name.trim() && (
+                <button type="button" className={styles.faceSwap} onClick={() => setFace(face + 1)}>
+                  Another face
+                </button>
+              )}
             </span>
-            <button type="button" className={styles.faceSwap} onClick={() => setFace(face + 1)}>
-              Another face
-            </button>
+            <span className={styles.nameRow}>
+              <input
+                id={nameId}
+                className={styles.input}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={asks.name.placeholder}
+                maxLength={60}
+                autoFocus
+              />
+              {type === 'character' && name.trim() && (
+                <span className={styles.facePlate}>
+                  <Avatar name={name} note={text} face={face} />
+                </span>
+              )}
+            </span>
           </div>
         )}
 
@@ -292,14 +299,15 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
         )}
 
         {asks.text && (
-          <label className={styles.label}>
+          <div className={styles.label}>
             <span className={styles.labelLine}>
-              {asks.text.label}
+              <label htmlFor={textId}>{asks.text.label}</label>
               {!ready || asks.name ? null : <span className={styles.optional}>required</span>}
               {dictateButton}
             </span>
             {longhand ? (
               <textarea
+                id={textId}
                 className={styles.area}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
@@ -308,13 +316,14 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
               />
             ) : (
               <input
+                id={textId}
                 className={styles.input}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder={asks.text.placeholder}
               />
             )}
-          </label>
+          </div>
         )}
 
         {asks.stance && (
@@ -367,53 +376,6 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
         </div>
 
         <DateField label="Kept on" value={keptOn} onChange={setKeptOn} seed={book.id} />
-
-        <fieldset className={styles.group}>
-          <legend className={styles.label}>
-            <span className={styles.labelLine}>
-              Motifs <span className={styles.optional}>what it’s about</span>
-            </span>
-          </legend>
-          {motifs.length > 0 && (
-            <div className={styles.chipRow}>
-              {motifs.map((word) => (
-                <button
-                  key={word}
-                  type="button"
-                  className={styles.chip}
-                  aria-checked="true"
-                  role="checkbox"
-                  onClick={() => setMotifs(motifs.filter((m) => m !== word))}
-                >
-                  {word}
-                  <CloseIcon size={14} />
-                </button>
-              ))}
-            </div>
-          )}
-          <div className={styles.addRow}>
-            <input
-              className={styles.input}
-              value={motif}
-              onChange={(e) => setMotif(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key !== 'Enter') return
-                e.preventDefault()
-                addMotif()
-              }}
-              placeholder="grief, the sea, mothers"
-              maxLength={32}
-            />
-            <button
-              type="button"
-              className={styles.chip}
-              onClick={addMotif}
-              disabled={!motif.trim()}
-            >
-              Add
-            </button>
-          </div>
-        </fieldset>
       </div>
 
       <footer className={styles.foot}>

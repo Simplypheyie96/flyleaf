@@ -88,19 +88,10 @@ export function Character({ keep }: CardProps) {
    The question is one line. A thread's name is a thing you are carrying
    around, not a paragraph, and a name that wraps turns every card in the
    journey a different height for no reason a reader can act on. The full text
-   stays reachable on hover and in the entry itself.
+   stays reachable on hover and in the entry itself. */
 
-   The strands are a filing line, not chips. They are still the only way into
-   the motif filter, so they cannot go — but a row of filled lozenges under
-   every thread was the "random tag" look, and a case file already has
-   somewhere for that: the line you write along the bottom of one. Named as the
-   relationship it is, too, rather than left as a bare word — "filed under the
-   house" is a fact about where this sits, where "the house" on its own is
-   indistinguishable from a tag somebody stuck on. */
-
-export function Thread({ keep, onMotif }: CardProps) {
+export function Thread({ keep }: CardProps) {
   const stance = keep.stance ?? 'hunch'
-  const strands = keep.motifs ?? []
   return (
     <article className={`${s.card} ${s.dossier}`} data-stance={stance}>
       {/* The stance, on a tab cut into the top corner — first in the markup
@@ -113,19 +104,6 @@ export function Thread({ keep, onMotif }: CardProps) {
         {keep.name}
       </h3>
       {keep.text && <p className={s.working}>{keep.text}</p>}
-      {/* Only when there is something filed under. An empty line is 28px of
-          dead air at the bottom of the card, and that reads as a mistake
-          rather than as space. */}
-      {strands.length > 0 && (
-        <p className={s.filing}>
-          <span className={s.filedUnder}>Filed under</span>
-          {strands.map((strand) => (
-            <button key={strand} type="button" className={s.strand} onClick={() => onMotif(strand)}>
-              {strand}
-            </button>
-          ))}
-        </p>
-      )}
     </article>
   )
 }

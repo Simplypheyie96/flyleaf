@@ -104,7 +104,7 @@ function CardLab() {
                     <div className={styles.samples}>
                       {samples[kind].map((keep) => (
                         <div key={keep.id} className={styles.slot}>
-                          <Card keep={keep} onMotif={() => {}} />
+                          <Card keep={keep} />
                         </div>
                       ))}
                     </div>

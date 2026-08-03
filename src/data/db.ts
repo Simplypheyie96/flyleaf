@@ -113,10 +113,6 @@ export interface Entry {
       the day it happened rather than the day it was typed in. */
   keptOn: string
   createdAt: number
-  /** The reader's own words for what this is about — "grief", "the sea",
-      "things the father won't say". Free text on purpose: a fixed list would
-      be somebody else's reading of the book. */
-  motifs?: string[]
   /** What it is called — a character's name, a place's name. The heading of
       the card, kept apart from `text` so the two can be styled and searched
       as the different things they are. */
@@ -212,6 +208,35 @@ db.version(4)
         }
         delete entry.strandId
         delete entry.strandMark
+      }),
+  )
+
+/* The second non-additive version, and it removes rather than reshapes.
+
+   Motifs asked the reader to name what a keep was "about" before they had
+   finished having the thought, and then made that name the price of ever
+   finding the keep again. Nobody typed them. The ones that did get typed were
+   a second, worse copy of what the keep already said. So the field is gone,
+   the multiEntry index that made it queryable goes with it, and `entries` is
+   restated without `*motifs` — a version declares the whole schema, so the
+   index disappears by not being named.
+
+   The key is deleted from every row rather than left to rot, because a field
+   that is not in the type but is in the database is the thing that makes the
+   next migration hard to reason about. There is nothing here to translate into
+   something else: a motif was the reader's word for a subject, and the app has
+   no other place that means that. It is a deletion and it is written as one. */
+db.version(5)
+  .stores({
+    books: 'id, addedAt, title',
+    entries: '++id, bookId, [bookId+createdAt]',
+  })
+  .upgrade((tx) =>
+    tx
+      .table<Entry & { motifs?: string[] }>('entries')
+      .toCollection()
+      .modify((entry) => {
+        delete entry.motifs
       }),
   )
 

@@ -16,12 +16,7 @@
       `keptOn`, and that one the reader can edit freely without the thread
       reordering itself underneath them. */
 
-import db, {
-  type BookFormat,
-  type Entry,
-  type EntryType,
-  type Stance,
-} from '../data/db'
+import db, { type BookFormat, type Entry, type EntryType, type Stance } from '../data/db'
 
 export interface Draft {
   bookId: number
@@ -32,7 +27,6 @@ export interface Draft {
   media?: Blob
   duration?: number
   keptOn: string
-  motifs?: string[]
   name?: string
   stance?: Stance
 }
@@ -82,10 +76,7 @@ export async function setFormats(bookId: number, formats: BookFormat[]) {
   await db.books.update(bookId, { formats })
 }
 
-export async function setDates(
-  bookId: number,
-  dates: { startedOn?: string; finishedOn?: string },
-) {
+export async function setDates(bookId: number, dates: { startedOn?: string; finishedOn?: string }) {
   await db.books.update(bookId, dates)
 }
 

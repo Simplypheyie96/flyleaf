@@ -747,10 +747,6 @@
   padding-block-end: var(--journey-gap);
 }
 
-.notch[data-divider] {
-  padding-block-end: var(--space-4);
-}
-
 .gutter {
   position: relative;
   display: flex;
@@ -783,16 +779,6 @@
   inset-block-start: calc(var(--knot-top) + var(--knot-size));
   /* Reaches down through the item's own padding to the next knot. */
   inset-block-end: calc(-1 * var(--journey-gap));
-}
-
-/* A divider carries no knot, so its gutter is one unbroken run. */
-.notch[data-divider] .gutter::before {
-  block-size: 100%;
-}
-
-.notch[data-divider] .gutter::after {
-  inset-block-start: 100%;
-  inset-block-end: calc(-1 * var(--space-4));
 }
 
 /* The thread has two ends and neither should dangle past them. */
@@ -991,16 +977,6 @@
   line-height: var(--leading-body);
   color: var(--color-ink-faint);
   max-inline-size: var(--measure);
-}
-
-.divider {
-  align-self: center;
-  margin: 0;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
-  font-size: var(--text-md);
-  line-height: var(--leading-tight);
-  color: var(--color-ink-soft);
 }
 
 /* ── Nothing matched ────────────────────────────────────────────────────── */

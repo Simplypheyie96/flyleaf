@@ -217,14 +217,7 @@ export function StackIcon({ size = 22 }: IconProps) {
         {/* Offset diagonally as well as rotated. Two cards turned about one
             shared centre land on top of each other and read as a single
             rounded square. */}
-        <rect
-          x="4.4"
-          y="3.4"
-          width="10.4"
-          height="13.2"
-          rx="2.1"
-          transform="rotate(-13 9.6 10)"
-        />
+        <rect x="4.4" y="3.4" width="10.4" height="13.2" rx="2.1" transform="rotate(-13 9.6 10)" />
         <rect
           x="9.2"
           y="7.4"
@@ -256,14 +249,7 @@ export function ShelfIcon({ size = 22 }: IconProps) {
         <rect x="3" y="5" width="4.4" height="12.4" rx="1.2" />
         <rect x="9.8" y="6.3" width="4.4" height="11.1" rx="1.2" />
         {/* The lean is what separates a shelf from a bar chart. */}
-        <rect
-          x="16.6"
-          y="5"
-          width="4.4"
-          height="12.4"
-          rx="1.2"
-          transform="rotate(8 18.8 17.4)"
-        />
+        <rect x="16.6" y="5" width="4.4" height="12.4" rx="1.2" transform="rotate(8 18.8 17.4)" />
         <path d="M2.2 20 L 21.8 20" />
       </g>
     </svg>
@@ -299,19 +285,12 @@ export function CloseIcon({ size = 22 }: IconProps) {
 /* A chevron with no shaft, pointing whichever way it is asked to. Used on its
    own wherever something steps through a set in place — the deck on the
    Library, one book at a time. */
-export function ChevronIcon({
-  size = 22,
-  dir = 'left',
-}: IconProps & { dir?: 'left' | 'right' }) {
+export function ChevronIcon({ size = 22, dir = 'left' }: IconProps & { dir?: 'left' | 'right' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <g {...strokeProps}>
         <path
-          d={
-            dir === 'left'
-              ? 'M14.25 6 L 8.75 12 L 14.25 18'
-              : 'M9.75 6 L 15.25 12 L 9.75 18'
-          }
+          d={dir === 'left' ? 'M14.25 6 L 8.75 12 L 14.25 18' : 'M9.75 6 L 15.25 12 L 9.75 18'}
         />
       </g>
     </svg>
@@ -330,13 +309,7 @@ export function BackIcon({ size = 22 }: IconProps) {
    because that turn belongs to whoever is using it, not to the icon. */
 export function CaretIcon({ size = 22, className }: IconProps & { className?: string }) {
   return (
-    <svg
-      className={className}
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <g {...strokeProps}>
         <path d="M6 9.5 L 12 15.5 L 18 9.5" />
       </g>
@@ -383,11 +356,7 @@ export function MoonIcon({ size = 22 }: IconProps) {
 export function AutoThemeIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M12 5 A 7 7 0 0 1 12 19 Z"
-        fill="currentColor"
-        stroke="none"
-      />
+      <path d="M12 5 A 7 7 0 0 1 12 19 Z" fill="currentColor" stroke="none" />
       <g {...strokeProps}>
         <circle cx="12" cy="12" r="7" />
       </g>
@@ -441,18 +410,6 @@ export function OpeningIcon({ size = 22 }: IconProps) {
           fill="currentColor"
           stroke="none"
         />
-      </g>
-    </svg>
-  )
-}
-
-/** A motif: what a keep is about. A luggage tag, not a hash. */
-export function MotifIcon({ size = 22 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-      <g {...strokeProps}>
-        <path d="M11.5 4.5 L 19 4.5 L 19 12 L 11.5 19.5 L 4.5 12.5 Z" />
-        <circle cx="15.5" cy="8" r="1.4" />
       </g>
     </svg>
   )

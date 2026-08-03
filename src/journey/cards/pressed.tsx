@@ -19,22 +19,21 @@ import { keptLabel } from '../lexicon'
 import { STANCE } from '../kinds'
 import { PlaceIcon } from '../../components/TabIcons'
 import { Place, waveBars } from './art'
-import { Motifs, clock, useObjectUrl, usePlayback, type CardProps } from './shared'
+import { Stance, clock, useObjectUrl, usePlayback, type CardProps } from './shared'
 import s from './pressed.module.css'
 
-const foot = { footClass: s.foot, chipClass: s.chip, stanceClass: s.stance }
+const foot = { footClass: s.foot, stanceClass: s.stance }
 
 /* ── Quote ────────────────────────────────────────────────────────────────
    A strip torn out and taped down. The tear is the top and bottom edge, the
    tape holds the leading corner, and the whole thing sits a degree off square
    because nobody tapes anything straight. */
 
-export function Quote({ keep, onMotif }: CardProps) {
+export function Quote({ keep }: CardProps) {
   return (
     <article className={`${s.sheet} ${s.strip}`}>
       <span className={s.tape} aria-hidden="true" />
       <blockquote className={s.torn}>{keep.text}</blockquote>
-      <Motifs keep={keep} onMotif={onMotif} {...foot} />
     </article>
   )
 }
@@ -44,14 +43,13 @@ export function Quote({ keep, onMotif }: CardProps) {
    turned back at the corner. The one card the reader already recognised, so
    it is carried across unchanged rather than redesigned for the sake of it. */
 
-export function Note({ keep, onMotif }: CardProps) {
+export function Note({ keep }: CardProps) {
   return (
     <article className={`${s.sheet} ${s.leaf}`}>
       <span className={s.spine} aria-hidden="true" />
       <div className={s.ruled}>
         <p className={s.hand}>{keep.text}</p>
       </div>
-      <Motifs keep={keep} onMotif={onMotif} {...foot} />
       <span className={s.fold} aria-hidden="true" />
     </article>
   )
@@ -69,7 +67,7 @@ export function Note({ keep, onMotif }: CardProps) {
    the tape runs — and the take-up reel drops to a hairline so it reads as part
    of the object rather than as a second button that does nothing. */
 
-export function Voice({ keep, onMotif }: CardProps) {
+export function Voice({ keep }: CardProps) {
   const { playing, at, toggle, ready } = usePlayback(keep.media)
   const bars = waveBars(keep.id, 40)
   const played = Math.round(at * bars.length)
@@ -107,7 +105,6 @@ export function Voice({ keep, onMotif }: CardProps) {
           />
         ))}
       </div>
-      <Motifs keep={keep} onMotif={onMotif} {...foot} />
     </article>
   )
 }
@@ -116,7 +113,7 @@ export function Voice({ keep, onMotif }: CardProps) {
    A print under four corners, on mount board, with the caption written on the
    board rather than on the print. */
 
-export function Picture({ keep, onMotif }: CardProps) {
+export function Picture({ keep }: CardProps) {
   const url = useObjectUrl(keep.media)
   return (
     <figure className={`${s.sheet} ${s.mountBoard}`}>
@@ -128,7 +125,6 @@ export function Picture({ keep, onMotif }: CardProps) {
         )}
       </div>
       {keep.text && <figcaption className={s.boardCaption}>{keep.text}</figcaption>}
-      <Motifs keep={keep} onMotif={onMotif} {...foot} />
     </figure>
   )
 }
@@ -138,7 +134,7 @@ export function Picture({ keep, onMotif }: CardProps) {
    slip, the name written on the ruled line under it, and what is known about
    them below the fold. */
 
-export function Character({ keep, onMotif }: CardProps) {
+export function Character({ keep }: CardProps) {
   return (
     <article className={`${s.sheet} ${s.slip}`}>
       <div className={s.aperture}>
@@ -146,7 +142,6 @@ export function Character({ keep, onMotif }: CardProps) {
       </div>
       <h3 className={s.written}>{keep.name}</h3>
       {keep.text && <p className={s.known}>{keep.text}</p>}
-      <Motifs keep={keep} onMotif={onMotif} {...foot} />
     </article>
   )
 }
@@ -202,7 +197,7 @@ export function Location({ keep }: CardProps) {
    to whoever tied it. The cord is the same cord the journey draws between
    threads, so a filtered run of them reads as one length of string. */
 
-export function Thread({ keep, onMotif }: CardProps) {
+export function Thread({ keep }: CardProps) {
   const stance = keep.stance ?? 'hunch'
   const knots = STANCE[stance].weight
   return (
@@ -215,7 +210,7 @@ export function Thread({ keep, onMotif }: CardProps) {
       <div className={s.hung}>
         {keep.name && <h3 className={s.calling}>{keep.name}</h3>}
         {keep.text && <p className={s.working}>{keep.text}</p>}
-        <Motifs keep={keep} onMotif={onMotif} {...foot} />
+        <Stance keep={keep} {...foot} />
       </div>
     </article>
   )

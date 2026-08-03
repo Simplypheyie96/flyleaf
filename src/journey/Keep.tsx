@@ -20,12 +20,11 @@ import styles from './Keep.module.css'
 interface KeepProps {
   keep: Entry
   book: Book
-  onMotif: (motif: string) => void
   onEdit: (keep: Entry) => void
   onDelete: (keep: Entry) => void
 }
 
-function Keep({ keep, book, onMotif, onEdit, onDelete }: KeepProps) {
+function Keep({ keep, book, onEdit, onDelete }: KeepProps) {
   // `?dir=` redraws the whole thread from one set; `?th=` swaps in a candidate
   // for the one type still being decided. Absent — which is always, in the
   // app — every keep gets its real drawing.
@@ -34,7 +33,7 @@ function Keep({ keep, book, onMotif, onEdit, onDelete }: KeepProps) {
   const one = KIND[keep.type].one
   return (
     <>
-      <Card keep={keep} onMotif={onMotif} />
+      <Card keep={keep} />
       {/* Delete wears the danger colour; there is an undo waiting behind it. */}
       <span className={styles.acts}>
         {shareable(keep) && (
