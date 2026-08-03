@@ -83,7 +83,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding-block-end: var(--space-4);
+  padding-block-end: var(--space-3);
   border-block-end: 1px solid color-mix(in oklab, var(--color-character) 24%, transparent);
 }
 
@@ -108,8 +108,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  inline-size: 46px;
-  block-size: 56px;
+  inline-size: 40px;
+  block-size: 48px;
   border-radius: 50%;
   /* The bust is drawn past the foot of its own sheet, so the mount has to be
      the thing that ends it. Without this the shoulders run out over the card. */
@@ -166,7 +166,20 @@
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
-  max-inline-size: var(--measure);
+  /* The line stops at the card's trailing padding, not before it.
+
+     --measure is a 60ch reading cap, and on this route it was never the thing
+     doing the capping: the journey column is clamped to 560, so a card's own
+     content box tops out at 484 — about 69ch here, already inside the
+     comfortable range. What the second cap did instead was stop the line 63px
+     short of the padding it was supposed to meet, which reads as a card with
+     24 of space on its leading edge and 87 on its trailing one. Every line in
+     the card broke early to hold open a strip nothing is drawn in.
+
+     max() keeps the intent without the asymmetry: if the column is ever widened
+     past 60ch the reading cap takes over again, and until then the text meets
+     the same 24 on both sides. */
+  max-inline-size: max(var(--measure), 100%);
 }
 
 /* ══ PLOT THREAD ══════════════════════════════════════════════════════════
@@ -428,7 +441,20 @@
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
-  max-inline-size: var(--measure);
+  /* The line stops at the card's trailing padding, not before it.
+
+     --measure is a 60ch reading cap, and on this route it was never the thing
+     doing the capping: the journey column is clamped to 560, so a card's own
+     content box tops out at 484 — about 69ch here, already inside the
+     comfortable range. What the second cap did instead was stop the line 63px
+     short of the padding it was supposed to meet, which reads as a card with
+     24 of space on its leading edge and 87 on its trailing one. Every line in
+     the card broke early to hold open a strip nothing is drawn in.
+
+     max() keeps the intent without the asymmetry: if the column is ever widened
+     past 60ch the reading cap takes over again, and until then the text meets
+     the same 24 on both sides. */
+  max-inline-size: max(var(--measure), 100%);
 }
 
 /* ══ VOICE ════════════════════════════════════════════════════════════════
@@ -548,7 +574,8 @@
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
-  max-inline-size: var(--measure);
+  /* Meets the card's trailing padding — same reasoning as `.about` above. */
+  max-inline-size: max(var(--measure), 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {

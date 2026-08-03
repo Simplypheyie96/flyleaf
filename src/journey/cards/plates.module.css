@@ -128,7 +128,20 @@
   font-style: italic;
   line-height: 1.45;
   color: var(--color-ink);
-  max-inline-size: var(--measure);
+  /* The line stops at the card's trailing padding, not before it.
+
+     --measure is a 60ch reading cap, and on this route it was never the thing
+     doing the capping: the journey column is clamped to 560, so a card's own
+     content box tops out at 484 — about 69ch here, already inside the
+     comfortable range. What the second cap did instead was stop the line 63px
+     short of the padding it was supposed to meet, which reads as a card with
+     24 of space on its leading edge and 87 on its trailing one. Every line in
+     the card broke early to hold open a strip nothing is drawn in.
+
+     max() keeps the intent without the asymmetry: if the column is ever widened
+     past 60ch the reading cap takes over again, and until then the text meets
+     the same 24 on both sides. */
+  max-inline-size: max(var(--measure), 100%);
   text-wrap: pretty;
 }
 
@@ -284,7 +297,20 @@
   font-size: var(--text-sm);
   line-height: var(--leading-snug);
   color: var(--color-ink-soft);
-  max-inline-size: var(--measure);
+  /* The line stops at the card's trailing padding, not before it.
+
+     --measure is a 60ch reading cap, and on this route it was never the thing
+     doing the capping: the journey column is clamped to 560, so a card's own
+     content box tops out at 484 — about 69ch here, already inside the
+     comfortable range. What the second cap did instead was stop the line 63px
+     short of the padding it was supposed to meet, which reads as a card with
+     24 of space on its leading edge and 87 on its trailing one. Every line in
+     the card broke early to hold open a strip nothing is drawn in.
+
+     max() keeps the intent without the asymmetry: if the column is ever widened
+     past 60ch the reading cap takes over again, and until then the text meets
+     the same 24 on both sides. */
+  max-inline-size: max(var(--measure), 100%);
   text-wrap: pretty;
 }
 

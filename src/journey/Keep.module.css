@@ -98,14 +98,20 @@
 .acts {
   --act-size: 34px;
   --act-overhang: calc((var(--tap-min) - var(--act-size)) / 2);
-  --sky: max(0px, (100vw - 2 * var(--space-5) - var(--column-max, 560px)) / 2);
 
   position: absolute;
-  inset-block-end: calc(-1 * var(--space-4) - 2px);
-  inset-inline-end: max(
-    var(--space-6),
-    calc(var(--fab-size) - var(--sky) + var(--act-overhang))
-  );
+  /* 24 of hang, up from 18. Card text now runs the full width of its content
+     box rather than stopping 63px short of the trailing padding (see the
+     max() on --measure in the card modules), so a long final line reaches
+     into this corner where before it could not. Measured on a forced
+     full-width last line across every direction in the thread, 18 left 2.4px
+     between the line box and the drawn circle and put the delete target 2.6
+     over the line — never text under a circle, but close enough to read as
+     one. 24 takes it to 8.4 clear with the targets off the line entirely.
+     The six pixels are handed back to the journey gap below, which is where
+     this row's cost always lands. */
+  inset-block-end: calc(-1 * var(--space-4) - 8px);
+  inset-inline-end: var(--acts-inset);
   z-index: 2;
   display: flex;
   align-items: center;
