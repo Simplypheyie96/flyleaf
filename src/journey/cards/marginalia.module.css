@@ -11,11 +11,12 @@
 
 /* The bottom padding is the one thing this direction has to pay for having no
    card. The three verb circles hang against the row's own bottom edge — 34
-   tall, 10 of it below the row, so they reach 24px up into it — and Pressed
-   and Plates get that clearance free out of the card's own bottom padding.
-   With the words set straight on the page there is nothing to pay it with, so
-   the circles were landing on the last line of every keep that ends in text.
-   32 is the 24 they need plus a line's worth of air. */
+   tall, 18 of it below the row, so they reach 16px up into it and their 44px
+   targets reach 21 — and Pressed and Plates get that clearance free out of
+   the card's own bottom padding. With the words set straight on the page there
+   is nothing to pay it with, so the circles were landing on the last line of
+   every keep that ends in text. 32 is the 21 they need plus a line's worth of
+   air. */
 .set {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr);
@@ -169,8 +170,8 @@
 
 .said {
   margin: 0;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-size: var(--text-lg);
   font-style: italic;
   line-height: 1.35;

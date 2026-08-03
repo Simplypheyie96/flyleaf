@@ -56,7 +56,7 @@ export function Character({ keep }: CardProps) {
     <article className={`${s.card} ${s.person}`}>
       <div className={s.who}>
         <span className={s.cameo}>
-          <Avatar name={keep.name} size={52} />
+          <Avatar name={keep.name} />
         </span>
         <h3 className={s.name}>{keep.name}</h3>
       </div>

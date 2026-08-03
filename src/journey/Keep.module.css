@@ -13,10 +13,30 @@
    an entry is not chrome. Positioned against the notch's own hang (the journey
    sets it relative), so they land the same way on every direction, including
    the cards that clip their own overflow — and inset far enough to leave the
-   spiral note's folded corner alone. */
+   spiral note's folded corner alone.
+
+   18 of hang, up from 10. The circle is 34 and reaches 44, so five of it is
+   air above the drawn edge: at 10 of hang the drawn circle stood 24px up
+   inside the card and its target stood 29, which is more than most drawings
+   had spare at the foot. Measured across the whole thread, the picture's
+   caption and the note's last ruled line were losing outright — the buttons
+   were painting over them — and every other card cleared the target by three
+   pixels, which is touching rather than clearing.
+
+   18 puts the circle 16 inside and the target 21, which is eight pixels back
+   to every drawing at once. Eight is not enough on its own for the picture
+   and the note, and those two took a step of foot padding as well; but no
+   amount of foot padding would have fixed the other five, because three
+   pixels of clearance on five different cards is not five drawings each
+   getting their spacing wrong, it is the buttons hanging too high.
+
+   What the extra hang spends, it spends downward: the target now reaches 23
+   below the card into the 32 of journey gap, leaving 9 clear of the next
+   keep's edge and about 33 clear of its first line. That gap was always the
+   cheaper place to spend it, because nothing is drawn in it. */
 .acts {
   position: absolute;
-  inset-block-end: calc(-1 * var(--space-2) - 2px);
+  inset-block-end: calc(-1 * var(--space-4) - 2px);
   inset-inline-end: var(--space-6);
   z-index: 2;
   display: flex;

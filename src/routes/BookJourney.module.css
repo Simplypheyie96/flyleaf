@@ -909,8 +909,8 @@
    quickly it is a texture change rather than a fourth thing to parse. */
 .whenSide {
   flex: none;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-size: var(--text-xs);
   font-style: italic;
   letter-spacing: 0;
@@ -944,8 +944,8 @@
 .openLine {
   position: relative;
   margin: 0;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-size: var(--text-base);
   font-style: italic;
   line-height: 1.5;
@@ -1026,8 +1026,8 @@
   border: 1px dashed color-mix(in oklab, var(--color-ink) 24%, transparent);
   border-radius: var(--radius-lg);
   text-align: center;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-style: italic;
   font-size: var(--text-md);
   line-height: var(--leading-body);

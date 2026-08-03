@@ -63,9 +63,10 @@
 /* The trailing space is not decoration, it is the same five-pixel arithmetic
    as everywhere else. The three verb circles hang off the card's bottom-right
    and reach 44 by taking five all round out of the air beside them; so does a
-   chip. Card padding and the circles' overhang both happen to be 24, which put
-   the foot's last line flush against the top of the verbs — the chips' lower
-   five had nowhere to go and a tag under the verbs measured 34.
+   chip. The circles hang 18 below the card and their targets reach 21 back
+   inside it, against 24 of card padding, which left the foot's last line all
+   but flush against the top of the verbs — the chips' lower five had nowhere
+   to go and a tag under the verbs measured 34.
 
    It only showed once a thread carried two chips, because one chip sits at the
    leading edge and the circles at the trailing one and they never met.
@@ -215,8 +216,8 @@
 .torn {
   position: relative;
   margin: 0;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
   font-size: var(--text-md);
   font-style: italic;
   line-height: 1.45;
@@ -244,6 +245,13 @@
 .leaf {
   --paper-tone: var(--card-note-solid);
   --rule-pitch: 1.75rem;
+  /* 32 at the foot rather than the sheet's 24. A ruled pad is the one drawing
+     whose last line is not the last thing on it — the rules run under the
+     hand and keep going — so the verb circles were landing on ruled paper
+     with writing still on it. Eight more ends the writing a clear line above
+     where the circles reach, and a blank rule at the bottom of a page is what
+     a pad looks like anyway. */
+  padding-block-end: var(--space-6);
   overflow: hidden;
 }
 
@@ -518,8 +526,8 @@
   padding-inline: var(--space-2);
   border-block-start: 1px solid var(--card-border);
   padding-block-start: var(--space-3);
-  /* Same ten as .foot, for the same reason: the card's bottom padding and the
-     verb circles' overhang are both 24, so the tape's last bars ended exactly
+  /* Same ten as .foot, for the same reason: the verb circles' targets reach 21
+     back inside a card padded 24, so the tape's last bars ended all but exactly
      where the verbs begin and the wave ran underneath them. */
   margin-block-end: 10px;
 }
@@ -639,15 +647,22 @@
   /* An oval cut, not a coin: the whole point of an aperture is that it is the
      shape of the hole, and a hole punched for a portrait is taller than wide. */
   border-radius: 50%;
+  /* The figure is drawn past the foot of its own sheet, the way a bust is, so
+     the aperture has to be what ends it. */
+  overflow: hidden;
   /* Paper, via --tint-reverse. This asked for --color-bg and by day that was
      the sky, so a cornflower oval sat in the middle of a rose slip. */
   background: var(--color-bg);
+  /* Outset, not inset. Inset rings sit under the element's content, so with a
+     drawing filling the hole they were three rings painted behind a picture —
+     which is to say not painted. Outside the cut they are the cut's own edge,
+     which is what they were drawn to be. */
   box-shadow:
-    inset 0 0 0 1px var(--card-border),
-    inset 0 0 0 4px var(--paper-tone),
-    inset 0 0 0 5px color-mix(in oklch, var(--color-character), transparent 30%);
-  /* The cameo is cut paper: near-solid, not a hairline drawing. Soft ink at
-     full strength on an ivory mount is what makes a silhouette a silhouette. */
+    0 0 0 1px var(--card-border),
+    0 0 0 4px var(--paper-tone),
+    0 0 0 5px color-mix(in oklch, var(--color-character), transparent 30%);
+  /* Rose taken most of the way to ink: the card's rose is a label colour and a
+     drawing made of 1.6px strokes in it is a pink smudge. */
   color: color-mix(in oklab, var(--color-character), var(--tint-ink) 45%);
 }
 

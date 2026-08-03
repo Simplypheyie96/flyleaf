@@ -17,9 +17,22 @@ import { createRoot } from 'react-dom/client'
    without shouting. Both are variable, so weight is now an axis on both
    voices rather than only on the sans.
 
+   Instrument Serif comes back, but only for the slope. EB Garamond ships no
+   italic in the variable file we load, so every italic line in the app was a
+   fake one — the browser shearing the roman over and calling it done, which
+   costs the italic its own letterforms (the single-storey a, the entry
+   strokes, the narrower set) and leaves a slanted book face instead of a
+   cursive one. Instrument's italic is drawn rather than sheared, and its
+   higher contrast and tighter fit are exactly what an aside wants: the
+   sentence changes voice instead of changing angle. One weight and one style
+   is all that is pulled in — the italic cut and nothing else — because
+   Instrument is not the book's voice any more and must not be able to become
+   it again by accident.
+
    Patrick Hand is the reader's hand and is deliberately left alone. */
 import '@fontsource-variable/eb-garamond'
 import '@fontsource-variable/source-sans-3'
+import '@fontsource/instrument-serif/400-italic.css'
 import '@fontsource/patrick-hand'
 import './styles/tokens.css'
 import './styles/motion.css'
