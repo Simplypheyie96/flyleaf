@@ -216,6 +216,7 @@
   position: relative;
   margin: 0;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-md);
   font-style: italic;
   line-height: 1.45;
@@ -492,7 +493,7 @@
 .written {
   margin: 0;
   font-family: var(--font-serif);
-  font-weight: 400;
+  font-weight: var(--weight-serif);
   font-size: var(--text-lg);
   line-height: var(--leading-tight);
   color: var(--color-ink);

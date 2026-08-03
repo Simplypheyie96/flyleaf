@@ -299,10 +299,10 @@ function silentWav(seconds: number) {
   return new Blob([buf], { type: 'audio/wav' })
 }
 
-/** A drawn stand-in for a photographed page, so the image keep has something
-    with real proportions in it. Drawn rather than shipped: no binary in the
-    repo, no request over the network, and it is obviously not a photograph. */
-function previewPhoto() {
+/** The fallback: a drawn stand-in for a photographed page, used when the real
+    photograph below cannot be fetched. It is deliberately obvious about being
+    a drawing rather than pretending to be a photo badly. */
+function drawnPage() {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="675" viewBox="0 0 900 675">
     <defs>
       <linearGradient id="light" x1="0" y1="0" x2="0.7" y2="1">
@@ -320,6 +320,33 @@ function previewPhoto() {
     <rect x="150" y="264" width="392" height="26" rx="6" fill="#e7d79b" opacity="0.75"/>
   </svg>`
   return new Blob([svg], { type: 'image/svg+xml' })
+}
+
+/** A real photograph for the image keep, because the drawn one read as a
+    diagram of a page rather than as something a reader had photographed, and
+    an image card whose picture is obviously not a picture proves nothing about
+    how the card holds a picture.
+
+    Three things make the network here acceptable, and all three have to stay
+    true. It runs only under __PREVIEW_SEED__, which is compiled out of the
+    build readers get. It runs exactly once per device — the response is stored
+    as a blob in IndexedDB, so from the second launch the card is served from
+    disk like every other keep and the app is offline again. And it falls back
+    to the drawing rather than throwing, so seeding on a plane still produces a
+    complete journey.
+
+    The seed in the URL is fixed, so every reviewer is looking at the same
+    photograph and a screenshot can be compared against another screenshot.
+    Random per device would make "the picture changed" impossible to read as
+    either a bug or a refresh. */
+async function previewPhoto() {
+  try {
+    const res = await fetch('https://picsum.photos/seed/flyleaf-quiet-hours/900/675')
+    if (!res.ok) return drawnPage()
+    return await res.blob()
+  } catch {
+    return drawnPage()
+  }
 }
 
 /** A map for the place that arrives with one pinned, so a place card can be
@@ -381,15 +408,17 @@ export async function seedLibrary() {
      The map goes on the first place only — the second is there precisely to
      show a place without one. */
   let mapped = false
-  const withMedia = PREVIEW_JOURNEY.map((keep) => {
-    if (keep.type === 'voice') return { ...keep, media: silentWav(keep.duration ?? 6) }
-    if (keep.type === 'image') return { ...keep, media: previewPhoto() }
-    if (keep.type === 'place' && !mapped) {
-      mapped = true
-      return { ...keep, media: previewMap() }
-    }
-    return keep
-  })
+  const withMedia = await Promise.all(
+    PREVIEW_JOURNEY.map(async (keep) => {
+      if (keep.type === 'voice') return { ...keep, media: silentWav(keep.duration ?? 6) }
+      if (keep.type === 'image') return { ...keep, media: await previewPhoto() }
+      if (keep.type === 'place' && !mapped) {
+        mapped = true
+        return { ...keep, media: previewMap() }
+      }
+      return keep
+    }),
+  )
 
   /* Two guards, not one, and they are deliberately independent.
 
@@ -418,7 +447,10 @@ export async function seedLibrary() {
      the invented book's own rows are ever touched; a reader's real keeps
      never carry this book's id. */
   const SEED_V = 'flyleaf-seed-v'
-  const CURRENT = '2'
+  /* 3: the image keep carries a photograph now instead of a drawn page. The
+     media is only written on a re-seed, so without this every device already
+     reviewing the app would keep the drawing for ever. */
+  const CURRENT = '3'
   await db.transaction('rw', db.books, db.entries, async () => {
     if (!(await db.books.get(JOURNEY_BOOK))) return
     const have = await db.entries.where('bookId').equals(JOURNEY_BOOK).count()

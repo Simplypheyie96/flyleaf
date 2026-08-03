@@ -5,10 +5,9 @@
 .monogram {
   display: block;
   font-family: var(--font-serif);
-  /* Instrument Serif ships one weight. Stated rather than inherited, because a
-     card that sets a heavier weight on its own text would otherwise ask this
-     for a face that does not exist and get a synthesised one. */
-  font-weight: 400;
+  /* Stated rather than inherited, so a card that runs its own text at a
+     different weight cannot drag the initial along with it. */
+  font-weight: var(--weight-serif);
   /* A line box exactly one em tall, so the glyph is centred by its own metrics
      and not by whatever leading the card happens to be running. */
   line-height: 1;
@@ -18,11 +17,18 @@
   /* Optical centring. A capital is ink between the baseline and the cap line,
      which is not the same span as the em box the grid centres, so the letter
      can land off its mount by a fraction nobody would find by eye but everyone
-     would feel. Measured rather than guessed: with this face at `line-height:
-     1` the cap sits 0.012em high, so that is all this puts back. Instrument
-     Serif turns out to be nearly self-centring here — the number is small
-     because the font is good, not because the correction is a token gesture. */
-  translate: 0 0.012em;
+     would feel. Measured, not guessed, and re-measured when the face changed:
+     off painted pixels rather than off the font's declared metrics. The
+     metrics answer put the correction at nearly twice this, which would have
+     pushed the letter as far past centre as it started below it. Rendering a
+     cap into a box one em tall and reading the first and last inked rows says
+     the ink sits 0.0144em low, so that is the lift.
+
+     It is a bigger correction than the face before it needed, and in the other
+     direction. That is what a small x-height and a low cap height do — an
+     old-style book face hangs more of its em under the letters than a display
+     serif does, which is also why it reads as unhurried. */
+  translate: 0 -0.0144em;
   /* The letter is the plate's own name, not a word anyone needs to copy, and a
      drag across the card should take the sentences rather than this. */
   user-select: none;

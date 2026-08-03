@@ -116,19 +116,20 @@
   color: var(--tint-reverse);
 }
 
-/* Size carries the step, because with this face nothing else can. At 17
-   against the account's 14 the two read as one block, and the 560 that used
-   to separate them is a weight Instrument Serif does not own.
+/* Size carries the step, not weight. At 17 against the account's 14 the two
+   read as one block; 20 against 14 is a step you can see without looking for
+   it.
 
-   20 against 14 is the step instead, and it costs the card almost nothing:
-   this face at 20 sets narrower than the old one did at 17, so the name gains
-   its heading back horizontally and spends only the four pixels of extra line
-   box vertically. */
+   Weight could carry some of it now that the serif is variable — but the two
+   lines here are a name and the account of a person, and they are the same
+   voice saying two different lengths of thing. Size is the honest difference
+   between them. Pushing the name to 600 as well would make it an announcement
+   rather than a heading. */
 .name {
   margin: 0;
   min-inline-size: 0;
   font-family: var(--font-serif);
-  font-weight: 400;
+  font-weight: var(--weight-serif);
   font-size: var(--text-lg);
   line-height: var(--leading-snug);
   letter-spacing: var(--track-title);
@@ -178,14 +179,19 @@
 
 .dossier {
   --paper-tone: var(--card-thread-solid);
-  /* Broken, in the thread's own hue, and drawn to be seen. This was a 1px
-     hairline mixed down to 55% on the argument that the eye joins the gaps and
-     a dashed rule therefore reads heavier than a solid one — true, but it was
-     compensating for a problem it did not have. At 1px the dashes are around
-     two pixels long and they read as a rendering artefact rather than as a
-     deliberate edge. Two pixels doubles the dash length with them, which is
-     what makes the interruption legible as an interruption. */
-  border: 2px dashed color-mix(in oklab, var(--color-thread) 72%, transparent);
+  /* Dotted, and that word is the specification rather than a loose way of
+     saying broken. Two rounds of this were dashed, which draws a rectangle
+     with pieces missing from it — at a glance that is a solid edge rendering
+     badly. Dots are a different mark: round, evenly spaced, unmistakably put
+     there on purpose, and the thing a cut-out line has always been.
+
+     3px, because CSS sizes the dot by the border width and nothing else. At
+     1px they are specks, at 2px they read as a broken rule again, and 3px is
+     the first width where a dot is round enough to be seen as a dot at arm's
+     length on a phone. 82% of the thread hue against the card's own pale fill
+     lands at a contrast the edge can be found by without competing with the
+     title for the first look. */
+  border: 3px dotted color-mix(in oklab, var(--color-thread) 82%, transparent);
   /* 32 at the foot rather than 24. The strand names are 11px of text carrying
      a 44px target, so each one reaches ~14 below its own line; the verb
      circles hang off the card and reach 29 back up including their own margin.
@@ -208,7 +214,7 @@
    reason to be centred.
 
    Two corners are rounded and two are square. The leading one takes the
-   card's radius less the 2px of border it now nests inside, so the tab
+   card's radius less the 3px of border it nests inside, so the tab
    follows the corner it is cut into rather than fighting it; the free corner
    diagonally opposite takes the small radius so the shape tapers back into
    the card. The other two sit on the card's own edges and a radius there
@@ -217,7 +223,7 @@
   margin: calc(-1 * var(--space-5)) 0 0 calc(-1 * var(--space-5));
   inline-size: fit-content;
   padding: var(--space-2) var(--space-4) var(--space-2) var(--space-5);
-  border-start-start-radius: calc(var(--radius-md) - 2px);
+  border-start-start-radius: calc(var(--radius-md) - 3px);
   border-end-end-radius: var(--radius-sm);
   font-family: var(--font-sans);
   font-weight: var(--weight-label);
@@ -254,7 +260,7 @@
   margin: var(--space-4) 0 0;
   max-inline-size: 100%;
   font-family: var(--font-serif);
-  font-weight: 400;
+  font-weight: var(--weight-serif);
   font-size: var(--text-lg);
   line-height: var(--leading-snug);
   letter-spacing: var(--track-title);

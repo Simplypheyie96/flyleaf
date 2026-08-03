@@ -18,6 +18,7 @@
 .title {
   margin-inline-end: auto;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-lg);
   line-height: var(--leading-tight);
   color: var(--color-ink);
@@ -262,6 +263,7 @@
   background: var(--field-fill);
   color: var(--color-ink);
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   /* 16px flat: anything smaller and iOS zooms the whole sheet on focus. */
   font-size: var(--text-field);
   line-height: var(--leading-body);
@@ -575,6 +577,7 @@
   min-width: 0;
   color: var(--color-ink);
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-field);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -669,6 +672,7 @@
 .caption {
   flex: none;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-style: italic;
   font-size: var(--text-sm);
   line-height: var(--leading-snug);
@@ -827,6 +831,7 @@
 
 .quiet {
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-style: italic;
   font-size: var(--text-md);
   line-height: var(--leading-body);

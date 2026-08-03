@@ -170,6 +170,7 @@
 .said {
   margin: 0;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-lg);
   font-style: italic;
   line-height: 1.35;
@@ -340,6 +341,7 @@
 .entry {
   margin: 0;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-md);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
@@ -422,6 +424,7 @@
 .lore {
   margin: var(--space-2) 0 0;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-md);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);

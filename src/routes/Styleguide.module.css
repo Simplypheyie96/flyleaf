@@ -10,6 +10,7 @@
    otherwise the styleguide documents a system the app no longer has. */
 .greeting {
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-style: italic;
   font-size: var(--text-md);
   color: var(--color-accent-text);
@@ -26,6 +27,7 @@
 
 .cardLine {
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-style: italic;
   font-size: var(--text-md);
   line-height: 1.5;

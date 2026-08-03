@@ -126,14 +126,16 @@ const PAD = 96
    and no error when the family is unknown, so a wrong name here does not throw
    — it just draws the whole picture in the system fallback and says nothing.
    These read "Geist" until now, which is a face this app has never shipped. */
-const SERIF = '"Instrument Serif", Georgia, serif'
-const SANS = '"Instrument Sans Variable", system-ui, sans-serif'
+const SERIF = '"EB Garamond Variable", Georgia, serif'
+const SANS = '"Source Sans 3 Variable", system-ui, sans-serif'
 
-/** Canvas takes no font it has not been told to load, whatever the CSS did. */
+/** Canvas takes no font it has not been told to load, whatever the CSS did.
+    Both families are variable, so every weight the picture draws has to be
+    asked for by name: loading 400 does not bring 500 with it. */
 export async function readyFonts() {
   await Promise.all([
-    document.fonts.load(`400 96px ${SERIF}`),
-    document.fonts.load(`italic 400 44px ${SERIF}`),
+    document.fonts.load(`500 96px ${SERIF}`),
+    document.fonts.load(`italic 500 44px ${SERIF}`),
     document.fonts.load(`400 32px ${SANS}`),
     document.fonts.load(`600 22px ${SANS}`),
   ])
@@ -213,7 +215,7 @@ function foot(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   const y = H - PAD - 8
   ctx.textAlign = 'left'
   ctx.fillStyle = look.palette.ink
-  ctx.font = `400 40px ${SERIF}`
+  ctx.font = `500 40px ${SERIF}`
   const title = wrap(ctx, k.title, W - PAD * 2)[0]
   ctx.fillText(title, PAD, y - 34)
 
@@ -294,7 +296,7 @@ function epigraph(
 
   const quoted = `“${k.line.text}”`
   const setAt = (px: number) => {
-    ctx.font = `italic 400 ${px}px ${SERIF}`
+    ctx.font = `italic 500 ${px}px ${SERIF}`
     return wrap(ctx, quoted, W - PAD * 2)
   }
 
@@ -319,7 +321,7 @@ function epigraph(
   const step = size * 1.3
   let y = top + size
   ctx.fillStyle = look.palette.ink
-  ctx.font = `italic 400 ${size}px ${SERIF}`
+  ctx.font = `italic 500 ${size}px ${SERIF}`
   for (const line of lines) {
     ctx.fillText(line, PAD, y)
     y += step
@@ -336,7 +338,7 @@ function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   y += 76
 
   ctx.fillStyle = look.palette.ink
-  ctx.font = `400 76px ${SERIF}`
+  ctx.font = `500 76px ${SERIF}`
   for (const line of wrap(ctx, k.title, W - PAD * 2).slice(0, 3)) {
     ctx.fillText(line, PAD, y)
     y += 84
@@ -394,7 +396,7 @@ function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   let size = 88
   let lines: string[] = []
   for (; size >= 40; size -= 4) {
-    ctx.font = `400 ${size}px ${SERIF}`
+    ctx.font = `500 ${size}px ${SERIF}`
     lines = wrap(ctx, `“${k.line.text}”`, W - PAD * 2)
     if (lines.length * size * 1.24 <= room) break
   }
@@ -404,7 +406,7 @@ function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
 
   ctx.textAlign = 'left'
   ctx.fillStyle = look.palette.ink
-  ctx.font = `400 ${size}px ${SERIF}`
+  ctx.font = `500 ${size}px ${SERIF}`
   for (const line of lines) {
     ctx.fillText(line, PAD, y)
     y += size * 1.24
@@ -429,7 +431,7 @@ function drawTally(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   y += 100
 
   ctx.fillStyle = look.palette.ink
-  ctx.font = `400 150px ${SERIF}`
+  ctx.font = `500 150px ${SERIF}`
   ctx.fillText(String(k.kept), PAD, y + 40)
   const runOn = ctx.measureText(String(k.kept)).width
   ctx.fillStyle = look.palette.soft
@@ -449,7 +451,7 @@ function drawTally(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   for (const { label, count } of k.tally) {
     if (y > stop) break
     ctx.fillStyle = look.palette.ink
-    ctx.font = `400 64px ${SERIF}`
+    ctx.font = `500 64px ${SERIF}`
     ctx.fillText(String(count), PAD, y)
 
     ctx.fillStyle = look.palette.soft

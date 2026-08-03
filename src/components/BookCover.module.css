@@ -72,6 +72,7 @@
 
 .title {
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: 10.8cqw;
   line-height: 1.2;
   text-wrap: balance;

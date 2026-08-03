@@ -142,6 +142,7 @@
   inset-block-start: 0;
   inset-inline-start: -0.09em;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: 11rem;
   /* line-height 1 keeps the ink inside the box: the glyph sits just under the
      ascender, so anything tighter walks it up out of the panel's clip. */
@@ -156,6 +157,7 @@
   position: relative;
   margin: 0;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-md);
   font-style: italic;
   line-height: 1.45;
@@ -369,7 +371,7 @@
   background: var(--color-character);
   color: var(--color-bg);
   font-family: var(--font-serif);
-  font-weight: 400;
+  font-weight: var(--weight-serif);
   font-size: var(--text-sm);
   line-height: 1.4;
   letter-spacing: 0.02em;
@@ -438,7 +440,7 @@
 .engraved {
   margin: 0;
   font-family: var(--font-serif);
-  font-weight: 400;
+  font-weight: var(--weight-serif);
   font-size: var(--text-lg);
   line-height: var(--leading-tight);
   letter-spacing: 0.01em;

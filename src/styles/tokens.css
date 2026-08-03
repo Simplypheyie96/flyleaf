@@ -381,29 +381,32 @@
      screen holding four faces at once reads as an accident.
 
        serif  the book and the reader — titles, section heads, quotes, and
-              any value worth reading as a value. Instrument Serif: a
-              high-contrast display serif that sets about a quarter narrower
-              than a text serif at the same size. Narrow is the point. A book
-              title is the longest string in the app and the only one we are
-              not allowed to shorten, so the face has to earn its room back
-              horizontally rather than by shrinking until nobody can read it.
-              It ships 400 and no bold, which means hierarchy here is made out
-              of size and never out of weight — ask for a heavier one and the
-              browser synthesises it, and on strokes this fine that smears
-              rather than thickens. Every serif rule states 400 explicitly.
+              any value worth reading as a value. EB Garamond: an old-style
+              book face with wide round bowls, short stems and a small
+              x-height. The pair before it was chosen for being narrow, on the
+              argument that a book title is the longest string in the app and
+              the face should earn its room back horizontally. It did — the
+              seeded title sets at 308px here against ~246 there, a quarter
+              wider — and the price was a screen that read as a picket fence.
+              Narrow, tall and tightly fitted is the shape of a headline, not
+              of something you are meant to sit with. This costs width and
+              buys air, which is the right trade for a reading app.
+              It is variable, 400–800, so every serif rule states
+              --weight-serif rather than the 400 they all used to state.
        sans   the app — body copy, buttons, anything that runs to a sentence.
-              Instrument Sans: a compact humanist grotesque, warm at the
-              terminals, which stands beside a book serif instead of arguing
-              with it. It also sets every short uppercase label — a date, a
-              page number, a side — where the stamped quality comes from the
-              capitals and the tracking rather than from a second face.
+              Source Sans 3: a humanist sans with open apertures and generous
+              counters, drawn for interface text at small sizes. It also sets
+              every short uppercase label — a date, a page number, a side —
+              where the stamped quality comes from the capitals and the
+              tracking rather than from a second face. The counters are why:
+              an 11px capital in a compact grotesque closes up and turns into
+              a row of vertical strokes.
        hand   note cards, and nowhere else. The only decorative thing on the
               screen, which is what makes it read as a note. Upright print,
               not cursive — a note exists to be reread, so legibility beats
               flourish. Deliberately unchanged.  */
-  /* Weight is the one axis the sans has and the serif does not, so it is the
-     only place emphasis inside a card can come from. Two steps, and no more —
-     a scale of five weights is how a system stops meaning anything.
+  /* Three steps, and no more — a scale of five weights is how a system stops
+     meaning anything.
 
        card   450. One notch above the page's 400. Card text is short, sits on
               a tinted fill rather than on the page's paper, and is read in
@@ -411,12 +414,18 @@
        label  560. The small uppercase labels — a stance, a date, a filed-under.
               At 11px, in capitals, on a pastel, these are the thinnest marks in
               the app, and until now a monospace's even stroke was carrying
-              them. A proportional face has to be asked. */
+              them. A proportional face has to be asked.
+       serif  500. New, and only because the serif can now be asked. An
+              old-style face carries less ink per stem than the tall narrow one
+              it replaced, so at 400 a card title looks a step smaller than it
+              measures. 500 restores the colour without turning the title bold,
+              which 600 does immediately in this family. */
   --weight-card: 450;
   --weight-label: 560;
+  --weight-serif: 500;
 
-  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Instrument Sans Variable', system-ui, -apple-system, sans-serif;
+  --font-serif: 'EB Garamond Variable', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Source Sans 3 Variable', system-ui, -apple-system, sans-serif;
   --font-hand: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
 
   /* One step smaller nearly everywhere than it used to be. The scale below

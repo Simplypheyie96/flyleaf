@@ -18,6 +18,7 @@
    under the masthead rather than a second handwritten thing above the fold. */
 .subtitle {
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-style: italic;
   font-size: var(--text-md);
   color: var(--color-ink-soft);
@@ -73,6 +74,7 @@
 /* Italic serif, a clear step below the masthead so the two don't compete. */
 .sectionLabel {
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-style: italic;
   font-size: var(--text-md);
   color: var(--color-ink);
@@ -266,6 +268,7 @@
 .quoteMark {
   display: block;
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: 3rem;
   line-height: 0.6;
   color: var(--color-quote);
@@ -274,6 +277,7 @@
 
 .quoteText {
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-style: italic;
   font-size: var(--text-md);
   line-height: 1.55;
