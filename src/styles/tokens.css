@@ -405,9 +405,11 @@
               screen, which is what makes it read as a note. Upright print,
               not cursive — a note exists to be reread, so legibility beats
               flourish. Deliberately unchanged.
-       italic every sloped line in the app, and nothing upright ever. Instrument
-              Serif, italic cut only — see --font-italic below for why the book
-              face does not set its own italic.  */
+       italic every sloped line in the app. Instrument Serif, italic cut — see
+              --font-italic below for why the book face does not set its own.
+       stamp  the same face standing upright, and only where a shape exists to
+              hold one word: today that is the stance on a plot thread's tab.
+              See --font-stamp.  */
   /* Three steps, and no more — a scale of five weights is how a system stops
      meaning anything.
 
@@ -445,6 +447,16 @@
      in the stack so a line that fails to load slopes rather than straightens,
      which is the failure that keeps the meaning. */
   --font-italic: 'Instrument Serif', 'EB Garamond Variable', Georgia, serif;
+  /* The same face upright, for a label that has a shape built around it. The
+     sans sets every other small capital in the app and should keep doing it:
+     those run in rows — a date beside a page number beside a side — and a
+     display serif at 11px in a row of metadata is costume. A tab is the
+     opposite case. It is one word, alone, inside a silhouette drawn for it,
+     large enough to carry a real cap height, and a high-contrast serif is what
+     makes it read as a title on a file rather than a chip on a card.
+     Single-master, so anything asking for weight here gets a synthesised smear
+     — every rule using this states --weight-italic. */
+  --font-stamp: 'Instrument Serif', 'EB Garamond Variable', Georgia, serif;
 
   /* One step smaller nearly everywhere than it used to be. The scale below
      ~15px is where this app actually lives — meta lines, chips, captions — so
