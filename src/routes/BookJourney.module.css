@@ -46,7 +46,20 @@
      560 cap at 622, so nothing wider changes. */
   --column-max: clamp(420px, 90vw, 560px);
 
-  --journey-gap: var(--space-6);
+  /* 24, down from 32. What this gap has to hold is one drawn thing: the verb
+     circles hang 18 below the card, so the gap is really 18 of circle plus
+     whatever is left over before the next keep's date line. At 32 the left
+     over was 14 — half a gap again on top of a band that already looked
+     empty, because the only ink in it is three small discs at the trailing
+     edge and nothing at all on the leading side.
+
+     24 leaves 6 to the date line's box, about 10 to its glyphs, and that is
+     measured against the one thing directly under the circles: the italic
+     side word at the trailing end of the same line. The 44px targets reach 23
+     down and now meet the date line, which costs nothing — the date is not a
+     control, so there is no second hit area to collide with, and that was
+     checked on every card in the journey rather than assumed. */
+  --journey-gap: var(--space-5);
   --gutter: 26px;
   --knot-size: 26px;
   /* Nudges the knot down onto the cap height of the card's first line, so the
@@ -1265,7 +1278,10 @@
   .page {
     --t-display: 1.875rem;
     --gutter: 30px;
-    --journey-gap: var(--space-7);
+    /* Held at one step above the phone's, the way it always was. 48 against a
+       24 phone would have been double, and a gap that doubles at a breakpoint
+       reads as a different screen rather than a wider one. */
+    --journey-gap: var(--space-6);
   }
 
   /* Same reason `.pinned` carries no gap: the rhythm lives on the parts, so

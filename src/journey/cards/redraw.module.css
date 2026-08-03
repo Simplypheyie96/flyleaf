@@ -69,7 +69,9 @@
 
 .person {
   --paper-tone: var(--card-character-solid);
-  padding-block-end: var(--space-6);
+  /* 24, matching the head. The foot only has to keep the account's last line
+     off the verb targets; see the budget in Keep.module.css `.acts`. */
+  padding-block-end: var(--space-5);
 }
 
 /* The band. Ruled underneath in the character's own hue rather than the
@@ -241,10 +243,13 @@
      on, the two lines arrive at the junction on different verticals and the
      silhouette has a nick in it. */
   border-start-start-radius: 0;
-  /* 32 at the foot rather than 24. The strand names are 11px of text carrying
-     a 44px target, so each one reaches ~14 below its own line; the verb
-     circles hang off the card and reach 21 back up into it. */
-  padding-block-end: var(--space-6);
+  /* 24. This was 32, bought against strand names — 11px of text carrying a
+     44px target, reaching ~14 below their own line and meeting the verb
+     circles' 21 coming back up. The strands do not carry targets in the
+     journey (checked: every card in the thread reports no hit area within 90
+     of its own foot), so the collision the 32 was paying for is not there,
+     and the card was buying eight pixels of blank paper with it. */
+  padding-block-end: var(--space-5);
 }
 
 /* The tab.
@@ -426,7 +431,9 @@
    page's real ink, and the children get paper as their ink, since one token
    cannot be both a fill and its own opposite. */
 .recorder {
-  padding: var(--space-5) var(--space-5) var(--space-6);
+  /* Even 24 all round: the transport sits 93 above the foot, so nothing here
+     needs the extra step the other cards were taking. */
+  padding: var(--space-5);
   background: var(--color-ink);
   color: var(--color-paper);
 

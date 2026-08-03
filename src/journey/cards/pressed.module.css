@@ -193,13 +193,15 @@
 .leaf {
   --paper-tone: var(--card-note-solid);
   --rule-pitch: 1.75rem;
-  /* 32 at the foot rather than the sheet's 24. A ruled pad is the one drawing
-     whose last line is not the last thing on it — the rules run under the
-     hand and keep going — so the verb circles were landing on ruled paper
-     with writing still on it. Eight more ends the writing a clear line above
-     where the circles reach, and a blank rule at the bottom of a page is what
-     a pad looks like anyway. */
-  padding-block-end: var(--space-6);
+  /* 24, the sheet's own number, like the rest of the set. This ran at 32 to
+     end the writing a full blank rule above where the circles reach, the way
+     a pad looks. The thing that 32 was actually protecting — circles landing
+     on ruled paper with writing still on it — is safe at 24 as well: the hand
+     stops 24 up and the drawn circles reach 16, so they still meet only blank
+     rule. What is given up is that the blank band is now shorter than one
+     pitch. That is a smaller loss than eight pixels of empty paper under
+     every note in the journey. */
+  padding-block-end: var(--space-5);
   overflow: hidden;
 }
 
@@ -653,9 +655,9 @@
 
 .mapped {
   --paper-tone: var(--card-place-solid);
-  /* Ends in prose like the quote and the note do, so it takes the same 32 at
+  /* Ends in prose like the quote and the note do, so it takes the same 24 at
      the foot that keeps the verb circles off the last line. */
-  padding-block-end: var(--space-6);
+  padding-block-end: var(--space-5);
 }
 
 .marked {
