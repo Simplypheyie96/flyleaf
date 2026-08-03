@@ -1,0 +1,68 @@
+/* The keepsake — the plate, and the disc that says what it is printed on.
+
+   There used to be an HTML card in here too: the same facts, centred on paper,
+   with every line a switch you could tap out of the set. It was the picture
+   with the drawing removed, and nobody sends the version of a keepsake that
+   cannot be sent as one. What is left is the drawn plate and its palette. */
+
+/* ---- The plate ----
+
+   The drawn picture. It used to be sized by a number — 11rem, or 24svh,
+   whichever was smaller — because it was one item in a scroller and had to be
+   rationed against everything stacked above it. At 176px tall it was the
+   smallest thing on a screen whose entire purpose was to show it, and reaching
+   the palette scrolled it out of sight, so every choice after the first was
+   made blind.
+
+   It has no size of its own now. The frame takes whatever height the stage has
+   left, and the plate is fitted inside it: `auto` on both axes with a cap on
+   both axes is the contain rule for a replaced element, so the picture grows
+   until it meets an edge and never distorts against the other one. Roughly
+   twice the old height on a phone, and it moves with the sheet instead of
+   being budgeted against it. */
+
+/* Exactly the stage, and centred in it. Height rather than `flex: 1` on
+   purpose: the stage sets `flex: none` on its children so a tall card keeps
+   its own height and scrolls, and one cross-file specificity tie is a poor
+   thing to hang a layout on. */
+.frame {
+  block-size: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.plate {
+  display: block;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  /* The cap above does nothing without these. A grid item's automatic minimum
+     size is its content, and for a canvas that content is the backing store —
+     1350px of it. A minimum beats a maximum, so the plate sat at its full
+     intrinsic height and overflowed the frame that was supposed to be fitting
+     it. Zero on both axes hands the max back its job. */
+  min-inline-size: 0;
+  min-block-size: 0;
+  /* 4:5, held so the sheet doesn't jump the moment the first paint lands. */
+  aspect-ratio: 1080 / 1350;
+  border-radius: var(--radius-md);
+  box-shadow: var(--elevation-2);
+}
+
+/* A palette, as the thing it is: a disc of that paper with that accent at its
+   centre. Naming the four is not enough — "Fern" and "Bloom" are only words
+   until you have seen them. */
+.swatch {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--border-hairline);
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      var(--swatch-core) 0 34%,
+      var(--swatch-paper) 35% 100%
+    );
+}

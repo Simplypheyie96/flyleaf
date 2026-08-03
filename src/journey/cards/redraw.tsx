@@ -1,0 +1,163 @@
+/* DRAWN TO ORDER — the three cards that are not drawn from a set
+   ═══════════════════════════════════════════════════════════════
+
+   Four of the seven types are drawn from one of the three sets. These three
+   are not, and each one got here the same way: every set drawing of it was
+   turned down, and the reason was always that the drawing had a *device* in it
+   rather than a shape.
+
+   CHARACTERS — an avatar, the words underneath, and no clever spacing
+   anywhere. Six versions before this one all had a device: a baseline grid, an
+   inset card, a hanging indent. This one has none.
+
+   PLOT THREADS — an open case, tabbed like one. Every drawing before this one
+   put its difference *inside* the rectangle — knots on a cord, tally strokes,
+   a status strip — which from two feet away is the same card as a note with
+   something drawn on it. So the difference is the outline: the border is
+   dashed rather than drawn, because a thread is the one kind that is not
+   settled yet and a broken line is what provisional looks like, and the stance
+   is a tab cut into the top corner rather than a line inside the column. Both
+   are visible before a word is read.
+
+   The tab was a seal for a while — a ring hung half off the leading edge,
+   filling a third of the way round for a hunch and closed for something
+   certain, on the argument that one shape carrying one fact beats a second
+   label to read. It is a good argument about a shape nobody can read: a ring
+   reports a value out of three with no scale on screen to read it against, so
+   it only worked for someone who already knew, and it sat where the card's own
+   name should be. The word says the thing. The tab is the shape.
+
+   VOICE — an instrument. It is the only keep on the page you *operate* rather
+   than read, and the drawing has to say so before anything else does: a filled
+   disc big enough to be the first thing your thumb finds, the recording's own
+   shape beside it filling as it runs, and the time trailing. */
+
+import { Avatar } from '../avatars'
+import { STANCE } from '../kinds'
+import { PauseIcon, PlayIcon } from '../../components/TabIcons'
+import { waveBars } from './art'
+import { clock, usePlayback, type CardProps } from './shared'
+import s from './redraw.module.css'
+
+/* ══ CHARACTER ════════════════════════════════════════════════════════════
+
+   A page from a dramatis personae. The cameo and the name share a band across
+   the top — one thing, *who this is* — and what you know about them runs the
+   full width underneath, on the other side of the rule.
+
+   The cameo used to sit alone on its own line with the name beneath it, and
+   that left two thirds of the top of the card as empty paper. It also left the
+   name and the account as two paragraphs three points apart, which is a size
+   difference rather than a hierarchy. One row does both jobs: it fills, and it
+   pairs. */
+
+export function Character({ keep }: CardProps) {
+  return (
+    <article className={`${s.card} ${s.person}`}>
+      <div className={s.who}>
+        <span className={s.cameo}>
+          <Avatar name={keep.name} note={keep.text} face={keep.face} />
+        </span>
+        <h3 className={s.name}>{keep.name}</h3>
+      </div>
+      {keep.text && <p className={s.about}>{keep.text}</p>}
+    </article>
+  )
+}
+
+/* ══ PLOT THREAD ══════════════════════════════════════════════════════════
+
+   An open case, broken outline and all. Two shapes do the work and nothing
+   was added on top of them.
+
+   The dashed border says provisional. Every other card in the journey is a
+   closed rectangle, so a card whose edge is not continuous is legible as a
+   different kind of object from across the room — and it happens to be exactly
+   what the type means, since a thread is the one keep that is still running.
+
+   The tab is the second shape. The stance sits on it, cut into the top corner
+   and filled, which is where a case file carries its own name and which
+   nothing else in the journey does. It was a seal for a while — a ring hung
+   half off the leading rule, filling as the stance hardened — on the argument
+   that one shape carrying one fact beats a label you have to read. The
+   argument holds for shapes that can be read. A ring reports a value out of
+   three against a scale that is nowhere on the screen, so it told you nothing
+   you did not already know, and it stood where the card's own name goes. The
+   word is the fact; the tab is the shape.
+
+   The question is one line. A thread's name is a thing you are carrying
+   around, not a paragraph, and a name that wraps turns every card in the
+   journey a different height for no reason a reader can act on. The full text
+   stays reachable on hover and in the entry itself. */
+
+export function Thread({ keep }: CardProps) {
+  const stance = keep.stance ?? 'hunch'
+  return (
+    <article className={`${s.card} ${s.dossier}`} data-stance={stance}>
+      {/* The stance, on a tab cut into the top corner — first in the markup
+          because it is first in the reading order and first on the card, and
+          pulled onto the card's own edge in CSS rather than positioned out of
+          flow, so the title below it moves when the tab does. */}
+      <p className={s.standing}>{STANCE[stance].label}</p>
+
+      <h3 className={s.asked} title={keep.name}>
+        {keep.name}
+      </h3>
+      {keep.text && <p className={s.working}>{keep.text}</p>}
+    </article>
+  )
+}
+
+/* ══ VOICE ════════════════════════════════════════════════════════════════
+
+   Reversed out of the page in both themes, because a recording is a device and
+   not a piece of paper — the one object in the journey with no paper at all.
+
+   The transport is the card. What was here before drew a soft orb with a 20px
+   glyph inside it and a waveform beside it, and the honest description of that
+   is a decoration you could also press: nothing about it said *play* at a
+   glance. So the disc is 56, filled in the voice hue, and it is the first
+   thing on the leading edge — the same size and the same place a portrait sits
+   on a character card, which is the only other keep that leads with a circle.
+
+   The waveform is a scrubber's worth of feedback and no more: it fills as the
+   tape runs, so you can see at a glance how far in you are without the card
+   pretending to be a media player. */
+
+export function Voice({ keep }: CardProps) {
+  const { playing, at, toggle, ready } = usePlayback(keep.media)
+  const bars = waveBars(keep.id, 28)
+  const played = Math.round(at * bars.length)
+  /* Elapsed while it runs, the whole length at rest — the two readings a
+     listener actually wants, never both at once, and tabular so swapping
+     between them never moves the row. */
+  const showing = at && keep.duration ? at * keep.duration : keep.duration
+
+  return (
+    <article className={`${s.card} ${s.recorder}`}>
+      <div className={s.transport}>
+        <button
+          type="button"
+          className={s.play}
+          onClick={toggle}
+          disabled={!ready}
+          aria-label={playing ? 'Pause this voice memo' : 'Play this voice memo'}
+        >
+          {playing ? <PauseIcon size={24} /> : <PlayIcon size={24} />}
+        </button>
+        <span className={s.wave} aria-hidden="true">
+          {bars.map((height, i) => (
+            <span
+              key={i}
+              className={s.waveBar}
+              data-played={i < played ? '' : undefined}
+              style={{ blockSize: `${Math.round(height * 100)}%` }}
+            />
+          ))}
+        </span>
+        <span className={s.elapsed}>{clock(showing)}</span>
+      </div>
+      {keep.text && <p className={s.said}>{keep.text}</p>}
+    </article>
+  )
+}

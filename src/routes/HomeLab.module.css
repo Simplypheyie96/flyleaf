@@ -1,0 +1,158 @@
+/* A workbench, not a screen in the app. It borrows the app's tokens so the
+   frames are judged against a neutral surround rather than against a second
+   design, and it borrows nothing else — no paper, no tape, no drawn edges.
+   Anything decorative here would compete with the thing being decided. */
+
+.lab {
+  min-block-size: 100dvh;
+  padding: var(--space-7) var(--space-5) var(--space-8);
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+.masthead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  max-inline-size: 62ch;
+  margin-block-end: var(--space-7);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--track-display);
+}
+
+.standfirst {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+}
+
+/* One switch, drawn as one object. Two buttons with a gap between them read as
+   two unrelated controls; a single track with a pressed half reads as a state
+   the page is in, which is what it is. */
+.states {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--color-paper) 45%, transparent);
+}
+
+.state {
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-5);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-label);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+}
+
+.state[aria-pressed='true'] {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.back {
+  min-block-size: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in oklab, var(--color-ink) 35%, transparent);
+}
+
+/* The frames run in a row and the row scrolls. Wrapping them onto a second
+   line would put two candidates above two others, and a screen compared
+   against a screen it is not level with is not compared at all. */
+.frames {
+  --gutter: var(--space-5);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+  margin-inline: calc(-1 * var(--gutter));
+  padding-inline: var(--gutter);
+  padding-block-end: var(--space-4);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.frame {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  inline-size: 390px;
+}
+
+.frameHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-block-size: 5.5rem;
+}
+
+.frameName {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+}
+
+/* The letter is how a direction gets referred to out loud — "let's go with B"
+   — so it is set as a mark rather than as part of the name. */
+.frameLetter {
+  flex: none;
+  font-family: var(--font-stamp);
+  font-weight: var(--weight-italic);
+  font-size: var(--text-md);
+  letter-spacing: var(--track-label);
+  color: var(--color-ink-faint);
+}
+
+.frameBlurb {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  text-wrap: pretty;
+  color: var(--color-ink-soft);
+}
+
+/* 780 is a phone's viewport once the browser chrome is off it. The frame is
+   deliberately not drawn as a handset: a bezel and a notch make every frame
+   look finished, which is the one thing a comparison must not do. */
+.screen {
+  inline-size: 100%;
+  block-size: 780px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+}

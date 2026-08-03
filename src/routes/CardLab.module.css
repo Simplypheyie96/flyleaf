@@ -1,0 +1,195 @@
+/* The gallery's own chrome. Deliberately quiet: nothing on this page should
+   compete with the twenty-one drawings it exists to show. */
+
+.lab {
+  min-block-size: 100svh;
+  padding: var(--space-7) var(--space-5) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+/* ── Masthead ─────────────────────────────────────────────────────────── */
+
+.masthead {
+  inline-size: 100%;
+  max-inline-size: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  /* Soft, not faint. The faint tier is tuned for quiet text sitting on a card,
+     where the paper is close under it; out here on the open page it is the
+     same ink over a much wider gap and this line measured 4.0–4.3 at 12px.
+     Uppercase mono this small is already working hard to be read. */
+  color: var(--color-ink-soft);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+.standfirst {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+}
+
+.jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+.jumpLink {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-pill);
+  background: var(--card-fill);
+  color: var(--color-ink-soft);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.jumpLink:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+.back {
+  align-self: flex-start;
+  min-block-size: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-accent-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+}
+
+/* ── One entry type ───────────────────────────────────────────────────── */
+
+.kind {
+  inline-size: 100%;
+  max-inline-size: 1240px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  /* Scrolled to by the jump links, which have a sticky-free page to land on —
+     the offset is only here so a heading is not flush against the viewport
+     edge when it arrives. */
+  scroll-margin-block-start: var(--space-6);
+}
+
+.kindHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-block-end: var(--space-3);
+  border-block-end: 1px solid var(--card-border);
+}
+
+.kindName {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
+}
+
+.kindSide {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-ink-faint);
+}
+
+/* ── The three lanes ──────────────────────────────────────────────────── */
+
+.lanes {
+  display: grid;
+  gap: var(--space-7);
+}
+
+/* Side by side only once each lane can still hold a card at a readable width.
+   Below that they stack, because three squeezed columns would be judging the
+   squeeze rather than the design. */
+@media (min-width: 1080px) {
+  .lanes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-6);
+    align-items: start;
+  }
+}
+
+.lane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.laneHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.laneName {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.laneBlurb {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-faint);
+  max-inline-size: 46ch;
+  text-wrap: pretty;
+}
+
+.samples {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-inline-size: 520px;
+}
+
+/* Each keep sits in its own box so a direction that rotates its paper has room
+   to lean without clipping its neighbour. */
+.slot {
+  position: relative;
+  min-inline-size: 0;
+}

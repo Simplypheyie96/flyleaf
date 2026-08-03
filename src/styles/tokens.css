@@ -26,7 +26,13 @@
   /* ---- Ink ---- */
   --color-ink: oklch(0.25 0.015 255);
   --color-ink-soft: oklch(0.44 0.02 250);
-  --color-ink-faint: oklch(0.54 0.02 245); /* large/decorative only */
+  /* 0.51, not the 0.54 it was. The "large/decorative only" caveat below was
+     written as a licence and then used as one — the journey's dates and the
+     colophon's terms are both 13px and both faint, and both measured 4.1–4.4
+     against what they actually sit on, which is under AA for text that size.
+     Three hundredths of lightness is the whole fix: it holds the ramp's shape
+     (soft 0.44, faint 0.51) and still reads as the quietest ink on the page. */
+  --color-ink-faint: oklch(0.51 0.02 245);
 
   /* ---- An unlit pager dot ----
 
@@ -60,6 +66,17 @@
   --color-accent: oklch(0.66 0.11 78); /* graphic uses: icons, fills */
   --color-accent-text: oklch(0.45 0.09 252); /* fountain-pen blue ink */
   --color-accent-tint: oklch(0.93 0.02 240);
+
+  /* The one colour that means "this takes something away". Deliberately the
+     only red in the app and never used decoratively, so that meeting it is
+     always the same warning — a delete row, and nothing else.
+
+     0.5 lightness against the 0.965 page measures 6.4:1, which clears AA for
+     the row's 16px label with room to spare. Kept off the pure-red hue: 25 is
+     a brick rather than a siren, which is the register the rest of Flyleaf is
+     written in. */
+  --color-danger: oklch(0.5 0.16 25);
+
   /* Selected pill on glass. This was 0.995 at near-zero chroma — white on
      white glass, so by day the selection had no edges at all.
 
@@ -83,12 +100,19 @@
      outright so Appearance matches them wherever it sits. */
   --chip-track-on-paper: oklch(0.962 0.014 240);
 
-  /* ---- Entry-type identities (muted, airy) ---- */
+  /* ---- Entry-type identities (muted, airy) ----
+     Seven now, and spaced far enough apart around the wheel that two of them
+     never read as the same colour at chip size: 45, 85, 140, 195, 265, 300,
+     350. Colour is the *last* thing that tells these types apart — each card
+     is a different object — but a filter chip has no structure to differ by,
+     so the hues still have to hold on their own. */
   --color-quote: oklch(0.55 0.06 140); /* sage */
   --color-note: oklch(0.58 0.09 85); /* honey */
   --color-voice: oklch(0.55 0.07 265); /* periwinkle — the orb's hue */
   --color-image: oklch(0.58 0.08 45); /* clay */
-  --color-highlight: oklch(0.62 0.1 95); /* mustard */
+  --color-place: oklch(0.55 0.07 195); /* verdigris — a map, a coastline */
+  --color-thread: oklch(0.53 0.07 300); /* mallow — a line being followed */
+  --color-character: oklch(0.56 0.07 350); /* rose — a person */
 
   /* ---- Books: spines, covers, and the board they stand on ----
      A book is a physical object, and it is the same object in both themes —
@@ -150,7 +174,14 @@
   /* ---- Card material: frosted, same family as the search field.
           Content cards are translucent so the sky reads through them. ---- */
   --card-fill: oklch(0.995 0.004 240 / 0.55);
-  --card-border: oklch(1 0 0 / 0.55);
+  /* An outline, not a highlight — and those are two different jobs that this
+     one token used to be doing badly at both. It was pure white at 55%, which
+     on a card tinted pastel rose (L 0.955) composites to L 0.977: a twenty-
+     thousandths step, i.e. a line nobody can see. Glass is drawn the other way
+     round: a dark hairline holds the shape, and --card-edge-light lays the lit
+     top edge back over it. Ink at 16% lands the outline about 0.086 below any
+     tint it is asked to sit on, which is a line at every one of the seven. */
+  --card-border: oklch(0.4 0.03 250 / 0.16);
   --card-blur: 16px;
   --card-fallback: oklch(0.985 0.006 238); /* opaque stand-in */
   --card-chip: oklch(0.99 0.004 240 / 0.85); /* small nested badges */
@@ -184,18 +215,64 @@
      only has to keep it from looking like a hole. */
   --field-border: oklch(0.885 0.03 243);
 
+  /* ---- Control material: the frost, at button scale ----
+
+     The app has exactly one material for a thing that floats over the page —
+     the nav pill, the chrome capsule, the sheets. Everything else that floats
+     was being drawn in flat --color-paper instead, which by day is a white
+     button on a blue sky and by night a dark slab: in both cases the one
+     object on screen made of something the rest of the app is not.
+
+     Not the glass tokens themselves. A nav container is 200px of surface and
+     can carry a 14px blur; a 34px chip cannot — at that size the blur has
+     almost no backdrop to sample and the fill is doing all the work, so the
+     frost is denser and the blur shorter. Same family, tuned for the size.
+
+     One hard rule: never nest this inside another backdrop-filter. Chromium
+     hands a nested filter an undefined backdrop and paints the difference,
+     which is where the fluorescent card came from. These belong on controls
+     sitting straight on the page.
+
+     Three tokens and no more. The chosen state of anything made of this is
+     --color-action over --color-on-action, the same as every other filled
+     control in the app; a private near-black for it would put two blacks a
+     shade apart in the same row of chips. */
+  --control-fill: oklch(1 0 0 / 0.4);
+  --control-border: oklch(0.42 0.03 250 / 0.14);
+  --control-highlight: oklch(1 0 0 / 0.5);
+
   /* ---- Entry-card tints (each type owns a surface, per refs) ---- */
   /* Tints are whispers over the sky, not opaque paper — enough hue to tell
      a quote from a note, never enough to go muddy against the blue. */
   --card-quote: oklch(0.985 0.042 72 / 0.55); /* warm tan */
   --card-note: oklch(0.98 0.05 100 / 0.52); /* sticky yellow */
   --card-voice: oklch(0.975 0.024 275 / 0.52); /* pale periwinkle */
+  /* An image card is a mount board, so it is barely tinted — whatever is
+     pinned to it supplies the colour, and a strong board would fight it. */
+  --card-image: oklch(0.985 0.026 45 / 0.5); /* clay-washed mount */
+  /* A place card carries a drawn map across its top, so the sheet under it
+     is as quiet as the image mount and for the same reason. */
+  --card-place: oklch(0.982 0.022 195 / 0.5);
+  /* A thread card is the odd sheet in the pile — it is not a piece of the book
+     but a suspicion of your own about it, so it is cool where most cards are
+     warm. That is the whole signal: a reader scrolling past knows before
+     reading a word that this one is theirs rather than the author's. */
+  --card-thread: oklch(0.975 0.026 300 / 0.52); /* mallow */
+  --card-character: oklch(0.978 0.024 350 / 0.5); /* rose */
   /* Opaque twins, used where transparency is unavailable or unwanted */
   --card-quote-solid: oklch(0.955 0.022 70);
   --card-note-solid: oklch(0.968 0.042 100);
   --card-voice-solid: oklch(0.955 0.02 265);
+  --card-image-solid: oklch(0.958 0.018 45);
+  --card-place-solid: oklch(0.955 0.018 195);
+  --card-thread-solid: oklch(0.952 0.022 300);
+  --card-character-solid: oklch(0.955 0.02 350);
   --card-edge-light: oklch(1 0 0 / 0.7); /* lit top edge on cards */
   --note-rule: oklch(0.6 0.08 100 / 0.25); /* ruled lines on notes */
+  /* The marker itself. Translucent, because a highlighter lays ink over the
+     words rather than behind them and the letters go on showing through. */
+  --highlighter: oklch(0.9 0.14 95 / 0.5);
+  --photo-corner: oklch(0.5 0.03 250 / 0.32); /* the mounts on a picture */
 
   /* ---- The inside of a tinted card ----
 
@@ -213,15 +290,65 @@
   --tint-ink-soft: var(--color-ink-soft);
   --tint-ink-faint: var(--color-ink-faint);
   /* What a glyph reversed OUT of the ink is filled with — the play triangle
-     sitting in its dark disc. */
-  --tint-reverse: var(--color-bg);
-  --tint-border: var(--card-border);
-  --tint-edge: var(--card-edge-light);
-  --tint-chip: var(--card-chip);
+     sitting in its dark disc — and, more often, the ground of any hole punched
+     through a card: the oval a portrait is mounted in, the disc a verb rides.
+
+     By day this used to be --color-bg, which is the *sky*. Everything that
+     asked for "the reverse of card ink" therefore got a pale blue, and pale
+     blue punched into pastel pink is the single loudest foreign object on the
+     thread: three cornflower discs on a rose slip look like controls from
+     another app dropped on top of the drawing. The reverse of ink on a card is
+     paper, not room. This is that paper. */
+  --tint-reverse: oklch(0.988 0.004 250);
+  /* Every rule drawn INSIDE a tinted card — a fold, a spine, the line under a
+     cassette label. These are the ones the white hairline hurt most, because
+     inside the card there is no sky behind them to make a pale line read: the
+     surface is opaque pastel and a lighter line on it is nothing at all. Ink
+     at 22%, a shade stronger than the card's own outline, because an interior
+     rule has to survive being crossed by text. */
+  --tint-border: oklch(0.38 0.035 255 / 0.22);
+  /* No lit top edge on a tinted card, in either theme. A bevel highlight is a
+     glass affordance: it says light is catching the top of a translucent
+     surface. These cards are paper — opaque, pastel, and matte — so a white
+     line along the top of one is not a highlight, it is a white line on
+     pastel pink that nobody can see and everybody can sense. The card's own
+     outline carries the shape now. */
+  --tint-edge: transparent;
+  /* A tag on a tinted card is pressed INTO the paper, not laid on top of it
+     in white. Ink at 9% is enough to read as a lozenge against every one of
+     the seven tints without ever getting close to the text it holds. */
+  --tint-chip: oklch(0.38 0.035 255 / 0.09);
   --tint-rule: var(--note-rule);
+  /* Tape belongs to the sheet it is stuck to, not to the room. The room's own
+     tape is judged against the page behind the card; on a tinted card it is
+     judged against the card, and after dark those two are opposite — a strip
+     tuned for a dark page laid across a pale sheet is a bruise, not tape. */
+  --tint-tape: var(--tape-fill);
+  --tint-tape-edge: var(--tape-edge);
   --tint-quote: var(--color-quote);
   --tint-note: var(--color-note);
   --tint-voice: var(--color-voice);
+  --tint-image: var(--color-image);
+  --tint-place: var(--color-place);
+  --tint-thread: var(--color-thread);
+  --tint-character: var(--color-character);
+
+  /* ---- The voice orb ----
+
+     Stated once and never restated for the night, unlike everything else in
+     this file. The orb only ever sits on the voice card, and that card is a
+     pale periwinkle sheet in both themes — so the object is lit by the card,
+     not by the room, and the room changing around it changes nothing about
+     how it should look.
+
+     Warm, not clinical: the reference for this one object is a cold glowing
+     sphere, and the borrowed part is the calm of it — a slow breath and a
+     soft bloom — never the temperature. */
+  --orb-core: oklch(0.93 0.045 280); /* lit face, top-left */
+  --orb-body: oklch(0.78 0.075 272);
+  --orb-rim: oklch(0.58 0.1 268); /* where it turns away from the light */
+  --orb-glow: oklch(0.72 0.12 278 / 0.42); /* the bloom it casts on the card */
+  --orb-wave: oklch(0.55 0.07 265); /* the trace beside it */
 
   /* ---- Glass (chrome only) ---- */
   --glass-fill: oklch(0.99 0.005 240 / 0.6);
@@ -243,35 +370,119 @@
   --grain-opacity: 0.035;
 
   /* ---- Type ----
-     Two voices, split by who is speaking.
+     Three voices, split by who is speaking. Two of them do all the work; the
+     third only ever appears inside a note card. There was a fourth — a
+     monospace kept for short stamped labels — and it is gone. It was doing the
+     job of a *format*, not of a voice: every rule that asked for it was an
+     uppercase, letter-spaced label, and uppercase plus tracking is what made
+     those read as stamped, not the face. Six of them also wanted digits to
+     line up, and those already carry font-variant-numeric: tabular-nums, which
+     the sans honours. So the mono was a fourth typeface buying nothing, and a
+     screen holding four faces at once reads as an accident.
 
        serif  the book and the reader — titles, section heads, quotes, and
-              any value worth reading as a value. One weight, one italic:
-              Instrument Serif has no bold, and nothing may ask it for one.
+              any value worth reading as a value. EB Garamond: an old-style
+              book face with wide round bowls, short stems and a small
+              x-height. The pair before it was chosen for being narrow, on the
+              argument that a book title is the longest string in the app and
+              the face should earn its room back horizontally. It did — the
+              seeded title sets at 308px here against ~246 there, a quarter
+              wider — and the price was a screen that read as a picket fence.
+              Narrow, tall and tightly fitted is the shape of a headline, not
+              of something you are meant to sit with. This costs width and
+              buys air, which is the right trade for a reading app.
+              It is variable, 400–800, so every serif rule states
+              --weight-serif rather than the 400 they all used to state.
        sans   the app — body copy, buttons, anything that runs to a sentence.
-       mono   the app again, but only its short uppercase labels. Geist Mono
-              is the same family as the sans, so this is one voice in two
-              cuts rather than a second typeface.
+              Source Sans 3: a humanist sans with open apertures and generous
+              counters, drawn for interface text at small sizes. It also sets
+              every short uppercase label — a date, a page number, a side —
+              where the stamped quality comes from the capitals and the
+              tracking rather than from a second face. The counters are why:
+              an 11px capital in a compact grotesque closes up and turns into
+              a row of vertical strokes.
        hand   note cards, and nowhere else. The only decorative thing on the
               screen, which is what makes it read as a note. Upright print,
               not cursive — a note exists to be reread, so legibility beats
-              flourish. Slanted script is why the old one was hard work.  */
-  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Geist Variable', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Geist Mono Variable', ui-monospace, 'Courier New', monospace;
-  --font-hand: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
+              flourish. Deliberately unchanged.
+       italic every sloped line in the app. Instrument Serif, italic cut — see
+              --font-italic below for why the book face does not set its own.
+       stamp  the same face standing upright, and only where a shape exists to
+              hold one word: today that is the stance on a plot thread's tab.
+              See --font-stamp.  */
+  /* Three steps, and no more — a scale of five weights is how a system stops
+     meaning anything.
 
-  --text-xs: 0.8125rem; /* 13 — captions */
-  --text-sm: 0.9375rem; /* 15 — labels */
-  --text-base: 1rem; /* 16 — body */
-  --text-md: 1.125rem; /* 18 — reading serif */
-  --text-lg: 1.375rem; /* 22 — section titles */
-  --text-xl: 1.75rem; /* 28 — page titles */
-  --text-2xl: 2.375rem; /* 38 — display */
+       card   450. One notch above the page's 400. Card text is short, sits on
+              a tinted fill rather than on the page's paper, and is read in
+              glances; 400 is tuned for a paragraph and reads thin here.
+       label  560. The small uppercase labels — a stance, a date, a filed-under.
+              At 11px, in capitals, on a pastel, these are the thinnest marks in
+              the app, and until now a monospace's even stroke was carrying
+              them. A proportional face has to be asked.
+       serif  500. New, and only because the serif can now be asked. An
+              old-style face carries less ink per stem than the tall narrow one
+              it replaced, so at 400 a card title looks a step smaller than it
+              measures. 500 restores the colour without turning the title bold,
+              which 600 does immediately in this family.
+       italic 400, because the italic face has exactly one weight and asking a
+              single-master face for 500 gets a synthesised smear rather than a
+              refusal. It also does not need the extra: Instrument's italic
+              already carries more ink per stem than Garamond's roman, which is
+              the whole reason it was brought in for the slope. */
+  --weight-card: 450;
+  --weight-label: 560;
+  --weight-serif: 500;
+  --weight-italic: 400;
+
+  --font-serif: 'EB Garamond Variable', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Source Sans 3 Variable', system-ui, -apple-system, sans-serif;
+  --font-hand: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
+  /* The slope, and only the slope. Garamond's variable file has no italic in
+     it, so every `font-style: italic` in the app was the browser shearing the
+     roman over — an obliqued book face, not an italic one, with none of the
+     letterforms that make an italic legible as a change of voice rather than a
+     change of angle. Instrument Serif's italic is drawn: single-storey a,
+     entry strokes on the ascenders, a narrower set. Garamond stands behind it
+     in the stack so a line that fails to load slopes rather than straightens,
+     which is the failure that keeps the meaning. */
+  --font-italic: 'Instrument Serif', 'EB Garamond Variable', Georgia, serif;
+  /* The same face upright, for a label that has a shape built around it. The
+     sans sets every other small capital in the app and should keep doing it:
+     those run in rows — a date beside a page number beside a side — and a
+     display serif at 11px in a row of metadata is costume. A tab is the
+     opposite case. It is one word, alone, inside a silhouette drawn for it,
+     large enough to carry a real cap height, and a high-contrast serif is what
+     makes it read as a title on a file rather than a chip on a card.
+     Single-master, so anything asking for weight here gets a synthesised smear
+     — every rule using this states --weight-italic. */
+  --font-stamp: 'Instrument Serif', 'EB Garamond Variable', Georgia, serif;
+
+  /* One step smaller nearly everywhere than it used to be. The scale below
+     ~15px is where this app actually lives — meta lines, chips, captions — so
+     that end has the most steps and the top end has the fewest. */
+  --text-2xs: 0.6875rem; /* 11 — stamped labels, tracked out */
+  --text-xs: 0.75rem; /* 12 — captions */
+  --text-sm: 0.875rem; /* 14 — labels, secondary copy */
+  --text-base: 0.9375rem; /* 15 — UI body */
+  --text-md: 1.0625rem; /* 17 — reading serif, quotes */
+  --text-lg: 1.25rem; /* 20 — section titles */
+  --text-xl: 1.5rem; /* 24 — page titles */
+  --text-2xl: 1.875rem; /* 30 — display, once per screen at most */
+
+  /* iOS Safari zooms the page whenever an input's text is under 16px, and the
+     UI body size is deliberately under that now. Every field opts back up. */
+  --text-field: 1rem; /* 16 — never smaller, on any input */
 
   --leading-tight: 1.15;
+  --leading-snug: 1.35;
   --leading-body: 1.6;
   --measure: 60ch;
+
+  /* Large type wants to be pulled in; small uppercase wants to be let out. */
+  --track-display: -0.02em;
+  --track-title: -0.01em;
+  --track-label: 0.07em;
 
   /* ---- Space (4px rhythm) ---- */
   --space-1: 0.25rem;
@@ -293,6 +504,20 @@
 
   /* ---- Tap targets ---- */
   --tap-min: 44px;
+  /* The one round button in the shell, which is deliberately bigger than a bare
+     tap target because it is the only thing on the bar a reader reaches for
+     without looking. LeafButton draws it and --bar-clear measures against it,
+     so the number lives here rather than in either of them. */
+  --fab-size: 56px;
+
+  /* How much of the bottom of the screen the floating bar is standing on: its
+     own offset from the edge, plus its height. The bar is a row, and the tallest
+     thing in that row is the round button — the glass nav pill beside it is
+     shorter, so it is not what sets the height. Anything else that sticks to the
+     bottom of a scrolling column has to clear this or it lands on the bar.
+     Measured here once so a route never has to guess the shell's dimensions;
+     App.module.css offsets the bar from the same --space-4. */
+  --bar-clear: calc(var(--space-4) + var(--fab-size) + env(safe-area-inset-bottom, 0px));
 
   /* ---- Motion ----
      Paper has weight. Nothing here snaps, and nothing here bounces — a kept
@@ -322,6 +547,15 @@
   --lift: 3px;
   --press: 1px;
   --travel: 8px;
+}
+
+/* Above this the bar is gone and a side rail carries navigation instead, so
+   the bottom of the screen belongs to the page again. Same breakpoint the
+   shell hides the bar at, in App.module.css. */
+@media (min-width: 1024px) {
+  :root {
+    --bar-clear: env(safe-area-inset-bottom, 0px);
+  }
 }
 
 /* Reduced motion is a token swap, not a switch: distance goes to zero and the
@@ -366,6 +600,12 @@
   --field-fill: oklch(0.325 0.026 264);
   --field-border: oklch(0.95 0.015 250 / 0.15);
 
+  /* Night frost. Mirrors the day version: the control steps toward the light,
+     which after dark means a pale film over the sky rather than a white one. */
+  --control-fill: oklch(0.9 0.02 258 / 0.11);
+  --control-border: oklch(0.95 0.015 250 / 0.17);
+  --control-highlight: oklch(0.95 0.015 250 / 0.11);
+
   /* ---- Entry-card tints: moonlit ----
 
      These used to be the same tints held down at the fill's lightness, on the
@@ -385,11 +625,32 @@
   --card-quote: oklch(0.87 0.045 168 / 0.96);
   --card-note: oklch(0.885 0.05 95 / 0.96);
   --card-voice: oklch(0.87 0.042 285 / 0.96);
+  /* Both of these sit lower in chroma than the three above them, and for the
+     reasons they were given by day: the mount board must not out-colour the
+     photograph pinned to it, and the map plate must not out-colour the map
+     drawn across it. Warm hues read stronger at equal chroma, so 45° in
+     particular is pulled well back — at the 0.04 the others use, the image
+     card was the loudest thing on a night page whose job was to be the
+     quietest. */
+  --card-image: oklch(0.885 0.022 45 / 0.96);
+  --card-place: oklch(0.885 0.022 195 / 0.96);
+  --card-thread: oklch(0.875 0.038 300 / 0.96);
+  --card-character: oklch(0.88 0.03 350 / 0.96);
   --card-quote-solid: oklch(0.87 0.045 168);
   --card-note-solid: oklch(0.885 0.05 95);
   --card-voice-solid: oklch(0.87 0.042 285);
+  --card-image-solid: oklch(0.885 0.022 45);
+  --card-place-solid: oklch(0.885 0.022 195);
+  --card-thread-solid: oklch(0.875 0.038 300);
+  --card-character-solid: oklch(0.88 0.03 350);
   --card-edge-light: oklch(0.95 0.015 250 / 0.16); /* moonlit top edge */
   --note-rule: oklch(0.75 0.06 100 / 0.16);
+  /* Deeper after dark. The card underneath it is a pale sheet either way, so
+     the stripe is judged against that rather than against the page — but the
+     night sheet is a shade darker than the day one, and a marker mixed for
+     the day one goes weak on it. */
+  --highlighter: oklch(0.85 0.15 95 / 0.55);
+  --photo-corner: oklch(0.32 0.03 265 / 0.36);
 
   /* The interior of those lit cards. Every one of these is a day-ish value
      living inside the night theme, because that is the literal situation: the
@@ -402,20 +663,53 @@
      sheet, so they sit a little below even their daytime lightness to hold
      against the extra chroma in the tint under them. */
   --tint-ink: oklch(0.3 0.03 265);
-  --tint-ink-soft: oklch(0.44 0.025 265);
-  /* 0.48, not the 0.53 the lightness pattern would suggest: measured on the
-     tints it lands at 4.5 where the day faint lands at 4.4, and a "faint" that
-     is fainter after dark than it is by day is a regression dressed up as a
-     theme. */
-  --tint-ink-faint: oklch(0.48 0.022 265);
+  /* 0.40, down from 0.44. Soft ink is what every 12px label on a card is set
+     in, and 0.44 measured 4.4:1 on the chip wash — a failure by a rounding
+     error, which is still a failure at that size. It also sat a hair DARKER
+     than the faint below it, so the two-step ramp had no steps in it. */
+  --tint-ink-soft: oklch(0.4 0.025 265);
+  /* 0.45, not the 0.53 the lightness pattern would suggest, and not the 0.48
+     this was: the earlier number was measured against one tint and taken for
+     all of them, and on the strand sheet — the most chromatic of the six — it
+     lands at 4.1. A "faint" that is fainter after dark than it is by day is a
+     regression dressed up as a theme, so this stays a step under the day
+     faint's effective contrast rather than a step over it. */
+  --tint-ink-faint: oklch(0.45 0.022 265);
   --tint-reverse: oklch(0.95 0.01 250);
-  --tint-border: oklch(0.25 0.03 265 / 0.12);
-  --tint-edge: oklch(1 0 0 / 0.55);
-  --tint-chip: oklch(1 0 0 / 0.55);
+  /* Same reasoning as the day value, pointed the same way — a lit card wants a
+     dark interior rule in either theme, because the card is pale in both. 0.12
+     was landing about 0.075 clear of the tint; 0.17 lands 0.105, which is the
+     separation the day rule has. */
+  --tint-border: oklch(0.25 0.03 265 / 0.17);
+  /* Same as by day, and for the same reason — after dark these cards are
+     still pale paper, so a white bevel on them is still invisible. */
+  --tint-edge: transparent;
+  --tint-chip: oklch(0.25 0.03 265 / 0.1);
   --tint-rule: oklch(0.5 0.07 95 / 0.3);
+  /* Pale, because the sheet it crosses is pale — and the twelve pixels that
+     overhang the card onto the night page are meant to be seen. */
+  --tint-tape: oklch(0.99 0.008 250 / 0.5);
+  --tint-tape-edge: oklch(0.55 0.02 255 / 0.2);
+  /* The seven hues, card-side. The room's own --color-<kind> lift to about
+     L 0.72 after dark so they can carry on a dark page; the cards do not go
+     dark with them. Anything on a card that fills with the room's night hue
+     and reverses text out of it is therefore putting L 0.73 under L 0.95 —
+     about 1.8:1, which is the "how is anybody meant to see that" failure in
+     its worst form, and it is the plates caption band exactly.
+
+     Three of these seven were missing, so place, thread and character fell
+     through to the room's night value and broke while the other four were
+     fine. All seven are stated now, at the daylight weight, because a pale
+     card wants a dark hue whatever the room is doing. */
   --tint-quote: oklch(0.5 0.07 140);
   --tint-note: oklch(0.52 0.1 85);
   --tint-voice: oklch(0.5 0.08 265);
+  --tint-image: oklch(0.5 0.09 45);
+  --tint-place: oklch(0.49 0.08 195);
+  --tint-thread: oklch(0.47 0.08 300);
+  --tint-character: oklch(0.5 0.08 350);
+  --tint-highlight: oklch(0.52 0.11 95);
+  --tint-strand: oklch(0.48 0.09 320);
   --tape-fill: oklch(0.6 0.02 260 / 0.3);
   --tape-edge: oklch(0.8 0.02 255 / 0.22);
 
@@ -441,6 +735,11 @@
   --color-accent: oklch(0.78 0.1 80); /* moon-honey */
   --color-accent-text: oklch(0.78 0.06 262); /* moonlit periwinkle ink */
   --color-accent-tint: oklch(0.34 0.03 265);
+  /* Lifted and desaturated for the dark page: the day value at 0.5 against a
+     0.22 background is 2.4:1 and unreadable. 0.72 measures 6.8:1, and pulling
+     the chroma back keeps it from glowing the way a saturated red does on a
+     dark surface. */
+  --color-danger: oklch(0.72 0.13 25);
   --color-chip-active: oklch(0.37 0.03 265);
   /* After dark the pill is already the lightest thing in the row, so the
      outline only has to keep the edge crisp rather than create it. */
@@ -452,7 +751,9 @@
   --color-note: oklch(0.75 0.09 85);
   --color-voice: oklch(0.72 0.07 268);
   --color-image: oklch(0.72 0.08 45);
-  --color-highlight: oklch(0.77 0.1 95);
+  --color-place: oklch(0.72 0.07 195);
+  --color-thread: oklch(0.72 0.07 300);
+  --color-character: oklch(0.73 0.07 350);
 
   /* Books at night — lit, not dimmed.
 

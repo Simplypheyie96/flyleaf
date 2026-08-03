@@ -1,0 +1,845 @@
+/* DIRECTION A — PRESSED
+
+   Read this file with the colour off. Torn strip. Punched leaf. Cassette
+   label. Mount board. Specimen slip. Postcard. Knotted cord. Seven objects, no
+   tint required — which is the test, because a reader scrolling fast is
+   reading silhouettes, not hues.
+
+   Everything directional is logical, so the set mirrors without a second
+   stylesheet. */
+
+/* ── The material ─────────────────────────────────────────────────────────
+   One pale sheet, printed in the room's ink by day and in a day-ish interior
+   ink after dark. Re-pointing the room's own token names at the --tint-* set
+   is what lets every card below go on asking for --color-ink and get the right
+   answer for the surface it happens to be printed on. */
+
+.sheet {
+  position: relative;
+  /* Never below --space-5. The old set ran at --space-4 and read as cramped,
+     which is a bug, not a density choice. */
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  background-color: var(--paper-tone, var(--card-fill));
+  -webkit-backdrop-filter: blur(var(--card-blur)) saturate(140%);
+  backdrop-filter: blur(var(--card-blur)) saturate(140%);
+  box-shadow: inset 0 1px 0 var(--card-edge-light);
+
+  --color-ink: var(--tint-ink);
+  --color-ink-soft: var(--tint-ink-soft);
+  --color-ink-faint: var(--tint-ink-faint);
+  --color-bg: var(--tint-reverse);
+  /* Paper travels with ink: the note rule and the thread's inset highlight are
+     both mixed against --color-paper, and after dark the room's paper is the
+     slate the page is made of, so those marks were being tinted towards black
+     on a pale sheet. Card-side paper stays pale in both themes. */
+  --color-paper: var(--tint-reverse);
+  --card-border: var(--tint-border);
+  --card-edge-light: var(--tint-edge);
+  --card-chip: var(--tint-chip);
+  --note-rule: var(--tint-rule);
+  --tape-fill: var(--tint-tape);
+  --tape-edge: var(--tint-tape-edge);
+  /* And the entry's own hue, for the same reason as the ink above it. Every
+     ring, rule and fold on these cards is drawn in the hue of the thing it
+     belongs to, and the room's hue lifts to about L 0.72 after dark so it can
+     be seen on a dark page. These cards are not a dark page — they are pale
+     paper in both themes — so the night hue lands a couple of steps off the
+     tint it is drawn on and the mark disappears. The card-side set stays at
+     the daylight weight, which is what a pale sheet needs. */
+  --color-quote: var(--tint-quote);
+  --color-note: var(--tint-note);
+  --color-voice: var(--tint-voice);
+  --color-image: var(--tint-image);
+  --color-place: var(--tint-place);
+  --color-thread: var(--tint-thread);
+  --color-character: var(--tint-character);
+  color: var(--color-ink);
+}
+
+/* ── Shared: the stance ───────────────────────────────────────────────────
+   The one line that rides the thread cards, and the only thing left in the
+   foot. Read, not pressed. */
+
+/* The trailing space is the same five-pixel arithmetic as everywhere else. The
+   three verb circles hang 18 below the card's bottom-right and their targets
+   reach 21 back inside it, against 24 of card padding — which left the foot's
+   last line all but flush against the top of the verbs. Ten, and off the scale
+   for the same reason .acts sets its gap to ten: it is five plus five. */
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+  margin-block-end: 10px;
+}
+
+/* How sure the reader was, said out loud. The cord beside it already counts
+   the knots, and the count is the better half of the idea — but a knot is only
+   legible to the person who tied it, so the word leads the row and the knots
+   become its echo rather than its cipher.
+
+   Tinted in the thread's own mallow, and no ::after: a 44px target belongs to
+   things that can be tapped, and this is a state the keep is in rather than
+   anything a thumb can change. */
+.stance {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 34px;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklch, var(--color-thread), transparent 76%);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
+  font-size: var(--text-xs);
+}
+
+/* ── 1. Quote — a torn strip, taped down ──────────────────────────────────
+   The head and foot are torn rather than cut, which is why this is the one
+   card in the set with no border: paper that has been ripped out of a book has
+   no edge to draw. */
+
+.strip {
+  --paper-tone: var(--card-quote-solid);
+  padding-block: var(--space-6);
+  border-radius: 2px;
+  rotate: -0.4deg;
+  clip-path: polygon(
+    0 6px,
+    7% 1px,
+    15% 7px,
+    23% 2px,
+    31% 7px,
+    39% 1px,
+    48% 6px,
+    57% 2px,
+    65% 7px,
+    74% 1px,
+    83% 6px,
+    92% 2px,
+    100% 6px,
+    100% calc(100% - 5px),
+    93% calc(100% - 1px),
+    85% calc(100% - 6px),
+    76% calc(100% - 2px),
+    67% calc(100% - 6px),
+    58% calc(100% - 1px),
+    49% calc(100% - 6px),
+    40% calc(100% - 2px),
+    31% calc(100% - 7px),
+    22% calc(100% - 1px),
+    13% calc(100% - 6px),
+    5% calc(100% - 2px),
+    0 calc(100% - 5px)
+  );
+}
+
+/* A strip of tape over the leading corner. Nobody tapes anything straight.
+
+   The first pass used --tape-fill straight, which is a near-white at half
+   alpha: over a pale card it read as nothing at all. Tape is legible because
+   light catches its length, so it is drawn as a band with a sheen down the
+   middle and torn ends rather than as a flat rectangle. */
+.tape {
+  position: absolute;
+  inset-block-start: -7px;
+  inset-inline-start: var(--space-5);
+  inline-size: 78px;
+  block-size: 24px;
+  rotate: -7deg;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--tape-fill), var(--color-ink) 9%) 0 18%,
+    color-mix(in oklab, var(--tape-fill), var(--color-bg) 40%) 18% 62%,
+    color-mix(in oklab, var(--tape-fill), var(--color-ink) 11%) 62% 100%
+  );
+  box-shadow: inset 0 0 0 1px var(--tape-edge);
+  /* Torn, not cut: no two of the four corners agree. */
+  clip-path: polygon(2px 0, 100% 3px, calc(100% - 3px) 100%, 0 calc(100% - 2px));
+  pointer-events: none;
+}
+
+.torn {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
+  font-size: var(--text-md);
+  font-style: italic;
+  line-height: 1.45;
+  color: var(--color-ink);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+}
+
+/* Hung into the padding, so the first letter still lands on the text edge. */
+.torn::before {
+  content: '\201C';
+  position: absolute;
+  inset-inline-start: -0.42em;
+  inset-block-start: -0.1em;
+  font-size: var(--text-xl);
+  line-height: 1;
+  font-style: normal;
+  color: var(--color-quote);
+  opacity: 0.5;
+}
+
+/* ── 2. Note — the leaf off a spiral pad ──────────────────────────────────
+   Punched along the head, ruled under the hand, turned back at the corner. */
+
+.leaf {
+  --paper-tone: var(--card-note-solid);
+  --rule-pitch: 1.75rem;
+  /* 32 at the foot rather than the sheet's 24. A ruled pad is the one drawing
+     whose last line is not the last thing on it — the rules run under the
+     hand and keep going — so the verb circles were landing on ruled paper
+     with writing still on it. Eight more ends the writing a clear line above
+     where the circles reach, and a blank rule at the bottom of a page is what
+     a pad looks like anyway. */
+  padding-block-end: var(--space-6);
+  overflow: hidden;
+}
+
+.spine {
+  display: block;
+  block-size: 16px;
+  margin-block: calc(-1 * var(--space-3)) var(--space-4);
+  margin-inline: calc(-1 * var(--space-3));
+  background-image: radial-gradient(
+    circle 4px at 11px 8px,
+    var(--color-bg) 0 2.5px,
+    color-mix(in oklch, var(--color-note), transparent 45%) 2.5px 3.5px,
+    transparent 4px
+  );
+  background-size: 22px 16px;
+  /* `space`, not `repeat-x`. A fixed 22px pitch only comes out even when the
+     card's width happens to be a multiple of 22, and at 360px it is not: the
+     punches at both ends were sliced down the middle by the card's edges,
+     which reads as a rendering fault rather than as a pad. `space` lays down
+     whole tiles only and shares the leftover out between them, so the row
+     always begins and ends on a complete hole at any width. */
+  background-repeat: space no-repeat;
+}
+
+.leaf::after {
+  content: '';
+  position: absolute;
+  inset-block: var(--space-4);
+  inset-inline-start: var(--space-4);
+  inline-size: 1px;
+  background: color-mix(in oklch, var(--color-note), transparent 45%);
+}
+
+.ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--rule-pitch) - 1px),
+    var(--note-rule) calc(var(--rule-pitch) - 1px),
+    var(--note-rule) var(--rule-pitch)
+  );
+}
+
+.hand {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: var(--text-md);
+  /* A length, not a ratio: the hand has to sit on the rules, so the line box
+     and the rule pitch must be the same number. */
+  line-height: var(--rule-pitch);
+  color: var(--color-ink);
+  max-inline-size: var(--measure);
+  text-wrap: pretty;
+}
+
+/* The turned corner, and it is the corner lying *on* the leaf rather than a
+   bite taken out of it. The dog-ear this replaces was drawn the classic way —
+   an outer wedge painted in the page colour to look cut away, an inner wedge
+   for the underside of the flap — and both halves were wrong for the same
+   reason, which is that a card re-points the room's names at its own set.
+
+   The outer wedge asked for --color-bg to paint "the page showing through",
+   but inside .sheet that name means --tint-reverse, a near-white. On a night
+   page it painted a white bite out of the card's corner; by day it passed only
+   because near-white on a pale sky is near-invisible.
+
+   The inner wedge was worse: mixing --color-note (hue 85, amber) with
+   --color-paper (hue 250, blue-white) interpolates the short way round the
+   wheel, and 68% of the way from 85 to 250 lands on 197 — cyan. A note card
+   had a teal square in its corner, from two tokens neither of which is teal.
+
+   So: no page, no cross-hue mix. The flap is the sheet's own paper a little
+   into shade, and it lies over the face of the card. Both inputs are card-side
+   tokens, so it holds in either theme and cannot drift off the paper's hue.
+   The card's own overflow rounds the tip, which is what a real turned corner
+   does anyway. */
+.fold {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  inline-size: 22px;
+  block-size: 22px;
+  pointer-events: none;
+  background: linear-gradient(
+    to top left,
+    color-mix(in oklab, var(--paper-tone), var(--color-ink) 14%) 50%,
+    transparent 50.5%
+  );
+  /* Cast up and back along the crease, so the flap reads as lifted off the
+     page it is sitting on rather than printed onto it. */
+  filter: drop-shadow(-1px -1px 1px var(--shadow-tint));
+}
+
+/* ── 3. Voice — a cassette label ──────────────────────────────────────────
+   Two reel holes, a hand-written line, a run time, and the tape's own shape
+   under it. The left reel is the transport: you press the tape itself. */
+
+.cassette {
+  --paper-tone: var(--card-voice-solid);
+  border-radius: var(--radius-sm);
+  box-shadow:
+    inset 0 1px 0 var(--card-edge-light),
+    inset 0 0 0 1px var(--card-border),
+    /* the label's own printed frame, a shade in from the die-cut edge */ inset 0 0 0 5px
+      var(--paper-tone);
+}
+
+.reels {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The written line and the run time stack between the two reels, so the
+   trailing slot can hold the take-up reel. One reel is a button; a cassette
+   is two. */
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.reel {
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  border: 2px solid color-mix(in oklab, var(--color-voice), transparent 45%);
+  border-radius: 50%;
+  /* Not the flat reverse. A near-white disc on pale blue paper is the same
+     white-button problem as everywhere else; a tenth of the voice hue on the
+     card's own reverse sits on the paper instead of on top of it, which is
+     what the verb circles do too. */
+  background: color-mix(in oklab, var(--color-voice), var(--tint-reverse) 88%);
+  color: var(--color-voice);
+  cursor: pointer;
+  transition: border-color var(--dur-press) var(--ease-out);
+}
+
+.reel:hover:not(:disabled) {
+  border-color: var(--color-voice);
+}
+
+.reel:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* ── The transport ────────────────────────────────────────────────────────
+   This was the left reel and nothing more, on the argument that you press the
+   tape rather than a button beside it. That is a true thing about cassettes
+   and the wrong thing on a phone: the card ended up carrying two identical
+   spoked circles, one live and one dead, and neither of them said *play*. A
+   reader looking at it could not tell how to hear the memo, and the dead one
+   read as a second button that did nothing.
+
+   So the mark moves onto the leading reel and the spokes come off it. At rest
+   it is a triangle; while the tape runs it is two bars. The cassette survives
+   because the take-up reel is still there and still turns — that is what says
+   the tape is moving — but only one of the two circles now looks pressable,
+   and it looks pressable in the way every play control on the phone does.
+
+   The glyph is a zero-size box with a border on one edge, which is the oldest
+   way there is to draw a triangle in CSS and still the only one that inherits
+   `currentColor` for free — so the mark follows the disc's ink through hover
+   and disabled without a second declaration anywhere. */
+.reel:not(.reelIdle)::after {
+  content: '';
+  inline-size: 0;
+  block-size: 0;
+  border-block: 8px solid transparent;
+  border-inline-start: 13px solid currentColor;
+  border-inline-end: 0;
+  /* A triangle carries its weight behind the point, so centring the box leaves
+     it looking shifted back. Three pixels forward and it sits in the hole. */
+  margin-inline-start: 3px;
+}
+
+.reel[data-spinning]:not(.reelIdle)::after {
+  inline-size: 13px;
+  block-size: 15px;
+  border: 0;
+  margin-inline-start: 0;
+  background: linear-gradient(to right, currentColor 0 34%, transparent 34% 66%, currentColor 66%);
+}
+
+/* The take-up reel. It turns with the other one but there is nothing to press,
+   so it gives up the heavy ring that made it look like one: a hairline hole
+   and a spool, smaller and lighter than the transport beside it. It exists so
+   the object reads as a cassette rather than as a card with a play button on
+   it — and now it can, because the transport is unmistakably the transport. */
+.reelIdle {
+  inline-size: 34px;
+  block-size: 34px;
+  border: 1px solid color-mix(in oklab, var(--color-voice), transparent 76%);
+  background: none;
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.reelIdle .hub {
+  inline-size: 15px;
+  block-size: 15px;
+}
+
+/* The hub: three spokes and a hole, drawn. It turns while the tape runs. */
+.hub {
+  inline-size: 20px;
+  block-size: 20px;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      from 0deg,
+      currentColor 0 8deg,
+      transparent 8deg 120deg,
+      currentColor 120deg 128deg,
+      transparent 128deg 240deg,
+      currentColor 240deg 248deg,
+      transparent 248deg
+    ),
+    radial-gradient(circle, transparent 0 4px, currentColor 4px 5px, transparent 5px);
+}
+
+.reel[data-spinning] .hub {
+  animation: turn 2.4s linear infinite;
+}
+
+@keyframes turn {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* The line on the label — and the same face sets the character's name on their
+   slip, because both are a named thing rather than a sentence about one. The
+   serif, not the hand: the hand belongs to the note card and to nothing else,
+   and a cassette label is printed anyway. 400 because the serif has no bold. */
+.written {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+.runtime {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-soft);
+}
+
+/* The window on the front of the shell: the tape's own shape, running. */
+.tapeWindow {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  block-size: 30px;
+  margin-block-start: var(--space-4);
+  padding-inline: var(--space-2);
+  border-block-start: 1px solid var(--card-border);
+  padding-block-start: var(--space-3);
+  /* Same ten as .foot, for the same reason: the verb circles' targets reach 21
+     back inside a card padded 24, so the tape's last bars ended all but exactly
+     where the verbs begin and the wave ran underneath them. */
+  margin-block-end: 10px;
+}
+
+.tick {
+  flex: 1;
+  min-inline-size: 0;
+  border-radius: 1px;
+  /* The unplayed tape was at 38% of the voice hue, which on its own pale paper
+     is under the 3:1 a graphical mark owes — the wave read as a smudge and the
+     played/unplayed split, which is the only thing it is there to show, was
+     not visible at arm's length. */
+  background: color-mix(in oklch, var(--color-voice), transparent 52%);
+  transition: background-color var(--dur-press) var(--ease-out);
+}
+
+.tick[data-played] {
+  background: var(--color-voice);
+}
+
+/* ── 4. Picture — a print under corners ───────────────────────────────────
+   The tinted card is the mount board; the pale inner is the print. */
+
+.mountBoard {
+  --paper-tone: var(--card-image-solid);
+  margin: 0;
+}
+
+.mount {
+  position: relative;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  box-shadow: inset 0 0 0 1px var(--card-border);
+}
+
+.mount::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-repeat: no-repeat;
+  background-size: 18px 18px;
+  background-position:
+    left bottom,
+    left top,
+    right top,
+    right bottom;
+  background-image:
+    linear-gradient(45deg, var(--photo-corner) 13px, transparent 13px),
+    linear-gradient(135deg, var(--photo-corner) 13px, transparent 13px),
+    linear-gradient(225deg, var(--photo-corner) 13px, transparent 13px),
+    linear-gradient(315deg, var(--photo-corner) 13px, transparent 13px);
+}
+
+.print {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: 2px;
+}
+
+.gone {
+  margin: 0;
+  padding-block: var(--space-6);
+  text-align: center;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  color: var(--color-ink-faint);
+}
+
+/* Written on the board, not on the print. */
+.boardCaption {
+  margin-block-start: var(--space-4);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-xs);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+/* ── 5. Character — a specimen slip ───────────────────────────────────────
+   The drawn person mounted in an oval aperture cut into the slip, the name
+   written on the line beside it, what is known below the fold. */
+
+.slip {
+  --paper-tone: var(--card-character-solid);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-4);
+  row-gap: var(--space-3);
+  /* Bottom-aligned, so the written name lands level with the foot of the
+     aperture and its rule reads as one line drawn under the portrait. Centred,
+     the name floated in the middle of a tall empty column. */
+  align-items: end;
+}
+
+/* A specimen slip has a ruled field and the name is written on it. Without the
+   rule this was a portrait beside a word, which is every other card.
+
+   Half-strength was too little: the slip is pastel rose and a rose line at 45%
+   on it is a line you can only find by looking for it. At 72% it is a ruled
+   line, which is the only reason it is there. */
+.slip .written {
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid color-mix(in oklch, var(--color-character), transparent 28%);
+}
+
+.aperture {
+  display: grid;
+  place-items: center;
+  inline-size: 62px;
+  block-size: 76px;
+  /* An oval cut, not a coin: the whole point of an aperture is that it is the
+     shape of the hole, and a hole punched for a portrait is taller than wide. */
+  border-radius: 50%;
+  /* The figure is drawn past the foot of its own sheet, the way a bust is, so
+     the aperture has to be what ends it. */
+  overflow: hidden;
+  /* Paper, via --tint-reverse. This asked for --color-bg and by day that was
+     the sky, so a cornflower oval sat in the middle of a rose slip. */
+  background: var(--color-bg);
+  /* Outset, not inset. Inset rings sit under the element's content, so with a
+     drawing filling the hole they were three rings painted behind a picture —
+     which is to say not painted. Outside the cut they are the cut's own edge,
+     which is what they were drawn to be. */
+  box-shadow:
+    0 0 0 1px var(--card-border),
+    0 0 0 4px var(--paper-tone),
+    0 0 0 5px color-mix(in oklch, var(--color-character), transparent 30%);
+  /* Rose taken most of the way to ink: the card's rose is a label colour and a
+     drawing made of 1.6px strokes in it is a pink smudge. */
+  color: color-mix(in oklab, var(--color-character), var(--tint-ink) 45%);
+}
+
+/* No rule here. The name already sits on one — two horizontal lines eleven
+   pixels apart, one under the name and one over the paragraph, made the slip
+   look like a form. The space between them was always doing the work. */
+.known {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-block-start: var(--space-2);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+.slip .foot {
+  grid-column: 1 / -1;
+  margin-block-start: 0;
+}
+
+/* ── 6. Location & lore — a surveyed plate ────────────────────────────────
+
+   The postcard is gone. Two things were wrong with it. It franked the back
+   with a stamp box in the trailing corner, and that stamp had to be paid for
+   twice — 52px of padding reserved on the name *and* on the note under it —
+   which is exactly the dead space beside the text that kept getting pointed
+   at. And it ran the drawing edge to edge across the top of the card, which
+   is what a photograph does; these are drawings, and a drawing that bleeds
+   off its own sheet stops looking drawn.
+
+   So the view is mounted rather than printed. It is inset from the card on
+   all four sides, which is the whole difference between a picture the card
+   was cropped to and a plate somebody put there. Under it is a survey grid,
+   showing through the drawing's own washes so the two read as one sheet.
+   Inside its edge is a neat line — the rule a surveyor draws to say where the
+   survey stops — laid over the drawing rather than under it, because it
+   belongs to the sheet and not to the view.
+
+   The name is a caption, not a title: the mark in the place hue, then the
+   words in mono caps, set above the plate the way a field guide captions one.
+   The note then runs the full width of the card underneath. */
+
+.mapped {
+  --paper-tone: var(--card-place-solid);
+  /* Ends in prose like the quote and the note do, so it takes the same 32 at
+     the foot that keeps the verb circles off the last line. */
+  padding-block-end: var(--space-6);
+}
+
+.marked {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
+  font-size: var(--text-2xs);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  /* Mixed toward ink so the words are read as words. The mark beside them is
+     not mixed, so the hue lands once and lands on the glyph. */
+  color: color-mix(in oklab, var(--color-place) 62%, var(--color-ink));
+}
+
+.pin {
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--color-place);
+}
+
+.field {
+  position: relative;
+  overflow: hidden;
+  /* The drawing's own viewBox is 200 × 100, so a 2:1 plate holds all of it —
+     nothing is cropped, and a pinned photograph gets the same proportion so
+     the two never change the card's height between them. */
+  aspect-ratio: 2 / 1;
+  border: 1px solid color-mix(in oklab, var(--color-place) 34%, transparent);
+  border-radius: var(--radius-sm);
+  /* Only ever seen behind a pinned photograph that has not decoded yet — the
+     drawing already fills the plate with its own ground, and rules its own
+     survey grid across it, so a second grid under an opaque one would be a
+     token that never paints. */
+  background-color: color-mix(in oklab, var(--color-place) 8%, var(--paper-tone));
+}
+
+.terrain {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  color: var(--color-place);
+}
+
+.neat {
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in oklab, var(--color-place) 20%, transparent);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* Full width, both ends. Nothing hangs in the corner any more, so nothing is
+   reserved for it. */
+.lore {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-inline-size: var(--measure);
+}
+
+/* ── 7. Plot thread — a knotted cord ──────────────────────────────────────
+   How sure the reader was is a thing you count: one knot for a hunch, two for
+   a suspicion, three for a certainty. The cord thickens with them, and it is
+   the same cord the journey ties between threads. The word for the count is
+   set once at the foot (see .stance) so the knots have something to be read
+   against — counted in the gutter, named in the row. */
+
+.corded {
+  --paper-tone: var(--card-thread-solid);
+  --cord: 2px;
+  --knots: 1;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  column-gap: var(--space-4);
+}
+
+.corded[data-stance='suspicion'] {
+  --cord: 3px;
+  --knots: 2;
+}
+
+.corded[data-stance='certain'] {
+  --cord: 4px;
+  --knots: 3;
+}
+
+.cord {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block-start: 4px;
+}
+
+/* The string itself, running the full height of the card. */
+.cord::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  inline-size: var(--cord);
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklch, var(--color-thread), transparent 25%);
+}
+
+/* A knot, not a bead. Drawn as a ring on paper this was a 20px hollow circle
+   sitting at the top of a line — the exact thing the reader asked twice to be
+   rid of. A knot in real string is a short swelling of the string itself: the
+   cord's own colour, a little wider than the cord, taller than it is wide,
+   lit along the top where it turns and shaded underneath. */
+.knot {
+  position: relative;
+  z-index: 1;
+  inline-size: calc(var(--cord) + 7px);
+  block-size: calc(var(--cord) + 11px);
+  border-radius: 50% / 42%;
+  background: var(--color-thread);
+  box-shadow:
+    inset 0 2px 0 -1px color-mix(in oklab, var(--color-thread), var(--color-paper) 45%),
+    inset 0 -2px 0 -1px color-mix(in oklab, var(--color-thread), var(--color-ink) 22%);
+}
+
+.hung {
+  min-inline-size: 0;
+}
+
+/* Typed, not written: a thread is the reader building a case, and nothing else
+   on the page is typewritten. */
+.calling {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-label);
+  font-size: var(--text-sm);
+  line-height: var(--leading-tight);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+.working {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink);
+  max-inline-size: var(--measure);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .sheet {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .sheet {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reel,
+  .tick {
+    transition-duration: 0.01ms;
+  }
+
+  /* Tier 1: a spinning disc is exactly the motion this preference is about.
+     The played/unplayed ticks still say the tape is running. */
+  .reel[data-spinning] .hub {
+    animation: none;
+  }
+}

@@ -32,6 +32,7 @@
 
 .wordmark {
   font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
   font-size: var(--text-xl);
   letter-spacing: -0.01em;
   color: var(--color-ink);

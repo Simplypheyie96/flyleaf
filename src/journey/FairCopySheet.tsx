@@ -1,0 +1,152 @@
+/* The fair copy — a clean draft, gathered from what you already wrote.
+
+   Every word of substance in the box below came out of this reader's own
+   keeps. Flyleaf supplies the joins and nothing else: no model runs, nothing
+   leaves the device, and the draft is identical on a plane and on a train. It
+   costs nothing to produce and there is no key behind it, which is the only
+   version of this feature worth shipping in an app that promises to stay
+   free and private.
+
+   It opens editable on purpose. A gathered draft is a starting point, and a
+   reader who cannot change a word of it before posting it somewhere is being
+   handed a review with their name on it that isn't theirs. */
+
+import { useEffect, useState } from 'react'
+import Sheet from '../components/Sheet'
+import LeafButton from '../components/LeafButton'
+import { CheckIcon, CloseIcon, ShareIcon } from '../components/TabIcons'
+import type { Book, Entry } from '../data/db'
+import { countWords, fairCopy } from './lexicon'
+import styles from './sheet.module.css'
+
+interface Props {
+  open: boolean
+  onClose: () => void
+  book: Book
+  keeps: Entry[]
+}
+
+function FairCopySheet({ open, onClose, book, keeps }: Props) {
+  const [draft, setDraft] = useState('')
+  const [omitted, setOmitted] = useState(0)
+  const [copied, setCopied] = useState(false)
+
+  /* Regathered every time it opens, never held between openings. A stale
+     draft that silently ignores the six things kept since last week is worse
+     than no draft at all. */
+  useEffect(() => {
+    if (!open) return
+    const made = fairCopy(book, keeps)
+    setDraft(made.text)
+    setOmitted(made.omitted)
+    setCopied(false)
+  }, [open, book, keeps])
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(draft)
+      setCopied(true)
+    } catch {
+      /* Clipboard refused — an insecure origin or a browser that wants a
+         closer gesture. The text is on screen and selectable either way. */
+    }
+  }
+
+  async function share() {
+    try {
+      if (navigator.share) await navigator.share({ text: draft, title: book.title })
+      else await copy()
+    } catch {
+      /* Cancelled. */
+    }
+  }
+
+  return (
+    <Sheet
+      open={open}
+      onClose={onClose}
+      label="Draft my review"
+      name="fair-copy"
+      fill={!!draft.trim()}
+    >
+      <header className={styles.head}>
+        <h2 className={styles.title}>Draft my review</h2>
+        <button type="button" className={styles.iconButton} onClick={onClose} aria-label="Close">
+          <CloseIcon size={20} />
+        </button>
+      </header>
+
+      {/* The draft is the sheet. It used to be one item in a stack — a
+          paragraph of explanation, a field label, an "optional" tag — inside a
+          scroller, with the box itself measured by a script and grown to fit
+          its own text. That measurement ran before the serif had loaded, so it
+          was taken from a fallback face, and a long review came out with its
+          last lines cut off. A box that is simply the size of the sheet has
+          nothing to measure and nothing to get wrong. */}
+      {draft.trim() ? (
+        <div className={styles.compose}>
+          <div className={styles.stage}>
+            <textarea
+              className={`${styles.area} ${styles.write}`}
+              aria-label="The draft, yours to edit"
+              value={draft}
+              onChange={(e) => {
+                setDraft(e.target.value)
+                setCopied(false)
+              }}
+            />
+          </div>
+
+          <p className={styles.caption}>
+            Your own words, in the order you wrote them, and yours to change.
+          </p>
+
+          <p className={styles.tally}>
+            <span>{countWords(draft)} words</span>
+            {omitted > 0 && (
+              <em>
+                {omitted === 1
+                  ? 'One recording or picture couldn’t be written out.'
+                  : `${omitted} recordings and pictures couldn’t be written out.`}
+              </em>
+            )}
+          </p>
+        </div>
+      ) : (
+        /* Nothing to show and nothing to size the sheet against: the empty
+           state uses the ordinary body so the panel stays as short as the one
+           sentence in it, rather than opening a full-height stage around a
+           paragraph that says there is nothing there. */
+        <div className={styles.body}>
+          <p className={styles.quiet}>
+            There is nothing written down to gather yet. Keep a note or a line from
+            the book and this fills itself in.
+          </p>
+        </div>
+      )}
+
+      {/* Two ways out, the same size. Sending was a full-width slab and copying
+          was a small pill beneath it, which said one of them was the answer —
+          and on a laptop, where there is no system share sheet, the small one
+          is the only thing that works. Peers on one row, and the reader
+          chooses. */}
+      <footer className={styles.footRow}>
+        <LeafButton onClick={share} disabled={!draft.trim()}>
+          <ShareIcon size={18} />
+          Send it somewhere
+        </LeafButton>
+        <button
+          type="button"
+          className={styles.capture}
+          onClick={copy}
+          disabled={!draft.trim()}
+        >
+          {copied ? <CheckIcon size={18} /> : null}
+          {copied ? 'Copied' : 'Copy the text'}
+        </button>
+      </footer>
+    </Sheet>
+  )
+}
+
+export default FairCopySheet

@@ -1,17 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import type { CSSProperties, PointerEvent, RefObject } from 'react'
+import type { CSSProperties, RefObject } from 'react'
 import BookCover from './BookCover'
-import GlassSurface from './GlassSurface'
 import LeafButton from './LeafButton'
+import Sheet from './Sheet'
+import FormatRow from './FormatRow'
 import {
   BackIcon,
-  BookIcon,
   CalendarIcon,
   CaretIcon,
   CloseIcon,
-  HeadphonesIcon,
   NoteIcon,
-  ScreenIcon,
   SearchIcon,
 } from './TabIcons'
 import CalendarPicker from './date/CalendarPicker'
@@ -38,45 +36,11 @@ type Stage =
   | { kind: 'manual' }
   | { kind: 'confirm'; book: BookResult }
 
-/* Tabs, the same object as the nav and the shelf switcher: the icon is always
-   there and only the chosen one says its name. Three words side by side all
-   look equally chosen, which is the problem with a row of plain pills — the
-   one that is wearing its label is unmistakably the answer. */
-const FORMATS: { value: BookFormat; label: string; Icon: typeof BookIcon }[] = [
-  { value: 'physical', label: 'Physical', Icon: BookIcon },
-  { value: 'digital', label: 'Digital', Icon: ScreenIcon },
-  { value: 'audio', label: 'Audio', Icon: HeadphonesIcon },
-]
-
-/* How far down the sheet has to be dragged before letting go puts it away,
-   and how fast a short drag has to be moving to count instead.
-
-   Two tests rather than one, because there are two gestures here and they
-   feel nothing alike: a deliberate push down the screen, and a quick flick
-   off the bottom. Distance alone would ignore the flick; speed alone would
-   dismiss a slow, careful drag that stopped short — which reads as the sheet
-   ignoring you. */
-const DISMISS_AT = 96
-const FLICK = 0.5 // px per ms
-
 function AddBookSheet({ open, onClose }: AddBookSheetProps) {
-  const dialog = useRef<HTMLDialogElement>(null)
   const field = useRef<HTMLInputElement>(null)
-  const { panel, grabProps } = useDragToDismiss(onClose)
   const [query, setQuery] = useState('')
   const [stage, setStage] = useState<Stage>({ kind: 'search' })
   const search = useBookSearch(stage.kind === 'search' ? query : '')
-
-  /* A native dialog rather than a div with a high z-index: it takes the top
-     layer, traps focus, makes the page behind it inert and closes on Escape,
-     none of which is worth reimplementing by hand and all of which is worth
-     having. */
-  useEffect(() => {
-    const el = dialog.current
-    if (!el) return
-    if (open && !el.open) el.showModal()
-    if (!open && el.open) el.close()
-  }, [open])
 
   // Every visit starts at the beginning: an add flow left half-finished is
   // not a draft, and reopening to someone else's half-typed search is a bug.
@@ -102,129 +66,35 @@ function AddBookSheet({ open, onClose }: AddBookSheetProps) {
   }, [open, stage.kind])
 
   return (
-    <dialog
-      ref={dialog}
-      className={styles.dialog}
-      aria-label="Add a book"
-      onClose={onClose}
-      // Clicking the backdrop is a click on the dialog element itself, since
-      // the panel inside it is what actually fills the sheet.
-      onClick={(event) => event.target === dialog.current && onClose()}
-    >
-      <GlassSurface ref={panel} className={styles.panel}>
-        {/* The grab handle. A sheet that can be pushed away has to say so —
-            without it the only way out is a button in the corner, and every
-            reader who has used a phone tries the drag first and concludes the
-            sheet is stuck.
+    <Sheet open={open} onClose={onClose} label="Add a book" name="add-sheet">
+      {stage.kind === 'search' && (
+        <SearchStage
+          field={field}
+          query={query}
+          onQuery={setQuery}
+          state={search}
+          onPick={(book) => setStage({ kind: 'confirm', book })}
+          onManual={() => setStage({ kind: 'manual' })}
+          onClose={onClose}
+        />
+      )}
 
-            Decorative, and deliberately not focusable: it is a second route
-            out for a thumb, never the only one. Close and Escape are the
-            routes for everyone else, which is what keeps a drag-only dismissal
-            from locking out a keyboard or a screen reader. */}
-        <div className={styles.grab} {...grabProps}>
-          <span className={styles.grabber} aria-hidden="true" />
-        </div>
+      {stage.kind === 'manual' && (
+        <ManualStage
+          onBack={() => setStage({ kind: 'search' })}
+          onReady={(book) => setStage({ kind: 'confirm', book })}
+        />
+      )}
 
-        <div className={styles.inner}>
-          {stage.kind === 'search' && (
-            <SearchStage
-              field={field}
-              query={query}
-              onQuery={setQuery}
-              state={search}
-              onPick={(book) => setStage({ kind: 'confirm', book })}
-              onManual={() => setStage({ kind: 'manual' })}
-              onClose={onClose}
-            />
-          )}
-
-          {stage.kind === 'manual' && (
-            <ManualStage
-              onBack={() => setStage({ kind: 'search' })}
-              onReady={(book) => setStage({ kind: 'confirm', book })}
-            />
-          )}
-
-          {stage.kind === 'confirm' && (
-            <ConfirmStage
-              book={stage.book}
-              onBack={() => setStage({ kind: 'search' })}
-              onDone={onClose}
-            />
-          )}
-        </div>
-      </GlassSurface>
-    </dialog>
+      {stage.kind === 'confirm' && (
+        <ConfirmStage
+          book={stage.book}
+          onBack={() => setStage({ kind: 'search' })}
+          onDone={onClose}
+        />
+      )}
+    </Sheet>
   )
-}
-
-/* Dragging the sheet down to put it away.
-
-   Written against pointer events rather than touch events so it is one code
-   path for a thumb, a trackpad and a mouse, and so `setPointerCapture` keeps
-   the gesture attached to the handle even when the finger slides off it —
-   which it always does, because the handle is 32px tall and the drag is
-   hundreds.
-
-   The transform is written straight to the node rather than held in state.
-   A drag produces a pointermove per frame, and re-rendering a sheet with a
-   twelve-row search list inside it at that rate is how a gesture that should
-   be free starts dropping frames. Nothing else on screen depends on the
-   offset, so nothing else needs to know about it. */
-function useDragToDismiss(onClose: () => void) {
-  const panel = useRef<HTMLDivElement>(null)
-  const drag = useRef<{ from: number; at: number; by: number } | null>(null)
-
-  function offset(by: number, settle: boolean) {
-    const el = panel.current
-    if (!el) return
-    el.style.transition = settle
-      ? 'transform var(--dur-base) var(--ease-out)'
-      : 'none'
-    el.style.transform = by ? `translateY(${by}px)` : ''
-  }
-
-  function release(settle: boolean) {
-    drag.current = null
-    offset(0, settle)
-  }
-
-  return {
-    panel,
-    grabProps: {
-      onPointerDown(event: PointerEvent<HTMLDivElement>) {
-        event.currentTarget.setPointerCapture(event.pointerId)
-        drag.current = { from: event.clientY, at: event.timeStamp, by: 0 }
-      },
-      onPointerMove(event: PointerEvent<HTMLDivElement>) {
-        const d = drag.current
-        if (!d) return
-        // Downward only. A bottom sheet dragged up has nowhere to go, and
-        // letting it lift off the bottom edge exposes the gap behind it.
-        d.by = Math.max(0, event.clientY - d.from)
-        offset(d.by, false)
-      },
-      onPointerUp(event: PointerEvent<HTMLDivElement>) {
-        const d = drag.current
-        if (!d) return
-        const speed = d.by / Math.max(1, event.timeStamp - d.at)
-        if (d.by > DISMISS_AT || speed > FLICK) {
-          /* Cleared without a transition and then closed in the same tick, so
-             the reset is never painted — the sheet simply goes. Leaving the
-             offset on the node would reopen it that far down the screen. */
-          release(false)
-          onClose()
-          return
-        }
-        release(true)
-      },
-      // The gesture was taken away from us mid-drag — a system swipe, a call
-      // arriving. The sheet was never dismissed, so it goes back.
-      onPointerCancel() {
-        if (drag.current) release(true)
-      },
-    },
-  }
 }
 
 /* ---- Stage one: search ---- */
@@ -450,7 +320,12 @@ function ConfirmStage({
   onBack: () => void
   onDone: () => void
 }) {
-  const [format, setFormat] = useState<BookFormat>('physical')
+  /* A set, not a choice. Plenty of people read the paperback at home and
+     listen to the same book in the car, and asking them to pick one is asking
+     them which half of their reading to leave out. Physical is on to start
+     with because it is the commonest answer and an empty row is a question
+     nobody asked to be asked. */
+  const [formats, setFormats] = useState<BookFormat[]>(['physical'])
   const [startedOn, setStartedOn] = useState(todayISO)
   /* The calendar is folded away to begin with. Almost every book is added the
      day it is started, so the answer is already right on the row and opening
@@ -489,7 +364,7 @@ function ConfirmStage({
           // is already on the shelf updates it rather than failing on a
           // constraint or standing it beside itself.
           () =>
-            db.books.put({ ...book, format, startedOn, addedAt: Date.now() }),
+            db.books.put({ ...book, formats, startedOn, addedAt: Date.now() }),
           onDone,
         )
       }}
@@ -532,25 +407,7 @@ function ConfirmStage({
 
         <fieldset className={styles.group}>
           <legend className={styles.label}>How are you reading it?</legend>
-          <div className={styles.chipRow}>
-            {FORMATS.map(({ value, label, Icon }) => (
-              <button
-                key={value}
-                type="button"
-                className={styles.chip}
-                aria-pressed={format === value}
-                // The label is only painted on the chosen one, so the other
-                // two need their name somewhere a screen reader and a hover
-                // can still reach it.
-                aria-label={label}
-                title={label}
-                onClick={() => setFormat(value)}
-              >
-                <Icon size={20} />
-                {format === value && <span>{label}</span>}
-              </button>
-            ))}
-          </div>
+          <FormatRow value={formats} onChange={setFormats} />
         </fieldset>
 
         {/* The date, in our own control.

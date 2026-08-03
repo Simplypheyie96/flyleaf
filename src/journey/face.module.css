@@ -1,0 +1,18 @@
+/* The photograph. Everything about the mount — its shape, its fill, its ring —
+   belongs to the card that mounts it, so all this owns is that the picture
+   fills what it is given.
+
+   `cover` is what the drawing's own `slice` used to do, and it is the same
+   decision: the picture is square, every mount is taller than it is wide, and
+   a bust should be cropped at the sides rather than shrunk to fit inside a
+   letterbox. Cropped is the right failure for a portrait. */
+
+.figure {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  /* The picture is the plate's own, not a word anyone needs to copy, and a
+     drag across the card should take the sentences rather than this. */
+  user-select: none;
+}

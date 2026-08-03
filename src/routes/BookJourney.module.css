@@ -1,0 +1,1314 @@
+/* The journey page.
+
+   Two zones, and only the second one moves:
+
+     1. The pinned head — back and delete, the book, its formats and dates,
+        and the sift rail. It is the room the journey happens in, and a room
+        does not scroll away.
+     2. The scroll — the thread alone, passing underneath the head and fading
+        out as it goes under the rail.
+
+   Four type sizes on the whole route, declared on `.page` and used by name:
+   display for the book, read for kept words, chrome for controls, micro for
+   the labels that sit under things. Any fifth size would be an accident. */
+
+.page {
+  /* 26px. It began as a size chosen to exploit a narrow face — the seeded name
+     took ~246px at 26 there, less than it took at 20 in the face before that.
+     The book face is wider now: the same name measures 308px at 26. The size
+     stayed anyway, because 26 was never really buying width. It is the size at
+     which the book's name stops being a row in a header and starts being the
+     thing the page is about, and a wider face makes that more true, not less.
+
+     Line count is free here, which is worth stating because it looks like it
+     should not be: the seeded name takes two lines on a 390 phone and one
+     from 528 up, and the gap between the identity block and the format
+     chips measures a flat 16 in both cases. The void that gap used to have in
+     it was never the title's line count — so 26 is chosen for the reading,
+     not to defend a wrap. */
+  --t-display: 1.625rem;
+  --t-read: 1.0625rem;
+  --t-chrome: 0.875rem;
+  --t-micro: 0.6875rem;
+
+  /* The column, widened off the shared default.
+
+     The app's default column has a 420px floor, which is right for the Home
+     feed — a card holding one line is a stretched banner long before 760. It
+     is wrong here. 420 stops being the *floor* and starts being the *width*
+     the moment the viewport passes 390, so from a phone up to about 583px the
+     head and the thread stayed exactly 420 wide while the screen kept growing
+     around them: a fixed block of content marooned in two widening bands of
+     empty sky. That is the gap on a resized window, and it was never a
+     spacing bug in the head at all.
+
+     90vw tracks the screen through that whole band and hands over to the same
+     560 cap at 622, so nothing wider changes. */
+  --column-max: clamp(420px, 90vw, 560px);
+
+  --journey-gap: var(--space-6);
+  --gutter: 26px;
+  --knot-size: 26px;
+  /* Nudges the knot down onto the cap height of the card's first line, so the
+     circle reads as level with the text rather than with its line box. */
+  --knot-top: 3px;
+
+  /* The page is the viewport: the head stands in it and the thread scrolls
+     inside it. dvh, not svh — when a phone's browser bar retracts the pinned
+     zones should follow the real edge. */
+  block-size: 100dvh;
+  min-block-size: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ── The pinned head ────────────────────────────────────────────────────── */
+
+/* No `gap`: the middle child collapses to nothing when the head folds, and a
+   column gap would leave two of them stacked where the block used to be — a
+   12px dead band under the chrome that appears out of nowhere. The rhythm is
+   carried by the parts instead, so the ones that vanish take their spacing
+   with them. */
+.pinned {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  gap: 0;
+  padding-block-start: calc(env(safe-area-inset-top, 0px) + var(--space-3));
+  padding-inline: var(--space-5);
+}
+
+.chromeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-3);
+}
+
+/* The fold. A grid row animating 0fr → 1fr is the one way to transition a
+   block to its own natural height without measuring it in JS, and it keeps the
+   contents from reflowing on the way: the child is laid out once at full width
+   and clipped.
+
+   Exactly one child, always. `grid-template-rows` sizes only the row it
+   declares — a second child lands in an implicit row that stays `auto` and
+   goes on holding its full height while the first one collapses. */
+.headFold {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--dur-base) var(--ease-move);
+}
+
+.headFold > * {
+  min-block-size: 0;
+  overflow: hidden;
+  transition: opacity var(--dur-quick) var(--ease-out);
+}
+
+/* Everything that folds, in one box: the two columns and nothing else. No
+   gap — there is one child now that the dates have gone back up into the
+   record where they belong. The trailing rhythm lives in here rather than on
+   the row below it, so it collapses along with everything else. */
+.headInner {
+  padding-block-end: var(--space-4);
+}
+
+.headFold[data-folded] {
+  grid-template-rows: 0fr;
+}
+
+/* Out before it is gone, so the last frames of the collapse are empty paper
+   rather than a cover being guillotined. */
+.headFold[data-folded] > * {
+  opacity: 0;
+}
+
+/* Folded, the head is one bar, and a bar with no name on it is a bar you can
+   be lost in. The title takes whatever room the two pills leave and truncates
+   rather than wrapping.
+
+   It is also the way back to the book: tapping it returns the thread to the
+   top, which is what opens the head again. A button, but not a *control* —
+   no border, no fill, nothing that reads as chrome. The alternative was a
+   second glyph welded to the back arrow, which is two ideas in one pill and
+   says nothing about what it does. */
+.miniTitle {
+  min-inline-size: 0;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: start;
+  cursor: pointer;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--t-chrome);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* More than one button together shares one container. */
+.chromeSet {
+  display: flex;
+  align-items: center;
+}
+
+.capsule {
+  --glass-pad: 0;
+  --glass-radius: var(--radius-pill);
+  flex-shrink: 0;
+  box-shadow: var(--elevation-1);
+}
+
+/* Two circles, one verb each. No labels: a chevron pointing back and a bin
+   are the two glyphs every phone has already taught. */
+.back,
+.chromeAction {
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+.chromeAction {
+  color: var(--color-ink-soft);
+}
+
+.chromeAction:hover {
+  color: var(--color-ink);
+}
+
+.chromeDanger:hover {
+  color: var(--color-danger);
+}
+
+.back:active,
+.chromeAction:active {
+  transform: scale(0.94);
+}
+
+/* The book on one side, everything about it on the other.
+
+   Two columns and therefore exactly two alignment edges: the spine of the
+   cover, and the edge every written thing starts from. Nothing in the head
+   is allowed a third — the dates used to have one, sitting on a full-width
+   line below both columns, so their leading edge lined up with the book and
+   with none of the writing they belong to.
+
+   The two columns are the same height, and that is `stretch` doing it rather
+   than a number that happens to match. It was written the other way — a fixed
+   72px board standing 108 at 2:3, with the record free to run past it — and
+   the record ran 143, so the book finished 35px short of the writing beside
+   it and the head read as one tall thing next to one small one. Sizing the
+   board to the record by hand is what produced that: the moment either column
+   changed, the pair stopped matching, and there was nothing in the stylesheet
+   to notice.
+
+   So the row makes them equal instead. The board is the cross-stretched item,
+   the record sets the height, and no content in either column can pull them
+   apart. The 2:3 comes back through the floor below, which is the one number
+   still worth stating. */
+.headTop {
+  --board: 110px;
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-4);
+}
+
+/* The star, in the head's own patch of sky.
+
+   It is the same mark that sits at the corner of the Home masthead and the
+   Library masthead — the app's, not the book's — so a reader arriving here
+   from the shelf lands on something they have already met. Placing it is the
+   whole of the design: the trailing bottom corner of this row is the one spot
+   in the head that is empty no matter what the book is. Everything in the
+   record column below the byline is shrink-to-fit against the leading edge
+   (`align-items: flex-start` on `.about`), and the board beside it is always
+   the taller of the two, so this corner is sky on every book on every phone.
+
+   Against the title it would collide on a long name; against the chrome row it
+   would read as a fourth button between two glass pills. Here it decorates
+   nothing and interrupts nothing, which is what an accent is for.
+
+   It folds away with the head because it lives inside the fold, which is
+   correct: it belongs to the masthead, and a folded head is a bar, not a
+   masthead. */
+.headSpark {
+  position: absolute;
+  inset-block-end: 2px;
+  inset-inline-end: 0;
+  color: var(--color-voice);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Scoped through the row on purpose: the cover component states its own
+   `aspect-ratio: 2 / 3`, and a ratio plus a definite width is a definite
+   height, which is exactly the thing `stretch` is not allowed to override.
+   One class each would leave which rule wins to bundle order.
+
+   The 2:3 floor lives here now rather than on the record. It is the same
+   number either way, but it lands somewhere different: on the record it was
+   height the *text* had to find a use for, and `space-between` spent it on the
+   one join in the column. On the board it is simply how tall the book is, and
+   anything the writing does not need trails off the bottom of the column,
+   which is what a cover standing beside a short caption has always looked
+   like. 110 × 1.5 = 165; the record's tallest case is 162.85. */
+.headTop .cover {
+  flex: none;
+  align-self: stretch;
+  inline-size: var(--board);
+  min-block-size: calc(var(--board) * 1.5);
+  block-size: auto;
+  aspect-ratio: auto;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--elevation-2);
+}
+
+/* The record: what the book is, then what you can change about it.
+
+   One rhythm down the whole column — 16, everywhere — and exactly one join
+   that is tighter than it. That single 8 between the title and its byline is
+   the only grouping this column needs, and it is the right way round: the
+   pair that belongs together is bound, and nothing has to be pushed apart to
+   say so.
+
+   The version before this one said it the other way, with two groups and a
+   seam, and the seam is what the head kept getting wrong. It was distributed:
+   the floor came off the board's 2:3, `space-between` collected every pixel
+   the floor added and put it all in that one join, and on a short title the
+   join opened into a band of dead air under the byline that belonged to
+   nothing on either side of it. The gap was reporting the leftover space
+   rather than the structure.
+
+   So the floor moved to the board, where spare height is just a cover that is
+   taller than its caption, and the column here is even. 16 is also its own
+   floor: the format chips draw 28 and reach 44, so they overhang 8 below
+   their paper, and the date pill draws 34 and reaches 44, so it overhangs 5
+   above its own — 13 is where the two targets stop touching, and 16 is the
+   step above it. */
+.about {
+  min-inline-size: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* The controls are shrink-to-fit; the identity opts back into the full
+     width below, because the title and byline need an edge to clip against. */
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+/* Name and byline are one fact in two lines, so they sit at the tightest gap
+   in the head — half of everything else, which is the whole of the 2× that
+   makes them read as a pair. */
+.identity {
+  align-self: stretch;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* The title, and the one thing on this page allowed to look like a book.
+
+   Weight is stated at 400 rather than left to inherit: this is an h1, an h1
+   defaults to bold, and a bold this face does not own gets synthesised —
+   which on strokes this fine smears them instead of thickening them.
+
+   Two lines, clamped. One line kept the head the same height for every book,
+   which was a real argument, but it bought that with two things worth more:
+   most titles at this width were cut off inside their first six words, and
+   the line it saved was the line that turned into dead air lower down. Two is
+   still a fixed ceiling — the head cannot grow past it — and it is spent on
+   the book's own name.
+
+   Truncation hides content, so the full name stays reachable — `title` on the
+   element, and the folded bar spells it out in full besides. */
+.title {
+  align-self: stretch;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--t-display);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--track-title);
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  color: var(--color-ink);
+}
+
+/* Author and count on one mono caps line, the way a reference jacket sets a
+   byline.
+
+   Snug rather than body leading, because it is one line and will always be
+   one line. At 1.6 an 11px label carries 3px of empty box under it that no
+   ink ever reaches, which read as three more pixels of gap under the title
+   and made the 8 above it look like 11 — invisible in the stylesheet, plainly
+   visible on the screen. */
+.author {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-inline-size: 100%;
+  color: var(--color-ink-soft);
+}
+
+/* The reading span: one pill, two tappable ends, an arrow between them.
+
+   It was two labelled columns — STARTED over a date, FINISHED over a date,
+   each value on its own dashed underline. Four lines and two dotted rules to
+   carry two facts, in the part of the page that already has the least room.
+   A date, an arrow, a date needs no labels: nobody reads "Jul 2 → still
+   reading" and wonders which end is which.
+
+   Same pill the formats above it wear, so the head is one family of controls
+   rather than a pill row followed by a pair of underlined words. */
+/* ── The one material every floating control on this page is made of ─────
+
+   The head stands on the sky, and the app already has a word for something
+   that floats on the sky: the frost the nav pill and the chrome capsule are
+   made of. These three were the exceptions — flat --color-paper, which by day
+   is a white button on a blue sky and by night a dark slab, in both cases the
+   only objects on screen made of something the rest of the app is not.
+
+   Fill and rim only, no backdrop-filter, and that is deliberate rather than
+   lazy: what is behind the head here is the sky gradient and nothing else —
+   the thread is a sibling below, not a layer underneath — so a blur has no
+   detail to soften and would cost a compositing layer per chip for a pixel-
+   identical result. The frost is the translucency and the lit top edge, which
+   is what the eye actually reads. It also keeps these clear of the nested-
+   backdrop-filter trap: .tabs carries a mask, and a mask makes a backdrop
+   root, so a filter on a chip inside it would sample nothing at all. */
+.span,
+.tab,
+.sortBtn {
+  border: 1px solid var(--control-border);
+  background: var(--control-fill);
+  box-shadow: inset 0 1px 0 var(--control-highlight);
+}
+
+/* 34 drawn, 44 reached — the same trick the format chips above it use.
+
+   It was 46px of painted pill for a 12px date, because the pill was carrying
+   the tap minimum in its own height: two short words upholstered into the
+   largest object in the head, with more air above and below the type than the
+   type was tall. The paper comes down to 34 and the target moves onto the two
+   buttons inside it, where it was always supposed to live. Nothing about the
+   pill got harder to hit. */
+.span {
+  display: inline-flex;
+  align-items: stretch;
+  max-inline-size: 100%;
+  /* Plus the two hairlines, so the ends draw a clean 32 inside the rim. */
+  min-block-size: calc(32px + 2px);
+  border-radius: var(--radius-pill);
+}
+
+/* Each end is the full height of the pill, so both halves clear the tap
+   minimum without the pill having to grow for them.
+
+   12px of inset, not 16. Two ends at 16 put 32px of air between the two dates
+   and pushed the pill most of the way across the column for two short words —
+   the tap target was never the problem, the pill was just upholstered. The
+   hit area is unchanged: it is the full height and the full half-width. */
+.spanEnd {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-inline-size: 0;
+  padding-inline: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: color var(--dur-quick) var(--ease-out);
+}
+
+/* The clipping lives on the label, not on the button. `overflow: hidden` on
+   the button crops its own tap pseudo to the height the pill paints, which is
+   how a control that reads as 44 in the stylesheet measures 33 to a thumb. */
+.spanText {
+  min-inline-size: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The 44 the pill no longer draws. Full width of its own end, so the two
+   halves stay separately tappable and neither reaches over the other; the
+   height is stated rather than inset, because an inset resolves against the
+   padding box and would come out short by the rim. It grows into head air
+   that holds nothing — 12px above it and 16 below, both already wider than
+   the 5px this reaches. */
+.spanEnd::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  inline-size: 100%;
+  block-size: var(--tap-min);
+}
+
+/* An end with nothing in it yet is a prompt, not a fact — it says so by
+   sitting a shade back from the date it is waiting to become. */
+.spanEnd[data-unset] {
+  font-weight: 500;
+  color: var(--color-ink-soft);
+}
+
+.spanEnd:hover {
+  color: var(--color-accent-text);
+}
+
+/* The two ends are the buttons; the arrow is the sentence between them, so it
+   takes no room from either and never eats a tap meant for a date. */
+.spanArrow {
+  display: grid;
+  place-items: center;
+  padding-block: 0;
+  margin-inline: calc(-1 * var(--space-1));
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+  pointer-events: none;
+}
+
+/* ── Filter and sort, separated ─────────────────────────────────────────── */
+
+/* The page is three zones and they have to read as three: the book on open
+   paper, the rail in a strip of its own, the thread scrolling under both. A
+   single hairline was carrying that whole job and losing — so the rail gets
+   its own ground, run out to the column's edges so it reads as a band across
+   the head rather than another row inside it. Paper rather than a wash of ink:
+   the head sits *over* the thread that scrolls beneath it, and a darkened
+   strip would say the opposite. */
+/* One line. The kinds run along it and the order sits off the far end.
+
+   It had its own ground and a rule above and below it, and that was the thing
+   that looked wrong: a paler strip boxed between two lines reads as a toolbar
+   somebody dropped onto the paper, not as part of the head it belongs to. One
+   rule, at the bottom, where the head actually ends — the chips sit on the
+   same paper as the book above them and the line closes the whole head at
+   once. Three zones still, with two lines fewer. */
+.tabsRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-inline: calc(-1 * var(--space-5));
+  padding-inline: var(--space-5);
+  border-block-end: 1px solid var(--border-hairline);
+}
+
+/* All, then the kinds, running past the trailing edge.
+
+   Wrapping them so all eight showed at once cost three rows and a third of
+   the pinned head; dropping the names to fit one row left eight grey glyphs
+   with nothing to read. A row you pull through keeps both the names and the
+   single line, and the fade off the trailing edge is what says there is more
+   of it. */
+.tabs {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-3);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  /* Room for the last chip to scroll clear of the fade, and the fade itself.
+     64px, not 48: at 48 the chip under the trailing edge was still nearly
+     opaque when the mask ran out, so a word came to a hard stop in mid-air
+     with a round button immediately after it — which reads as something
+     rendering wrong rather than as a row you can pull. Over 64 it actually
+     dissolves. */
+  padding-inline-end: var(--space-6);
+  mask-image: linear-gradient(
+    to right,
+    black 0,
+    black calc(100% - var(--space-8)),
+    transparent 100%
+  );
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Toggle chips, the app's own selectable-pill everywhere else. A chosen kind
+   fills with its own tint — the same hue its knots wear on the thread. */
+.tab {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: 34px;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
+}
+
+/* 34px of pill, 44px of target — and "All", the shortest of them, is 41 wide,
+   so this one has to find the missing pixels in both directions.
+
+   Vertically there is room to spare: .tabs holds 12px of padding above and
+   below the row so the chips clear the rule that closes the head. Inline it is
+   exactly half the gap each way — the chips sit 8px apart, so 4px a side makes
+   neighbouring targets meet at the seam without either reaching into the
+   other. Growing the pills themselves was the alternative and it is the wrong
+   one twice over: the rail would take another row of the pinned head, and
+   eight filled pills at the tap minimum is the toolbar this row was rebuilt to
+   stop being.
+
+   The height is stated rather than derived. An `inset: -5px` overhang reads
+   as "34 and five each side, so 44" and is not: absolute insets resolve
+   against the *padding* box, and the chip carries a 1px border, so it drew 42
+   and measured 42. Naming the tap minimum outright is both the number that
+   matters and immune to the border ever changing. */
+.tab::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  block-size: var(--tap-min);
+  inline-size: calc(100% + 8px);
+  min-inline-size: var(--tap-min);
+}
+
+.tab:hover {
+  color: var(--color-ink);
+}
+
+/* Chosen, and there is one chosen state for the whole rail.
+
+   It was a 16% wash of each kind's hue over paper, which gave a chosen chip
+   about a twentieth of a step over an unchosen one — seven pale pills where
+   only the words told you which were on. And "All", having no hue, fell
+   through to a grey that belonged to no part of the palette.
+
+   Now every chip fills, and fills with the same recipe: its own hue carried
+   most of the way to the app's action ink. A quote chip is a deep sage, a
+   thread chip a deep mallow, and "All" — which has no hue because it is every
+   kind at once — resolves the fallback to the action ink itself and comes out
+   as the plain filled chip the rest of the app selects things in. One formula,
+   no special case, and the on/off difference is now a fill rather than a
+   rumour. */
+.tab[data-on] {
+  background: color-mix(in oklab, var(--kind, var(--color-action)) 55%, var(--color-action));
+  border-color: transparent;
+  box-shadow: var(--elevation-1);
+  color: var(--color-on-action);
+}
+
+/* Order: one round control, the same round control as every other single
+   verb in the app — the chrome circles at the top, the verbs on each keep.
+
+   It was a mono label, a glyph and a hit area fused into one shape sitting
+   where a button should be, which is not a button on any phone. What order
+   the thread is in is what this says when you ask it, by name. */
+.sortBtn {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  padding: 0;
+  border-radius: 50%;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition:
+    color var(--dur-quick) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
+}
+
+/* Four pixels short of the minimum, and drawn at 40 because 40 is what sits
+   right at the end of a row of 34px chips — a 44px disc there reads as the
+   loudest thing in the head, which the order control is not. The two pixels a
+   side come out of the 16px gap between it and the rail. Stated, not inset,
+   for the reason given on .tab::after. */
+.sortBtn::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+}
+
+.sortBtn:hover {
+  color: var(--color-ink);
+}
+
+.sortBtn:active {
+  transform: scale(0.94);
+}
+
+/* ── The scroll ─────────────────────────────────────────────────────────── */
+
+.scroller {
+  flex: 1;
+  min-block-size: 0;
+  inline-size: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-inline: var(--space-5);
+  /* The thread does not stop at the head — it slips underneath it. The mask
+     is what sells the pinned zone as a surface the journey passes under. */
+  mask-image: linear-gradient(to bottom, transparent 0, black 24px, black 100%);
+}
+
+.column {
+  /* The tail of the thread has to clear the floating action, not hide behind
+     it — --bar-clear is the app's own name for that much room. */
+  padding-block: var(--space-4) var(--bar-clear);
+  gap: var(--space-6);
+}
+
+/* ── The thread ─────────────────────────────────────────────────────────── */
+
+/* The thread hangs half into the page's own margin.
+
+   A ruled line down the edge of a page belongs *in* the margin — that is what
+   a margin is for. Sitting it fully inside the text inset instead meant the
+   keeps began 72px from the leading edge and ended 24px from the trailing one,
+   so the page read as weighted to one side with an empty channel beside it.
+   Pulled out, the knots run near the paper's edge where a rule belongs and the
+   cards get the width back. */
+.thread {
+  margin: 0;
+  margin-inline-start: calc(-1 * var(--space-3));
+  padding: 0;
+  list-style: none;
+}
+
+.notch {
+  --kind: var(--color-accent);
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr);
+  /* The thread column is exactly as wide as the knot standing in it and the
+     gap is the smallest one that still reads as a gap. It used to be 32px of
+     column and 16px of gap on top of the page's own 24px inset — 72px of
+     leading margin against 24px trailing, all of it holding one hairline and
+     one 26px circle. That is the lopsided page: everything crowded down the
+     trailing half with an empty channel beside it, and the cards paying ~48px
+     of their measure for it. */
+  column-gap: var(--space-2);
+  /* Spacing lives in the item's own padding rather than a list gap, so the
+     drawn line can run through it and the thread has no holes. */
+  padding-block-end: var(--journey-gap);
+}
+
+.gutter {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+/* Two segments rather than one line, so a tie can thicken the run above a
+   knot without touching the run below it. */
+.gutter::before,
+.gutter::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 50%;
+  inline-size: 0;
+  /* Mixed off the ink rather than borrowing --card-border: that token is tuned
+     to sit at the edge of a filled card, and a bare 1px dash of it on open
+     paper all but disappears. The thread is the page's spine — it has to read
+     as a continuous line from across the room. */
+  border-inline-start: 1px dashed color-mix(in oklab, var(--color-ink) 26%, transparent);
+  transform: translateX(-50%);
+  transition: border-color var(--dur-base) var(--ease-out);
+}
+
+.gutter::before {
+  inset-block-start: 0;
+  block-size: var(--knot-top);
+}
+
+.gutter::after {
+  inset-block-start: calc(var(--knot-top) + var(--knot-size));
+  /* Reaches down through the item's own padding to the next knot. */
+  inset-block-end: calc(-1 * var(--journey-gap));
+}
+
+/* The thread has two ends and neither should dangle past them. */
+.thread > .notch:first-child .gutter::before,
+.thread > .notch:last-child .gutter::after {
+  display: none;
+}
+
+.knot {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  inline-size: var(--knot-size);
+  block-size: var(--knot-size);
+  margin-block-start: var(--knot-top);
+  border: 1px solid color-mix(in oklab, var(--kind) 45%, transparent);
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--kind) 16%, var(--color-paper));
+  color: var(--kind);
+}
+
+.notch[data-opening] .knot {
+  /* The origin of the thread is filled rather than tinted: it is the one point
+     that is not an entry, and it should read as what everything hangs on.
+
+     Filled in the ink the app fills things with, not in the accent. Honey was
+     the only warm thing on a page of blue-grey paper, and being the only one
+     of something is not the same as being the important one — it just read as
+     a mark from a different app. Ink is what every solid control here is made
+     of, so the origin of the thread is now the darkest point on it. */
+  border-color: transparent;
+  background: var(--color-action);
+  color: var(--color-on-action);
+}
+
+/* A tie draws certainty. Only plot threads are ever tied, and only when they
+   are filtered alone — the gutter run goes solid and thickens as the reader
+   moves from a hunch to something they are sure of… */
+.notch[data-tie][data-up] .gutter::before,
+.notch[data-tie][data-down] .gutter::after {
+  border-inline-start-style: solid;
+  border-inline-start-width: calc(1px + var(--weight, 1) * 0.75px);
+  border-inline-start-color: color-mix(
+    in oklab,
+    var(--kind) calc(30% + var(--weight, 1) * 18%),
+    transparent
+  );
+}
+
+/* …and that run is the whole of it. There used to be a second line as well,
+   drawn under the card itself and inset into the column of writing, and it was
+   the one the reader kept seeing dangle. It was stated as `--journey-gap`
+   tall, but the distance it had to cross was the gap *plus* the next card's
+   meta line — about 23px more — so it stopped in mid-air every single time,
+   and no value would have fixed it: the number it needed was the height of a
+   line of type it knew nothing about.
+
+   The gutter run has no such problem. It is anchored top and bottom to the
+   notches themselves, so it is continuous by construction at any gap, any
+   type size and any card height, and under a tie it is already solid and
+   already thickened by the weight. One line, and it arrives. */
+
+.hang {
+  position: relative;
+  min-inline-size: 0;
+  /* No density override any more. This used to squeeze every PaperSurface on
+     the thread to --space-4, which is where "the cards feel cramped" came
+     from; the keeps are drawn objects now rather than one tinted rectangle in
+     seven fills, and each direction sets its own breathing room. */
+}
+
+/* ── The opening ────────────────────────────────────────────────────────── */
+
+/* Not a card. The opening is an inscription written on the page itself — a
+   heading in the book's serif and a line or two under it, the way an epigraph
+   sits on paper. The knot beside it is what makes it part of the thread. */
+
+/* Every notch is named the same way: when and where at the leading edge,
+   what at the trailing one. Two children, pushed to opposite ends — the date
+   under the card's own left margin, the substance out on the right rail, and
+   the gap between them is what stops the line from reading as one clump in
+   the corner of an otherwise empty row. */
+.when {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-faint);
+}
+
+.whenDay {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-ink-soft);
+}
+
+/* Whether this came out of the book or out of the reader, said in the line
+   that already says when and where, and set on the trailing edge of it.
+
+   It has to sit *inside* the mono run without becoming another field in it —
+   the day and the page are data, this is the page describing itself. So it
+   drops the uppercase and the wide tracking the rest of the line carries and
+   comes back in the book's own serif, lowercase, one notch lighter. Read
+   quickly it is a texture change rather than a fourth thing to parse. */
+.whenSide {
+  flex: none;
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
+  font-size: var(--text-xs);
+  font-style: italic;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  color: var(--color-ink-faint);
+}
+
+/* The one notch Flyleaf writes itself, and it should look *written* rather
+   than entered. It was the body sans at reading size with a meta line over it,
+   which is the shape of a keep with no card around it — the reader could not
+   tell it was the place the thread is tied on.
+
+   A book already has a way of saying "this is where it starts", and it is the
+   set letter on the opening leaf. So: the serif, italic, and a raised initial
+   in the accent. Still not a card — nothing to press, nothing to own — but
+   nothing else on the thread looks remotely like it.
+
+   Two sizes came down. The line was at reading size, 17, which made the app's
+   own sentence the largest run of prose on the page — louder than any keep the
+   reader actually wrote. It is 15 now: still the biggest serif on the thread
+   by voice, no longer by measurement. And the initial was 2.7em of that 17,
+   which is 46px of one letter standing over a two-line sentence; a letter that
+   large stops being an initial and becomes a monogram. 2.4em of 15 is 36, and
+   36 is a letter that opens a paragraph.
+
+   The star is the third thing, and it is the only thing added. It lands on the
+   initial's leading shoulder — the mark is *on the letter*, not next to the
+   words — and it is the same star that sits at the corner of the Home and
+   Library mastheads, so the reader has met it before. */
+.openLine {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
+  font-size: var(--text-base);
+  font-style: italic;
+  line-height: 1.5;
+  text-wrap: pretty;
+  color: var(--color-ink);
+  max-inline-size: var(--measure);
+}
+
+.openLine::first-letter {
+  float: inline-start;
+  margin-inline-end: 0.1em;
+  padding-block-start: 0.05em;
+  font-size: 2.4em;
+  font-style: normal;
+  line-height: 0.8;
+  color: var(--color-accent-text);
+}
+
+/* Lifted out of flow so it can sit *over* the initial's shoulder without
+   pushing a word anywhere. It is written last in the markup for the same
+   reason: an inline element ahead of the text leaves `::first-letter` with no
+   letter to raise, and the initial vanishes with no error anywhere. */
+.openSpark {
+  position: absolute;
+  inset-block-start: -5px;
+  inset-inline-start: -6px;
+  color: var(--color-accent-text);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* The line under the inscription, set the way every other caption on the
+   thread is set — mono, small, spaced — so the inscription above it is the
+   only thing on the page wearing that voice. `clear` because the raised
+   initial is floated. */
+.openHint {
+  clear: both;
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: var(--leading-body);
+  color: var(--color-ink-faint);
+  max-inline-size: var(--measure);
+}
+
+/* ── Nothing matched ────────────────────────────────────────────────────── */
+
+/* An empty stretch of thread is still part of the scrapbook: a loose,
+   dashed-edged leaf with a serif line on it, not a bare sentence floating in
+   the void. Used both when a filter comes up empty and when nothing has been
+   kept yet. */
+.nothing {
+  /* The leaf is its own perch. `--mascot-drop: -100%` resolves the strip's
+     `bottom` to +100% of this box, which puts the strip's bottom edge exactly
+     on the leaf's top edge — no measurement, no hand-set gap, and it stays
+     right however tall the sentence inside grows. The strip is out of flow, so
+     the creature costs the empty state nothing. */
+  position: relative;
+  --mascot-drop: -100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-6) var(--space-5);
+  border: 1px dashed color-mix(in oklab, var(--color-ink) 24%, transparent);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
+  font-style: italic;
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-ink-soft);
+}
+
+.clear {
+  min-block-size: 36px;
+  padding-inline: var(--space-4);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-chip-active);
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: var(--text-sm);
+  color: var(--color-accent-text);
+  cursor: pointer;
+}
+
+/* ── The calendar sheet ─────────────────────────────────────────────────── */
+
+.unfinish {
+  align-self: center;
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-4);
+  border: 0;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome);
+  color: var(--color-accent-text);
+  cursor: pointer;
+}
+
+/* ── The end of the thread ──────────────────────────────────────────────── */
+
+.ending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+/* The thread's last inch, drawn loose: it stops rather than being cut off. */
+.tail {
+  inline-size: 1px;
+  block-size: var(--space-6);
+  /* Sits on the gutter's own centre line rather than the column's, so the
+     thread ends where it ran. */
+  align-self: flex-start;
+  margin-inline-start: calc(var(--gutter) / 2);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-ink) 26%, transparent),
+    transparent
+  );
+}
+
+/* The creature's perch at the end of the thread.
+
+   This is the one job on this page the rabbit can do without costing anything.
+   It is past the last keep — you only meet it once you have read everything
+   you kept — so it can never sit beside a card, never repeat down the scroll,
+   and never compete with a single word the reader wrote. And it is where the
+   app already speaks: the closing line and the opening inscription are the two
+   sentences Flyleaf writes here, so the creature turns up next to its own
+   voice rather than in the middle of someone else's.
+
+   The bed is the sentence's box and nothing else. `inset-inline: 0` on the
+   strip makes the bed the creature's whole world, so it travels the width of
+   the line and bumps into the words the way it bumps into the heading on Home
+   — the wall comes out of the text's own measure, with nothing measuring it.
+   `--mascot-drop: -100%` lands the strip's bottom edge on the line's top edge,
+   which is what crops the body and leaves the ears clearing the sentence. */
+.endBed {
+  position: relative;
+  --mascot-drop: -100%;
+}
+
+.endLine {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-base);
+  color: var(--color-ink-faint);
+}
+
+/* The other end of the bookend. The opening inscription carries the star on
+   its leading shoulder; the closing line carries it on the trailing one, so
+   the two sentences the app writes on this page are marked as a pair and
+   nothing in between is marked at all.
+
+   Voice hue rather than the line's own faint ink: at `--color-ink-faint` the
+   star would be a smudge. It is the same colour and the same 0.55 as the Home
+   masthead, which is the point — one star, three places, one look. */
+.endSpark {
+  position: absolute;
+  inset-block-start: -7px;
+  inset-inline-end: -13px;
+  color: var(--color-voice);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ── The dock ───────────────────────────────────────────────────────────── */
+
+/* Only the undo bar docks now. It rides above the floating action rather than
+   beside it: a bar wide enough to hold a sentence and a button will always
+   reach the trailing corner on a phone, and a toast half under a button is a
+   toast you cannot undo from. */
+.dock {
+  position: sticky;
+  inset-block-end: calc(
+    env(safe-area-inset-bottom, 0px) + var(--space-4) + var(--fab-size) + var(--space-3)
+  );
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  margin-block-start: var(--space-4);
+  /* The room either side of the bar is dead space, and the thread behind it
+     has to stay reachable through it. */
+  pointer-events: none;
+}
+
+.dock > * {
+  pointer-events: auto;
+}
+
+/* ── Keep something ─────────────────────────────────────────────────────── */
+
+/* It was a wide button docked across the foot of the thread — the last thing
+   on the page and, on a phone, a bar standing in front of the reading. A
+   journey is for reading what you kept; the way to keep more sits in the
+   trailing corner, in thumb's reach, out of the way.
+
+   The corner was right and the object was not: a perfect disc of flat colour
+   with a ruled cross on it is the one control every app on the phone already
+   has, and it landed on this paper like a sticker. It keeps the size and the
+   place — both are about the thumb — and gives up the circle for the shape
+   the rest of Flyleaf is cut from: three turned corners and one left square,
+   the corner of a page.
+
+   And it is made of what the app's other solid buttons are made of. It wore
+   the honey accent and its own hairline, on its own timing curve, with a flat
+   scale for a press — the primary action on the page was the one control not
+   cut from the same material as the rest, which is why it landed like a
+   sticker. It is a LeafButton now in everything but name: action ink, the
+   same shadow, the same lift on hover and the same settle on release. */
+.keepIt {
+  position: fixed;
+  inset-block-end: calc(env(safe-area-inset-bottom, 0px) + var(--space-4));
+  inset-inline-end: var(--space-5);
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  inline-size: var(--fab-size);
+  block-size: var(--fab-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-leaf);
+  background: var(--color-action);
+  color: var(--color-on-action);
+  box-shadow: var(--elevation-2);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-move),
+    opacity var(--dur-quick) var(--ease-out);
+}
+
+/* Hover is pointer-only here for the same reason it is on every other button
+   in the app: on touch it sticks after the tap and the thing stays lifted
+   long after the finger has gone. */
+@media (hover: hover) {
+  .keepIt:hover {
+    background: var(--color-action-hover);
+    box-shadow: var(--elevation-3);
+    transform: translateY(calc(-1 * var(--lift) / 2));
+  }
+}
+
+.keepIt:active {
+  background: var(--color-action-press);
+  box-shadow: none;
+  transform: translateY(var(--press)) scale(0.96);
+  transition-duration: var(--dur-press);
+}
+
+/* Away, not gone: it slides off its own corner rather than blinking out, so a
+   reader who was about to reach for it can see where it went. It stays in the
+   accessibility tree and stays tabbable — a keyboard or screen-reader user
+   never scrolls it out of reach, because they were never the ones it was
+   covering — and reaching it by tab brings it straight back. */
+.keepIt[data-away] {
+  transform: translate(20%, 130%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.keepIt[data-away]:focus-visible {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.undo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  background: var(--glass-fallback);
+  box-shadow: var(--elevation-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+}
+
+.undoAction {
+  min-block-size: 36px;
+  padding-inline: var(--space-4);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-chip-active);
+  font: inherit;
+  color: var(--color-accent-text);
+  cursor: pointer;
+}
+
+/* ── Missing book ───────────────────────────────────────────────────────── */
+
+.plainBack {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: var(--tap-min);
+  font-family: var(--font-sans);
+  font-size: var(--t-chrome);
+  color: var(--color-ink-soft);
+  text-decoration: none;
+}
+
+.missing {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-ink-soft);
+}
+
+/* ── Wider ──────────────────────────────────────────────────────────────── */
+
+@media (min-width: 760px) {
+  .page {
+    --t-display: 1.875rem;
+    --gutter: 30px;
+    --journey-gap: var(--space-7);
+  }
+
+  /* Same reason `.pinned` carries no gap: the rhythm lives on the parts, so
+     the head takes its spacing with it when it folds. */
+  .chromeRow {
+    margin-block-end: var(--space-4);
+  }
+
+  /* A bigger board for a bigger title. Only the floor moves: the two columns
+     are the same height at every width because the row makes them so, and
+     this just decides how tall a book that is. The display step goes to 24
+     here, so two lines of it cost 55.2 and the record's tallest case is
+     172.05; 116 × 1.5 = 174 clears it. */
+  .headTop {
+    --board: 116px;
+    gap: var(--space-5);
+  }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .back:active,
+  .chromeAction:active,
+  .keepIt:active {
+    transform: none;
+  }
+
+  /* The head still leaves and still comes back — losing it entirely would
+     leave the reader wondering where the book went — but it arrives without
+     the travel. */
+  .headFold,
+  .headFold > * {
+    transition-duration: 0.01ms;
+  }
+
+  /* Tier 1: the slide off the corner is the vestibular part. It still leaves
+     and returns — that is the whole point of it — but by fading. */
+  .keepIt {
+    transition: opacity var(--dur-quick) var(--ease-out);
+  }
+
+  .keepIt[data-away] {
+    transform: none;
+  }
+}
