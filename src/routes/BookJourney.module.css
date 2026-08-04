@@ -887,6 +887,33 @@
   -webkit-hyphens: auto;
 }
 
+/* Justify the prose. Hyphenation alone only pays out when a long, breakable
+   word happens to land at a line end, so it helped at 375/390/402/414 and did
+   nothing at 430 or 440 — help that arrives on some phones and not others is
+   not a fix. Making it hungrier does not work either; hyphenate-limit-chars at
+   6 3 3, 5 3 2 and 4 2 2 all measured identical or worse.
+
+   Justification is width-independent by construction: every line but the last
+   is stretched to the measure, so the block meets its own edge on any handset.
+   Worst trailing gap per card, ragged -> justified: 62 -> 18 at 375, 49 -> 18
+   at 402, 64 -> 18 at 430, 74 -> 18 at 440. Eighteen is --card-pad; the ink is
+   touching the padding.
+
+   This is also the honest setting for the object. A keep is a page out of a
+   book and books are set justified — but only ever alongside hyphenation,
+   which is what absorbs the stretch instead of letting word spaces open into
+   rivers. The rule above is load-bearing for this one, not decoration beside
+   it.
+
+   Prose only. Headings stay ragged: stretching a two-line title to the measure
+   pulls its words apart with nothing to justify the gaps. */
+.hang p,
+.hang blockquote,
+.hang div {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
 /* ── The opening ────────────────────────────────────────────────────────── */
 
 /* Not a card. The opening is an inscription written on the page itself — a
