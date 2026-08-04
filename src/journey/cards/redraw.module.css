@@ -20,11 +20,11 @@
   border-radius: var(--radius-md);
   background-color: var(--paper-tone);
   box-shadow: inset 0 1px 0 var(--card-edge-light);
-  /* 24 on three sides. The bottom is set per candidate, because the three verb
-     circles hang 18 below the card and their 44px targets reach 21 back up
-     inside it: any drawing whose last element is text has to hold that much
+  /* --card-pad on three sides. The bottom is set per candidate, because the
+     three verb circles hang below the card and their 44px targets reach back
+     up inside it: any drawing whose last element is text has to hold that much
      open or the circles paint over the final line. */
-  padding: var(--space-5) var(--space-5) var(--space-5);
+  padding: var(--card-pad) var(--card-pad) var(--card-pad);
 
   --color-ink: var(--tint-ink);
   --color-ink-soft: var(--tint-ink-soft);
@@ -69,11 +69,11 @@
 
 .person {
   --paper-tone: var(--card-character-solid);
-  /* 24, matching the head. The foot only has to keep the account's last line
+  /* --card-pad, matching the head. The foot only has to keep the account's last line
      off the verb targets; see the budget in Keep.module.css `.acts`. Less the
      leading slack under the account's last line, so the 24 is what the eye
      gets and not what the box gets — see `--leading-slack`. */
-  padding-block-end: calc(var(--space-5) - var(--leading-slack));
+  padding-block-end: calc(var(--card-pad) - var(--leading-slack));
 }
 
 /* The band. Ruled underneath in the character's own hue rather than the
@@ -265,7 +265,7 @@
      of its own foot), so the collision the 32 was paying for is not there,
      and the card was buying eight pixels of blank paper with it. Less the
      leading slack under the working note — see `--leading-slack`. */
-  padding-block-end: calc(var(--space-5) - var(--leading-slack));
+  padding-block-end: calc(var(--card-pad) - var(--leading-slack));
 }
 
 /* The tab.
@@ -468,10 +468,10 @@
    page's real ink, and the children get paper as their ink, since one token
    cannot be both a fill and its own opposite. */
 .recorder {
-  /* Even 24 all round: the transport sits 93 above the foot, so nothing here
+  /* Even --card-pad all round: the transport sits well above the foot, so nothing here
      needs the extra step the other cards were taking. The foot alone comes in
      by the leading slack under the caption — see `--leading-slack`. */
-  padding: var(--space-5) var(--space-5) calc(var(--space-5) - var(--leading-slack));
+  padding: var(--card-pad) var(--card-pad) calc(var(--card-pad) - var(--leading-slack));
   background: var(--color-ink);
   color: var(--color-paper);
 
