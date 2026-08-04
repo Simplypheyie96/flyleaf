@@ -23,10 +23,20 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      // 'prompt': new versions download in the background and wait for the
-      // user's "tap to refresh" — no forced reload. The service worker only
-      // manages its own Cache Storage; IndexedDB is never touched by updates.
-      registerType: 'prompt',
+      // 'autoUpdate', not 'prompt'. Prompt was the polite choice and it did not
+      // work: a new build reaches `waiting` and then sits there until someone
+      // taps a toast, and on an installed iOS copy that toast is easy to never
+      // see — the app is resumed rather than loaded, so the reader gets no
+      // obvious moment where a refresh is being offered. The result was fixes
+      // shipping to a device that stayed on a months-old build and a reader
+      // reasonably concluding nothing had been fixed.
+      //
+      // autoUpdate swaps the new worker in as soon as one is found and reloads.
+      // Cost: a reload can land mid-scroll. That cost is bounded because the
+      // service worker owns only its own Cache Storage — every keep, book and
+      // draft lives in IndexedDB, which an update never touches, so a reload
+      // loses position on a page and nothing else.
+      registerType: 'autoUpdate',
       manifest: {
         name: 'Flyleaf',
         short_name: 'Flyleaf',
