@@ -54,51 +54,30 @@
    The one thing that would buy more is not a number: it is moving the verbs
    off the corner entirely, which is a redrawing and not a spacing fix. */
 
-/* THE TRAILING INSET IS NOT A SPACING NUMBER. It is a clearance, and what it
-   has to clear is the floating action.
+/* THE ROW RIDES THE CORNER. Its trailing edge is the card's trailing edge, and
+   that is the whole rule.
 
-   Both objects are pinned to the same edge at the same offset: the journey's
-   scroller insets its column by --space-5, and .keepIt sits --space-5 off the
-   viewport. On a phone the column fills the screen, so those two edges are the
-   *same edge* — which means the action reaches exactly --fab-size into every
-   card, along the bottom --fab-size of the screen. Anything a keep draws in
-   that corner is behind a fixed button.
+   It used to stand 61px inside that edge on a phone, and the 61 was not a
+   spacing decision — it was clearance for the floating action, which is pinned
+   to the same corner of the viewport and reaches --fab-size into every card
+   along the bottom of the screen. Parking the row inward did clear it. It also
+   charged every card in every thread, permanently, for a button that is only
+   in the corner some of the time, and it read exactly like what it was: three
+   coins adrift in the middle of the card's foot, lined up with nothing.
 
-   The row was drawing there. At --space-6 the delete target ran 51→95 in from
-   the trailing edge and the action ran 24→80: 29px of overlap, which is 71% of
-   the drawn circle and 66% of its target, and the action owns the pixel at the
-   circle's centre — so the third verb was not merely hidden, it was answering
-   to the wrong button. Measured over a 13-keep thread, 264 of 734 scroll stops
-   put a delete target under the action.
+   Sticky chrome floats above the content layer; it does not dam it. So the
+   clearance moved to the action, where it belongs — see `step` in BookJourney,
+   which measures what the action is standing on once the thread comes to rest
+   and lifts it clear. At rest is the whole trick: testing for contact while
+   the thread is moving is what was rejected before, and rightly, because it
+   fires once per card and flickers the button the length of the thread. Moving
+   is already handled by `keepShown`; standing still was the case nothing
+   handled, and standing still is the case that matters.
 
-   Why the fix is here and not on the action. The action already leaves while
-   the reader travels *down* (see `keepShown` in BookJourney) and that works —
-   3 of 127 down-stops were live. It is travelling back up, and standing still,
-   that this misses, and standing still is the case that matters: at rest the
-   covered button stays covered. Fading on contact instead would fire 12 times
-   per traverse of the same thread, which is worse than the bug. And no amount
-   of bottom padding helps, because a reader can stop anywhere — padding only
-   ever settles the tail, which --bar-clear already does.
-
-   So the row stands off the corner by the action's own reach. Two terms:
-
-     --sky        how far the card's trailing edge has already pulled away
-                  from the viewport's. Nothing while the column fills the
-                  screen; half the leftover once it stops. Derived from the
-                  column rather than stated, so it cannot go stale when
-                  --column-max moves.
-     the overhang the row's drawn edge is not its real one — the circles
-                  reach --tap-min from a smaller drawing, so the target hangs
-                  (--tap-min - --act-size) / 2 further out.
-
-   The action reaches (--fab-size - --sky) past the card's edge, so the row
-   starts that plus the overhang inward — and never tighter than the --space-6
-   it always wanted. The floor is what takes over from about 666px up, where
-   the centred column has pulled clear on its own and the corner is free.
-
-   Both terms now live on `.page` as --acts-inset, because the cards have to
-   read the same number to know where their own text must stop. See the block
-   above --acts-inset in BookJourney.module.css. */
+   The targets overhang the drawing by (--tap-min - --act-size) / 2 all round,
+   so the delete target reaches 5px past the card's trailing edge. That is
+   invisible, sits inside the scroller's own --space-5 inset at every width,
+   and is the reach the action is measured against rather than the drawing. */
 .acts {
   --act-size: 34px;
 
@@ -114,7 +93,7 @@
      The six pixels are handed back to the journey gap below, which is where
      this row's cost always lands. */
   inset-block-end: calc(-1 * var(--space-4) - 8px);
-  inset-inline-end: var(--acts-inset);
+  inset-inline-end: 0;
   z-index: 2;
   display: flex;
   align-items: center;
