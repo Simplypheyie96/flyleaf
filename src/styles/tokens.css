@@ -511,6 +511,15 @@
   --space-7: 3rem;
   --space-8: 4rem;
 
+  /* The inside of a keep's card, on every kind. It is its own token and not
+     --space-5 because a card's interior is not general layout spacing: the
+     card is already a small box on a small screen, and every pixel spent here
+     is a pixel the words do not get. At 24 the text ran 272 wide inside a 320
+     card and the cards read as mostly margin. 18 gives twelve of that back to
+     the line and takes twelve off every card's height, without dropping to the
+     16 the old set used, which did read as cramped. */
+  --card-pad: 18px;
+
   /* ---- Radius ---- */
   --radius-sm: 8px;
   --radius-md: 14px;
