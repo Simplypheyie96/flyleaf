@@ -16,9 +16,10 @@
 
 .sheet {
   position: relative;
-  /* Never below --space-5. The old set ran at --space-4 and read as cramped,
-     which is a bug, not a density choice. */
-  padding: var(--space-5);
+  /* --card-pad, not a local number: every kind's interior is one token so the
+     set never drifts apart. The old set ran at --space-4 and read as cramped;
+     --card-pad sits above that floor. */
+  padding: var(--card-pad);
   border-radius: var(--radius-md);
   background-color: var(--paper-tone, var(--card-fill));
   -webkit-backdrop-filter: blur(var(--card-blur)) saturate(140%);
@@ -201,7 +202,7 @@
      rule. What is given up is that the blank band is now shorter than one
      pitch. That is a smaller loss than eight pixels of empty paper under
      every note in the journey. */
-  padding-block-end: var(--space-5);
+  padding-block-end: var(--card-pad);
   overflow: hidden;
 }
 
@@ -672,7 +673,7 @@
      that keeps the verb circles off the last line, less the leading slack
      under that line — see `--leading-slack`. (The note does not: it ends in a
      ruled line, which is ink at its own edge with no leading under it.) */
-  padding-block-end: calc(var(--space-5) - var(--leading-slack));
+  padding-block-end: calc(var(--card-pad) - var(--leading-slack));
 }
 
 .marked {
