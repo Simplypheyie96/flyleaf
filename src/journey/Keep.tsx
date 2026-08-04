@@ -34,8 +34,13 @@ function Keep({ keep, book, onEdit, onDelete }: KeepProps) {
   return (
     <>
       <Card keep={keep} />
-      {/* Delete wears the danger colour; there is an undo waiting behind it. */}
-      <span className={styles.acts}>
+      {/* Delete wears the danger colour; there is an undo waiting behind it.
+
+          `data-acts` is how the floating action finds these: it rides the same
+          corner of the screen and has to know when it is standing on a row of
+          them. A data attribute rather than a class, because the class is
+          hashed by CSS Modules and the action is in another file. */}
+      <span className={styles.acts} data-acts>
         {shareable(keep) && (
           <button
             type="button"

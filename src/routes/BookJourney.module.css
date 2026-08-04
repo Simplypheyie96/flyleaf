@@ -63,20 +63,6 @@
   --gutter: 26px;
   --knot-size: 26px;
 
-  /* Where the verb row starts, in from the card's trailing edge. The FAB is
-     fixed to that corner and paints over anything parked under it, so on a
-     phone the row clears the FAB's own width; on a wide screen, where the
-     column has pulled away from the corner and --sky is positive, it
-     collapses to the plain 32. Lifted out of `.acts` so the row and the cards
-     read the same number.
-
-     The 5 is the row's overhang: the circles are drawn at 34 and reach the
-     44px tap minimum, so each target hangs (44 - 34) / 2 past the drawing.
-     Stated rather than derived because --act-size belongs to `.acts` and is
-     not in scope here; the reasoning for it lives with the row, in
-     Keep.module.css. */
-  --sky: max(0px, (100vw - 2 * var(--space-5) - var(--column-max, 560px)) / 2);
-  --acts-inset: max(var(--space-6), calc(var(--fab-size) - var(--sky) + 5px));
   /* Nudges the knot down onto the cap height of the card's first line, so the
      circle reads as level with the text rather than with its line box. */
   --knot-top: 3px;
@@ -946,6 +932,30 @@
   color: var(--color-ink-faint);
 }
 
+/* One card type does not start where its row starts. The plot thread's card
+   holds --tab-rise of room open above its own top edge so its folder tab has
+   somewhere to stand (see .dossier in journey/cards/redraw.module.css), and
+   the tab only covers the leading third of the width. On every other card the
+   label sits four pixels above the card's top edge; on this one it sat those
+   four plus the whole rise, so the word hung over an empty stretch of page
+   with nothing under it — which is the only place in the journey where the
+   date and the label are not both resting on something.
+
+   The label drops past the rise to land on the card's own top-trailing corner,
+   where the tab is not. It moves as ink rather than as layout: a transform
+   leaves the when-line's height and the row's rhythm exactly as they are for
+   every other kind, so nothing below it shifts.
+
+   The distance is --tab-rise minus this line's own bottom margin, because the
+   two collapse: the rise is 24 and the margin is --space-1, so the page showing
+   between the when-line and the card's top edge is 20 rather than 28. Written
+   out because --tab-rise is declared on the card (journey/cards/redraw.module.css)
+   and does not cascade back up to this line; if it changes there, change it
+   here. Measured: every kind now lands the label 6.2 above its card's top. */
+.notch[data-kind='thread'] .whenSide {
+  transform: translateY(calc(24px - var(--space-1)));
+}
+
 /* The one notch Flyleaf writes itself, and it should look *written* rather
    than entered. It was the body sans at reading size with a meta line over it,
    which is the shape of a keep with no card around it — the reader could not
@@ -1180,6 +1190,17 @@
    sticker. It is a LeafButton now in everything but name: action ink, the
    same shadow, the same lift on hover and the same settle on release. */
 .keepIt {
+  /* How far up off a card's verb row it is standing, measured in JS at the
+     scroll stop and written back as an inline value — see `step` in
+     BookJourney. Zero is the resting corner, and zero is the normal case.
+
+     It is a term in every transform below rather than a rule of its own,
+     because a rule of its own would have to either outrank the press (a
+     stepped button that doesn't move when you push it) or lose to it (a
+     stepped button that drops 100px back onto the verbs the moment a thumb
+     lands). Both of those are the button lying about where it is. */
+  --keep-step: 0px;
+
   position: fixed;
   inset-block-end: calc(env(safe-area-inset-bottom, 0px) + var(--space-4));
   inset-inline-end: var(--space-5);
@@ -1195,6 +1216,7 @@
   color: var(--color-on-action);
   box-shadow: var(--elevation-2);
   cursor: pointer;
+  transform: translateY(calc(-1 * var(--keep-step)));
   transition:
     background-color var(--dur-quick) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out),
@@ -1209,14 +1231,14 @@
   .keepIt:hover {
     background: var(--color-action-hover);
     box-shadow: var(--elevation-3);
-    transform: translateY(calc(-1 * var(--lift) / 2));
+    transform: translateY(calc(-1 * var(--keep-step) - var(--lift) / 2));
   }
 }
 
 .keepIt:active {
   background: var(--color-action-press);
   box-shadow: none;
-  transform: translateY(var(--press)) scale(0.96);
+  transform: translateY(calc(-1 * var(--keep-step) + var(--press))) scale(0.96);
   transition-duration: var(--dur-press);
 }
 
@@ -1231,8 +1253,10 @@
   pointer-events: none;
 }
 
+/* Tabbing to it brings it back from away — to where it actually stands, which
+   is its step, not the bare corner. */
 .keepIt[data-away]:focus-visible {
-  transform: none;
+  transform: translateY(calc(-1 * var(--keep-step)));
   opacity: 1;
   pointer-events: auto;
 }
@@ -1317,9 +1341,16 @@
 
 @media (prefers-reduced-motion: reduce) {
   .back:active,
-  .chromeAction:active,
-  .keepIt:active {
+  .chromeAction:active {
     transform: none;
+  }
+
+  /* Not `transform: none`. The press offset goes, the step does not — the step
+     is where the button *is*, not motion it is performing, and zeroing the
+     whole transform would drop it back onto the verb row it is standing clear
+     of the instant a thumb landed on it. */
+  .keepIt:active {
+    transform: translateY(calc(-1 * var(--keep-step)));
   }
 
   /* The head still leaves and still comes back — losing it entirely would
