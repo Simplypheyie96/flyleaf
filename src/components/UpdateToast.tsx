@@ -8,25 +8,28 @@ import styles from './Toast.module.css'
     conditional request that is almost always a 304. */
 const UPDATE_EVERY_MS = 60 * 60 * 1000
 
-/** The gentle "new version ready" notice. Never forces a reload; the
-    service worker only swaps in when the reader taps Refresh.
+/** The thing that actually gets a new build onto the reader's device.
 
-    The polling below is what makes that notice possible at all. In prompt
-    mode the toast is raised by exactly one event — the service worker
-    reaching `waiting` — and a worker only gets there after the browser
-    re-fetches sw.js. The browser does that on navigation. An installed PWA
-    resumed from the home screen does not navigate: iOS suspends the app and
-    hands it back on the same document it froze, so the check never runs and
-    the copy on the phone can sit on a build from months ago having never once
-    been told a newer one exists. Shipping a fix and watching a device stay
-    broken is not a caching curiosity, it is the fix not being delivered.
+    Registration is in autoUpdate mode (see vite.config.ts), so a newer worker
+    installs and takes over on its own. But it can only do that after the
+    browser re-fetches sw.js, and the browser does that on navigation. An
+    installed PWA resumed from the home screen does not navigate: iOS suspends
+    the app and hands it back on the same document it froze, so the check never
+    runs and the copy on the phone can sit on a build from months ago having
+    never once been told a newer one exists. Shipping a fix and watching a
+    device stay broken is not a caching curiosity, it is the fix not being
+    delivered.
 
-    So we ask ourselves, rather than waiting to be told: once at startup,
-    every time the app comes back to the foreground — the moment that matters,
-    because it is the one an installed PWA has instead of a page load — and on
-    a slow interval for a copy left open all day. `update()` is a conditional
-    request against sw.js; when nothing has shipped it is a 304 and no worker
-    is installed, so the reader sees nothing. */
+    So we ask, rather than wait to be told: once at startup, every time the app
+    comes back to the foreground — the moment that matters, because it is the
+    one an installed PWA has instead of a page load — and on a slow interval
+    for a copy left open all day. `update()` is a conditional request against
+    sw.js; when nothing has shipped it is a 304, no worker installs, and the
+    reader sees nothing at all.
+
+    The notice below is kept and is inert under autoUpdate — `needRefresh` only
+    goes true in prompt mode. It stays so that going back to asking first is a
+    one-word change in vite.config.ts rather than rebuilding this. */
 function UpdateToast() {
   const {
     needRefresh: [needRefresh, setNeedRefresh],
