@@ -73,6 +73,23 @@ import styles from './BookJourney.module.css'
     has scrolled somewhere else and forgotten what it was about. */
 const UNDO_MS = 9000
 
+/** How long after the thread stops moving the floating action looks at what it
+    is standing on. Long enough that the tail of a flick doesn't trigger it,
+    short enough that it has settled before a thumb arrives. */
+const SETTLE_MS = 140
+
+/** The furthest the action will step up off a verb row, and the reach the
+    circles have past their drawing — the same (--tap-min - --act-size) / 2 the
+    row itself is built on, and 8px of air so a cleared row is visibly cleared.
+
+    The cap is a guard, not a target: the step is measured, and the measurement
+    is bounded by the action's own height plus a target's, so it lands near 100
+    at worst. Verb rows sit at least 177px apart on the densest thread in the
+    app, so a step this size can never carry the action onto a second row. */
+const STEP_MAX = 120
+const REACH = 5
+const AIR = 8
+
 interface Undo {
   what: string
   restore: () => Promise<void>
@@ -116,6 +133,7 @@ function Notch({ keep, book, tie, showSide, onEdit, onDelete }: NotchProps) {
       data-tie={tie ? '' : undefined}
       data-up={tie?.up ? '' : undefined}
       data-down={tie?.down ? '' : undefined}
+      data-kind={keep.type}
     >
       <span className={styles.gutter} aria-hidden="true">
         <span className={styles.knot}>
@@ -183,8 +201,68 @@ function BookJourney() {
      gets back. Reading is what asks for that room back — see `onScroll`. */
   const [headOpen, setHeadOpen] = useState(true)
   const [keepShown, setKeepShown] = useState(true)
+  const [keepStep, setKeepStep] = useState(0)
   const scroller = useRef<HTMLDivElement>(null)
+  const keepIt = useRef<HTMLButtonElement>(null)
   const lastTop = useRef(0)
+  const settle = useRef<number | undefined>(undefined)
+
+  /* The action steps over the verbs it would otherwise be standing on.
+
+     It is fixed in the trailing corner, and the verb rows now end at their
+     card's trailing edge, which on a phone is the same edge — so wherever a
+     row comes to rest in the bottom --fab-size of the screen, delete is under
+     a button that isn't delete. The row used to solve this by standing 61px
+     inside its own card forever; the cost of the collision belongs to the
+     thing that floats, not to every card it floats over.
+
+     Only at rest, and that is the whole reason this is workable. Testing for
+     contact while the thread moves fires once per card and flickers the button
+     the length of the thread — moving is `keepShown`'s job and it already does
+     it. This runs once, SETTLE_MS after the last scroll event.
+
+     The resting box is read from the computed insets rather than from
+     getBoundingClientRect, because the step is a transform: a rect would
+     measure the button where the last step put it, and every check would move
+     the box it was checking against. Insets don't move. */
+  const step = useCallback(() => {
+    const fab = keepIt.current
+    const thread = scroller.current
+    if (!fab || !thread) return
+
+    const style = getComputedStyle(fab)
+    const bottom = window.innerHeight - parseFloat(style.insetBlockEnd)
+    const right = window.innerWidth - parseFloat(style.insetInlineEnd)
+    const rest = { top: bottom - fab.offsetHeight, bottom, left: right - fab.offsetWidth, right }
+
+    // The highest row it is touching, measured at the reach rather than at the
+    // drawing: a thumb aims at the 44px target, not at the 34px circle.
+    let highest = Infinity
+    for (const row of thread.querySelectorAll('[data-acts]')) {
+      const at = row.getBoundingClientRect()
+      const clear =
+        at.right + REACH <= rest.left ||
+        at.left - REACH >= rest.right ||
+        at.bottom + REACH <= rest.top ||
+        at.top - REACH >= rest.bottom
+      if (!clear) highest = Math.min(highest, at.top - REACH)
+    }
+
+    setKeepStep(
+      highest === Infinity ? 0 : Math.min(STEP_MAX, Math.round(rest.bottom - highest + AIR)),
+    )
+  }, [])
+
+  /* Everything that could move a verb row goes through here, and the timer
+     restarts each time, so the measurement happens once — after the last of
+     whatever it was. That is what makes "only at rest" true for more than
+     scrolling: the head folds over --dur-base and slides the whole thread up
+     as it goes, and a step measured on the first frame of that is a step
+     measured against rows that are no longer there. */
+  const bump = useCallback(() => {
+    window.clearTimeout(settle.current)
+    settle.current = window.setTimeout(step, SETTLE_MS)
+  }, [step])
 
   /* The head folds itself as the thread moves, and comes back at the top.
 
@@ -197,25 +275,54 @@ function BookJourney() {
      And it only folds when folding buys something: on a two-keep thread the
      head is most of the page, collapsing it clamps scrollTop back to the top,
      and the reader would watch it shut and open once for nothing. */
-  const onScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const el = e.currentTarget
-    const room = el.scrollHeight - el.clientHeight
-    setHeadOpen((open) => (open ? !(room > 240 && el.scrollTop > 72) : el.scrollTop < 16))
+  const onScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const el = e.currentTarget
+      const room = el.scrollHeight - el.clientHeight
+      setHeadOpen((open) => (open ? !(room > 240 && el.scrollTop > 72) : el.scrollTop < 16))
 
-    /* And the way to keep more gets out of the way of what is already kept.
-       Fixed in the trailing corner, it sits on top of whatever card happens to
-       be passing under it — on a phone that is a paragraph with a hole in it.
-       Moving down the thread is reading, so it leaves; the moment the reader
-       stops or comes back up it is under the thumb again. The 6px deadband is
-       so a fingertip's worth of drift doesn't flicker it. */
-    const from = lastTop.current
-    lastTop.current = el.scrollTop
-    if (Math.abs(el.scrollTop - from) < 6) return
-    setKeepShown(el.scrollTop < from || el.scrollTop < 16)
-  }, [])
+      bump()
+
+      /* And the way to keep more gets out of the way of what is already kept.
+         Fixed in the trailing corner, it sits on top of whatever card happens
+         to be passing under it — on a phone that is a paragraph with a hole in
+         it. Moving down the thread is reading, so it leaves; the moment the
+         reader stops or comes back up it is under the thumb again. The 6px
+         deadband is so a fingertip's worth of drift doesn't flicker it. */
+      const from = lastTop.current
+      lastTop.current = el.scrollTop
+      if (Math.abs(el.scrollTop - from) < 6) return
+      setKeepShown(el.scrollTop < from || el.scrollTop < 16)
+    },
+    [bump],
+  )
 
   const keeps = useMemo(() => entries ?? [], [entries])
   const rows: Row[] = useMemo(() => arrange(keeps, sift), [keeps, sift])
+
+  /* Once when the thread first draws, again whenever it is refiltered,
+     reordered or edited, and again on anything that resizes the thread — the
+     head folding, a rotation, a phone's browser bar retracting. None of those
+     are scrolls, and all of them move what is under the corner.
+
+     The observer watches the scroller rather than the window because the head
+     fold changes the scroller's height without changing the window's, and it
+     is the one that happens constantly. Both are debounced through `bump`, so
+     a 260ms fold measures once at the end of itself rather than sixteen times
+     on the way. */
+  useEffect(() => {
+    const thread = scroller.current
+    if (!thread) return
+    bump()
+    const watch = new ResizeObserver(bump)
+    watch.observe(thread)
+    window.addEventListener('resize', bump)
+    return () => {
+      watch.disconnect()
+      window.removeEventListener('resize', bump)
+      window.clearTimeout(settle.current)
+    }
+  }, [rows, bump])
 
   /* The substance word is a contrast, not a caption.
 
@@ -703,8 +810,10 @@ function BookJourney() {
           what they kept, and the way to keep more should be within a thumb's
           reach without standing in front of the page. */}
       <button
+        ref={keepIt}
         type="button"
         className={styles.keepIt}
+        style={keepStep ? ({ '--keep-step': `${keepStep}px` } as CSSProperties) : undefined}
         data-away={!keepShown || undefined}
         onClick={() => setAdding('quote')}
         aria-label="Keep something from this book"
