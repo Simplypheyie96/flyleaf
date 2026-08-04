@@ -887,6 +887,36 @@
   -webkit-hyphens: auto;
 }
 
+/* Fill the line before starting the next one.
+
+   index.css sets `text-wrap: pretty` on every p, which is the right default for
+   an article and the wrong one here. pretty is a paragraph-level optimiser: it
+   is allowed to end a line early if doing so improves the rag or saves the last
+   line from being a single word. In a 296px column that trade is a bad one —
+   the reader sees a line that visibly stopped short of the edge with a word
+   sitting below it that would have fitted. Greedy wrapping, which is what plain
+   `wrap` means, takes every word that fits and only then breaks.
+
+   Measured on the seeded journey at 402, per line, against the card's padding
+   edge: the character account goes 23/44/45 to 23/13/53, and the location lore
+   goes 11/35 to 11/1 — its second line now ends one pixel off the padding. The
+   leftover does not vanish, it moves: both cards' final lines get longer (200
+   to 223, 233 to 268), which is the whole point. A paragraph's last line is
+   short because the sentence ended, and no wrapping mode changes that. What
+   changes is that no line above it stops early any more.
+
+   Headings are deliberately left out. h3 on the character and thread cards
+   carries `text-wrap: balance`, which is the correct treatment for two or three
+   words that should break evenly rather than fill greedily.
+
+   Paired with the hyphens above: hyphenation gives the greedy pass more places
+   it is allowed to break, so the two compound rather than compete. */
+.hang p,
+.hang blockquote,
+.hang figcaption {
+  text-wrap: wrap;
+}
+
 /* Not justified. Tried it, shipped it, took it back out. Justification does
    close the trailing gap at every width — a flat 18px, against the padding,
    from 320 through 476 — but it buys that by stretching the word spaces on
