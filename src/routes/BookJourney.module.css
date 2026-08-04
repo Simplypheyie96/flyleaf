@@ -864,6 +864,27 @@
      the thread to --space-4, which is where "the cards feel cramped" came
      from; the keeps are drawn objects now rather than one tinted rectangle in
      seven fills, and each direction sets its own breathing room. */
+
+  /* Hyphenate. A keep is a narrow column of prose — around 40 characters on a
+     phone — and at that measure one long word thrown to the next line leaves a
+     visibly empty strip down the right of the card. That strip is the "why is
+     there so much space in the cards" complaint: not padding, just ragged
+     wrap.
+
+     This does more than insert a hyphen. Body copy already carries
+     `text-wrap: pretty` from index.css, and pretty chooses break points from
+     whatever the text offers; hyphenation offers it many more, so the whole
+     paragraph re-flows tighter. Measured on the seeded journey: the note card
+     goes 4 lines to 3 and its trailing gap 46px to 44 at 390 (64 to 27 at
+     360), and a thread card 57 to 31. Cards whose text has no long word at a
+     line end are untouched, which is correct — their gap is short content,
+     not bad wrapping.
+
+     Set here, on the entry wrapper, rather than per card: hyphens inherits,
+     every kind wants the same behaviour, and one declaration cannot drift out
+     of sync with six others. */
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }
 
 /* ── The opening ────────────────────────────────────────────────────────── */
