@@ -10,21 +10,24 @@
    own bottom corner, half off the paper. No menu anywhere. */
 
 import { useSearchParams } from 'react-router-dom'
-import type { Book, Entry } from '../data/db'
+import type { Entry } from '../data/db'
 import { EditIcon, ShareIcon, TrashIcon } from '../components/TabIcons'
 import { KIND } from './kinds'
-import { shareKeep, shareable } from './share'
+import { shareable } from './share'
 import { cardFor } from './cards'
 import styles from './Keep.module.css'
 
 interface KeepProps {
   keep: Entry
-  book: Book
   onEdit: (keep: Entry) => void
+  /** Share opens the plate sheet on the screen rather than handing the system
+      a paragraph from here. The row used to need the book for that; it does
+      not need to know the book to draw a keep. */
+  onShare: (keep: Entry) => void
   onDelete: (keep: Entry) => void
 }
 
-function Keep({ keep, book, onEdit, onDelete }: KeepProps) {
+function Keep({ keep, onEdit, onShare, onDelete }: KeepProps) {
   // `?dir=` redraws the whole thread from one set; `?th=` swaps in a candidate
   // for the one type still being decided. Absent — which is always, in the
   // app — every keep gets its real drawing.
@@ -45,7 +48,7 @@ function Keep({ keep, book, onEdit, onDelete }: KeepProps) {
           <button
             type="button"
             className={styles.act}
-            onClick={() => void shareKeep(keep, book)}
+            onClick={() => onShare(keep)}
             aria-label={`Share this ${one}`}
           >
             <ShareIcon size={16} />
