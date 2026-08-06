@@ -1,6 +1,66 @@
 /* The tip jar's own print. Everything structural — the card, the field, the
    button row, the fine print — comes from settings.module.css; only what is
-   particular to choosing an amount lives here. */
+   particular to choosing an amount lives here.
+
+   The sheet furniture below (body, head, title, close) is the same shape the
+   install guide uses. It is repeated rather than shared because there are two
+   sheets in Settings and a third abstraction between them would be one more
+   thing to read than the fifteen lines it saves. */
+
+.jar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.headLine {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.title {
+  margin: 0;
+  margin-inline-end: auto;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-xl);
+  line-height: 1.25;
+  color: var(--color-ink);
+}
+
+/* The same frosted disc every sheet in the app closes with. */
+.close {
+  flex: none;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+}
+
+.close:hover {
+  color: var(--color-ink);
+}
+
+.lede {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
 
 .amounts {
   display: flex;

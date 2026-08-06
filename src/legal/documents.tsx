@@ -17,17 +17,26 @@ import styles from './legal.module.css'
    in the reader's plain sight, until the builder replaces this note. */
 
 /* ---------------------------------------------------------------------------
-   BUILDER: fill these four in, then delete `unfilled` below so the amber
-   "starter draft" banner comes off the pages.
+   Who is behind Flyleaf, and how to reach them. Every page reads from here;
+   change a value once and all three documents change with it.
+
+   `email` is published on three public pages and will be scraped. If a
+   personal address is not what you want on them, put a forwarding address
+   here instead — it is the only change needed.
+
+   Change `updated` whenever a document's wording changes; the date under each
+   title is what tells a reader whether they are looking at the current terms.
    --------------------------------------------------------------------------- */
 export const MAKER = {
-  name: '[your name or business name]',
-  email: '[your contact email]',
+  name: 'Ajayi Feyikemi Mabel',
+  email: 'ajayifey@gmail.com',
   place: 'Nigeria',
-  updated: 'not yet published',
-  /* Set to false once a professional has read these. The banner is not
-     decoration; it is the honest state of the document. */
-  unfilled: true,
+  updated: '6 August 2026',
+  /* Deliberately separate from the details above. Those are filled in; a
+     professional reading is not, and only one of those two is the maker's to
+     do alone. The banner comes off when this turns true — it is not
+     decoration, it is the honest state of the document. */
+  reviewed: false,
 }
 
 function Out({ href, children }: { href: string; children: ReactNode }) {
@@ -45,8 +54,20 @@ function Slot({ children }: { children: ReactNode }) {
   return <span className={styles.slot}>{children}</span>
 }
 
-const maker = <Slot>{MAKER.name}</Slot>
-const mail = <Slot>{MAKER.email}</Slot>
+/* A bracketed value is a decision nobody has made yet, and it renders as a
+   visible slot rather than as settled text. Filled values render as what they
+   are — and the address as something you can actually write to, since a
+   contact you have to copy out by hand is a contact nobody uses. */
+const pending = (value: string) => value.startsWith('[')
+
+const maker = pending(MAKER.name) ? <Slot>{MAKER.name}</Slot> : <>{MAKER.name}</>
+const mail = pending(MAKER.email) ? (
+  <Slot>{MAKER.email}</Slot>
+) : (
+  <a className={styles.out} href={`mailto:${MAKER.email}`}>
+    {MAKER.email}
+  </a>
+)
 
 export interface Section {
   heading: string
