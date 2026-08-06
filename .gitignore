@@ -5,3 +5,6 @@ dist/
 .env.*
 .DS_Store
 *.local
+
+# The template is documentation, not a key.
+!.env.example
