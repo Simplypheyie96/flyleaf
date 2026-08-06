@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import PaperSurface from '../components/PaperSurface'
+import Vignette from '../brand/Vignette'
 import BookCover from '../components/BookCover'
 import db, { type Book } from '../data/db'
 import { KIND, KINDS } from '../journey/kinds'
@@ -183,6 +184,10 @@ function Results({ archive, query, onFindBook }: ResultsProps) {
 
       {nothing && (
         <PaperSurface className={styles.blank}>
+          {/* A drawing rather than a shrug. The pile is what was looked
+              through; the leaf-shaped loupe over it is the same silhouette as
+              the mark, doing a different job. */}
+          <Vignette scene="search" className={styles.blankArt} />
           <p className={styles.blankLine}>
             Nothing you have kept says “{query}”.
           </p>

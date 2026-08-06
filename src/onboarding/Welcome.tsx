@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import LeafButton from '../components/LeafButton'
 import PaperSurface from '../components/PaperSurface'
+import Wordmark from '../brand/Wordmark'
 import { getHandle, hasMet, markMet, setHandle } from '../data/reader'
 import styles from './onboarding.module.css'
 
@@ -42,7 +43,11 @@ function Welcome() {
   return (
     <div className={styles.welcome} role="dialog" aria-modal="true" aria-label="Welcome to Flyleaf">
       <div className={styles.welcomeInner}>
-        <img className={styles.mark} src="/leaf-icon.svg" alt="" />
+        {/* The mark drawn in tokens, not the install icon: that file is a
+            sky-blue tile, and a sky-blue tile on the sky is a square of
+            nothing. Here the name is beside it, so this is the one place the
+            app writes its own name on a screen. */}
+        <Wordmark size={40} className={styles.mark} title="Flyleaf" />
 
         {panel === 0 ? (
           <PaperSurface taped rotate={-0.6} className={styles.panel}>

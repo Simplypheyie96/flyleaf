@@ -1,6 +1,8 @@
 import GlassSurface from '../components/GlassSurface'
 import BookCover from '../components/BookCover'
 import LeafButton from '../components/LeafButton'
+import Wordmark from '../brand/Wordmark'
+import Vignette from '../brand/Vignette'
 import PaperSurface from '../components/PaperSurface'
 import ThemeToggle from '../components/ThemeToggle'
 import pageStyles from './page.module.css'
@@ -43,6 +45,17 @@ function Styleguide() {
           <GlassSurface className={styles.glassOverlap}>
             <ThemeToggle />
           </GlassSurface>
+        </div>
+
+        {/* The identity, where it can be checked. The mark and the two
+            empty-state drawings live here permanently for the same reason the
+            covers do: they are the pieces most likely to drift, and hardest to
+            find in the app because each one only appears when a screen has
+            nothing on it. */}
+        <div className={styles.brand}>
+          <Wordmark size={44} title="Flyleaf" />
+          <Vignette scene="shelf" />
+          <Vignette scene="search" />
         </div>
 
         <div className={styles.buttons}>

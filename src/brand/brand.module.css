@@ -1,0 +1,68 @@
+/* The identity, as tokens rather than as artwork.
+
+   Nothing here has a colour of its own. The mark is made of the paper the
+   cards are made of and the ink they are written in; the drawings are made of
+   the same ink at a lower alpha and the one accent the handwriting uses. So
+   night is not a second set of assets, and a change to the palette moves the
+   logo with it instead of leaving it behind. */
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-ink);
+}
+
+/* The leaf body: paper, with the same hairline every card carries, so the mark
+   sits on the sky like one more small piece of paper. */
+.leafBody {
+  fill: var(--color-paper);
+  /* Heavier than a card's hairline on purpose. A card's edge is helped by a
+     shadow and a whole rectangle of area; a 40px leaf has neither, and at 16%
+     ink it dissolved into the sky and read as a circle. */
+  stroke: color-mix(in oklch, var(--color-ink), transparent 68%);
+  stroke-width: 14;
+}
+
+.leafVeins {
+  stroke: var(--color-accent-text);
+  opacity: 0.8;
+}
+
+/* The name. Display serif, tightened a touch because a logotype is set closer
+   than running text, and never a path — it inherits the type system. */
+.logotype {
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  letter-spacing: -0.015em;
+  line-height: 1;
+  color: inherit;
+}
+
+/* ---- Empty-state drawings ---- */
+
+.vignette {
+  display: block;
+  inline-size: 160px;
+  max-inline-size: 100%;
+  block-size: auto;
+  /* Hairlines only, at one weight, so nothing in the drawing reads as heavier
+     than the sentence under it. */
+  stroke-width: 2;
+}
+
+.line {
+  fill: none;
+  stroke: color-mix(in oklch, var(--color-ink), transparent 62%);
+}
+
+.accentLine {
+  fill: none;
+  stroke: var(--color-accent-text);
+}
+
+/* The one filled shape in each drawing — enough to give the accent a body,
+   faint enough that the line work is still what you read. */
+.accentFill {
+  fill: color-mix(in oklch, var(--color-accent-text), transparent 88%);
+}

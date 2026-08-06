@@ -36,9 +36,9 @@
 }
 
 .mark {
-  inline-size: 56px;
-  block-size: 56px;
-  opacity: 0.9;
+  /* Sits above the panel with room of its own — the front door is the one
+     screen that should not feel packed. */
+  margin-block-end: var(--space-2);
 }
 
 .panel {

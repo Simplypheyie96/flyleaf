@@ -64,3 +64,13 @@
   grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
   gap: var(--space-4);
 }
+
+/* Brand specimens: the mark and the empty-state drawings, side by side so a
+   change to one is visible against the others. */
+.brand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-5) 0;
+}

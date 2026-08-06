@@ -212,6 +212,13 @@
   align-items: flex-start;
 }
 
+/* The drawing leads, then a clear step down to the sentence — the gap here is
+   larger than the gap between the two lines of copy, so the card reads as a
+   picture with words under it rather than three stacked things. */
+.blankArt {
+  margin-block-end: var(--space-2);
+}
+
 .blankLine {
   margin: 0;
   font-family: var(--font-serif);
