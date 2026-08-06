@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import LeafButton from '../components/LeafButton'
-import Fold from './Fold'
+import { Row } from './Group'
 import Sheet from '../components/Sheet'
 import Sparkle from '../components/Sparkle'
 import { CloseIcon } from '../components/TabIcons'
@@ -30,6 +30,10 @@ import styles from './tip.module.css'
    into this file. */
 
 const ON = import.meta.env.VITE_TIP_JAR === '1'
+
+/* Read by the page so it can leave out the whole group — caption and card —
+   rather than printing an empty box under a heading nobody can act on. */
+export const TIP_JAR = ON
 
 /* Naira. Three amounts that read as "a coffee, a good coffee, and more than a
    coffee" without being labelled with those words — a tier called "generous"
@@ -128,7 +132,10 @@ function Tip() {
      should not be looking at the same invitation they answered. */
   if (stage.at === 'thanks') {
     return (
-      <Fold title="Thank you" meta={stage.amount ? naira(stage.amount) : undefined} start>
+      <Row
+        title="Thank you"
+        control={stage.amount ? <span className={card.count}>{naira(stage.amount)}</span> : undefined}
+      >
         <span className={styles.thanks}>
           <Sparkle size={18} className={styles.spark} />
           <span className={styles.warm}>
@@ -136,7 +143,7 @@ function Tip() {
             Back to your books.
           </span>
         </span>
-      </Fold>
+      </Row>
     )
   }
 
@@ -144,11 +151,13 @@ function Tip() {
 
   return (
     <>
-      <Fold title="Buy the maker a coffee">
-        <span className={card.sectionHint}>
-          Flyleaf is free, has no ads, and is made by one person. Nothing here is
-          ever locked — this is only a way to say thank you.
-        </span>
+      <Row
+        /* Not "buy the maker a coffee" — the caption above this card already
+           says whose coffee it is, and a row that repeats its own group's
+           words reads as a stutter. */
+        title="Buy a coffee"
+        hint="Flyleaf is free, has no ads, and is made by one person. Nothing here is ever locked — this is only a way to say thank you."
+      >
         <div className={card.row}>
           <button
             type="button"
@@ -161,7 +170,7 @@ function Tip() {
             Send a coffee
           </button>
         </div>
-      </Fold>
+      </Row>
 
       <Sheet
         open={open}
