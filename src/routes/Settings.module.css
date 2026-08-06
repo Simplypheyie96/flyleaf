@@ -21,51 +21,6 @@
   color: var(--color-ink-soft);
 }
 
-/* A section is one paper card: a heading, a line saying what it does, and the
-   controls.
-
-   Tighter than a keepsake card on purpose. --space-5 suits a surface that is
-   mostly the thing it holds; this one is mostly control, and at 24 a card
-   carrying a single switch was half air. */
-.section {
-  --paper-pad: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-/* Heading and control share the first line; the description runs full width
-   underneath both. A control parked beside a heading has no dead space to its
-   right, and a description given the whole width has room to be a sentence
-   rather than a fragment. */
-.sectionHead {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  column-gap: var(--space-4);
-  row-gap: var(--space-1);
-}
-
-.sectionTitle {
-  grid-column: 1;
-  font-size: var(--text-lg);
-}
-
-.sectionControl {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.sectionHint {
-  grid-column: 1 / -1;
-  font-size: var(--text-xs);
-  color: var(--color-ink-soft);
-  /* A span, not a <p>: the reading measure in index.css caps paragraphs at
-     --measure, which is right for prose and irrelevant to two short lines
-     already inside a 560px column. */
-  text-wrap: pretty;
-}
-
 /* The same little star Home wears — the pages read as one book. Inline in
    the heading so it rides the word wherever the type sits. */
 .spark {

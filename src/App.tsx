@@ -13,6 +13,7 @@ import LeafButton from "./components/LeafButton";
 import SplashScreen from "./components/SplashScreen";
 import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
 import UpdateToast from "./components/UpdateToast";
+import BackupNudge from "./components/BackupNudge";
 import BoardLab from "./routes/BoardLab";
 import BookJourney from "./routes/BookJourney";
 import CardLab from "./routes/CardLab";
@@ -22,6 +23,7 @@ import Library from "./routes/Library";
 import Settings from "./routes/Settings";
 import Styleguide from "./routes/Styleguide";
 import styles from "./App.module.css";
+import toast from "./components/Toast.module.css";
 
 const TABS = [
   { label: "Home", to: "/", Icon: HomeIcon },
@@ -120,8 +122,13 @@ function App() {
       <Shell onAdd={() => setAdding(true)} />
       <AddBookSheet open={adding} onClose={() => setAdding(false)} />
 
-      <UpdateToast />
-      <InstallPrompt />
+      {/* One column, so an update landing while the install invite is up
+          stacks instead of overlapping it. */}
+      <div className={toast.dock}>
+        <UpdateToast />
+        <InstallPrompt />
+        <BackupNudge />
+      </div>
     </BrowserRouter>
   );
 }
