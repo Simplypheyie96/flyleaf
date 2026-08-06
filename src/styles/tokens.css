@@ -485,19 +485,24 @@
      app has no business going under, and the size iOS stops zooming inputs
      at, which retires a special case as well.
 
-     The top of the scale grew, because it was timid. A page title at 24 over
-     a body at 15 is a ratio of 1.6, and 1.6 is the ratio between a heading
-     and a subheading, not between a page's name and its contents. 28 and 34
-     are iOS's own Title 1 and Large Title, which is the right neighbourhood
-     for a screen that wants Apple restraint and a book's presence at once. */
+     The bottom five steps are fixed. The top three are not, and that is the
+     correction: 28 and 34 are iOS's Title 1 and Large Title, but iOS spends
+     them on a screen whose content is a list of grey rows, and this app's
+     content is paper. A 28px serif masthead over a taped card with a 22px
+     serif title inside it puts three loud things in the first 300px of a
+     phone, and the page reads as shouting before a word of it is the
+     reader's own. So the phone gets 24 / 20 and the room above 600px gets
+     28 / 22 — the hierarchy is identical, the volume is not. Below the fold
+     nothing changes: 16 is still body, and 18 is still what a kept line is
+     read at, because those two are sized for reading and not for presence. */
   --text-2xs: 0.6875rem; /* 11 — stamped labels, tracked out */
   --text-xs: 0.75rem; /* 12 — captions, footnotes */
   --text-sm: 0.875rem; /* 14 — labels, secondary copy */
   --text-base: 1rem; /* 16 — UI body */
   --text-md: 1.125rem; /* 18 — reading serif, quotes */
-  --text-lg: 1.375rem; /* 22 — section titles */
-  --text-xl: 1.75rem; /* 28 — page titles */
-  --text-2xl: 2.125rem; /* 34 — display, once per screen at most */
+  --text-lg: 1.25rem; /* 20 — section + card titles */
+  --text-xl: 1.5rem; /* 24 — page titles */
+  --text-2xl: 1.75rem; /* 28 — display, once per screen at most */
 
   /* Kept as a name rather than a number. iOS Safari zooms the page whenever an
      input's text is under 16px; body is 16 now, so a field asking for this
@@ -621,6 +626,26 @@
   --lift: 3px;
   --press: 1px;
   --travel: 8px;
+}
+
+/* The top three steps, given back the size a phone could not afford.
+
+   Only the display end moves. Body, the reading step and everything under
+   them are sized for reading, and reading does not get easier because the
+   window got wider — a paragraph that grows with the viewport is a paragraph
+   nobody asked to grow. What changes is presence: a masthead has a whole
+   screen to be the name of at 900px and about a third of one at 375, and 24
+   is the size at which it stops crowding the card under it.
+
+   Every rule in the app already names these, so this is eight declarations
+   for the whole app's display scale and there is nothing per-component to
+   keep in step. */
+@media (min-width: 600px) {
+  :root {
+    --text-lg: 1.375rem; /* 22 */
+    --text-xl: 1.75rem; /* 28 */
+    --text-2xl: 2.125rem; /* 34 */
+  }
 }
 
 /* Above this the bar is gone and a side rail carries navigation instead, so
