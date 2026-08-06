@@ -156,10 +156,15 @@
 }
 
 /* A card whose whole body is a list of links out — legal, install, credits. */
+/* Pulled out to the panel's edges by exactly the row's own inset, so the three
+   titles line up with the sentence above them instead of sitting a ragged
+   13px in — and the hover fill then reaches the card edge the way a settings
+   row should, rather than floating as a pill in the middle. */
 .links {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  margin-inline: calc(-1 * (var(--space-3) + 1px));
 }
 
 .link {

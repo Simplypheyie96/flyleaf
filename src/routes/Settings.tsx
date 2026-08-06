@@ -1,52 +1,62 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import PaperSurface from '../components/PaperSurface'
 import Sparkle from '../components/Sparkle'
 import ThemeToggle from '../components/ThemeToggle'
-import Journey from '../settings/Journey'
+import { getPref, type ThemePref } from '../theme'
+import Fold from '../settings/Fold'
+import InstallHow, { useInstalled } from '../settings/InstallHow'
+import { BackupCard, NameCard } from '../settings/Journey'
 import Tip from '../settings/Tip'
 import { DOCS } from '../legal/documents'
-import { openInstallGuide } from '../settings/installable'
-import { GUIDES, detect, installed } from '../settings/platform'
+import { GUIDES, detect } from '../settings/platform'
 import card from '../settings/settings.module.css'
 import pageStyles from './page.module.css'
 import styles from './Settings.module.css'
 
-/* One section per card, in the order a reader needs them: who they are, where
-   their journey lives, then how the app looks, then the things you read once
-   and never again.
+/* Six folded rows under the masthead, in the order a reader needs them: who
+   they are, how it looks, where the journey lives, how to keep it on a device,
+   the tip jar, and the pages nobody reads until they need to.
 
-   The card shape itself moved to `src/settings/settings.module.css` when the
-   page grew past a single switch — heading and control on one line, a sentence
-   of explanation underneath both. */
+   Folded rather than laid out flat, because six cards standing open at once is
+   a document and a reader looking for one switch had to scroll a page of
+   explanation to reach it. Each row prints its own state on the closed line —
+   the name, the current theme, the count of books, which device we think this
+   is — so the page can be read without being opened. */
 
-/* The install row.
+/* The two rows the page owns outright. The rest bring their own state and so
+   bring their own Fold with them. */
 
-   It stays on the page when Flyleaf is already installed rather than
-   disappearing: a reader who has it on their phone is exactly the reader who
-   wants it on their iPad too, and a guide that vanishes the moment it works
-   is a guide nobody can hand to anyone. Only the sentence under it changes. */
-function InstallCard() {
-  const here = installed()
+function Appearance() {
+  /* Held here only so the closed row can say what it is set to. The control
+     below is still the one source of truth; this follows it. */
+  const [pref, setPref] = useState<ThemePref>(getPref)
+  const said = { system: 'Auto', light: 'Day', dark: 'Night' }[pref]
 
   return (
-    <PaperSurface className={card.section}>
-      <div className={card.sectionHead}>
-        <h2 className={card.sectionTitle}>On your home screen</h2>
-        <span className={card.sectionHint}>
-          {here
-            ? 'Flyleaf is installed on this device. The guide covers every other one.'
-            : `Flyleaf can live on your home screen with its own icon, and works offline either way.`}
-        </span>
-      </div>
-      <div className={card.links}>
-        <button type="button" className={card.link} onClick={openInstallGuide}>
-          How to install Flyleaf
-          <span className={card.linkHint} aria-hidden="true">
-            {GUIDES[detect()].label}
-          </span>
-        </button>
-      </div>
-    </PaperSurface>
+    <Fold title="Appearance" meta={said}>
+      <span className={card.sectionHint}>
+        Auto follows your device from day into night. Day and Night hold until
+        you change them.
+      </span>
+      <ThemeToggle onChange={setPref} />
+    </Fold>
+  )
+}
+
+/* The install row stays on the page when Flyleaf is already installed rather
+   than disappearing: a reader who has it on their phone is exactly the reader
+   who wants it on their iPad too, and instructions that vanish the moment they
+   work are instructions nobody can hand to anyone. */
+function Install() {
+  const here = useInstalled()
+
+  return (
+    <Fold
+      title="On your home screen"
+      meta={here ? 'Installed' : GUIDES[detect()].label}
+    >
+      <InstallHow />
+    </Fold>
   )
 }
 
@@ -61,55 +71,41 @@ function Settings() {
           <p className={styles.subtitle}>how Flyleaf behaves</p>
         </header>
 
-        {/* Appearance first, and not by accident. It is the only control on
-            this page anyone touches twice — a name is set once at the front
-            door and a backup is remembered rather than fiddled with — so it
-            gets the position a reader's thumb is already resting on. */}
-        <PaperSurface className={card.section}>
-          <div className={card.sectionHead}>
-            <h2 className={card.sectionTitle} id="appearance">
-              Appearance
-            </h2>
-            <div className={card.sectionControl}>
-              <ThemeToggle labelledBy="appearance" />
-            </div>
-            <span className={card.sectionHint}>
-              Auto follows your device from day into night. Day and Night hold
-              until you change them.
-            </span>
-          </div>
-        </PaperSurface>
+        {/* Name, then theme, then what the name is attached to. A reader's own
+            name is the first thing on a settings page in every app they
+            already own; the theme is the switch they come back for, and second
+            of six rows is still under the thumb that landed here. */}
+        <div className={styles.list}>
+          <NameCard />
 
-        {/* Then who you are and where the journey lives — one subject seen
-            twice, so the two cards stay next to each other. */}
-        <Journey />
+          <Appearance />
 
-        <InstallCard />
+          <BackupCard />
 
-        <Tip />
+          <Install />
 
-        {/* Last, and deliberately plain. The three documents are the only part
-            of Settings a reader opens once; they are also the part that has to
-            be findable the day somebody goes looking for it. */}
-        <PaperSurface className={card.section}>
-          <div className={card.sectionHead}>
-            <h2 className={card.sectionTitle}>The small print</h2>
+          <Tip />
+
+          {/* Last, and deliberately plain. The three documents are the only
+              part of Settings a reader opens once; they are also the part that
+              has to be findable the day somebody goes looking for it. */}
+          <Fold title="The small print">
             <span className={card.sectionHint}>
               What Flyleaf knows about you, what it promises, and who made the
               parts it did not.
             </span>
-          </div>
-          <div className={card.links}>
-            {DOCS.map((doc) => (
-              <Link key={doc.slug} to={`/legal/${doc.slug}`} className={card.link}>
-                {doc.title}
-                <span className={card.linkHint} aria-hidden="true">
-                  ›
-                </span>
-              </Link>
-            ))}
-          </div>
-        </PaperSurface>
+            <div className={card.links}>
+              {DOCS.map((doc) => (
+                <Link key={doc.slug} to={`/legal/${doc.slug}`} className={card.link}>
+                  {doc.title}
+                  <span className={card.linkHint} aria-hidden="true">
+                    ›
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </Fold>
+        </div>
       </div>
     </main>
   )

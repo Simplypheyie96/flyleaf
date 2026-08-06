@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import PaperSurface from '../components/PaperSurface'
 import LeafButton from '../components/LeafButton'
+import Fold from './Fold'
 import Sheet from '../components/Sheet'
 import Sparkle from '../components/Sparkle'
 import { CloseIcon } from '../components/TabIcons'
@@ -128,14 +128,15 @@ function Tip() {
      should not be looking at the same invitation they answered. */
   if (stage.at === 'thanks') {
     return (
-      <PaperSurface className={`${card.section} ${styles.thanks}`}>
-        <Sparkle size={18} className={styles.spark} />
-        <h2 className={card.sectionTitle}>Thank you</h2>
-        <p className={styles.warm}>
-          {stage.amount ? `${naira(stage.amount)} — ` : ''}that genuinely helps, and it
-          keeps Flyleaf free for everyone else. Back to your books.
-        </p>
-      </PaperSurface>
+      <Fold title="Thank you" meta={stage.amount ? naira(stage.amount) : undefined} start>
+        <span className={styles.thanks}>
+          <Sparkle size={18} className={styles.spark} />
+          <span className={styles.warm}>
+            That genuinely helps, and it keeps Flyleaf free for everyone else.
+            Back to your books.
+          </span>
+        </span>
+      </Fold>
     )
   }
 
@@ -143,14 +144,11 @@ function Tip() {
 
   return (
     <>
-      <PaperSurface className={card.section}>
-        <div className={card.sectionHead}>
-          <h2 className={card.sectionTitle}>Buy the maker a coffee</h2>
-          <span className={card.sectionHint}>
-            Flyleaf is free, has no ads, and is made by one person. Nothing here is
-            ever locked — this is only a way to say thank you.
-          </span>
-        </div>
+      <Fold title="Buy the maker a coffee">
+        <span className={card.sectionHint}>
+          Flyleaf is free, has no ads, and is made by one person. Nothing here is
+          ever locked — this is only a way to say thank you.
+        </span>
         <div className={card.row}>
           <button
             type="button"
@@ -163,7 +161,7 @@ function Tip() {
             Send a coffee
           </button>
         </div>
-      </PaperSurface>
+      </Fold>
 
       <Sheet
         open={open}

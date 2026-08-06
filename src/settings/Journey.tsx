@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import PaperSurface from '../components/PaperSurface'
 import LeafButton from '../components/LeafButton'
+import Fold from './Fold'
 import db from '../data/db'
 import { download, exportJourney, importJourney, lastExport, markExported } from '../data/backup'
 import { getHandle, setHandle } from '../data/reader'
@@ -29,22 +29,21 @@ function when(at: number) {
 function NameCard() {
   const [name, setName] = useState(getHandle)
 
+  /* First on the page, and open on arrival. It is the one thing Flyleaf knows
+     about a reader, it is the only field here, and a new reader arriving from
+     onboarding to change the name they just picked should find it already
+     waiting rather than have to guess which line it is behind. */
   return (
-    <PaperSurface className={styles.section}>
-      <div className={styles.sectionHead}>
-        <h2 className={styles.sectionTitle} id="reader-name">
-          Your name
-        </h2>
-        <span className={styles.sectionHint}>
-          What Flyleaf calls you, and the name written on a journey you export.
-          It stays on this device.
-        </span>
-      </div>
+    <Fold title="Your name" meta={name || 'Reader'} start>
+      <span className={styles.sectionHint}>
+        What Flyleaf calls you, and the name written on a journey you export. It
+        stays on this device.
+      </span>
       <input
         type="text"
         className={styles.field}
         value={name}
-        aria-labelledby="reader-name"
+        aria-label="Your name"
         placeholder="Reader"
         maxLength={32}
         autoComplete="off"
@@ -52,7 +51,7 @@ function NameCard() {
         onChange={(e) => setName(e.target.value)}
         onBlur={() => setHandle(name)}
       />
-    </PaperSurface>
+    </Fold>
   )
 }
 
@@ -119,17 +118,22 @@ function BackupCard() {
   const kept = counts ? counts.books + counts.keeps > 0 : false
 
   return (
-    <PaperSurface className={styles.section}>
-      <div className={styles.sectionHead}>
-        <h2 className={styles.sectionTitle}>Your journey</h2>
-        <span className={styles.sectionHint}>
-          {counts
-            ? `${counts.books} ${counts.books === 1 ? 'book' : 'books'} · ${counts.keeps} ${
-                counts.keeps === 1 ? 'memory' : 'memories'
-              }, held on this device only. Nothing is on our servers.`
-            : 'Counting what you have kept…'}
-        </span>
-      </div>
+    <Fold
+      title="Your journey"
+      /* The count on the closed row, because it is the answer to the question
+         that brings anyone to this section: how much is there to lose. */
+      meta={
+        counts
+          ? `${counts.books} ${counts.books === 1 ? 'book' : 'books'} · ${counts.keeps} ${
+              counts.keeps === 1 ? 'memory' : 'memories'
+            }`
+          : undefined
+      }
+    >
+      <span className={styles.sectionHint}>
+        Everything you have kept is held on this device only. Nothing is on our
+        servers.
+      </span>
 
       {/* The one uncomfortable sentence, said once and not repeated: clearing
           this browser's storage takes the journey with it. */}
@@ -177,17 +181,13 @@ function BackupCard() {
         laptop — and the journey comes back. It is a snapshot, so save a fresh
         one now and then.
       </p>
-    </PaperSurface>
+    </Fold>
   )
 }
 
-function Journey() {
-  return (
-    <>
-      <NameCard />
-      <BackupCard />
-    </>
-  )
-}
-
-export default Journey
+/* Exported apart rather than as one block: the theme row sits between them on
+   the page, because a reader's own name belongs at the top and the theme is
+   the switch they come back for. They are still the same subject — what
+   Flyleaf knows about a reader, and what that costs them — which is why the
+   two live in one file. */
+export { NameCard, BackupCard }
