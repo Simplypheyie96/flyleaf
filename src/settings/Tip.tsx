@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import PaperSurface from '../components/PaperSurface'
 import LeafButton from '../components/LeafButton'
+import Sheet from '../components/Sheet'
 import Sparkle from '../components/Sparkle'
+import { CloseIcon } from '../components/TabIcons'
 import card from './settings.module.css'
 import styles from './tip.module.css'
 
@@ -11,6 +13,13 @@ import styles from './tip.module.css'
    nothing withheld from anyone who scrolls past it. So it asks once, in one
    sentence, in the reader's own settings where they came looking — no banner,
    no interstitial, no second ask on the way out of a book.
+
+   And it asks with ONE control. An amount, a second amount, a third, a box to
+   type a fourth, an email field and a send button is a checkout, and a
+   checkout sitting open in the settings of a free app is a shop counter in
+   somebody's living room. All of that machinery still exists — it just waits
+   behind the button, in the same glass sheet the install guide uses, where a
+   reader who has decided to give something will happily meet it.
 
    The card is absent entirely unless the deployment has a tip jar configured.
    A support card that opens onto an error is worse than no support card.
@@ -37,6 +46,7 @@ type Stage =
   | { at: 'stuck'; why: string }
 
 function Tip() {
+  const [open, setOpen] = useState(false)
   const [stage, setStage] = useState<Stage>({ at: 'asking' })
   const [amount, setAmount] = useState(PRESETS[1])
   const [custom, setCustom] = useState('')
@@ -71,6 +81,12 @@ function Tip() {
         setStage({ at: 'stuck', why: 'Could not reach Paystack to check. Try again in a moment.' }),
       )
   }, [])
+
+  /* A failure on the way back has no sheet to appear in — the reader arrived
+     from Paystack, not from the button — so it opens one for them. */
+  useEffect(() => {
+    if (stage.at === 'stuck') setOpen(true)
+  }, [stage.at])
 
   if (!ON) return null
 
@@ -108,6 +124,8 @@ function Tip() {
     }
   }
 
+  /* Afterwards the card stops asking. Somebody who has just given something
+     should not be looking at the same invitation they answered. */
   if (stage.at === 'thanks') {
     return (
       <PaperSurface className={`${card.section} ${styles.thanks}`}>
@@ -124,82 +142,122 @@ function Tip() {
   const busy = stage.at === 'opening' || stage.at === 'checking'
 
   return (
-    <PaperSurface className={card.section}>
-      <div className={card.sectionHead}>
-        <h2 className={card.sectionTitle} id="tip-jar">
-          Buy the maker a coffee
-        </h2>
-        <span className={card.sectionHint}>
-          Flyleaf is free, has no ads, and is made by one person. If it has kept your
-          reading well, you can say so with a coffee. Nothing here is ever locked.
-        </span>
-      </div>
-
-      <div className={styles.amounts} role="group" aria-labelledby="tip-jar">
-        {PRESETS.map((each) => (
+    <>
+      <PaperSurface className={card.section}>
+        <div className={card.sectionHead}>
+          <h2 className={card.sectionTitle}>Buy the maker a coffee</h2>
+          <span className={card.sectionHint}>
+            Flyleaf is free, has no ads, and is made by one person. Nothing here is
+            ever locked — this is only a way to say thank you.
+          </span>
+        </div>
+        <div className={card.row}>
           <button
-            key={each}
             type="button"
-            className={styles.amount}
-            aria-pressed={!custom && each === amount}
+            className={card.quiet}
             onClick={() => {
-              setCustom('')
-              setAmount(each)
+              setStage({ at: 'asking' })
+              setOpen(true)
             }}
           >
-            {naira(each)}
+            Send a coffee
           </button>
-        ))}
-        <input
-          type="number"
-          inputMode="numeric"
-          className={styles.other}
-          value={custom}
-          min={200}
-          max={500000}
-          placeholder="Another amount"
-          aria-label="Another amount, in naira"
-          onChange={(e) => setCustom(e.target.value)}
-        />
-      </div>
+        </div>
+      </PaperSurface>
 
-      <label className={styles.field}>
-        <span className={styles.fieldName}>Email for the receipt</span>
-        <input
-          type="email"
-          className={card.field}
-          value={email}
-          autoComplete="email"
-          placeholder="you@example.com"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </label>
+      <Sheet
+        open={open}
+        onClose={() => setOpen(false)}
+        label="Buy the maker a coffee"
+        name="tip-jar"
+      >
+        <div className={styles.jar}>
+          <header className={styles.head}>
+            <div className={styles.headLine}>
+              <h2 className={styles.title} id="tip-jar">
+                Buy the maker a coffee
+              </h2>
+              <button
+                type="button"
+                className={styles.close}
+                onClick={() => setOpen(false)}
+                aria-label="Close"
+              >
+                <CloseIcon size={20} />
+              </button>
+            </div>
+            <p className={styles.lede}>
+              Pick an amount, and Paystack takes it from there.
+            </p>
+          </header>
 
-      <div className={card.row}>
-        <LeafButton onClick={() => void send()} disabled={busy}>
-          {stage.at === 'checking'
-            ? 'Checking…'
-            : stage.at === 'opening'
-              ? 'Opening Paystack…'
-              : chosen > 0
-                ? `Send ${naira(chosen)}`
-                : 'Send a tip'}
-        </LeafButton>
-      </div>
+          <div className={styles.amounts} role="group" aria-labelledby="tip-jar">
+            {PRESETS.map((each) => (
+              <button
+                key={each}
+                type="button"
+                className={styles.amount}
+                aria-pressed={!custom && each === amount}
+                onClick={() => {
+                  setCustom('')
+                  setAmount(each)
+                }}
+              >
+                {naira(each)}
+              </button>
+            ))}
+            <input
+              type="number"
+              inputMode="numeric"
+              className={styles.other}
+              value={custom}
+              min={200}
+              max={500000}
+              placeholder="Another amount"
+              aria-label="Another amount, in naira"
+              onChange={(e) => setCustom(e.target.value)}
+            />
+          </div>
 
-      {stage.at === 'stuck' && (
-        <p className={card.note} data-tone="bad">
-          {stage.why}
-        </p>
-      )}
+          <label className={styles.field}>
+            <span className={styles.fieldName}>Email for the receipt</span>
+            <input
+              type="email"
+              className={card.field}
+              value={email}
+              autoComplete="email"
+              placeholder="you@example.com"
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
 
-      <p className={card.fine}>
-        Paystack handles the payment and the card details — Flyleaf never sees them,
-        and keeps nothing about you afterwards. Your email goes to Paystack for the
-        receipt and no further. Tips are a thank-you, not a purchase, and are not
-        refundable.
-      </p>
-    </PaperSurface>
+          <div className={card.row}>
+            <LeafButton onClick={() => void send()} disabled={busy}>
+              {stage.at === 'checking'
+                ? 'Checking…'
+                : stage.at === 'opening'
+                  ? 'Opening Paystack…'
+                  : chosen > 0
+                    ? `Send ${naira(chosen)}`
+                    : 'Send a tip'}
+            </LeafButton>
+          </div>
+
+          {stage.at === 'stuck' && (
+            <p className={card.note} data-tone="bad" role="status">
+              {stage.why}
+            </p>
+          )}
+
+          <p className={card.fine}>
+            Paystack handles the payment and the card details — Flyleaf never sees
+            them, and keeps nothing about you afterwards. Your email goes to
+            Paystack for the receipt and no further. Tips are a thank-you, not a
+            purchase, and are not refundable.
+          </p>
+        </div>
+      </Sheet>
+    </>
   )
 }
 

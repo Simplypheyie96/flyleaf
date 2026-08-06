@@ -46,19 +46,15 @@ function Legal() {
         <header className={styles.masthead}>
           <h1 className={styles.title}>{doc.title}</h1>
           <p className={styles.lede}>{doc.lede}</p>
-          {/* "Last updated not yet published" is not a sentence. Until there is
-              a real date, the stamp says the true thing instead. */}
-          <p className={styles.stamp}>
-            {MAKER.unfilled ? 'Not yet published' : `Last updated ${MAKER.updated}`}
-          </p>
+          <p className={styles.stamp}>Last updated {MAKER.updated}</p>
           <div ref={sentinel} aria-hidden="true" />
         </header>
 
-        {MAKER.unfilled && (
+        {!MAKER.reviewed && (
           <p className={styles.draft} role="note">
-            <strong>Starter draft.</strong> This page was written to be honest
-            about how Flyleaf actually works, but it has not been reviewed by a
-            lawyer and it is not legal advice. Some details are still blank.
+            <strong>Starter draft.</strong> This page describes exactly how
+            Flyleaf works today, but it has not been read by a lawyer and it is
+            not legal advice.
           </p>
         )}
 

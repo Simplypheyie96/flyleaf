@@ -61,10 +61,10 @@ function Settings() {
           <p className={styles.subtitle}>how Flyleaf behaves</p>
         </header>
 
-        <Journey />
-
-        <InstallCard />
-
+        {/* Appearance first, and not by accident. It is the only control on
+            this page anyone touches twice — a name is set once at the front
+            door and a backup is remembered rather than fiddled with — so it
+            gets the position a reader's thumb is already resting on. */}
         <PaperSurface className={card.section}>
           <div className={card.sectionHead}>
             <h2 className={card.sectionTitle} id="appearance">
@@ -79,6 +79,12 @@ function Settings() {
             </span>
           </div>
         </PaperSurface>
+
+        {/* Then who you are and where the journey lives — one subject seen
+            twice, so the two cards stay next to each other. */}
+        <Journey />
+
+        <InstallCard />
 
         <Tip />
 
