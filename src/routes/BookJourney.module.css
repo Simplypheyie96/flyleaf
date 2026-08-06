@@ -1,12 +1,19 @@
 /* The journey page.
 
-   Two zones, and only the second one moves:
+   One bar that stays, and one scroll that holds everything else:
 
-     1. The pinned head — back and delete, the book, its formats and dates,
-        and the sift rail. It is the room the journey happens in, and a room
-        does not scroll away.
-     2. The scroll — the thread alone, passing underneath the head and fading
-        out as it goes under the rail.
+     1. The chrome row — back, share, draft, delete, and the book's name once
+        the book itself has gone up. Four controls; it never changes height.
+     2. The scroll — the book block, then the sift rail, then the thread, in
+        one move. The book leaves by being read past; the rail sticks to the
+        top when it gets there and takes its glass.
+
+   Nothing on this page animates its own height any more. A block that folds
+   has to give back, in its own time, distance the reader never travelled —
+   192px of head returning while a thumb moved 24 — and no easing curve fixes
+   an amount that is wrong. Scrolling is the one mechanism here that moves at
+   exactly the speed of the finger, is reversible mid-gesture, and stops when
+   the finger stops. So the head scrolls.
 
    Four type sizes on the whole route, declared on `.page` and used by name:
    display for the book, read for kept words, chrome for controls, micro for
@@ -78,16 +85,13 @@
 
 /* ── The pinned head ────────────────────────────────────────────────────── */
 
-/* No `gap`: the middle child collapses to nothing when the head folds, and a
-   column gap would leave two of them stacked where the block used to be — a
-   12px dead band under the chrome that appears out of nowhere. The rhythm is
-   carried by the parts instead, so the ones that vanish take their spacing
-   with them. */
+/* One row, one height, forever. It used to hold the book and the rail as well
+   and change size underneath them; now the only thing above the scroll is the
+   four controls, so there is nothing here that can move. */
 .pinned {
   position: relative;
   z-index: 2;
   flex-shrink: 0;
-  gap: 0;
   padding-block-start: calc(env(safe-area-inset-top, 0px) + var(--space-3));
   padding-inline: var(--space-5);
 }
@@ -100,53 +104,23 @@
   margin-block-end: var(--space-3);
 }
 
-/* The fold. A grid row animating 0fr → 1fr is the one way to transition a
-   block to its own natural height without measuring it in JS, and it keeps the
-   contents from reflowing on the way: the child is laid out once at full width
-   and clipped.
+/* Once the book has gone up, the bar has to say which book this is, and the
+   name is the way back to it — tapping it returns the thread to the top, which
+   is where the book is. A button, but not a *control*: no border, no fill,
+   nothing that reads as chrome. The alternative was a second glyph welded to
+   the back arrow, which is two ideas in one pill and says nothing about what
+   it does.
 
-   Exactly one child, always. `grid-template-rows` sizes only the row it
-   declares — a second child lands in an implicit row that stays `auto` and
-   goes on holding its full height while the first one collapses. */
-.headFold {
-  display: grid;
-  grid-template-rows: 1fr;
-  transition: grid-template-rows var(--dur-base) var(--ease-move);
-}
+   It takes whatever room the two pills leave and truncates rather than
+   wrapping. It also holds that room while it is invisible, which is why it is
+   always in the markup: a name that mounts on the crossing would push both
+   pills sideways in the frame it appeared, and the pills are the one thing on
+   this page that has never moved.
 
-.headFold > * {
-  min-block-size: 0;
-  overflow: hidden;
-  transition: opacity var(--dur-quick) var(--ease-out);
-}
-
-/* Everything that folds, in one box: the two columns and nothing else. No
-   gap — there is one child now that the dates have gone back up into the
-   record where they belong. The trailing rhythm lives in here rather than on
-   the row below it, so it collapses along with everything else. */
-.headInner {
-  padding-block-end: var(--space-4);
-}
-
-.headFold[data-folded] {
-  grid-template-rows: 0fr;
-}
-
-/* Out before it is gone, so the last frames of the collapse are empty paper
-   rather than a cover being guillotined. */
-.headFold[data-folded] > * {
-  opacity: 0;
-}
-
-/* Folded, the head is one bar, and a bar with no name on it is a bar you can
-   be lost in. The title takes whatever room the two pills leave and truncates
-   rather than wrapping.
-
-   It is also the way back to the book: tapping it returns the thread to the
-   top, which is what opens the head again. A button, but not a *control* —
-   no border, no fill, nothing that reads as chrome. The alternative was a
-   second glyph welded to the back arrow, which is two ideas in one pill and
-   says nothing about what it does. */
+   Opacity and 3px, nothing else. The name is the only thing left that arrives
+   rather than being scrolled to, so it arrives quietly — a fade with a
+   hair of travel under it, over --dur-quick, which is short enough that it has
+   finished before the thumb has decided whether it is still scrolling. */
 .miniTitle {
   min-inline-size: 0;
   flex: 1;
@@ -165,6 +139,16 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  opacity: 0;
+  transform: translateY(3px);
+  transition:
+    opacity var(--dur-quick) var(--ease-out),
+    transform var(--dur-quick) var(--ease-out);
+}
+
+.miniTitle[data-on] {
+  opacity: 1;
+  transform: none;
 }
 
 /* More than one button together shares one container. */
@@ -237,11 +221,20 @@
    still worth stating. */
 .headTop {
   --board: 110px;
+  /* The head's own trailing space, carried *inside* its box rather than as a
+     gap between it and the rail — and that is load-bearing, not tidiness. The
+     rail below is sticky, so it lands the moment its top edge reaches the top
+     of the scroll; the bar above takes the book's name the moment this block's
+     last pixel leaves. A gap between the two would make those two moments
+     different by exactly the size of the gap. Inside the box, they are the
+     same moment, and nothing has to be told a number to keep them in step. */
+  --head-tail: var(--space-5);
   position: relative;
   align-self: stretch;
   display: flex;
   align-items: stretch;
   gap: var(--space-4);
+  padding-block-end: var(--head-tail);
 }
 
 /* The star, in the head's own patch of sky.
@@ -259,12 +252,16 @@
    would read as a fourth button between two glass pills. Here it decorates
    nothing and interrupts nothing, which is what an accent is for.
 
-   It folds away with the head because it lives inside the fold, which is
-   correct: it belongs to the masthead, and a folded head is a bar, not a
-   masthead. */
+   It is read away with the head, which is correct: it belongs to the masthead,
+   and once the masthead has gone up there is no masthead to decorate.
+
+   Anchored off the head's trailing space rather than off its box, because an
+   absolute child is placed against the padding box: left at 2 it would sit at
+   the bottom of that space, a full 24 lower than the corner it is meant to be
+   in, hard against the rail. */
 .headSpark {
   position: absolute;
-  inset-block-end: 2px;
+  inset-block-end: calc(var(--head-tail) + 2px);
   inset-inline-end: 0;
   color: var(--color-voice);
   opacity: 0.55;
@@ -345,14 +342,15 @@
    which on strokes this fine smears them instead of thickening them.
 
    Two lines, clamped. One line kept the head the same height for every book,
-   which was a real argument, but it bought that with two things worth more:
-   most titles at this width were cut off inside their first six words, and
-   the line it saved was the line that turned into dead air lower down. Two is
-   still a fixed ceiling — the head cannot grow past it — and it is spent on
-   the book's own name.
+   which was a real argument while the head was a pinned zone that had to fold
+   to a known size; it is no longer one. And it bought that height with two
+   things worth more: most titles at this width were cut off inside their first
+   six words, and the line it saved was the line that turned into dead air
+   lower down. Two is still a ceiling — the head cannot grow past it — and it
+   is spent on the book's own name.
 
-   Truncation hides content, so the full name stays reachable — `title` on the
-   element, and the folded bar spells it out in full besides. */
+   Truncation hides content, so the full name stays reachable: `title` on the
+   element. */
 .title {
   align-self: stretch;
   margin: 0;
@@ -535,14 +533,98 @@
    somebody dropped onto the paper, not as part of the head it belongs to. One
    rule, at the bottom, where the head actually ends — the chips sit on the
    same paper as the book above them and the line closes the whole head at
-   once. Three zones still, with two lines fewer. */
+   once. Three zones still, with two lines fewer.
+
+   And it stays. It travels up with the book while there is a book to sit
+   under, then stops at the top of the scroll and stays there for the rest of
+   the thread, because what it does — which kinds are showing, and in what
+   order — is true of everything below it and answerable at any point in it.
+
+   The negative top margin cancels the column's gap so this box begins exactly
+   where the head's box ends; see `--head-tail` for why that has to be exact.
+   The inline margin runs the band out past the column's inset so that when it
+   is carrying glass it reads as a band across the page rather than a third
+   rectangle floating on it. */
 .tabsRow {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: var(--space-4);
+  margin-block-start: calc(-1 * var(--space-6));
   margin-inline: calc(-1 * var(--space-5));
   padding-inline: var(--space-5);
   border-block-end: 1px solid var(--border-hairline);
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out),
+    box-shadow var(--dur-quick) var(--ease-out);
+}
+
+/* Only once the thread is actually running underneath it. Sitting on open
+   paper with the book above it, this is part of the head and wants no ground
+   of its own; the instant it is the thing the journey is passing beneath, it
+   has to be something to pass beneath. Two states of one bar, and the state
+   is the same observation that gives the bar above the book's name.
+
+   Ground only — no border appearing, no shadow, no size change. A stuck bar
+   that grows furniture announces itself; this one just stops being nothing.
+
+   92%, and that number is measured rather than chosen. The app's glass sits at
+   55% and cannot be used here: the chips are drawn in ink-soft, and the things
+   that pass under this bar are pale keepsake cards, so at 55% an unselected
+   chip measured 1.66:1 against a card in the dark theme and 2.62:1 against the
+   one dark-grounded card in the light theme — against 6.56:1 for the same chip
+   over open sky. That is the whole trap in one bar: glass that reads beautifully
+   over the page it was tested on, and fails outright over the content it was
+   built to float above. At 92% of the same colour the worst case is 5.0:1 in
+   the dark theme and 6.1:1 in the light, and the 8% left over is still enough
+   for a card's hue to wash through and move — which is the part of glass that
+   was ever doing the work. */
+.tabsRow[data-parked] {
+  background-color: color-mix(in oklab, var(--glass-fallback) 92%, transparent);
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .tabsRow[data-parked] {
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
+  }
+}
+
+/* Past 640px the band stops being a band.
+
+   Measured off the page, not chosen. This column runs at 90vw up to a 560 cap
+   and the box adds the page's two 24s, so the sky either side of it is
+   0 up to 480, then 0.05vw − 24 — which is 1px at 500 and still only 7 at 622,
+   where the cap takes over and it opens out fast: 12 at 632, 16 at 640, 143 at
+   the desktop width this was reviewed on. Two shapes, and the number between
+   them is where a margin becomes a margin. Below it the box touches the page's
+   edges or as near as makes no difference, and square corners running out to
+   them read as a band across the head. Above it a 608px slab with square
+   corners marooned in open sky is a toolbar somebody dropped on the app rather
+   than part of it — so it rounds, takes a hairline all round and lifts a
+   whisper, and becomes the same kind of floating object as the capsules
+   directly above it, which is what it has actually been since the moment it
+   parked. 640 over 632 only because the corners want a margin they can be seen
+   against, and 16 is the app's own smallest one.
+
+   The ring is an inset shadow, not a border: a border would take 2px out of
+   the content box and shift every chip 1px sideways at the instant of parking,
+   which is the one thing this whole rearrangement exists to avoid. The bottom
+   rule goes transparent rather than away for the same reason — it is still
+   1px of border, it just stops drawing a straight line across a round corner.
+   Only the parked state changes shape. At rest this is the line that closes
+   the head, and a line is what it should stay. */
+@media (min-width: 640px) {
+  .tabsRow[data-parked] {
+    border-block-end-color: transparent;
+    border-radius: var(--radius-lg);
+    box-shadow:
+      inset 0 0 0 1px var(--border-hairline),
+      var(--elevation-2);
+  }
 }
 
 /* All, then the kinds, running past the trailing edge.
@@ -705,6 +787,14 @@
 
 /* ── The scroll ─────────────────────────────────────────────────────────── */
 
+/* No top mask. It used to carry a 24px fade to sell the pinned zone as a
+   surface the journey passed under, and it cannot any more: the rail is inside
+   this box now, so the fade would land on the rail's own top edge every time
+   it stuck and dissolve the bar that is holding the page together.
+   Nothing is lost by that. The chrome above and this box share one sky — the
+   gradient is the page's, not either zone's — so content reaching the top edge
+   goes out against a colour that continues above it, which is what going under
+   something looks like. */
 .scroller {
   flex: 1;
   min-block-size: 0;
@@ -715,9 +805,6 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding-inline: var(--space-5);
-  /* The thread does not stop at the head — it slips underneath it. The mask
-     is what sells the pinned zone as a surface the journey passes under. */
-  mask-image: linear-gradient(to bottom, transparent 0, black 24px, black 100%);
 }
 
 .column {
@@ -1412,12 +1499,13 @@
     transform: translateY(calc(-1 * var(--keep-step)));
   }
 
-  /* The head still leaves and still comes back — losing it entirely would
-     leave the reader wondering where the book went — but it arrives without
-     the travel. */
-  .headFold,
-  .headFold > * {
-    transition-duration: 0.01ms;
+  /* The name still arrives and still goes — losing it would leave the reader
+     in a bar with no book on it — but it arrives without the travel. The fade
+     stays: a fade is not vestibular, and a name that hard-cuts into a bar is
+     the one edge this page has left. */
+  .miniTitle {
+    transition: opacity var(--dur-quick) var(--ease-out);
+    transform: none;
   }
 
   /* Tier 1: the slide off the corner is the vestibular part. It still leaves

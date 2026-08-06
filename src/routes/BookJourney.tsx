@@ -1,11 +1,25 @@
 /* The journey — everything one reader kept from one book, on one page.
 
-   The page is two zones, and only the second one moves.
+   One bar stands still and everything else is one scroll.
 
-   **The head stands still.** Back, the book, how it is being read, its dates,
-   and the sift rail are pinned; they are the room the journey happens in, and
-   a room does not scroll away. Everything below them — the thread — scrolls
-   underneath, fading out as it passes under the rail.
+   **The chrome is pinned.** Back, share, draft, delete — the verbs that belong
+   to the book rather than to the reading — and, once the book itself has gone
+   up, the book's name.
+
+   **Everything else scrolls, and that is the whole of the animation.** The
+   cover, the record and the dates are the first thing in the thread rather
+   than a pinned block that folds itself away as you read. They used to be
+   pinned: a 192px head that collapsed once the thread had moved 72px, which
+   meant it had to give back 176px the reader had never scrolled — the thread
+   outran the finger by double and went on moving for a sixth of a second after
+   the finger stopped. Nothing in the timing function could fix that; a head
+   taller than the distance that triggers it has to shove the page. Scrolled
+   instead, it leaves at exactly the speed of the thumb, comes back at exactly
+   the speed of the thumb, and turns around mid-gesture because it is not an
+   animation at all.
+
+   The sift rail is what stays: it sticks to the top of the thread as the book
+   passes under it, and takes its glass at the moment it lands there.
 
    **The thread is the journey.** A dashed line runs down the gutter; every
    keep is a notch on it with its kind knotted at the line; the first notch is
@@ -197,12 +211,15 @@ function BookJourney() {
   const [fairOpen, setFairOpen] = useState(false)
   const [bookOpen, setBookOpen] = useState(false)
   const [undo, setUndo] = useState<Undo | null>(null)
-  /* The head is pinned, which means the room it takes is room the thread never
-     gets back. Reading is what asks for that room back — see `onScroll`. */
-  const [headOpen, setHeadOpen] = useState(true)
+  /* Whether the book itself has gone up under the chrome. Not a fold and not a
+     threshold the reader can feel — it is one observation of where the head
+     block actually is, and all it changes is what the bar says and what the
+     rail is made of. */
+  const [parked, setParked] = useState(false)
   const [keepShown, setKeepShown] = useState(true)
   const [keepStep, setKeepStep] = useState(0)
   const scroller = useRef<HTMLDivElement>(null)
+  const head = useRef<HTMLDivElement>(null)
   const keepIt = useRef<HTMLButtonElement>(null)
   const lastTop = useRef(0)
   const settle = useRef<number | undefined>(undefined)
@@ -256,31 +273,17 @@ function BookJourney() {
   /* Everything that could move a verb row goes through here, and the timer
      restarts each time, so the measurement happens once — after the last of
      whatever it was. That is what makes "only at rest" true for more than
-     scrolling: the head folds over --dur-base and slides the whole thread up
-     as it goes, and a step measured on the first frame of that is a step
-     measured against rows that are no longer there. */
+     scrolling: a filter change or an edit rewrites the thread under a corner
+     that is not moving, and a step measured on the first frame of that is a
+     step measured against rows that are no longer there. */
   const bump = useCallback(() => {
     window.clearTimeout(settle.current)
     settle.current = window.setTimeout(step, SETTLE_MS)
   }, [step])
 
-  /* The head folds itself as the thread moves, and comes back at the top.
-
-     Two thresholds rather than one, because a single line would flap: at the
-     boundary, folding grows the scroller, which can shift the reader back
-     across the line and reopen it, and so on for as long as the finger is
-     down. FOLD_AT is far enough in to mean "reading"; UNFOLD_AT is close
-     enough to the top to mean "back for the book".
-
-     And it only folds when folding buys something: on a two-keep thread the
-     head is most of the page, collapsing it clamps scrollTop back to the top,
-     and the reader would watch it shut and open once for nothing. */
   const onScroll = useCallback(
     (e: React.UIEvent<HTMLDivElement>) => {
       const el = e.currentTarget
-      const room = el.scrollHeight - el.clientHeight
-      setHeadOpen((open) => (open ? !(room > 240 && el.scrollTop > 72) : el.scrollTop < 16))
-
       bump()
 
       /* And the way to keep more gets out of the way of what is already kept.
@@ -300,16 +303,39 @@ function BookJourney() {
   const keeps = useMemo(() => entries ?? [], [entries])
   const rows: Row[] = useMemo(() => arrange(keeps, sift), [keeps, sift])
 
-  /* Once when the thread first draws, again whenever it is refiltered,
-     reordered or edited, and again on anything that resizes the thread — the
-     head folding, a rotation, a phone's browser bar retracting. None of those
-     are scrolls, and all of them move what is under the corner.
+  /* Where the book is, asked once per crossing rather than once per frame.
 
-     The observer watches the scroller rather than the window because the head
-     fold changes the scroller's height without changing the window's, and it
-     is the one that happens constantly. Both are debounced through `bump`, so
-     a 260ms fold measures once at the end of itself rather than sixteen times
-     on the way. */
+     The moment the head block's last pixel goes up past the top of the thread,
+     the bar takes the book's name and the rail — which is directly under the
+     head and sticky — lands and takes its glass. The same instant, without
+     either being told a number: the rail sticks when the head has gone, so a
+     threshold of 0 against the head IS the rail landing. Nothing to keep in
+     step and no height copied into a second place to go stale.
+
+     An observer rather than a scrollTop test, and one threshold rather than
+     the old fold's two: nothing here resizes the thread any more, so the
+     crossing cannot move underneath itself and flap.
+
+     Keyed on the book and not on nothing. Dexie answers a frame or two after
+     mount, and until it does this route renders an empty page — so on the one
+     pass an empty dependency list would run, neither element exists yet, and
+     the observer would give up for the life of the page. */
+  useEffect(() => {
+    const cover = head.current
+    const thread = scroller.current
+    if (!cover || !thread) return
+    const watch = new IntersectionObserver(([seen]) => setParked(!seen.isIntersecting), {
+      root: thread,
+      threshold: 0,
+    })
+    watch.observe(cover)
+    return () => watch.disconnect()
+  }, [book])
+
+  /* Once when the thread first draws, again whenever it is refiltered,
+     reordered or edited, and again on anything that resizes the thread — a
+     rotation, a phone's browser bar retracting. None of those are scrolls, and
+     all of them move what is under the corner. */
   useEffect(() => {
     const thread = scroller.current
     if (!thread) return
@@ -433,21 +459,26 @@ function BookJourney() {
             </div>
           </GlassSurface>
 
-          {/* Folded, the head still has to say which book this is — and the
-              name is the way back to the rest of it, so there is no separate
-              control to explain. */}
-          {!headOpen && (
-            <button
-              type="button"
-              className={styles.miniTitle}
-              onClick={() => scroller.current?.scrollTo({ top: 0, behavior: 'smooth' })}
-              aria-expanded={false}
-              aria-controls="journey-head"
-              title="Back to the top of the book"
-            >
-              {book.title}
-            </button>
-          )}
+          {/* Once the book has gone up, the bar still has to say which book
+              this is — and the name is the way back to it, so there is no
+              separate control to explain.
+
+              Always in the markup, faded rather than conditional. Mounting it
+              on the crossing swapped a nothing for a fully-formed word in one
+              frame, which is the one hard edge left on a page whose whole
+              motion is now continuous; and a button that appears has to be
+              taken out of the tab order while it is not there, which is what
+              `inert` is doing. */}
+          <button
+            type="button"
+            className={styles.miniTitle}
+            data-on={parked || undefined}
+            inert={!parked}
+            onClick={() => scroller.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+            title="Back to the top of the book"
+          >
+            {book.title}
+          </button>
 
           {/* The book's three verbs share one pill — more than one button
               together lives in one container. The delete sheet still asks. */}
@@ -488,232 +519,218 @@ function BookJourney() {
             </div>
           </GlassSurface>
         </div>
-
-        {/* Everything about the book lives beside its cover — name, author,
-            how it is being read, and its dates — so the head holds one
-            contained block instead of a column of rows.
-
-            It folds itself. Reading is the signal: once the thread is moving
-            the cover and the dates are worth about a card and a half, and
-            scrolling back to the top is how you say you want them again. The
-            wrapper is what animates (0fr/1fr on a grid row) so the block can
-            collapse without its contents reflowing on the way; `inert` keeps
-            the clipped date buttons out of the tab order while it is shut. */}
-        <div
-          className={styles.headFold}
-          id="journey-head"
-          data-folded={!headOpen || undefined}
-          inert={!headOpen}
-        >
-          {/* One child, and that is load-bearing. `grid-template-rows` only sizes
-            the rows it declares: a second child auto-places into an *implicit*
-            row, which stays `auto` no matter what the explicit row is set to.
-            Folded, that left the dates collapsed to nothing visible but still
-            holding 48px of their own row open — a band of empty sky under the
-            chrome that nobody could see and everybody could feel. Everything
-            that folds goes inside here. */}
-          <div className={styles.headInner}>
-            <div className={styles.headTop}>
-              {/* Sized in CSS rather than by prop, because its width is not a
-              free choice any more: the board's height is the height of the
-              record beside it, and 2:3 is what turns one into the other. */}
-              <BookCover
-                title={book.title}
-                author={book.author}
-                covers={book.covers}
-                size="small"
-                className={styles.cover}
-              />
-              {/* Everything that is *about* the book, in one column: name, byline,
-              formats, dates. The cover is the other column and holds nothing
-              but the cover.
-
-              Two alignment edges on the whole head, which is the point. The
-              dates used to sit outside this block on a full-width line of
-              their own, so their leading edge lined up with the spine of the
-              book and with nothing in the column of writing above them —
-              three edges to read where there should have been two. */}
-              <div className={styles.about}>
-                {/* One column with one rhythm, and exactly one thing bound tighter
-                than the rest.
-
-                It used to be two groups held apart by a seam, and the seam was
-                where the head went wrong: the record's floor came off the
-                cover's 2:3, `space-between` pushed every spare pixel into that
-                one join, and a short title turned it into a band of dead air
-                under the byline that belonged to nothing. The join was doing
-                the work of the leftover space.
-
-                Now the column is even — 16 down its whole length — and the
-                grouping is carried by the one gap that is *tighter*: the title
-                and its byline sit at 8, half of everything else, which is the
-                whole of the 2× the grouping needs. Spare height falls to the
-                foot of the column, where a cover taller than its own caption
-                is just what a book beside a paragraph looks like. */}
-                <div className={styles.identity}>
-                  {/* Up to two lines. One line was a height rule — it kept the
-                  pinned head the same size per book — but it also truncated
-                  most real titles at this width, and the space it saved was
-                  the space that opened under the byline. Two lines spends it
-                  on the name instead. The full text stays on the element. */}
-                  <h1 className={styles.title} title={book.title}>
-                    {book.title}
-                  </h1>
-                  <p className={styles.author}>
-                    {book.author} · {facts}
-                  </p>
-                </div>
-
-                {/* No wrapper. The row used to sit in a div whose only job was to
-                carry a top margin, and that margin was one of the three
-                hand-placed numbers this column was rebuilt to get rid of. */}
-                <FormatRow
-                  small
-                  value={formatsOf(book)}
-                  onChange={(next) => void setFormats(book.id, next)}
-                />
-
-                {/* The reading span: one pill, two tappable ends, an arrow between.
-
-                A date, an arrow and a second date is already a sentence, so
-                there are no labels — nobody reads "Jul 2 → still reading" and
-                wonders which end is which. The two ends are formatted together
-                rather than one at a time, which is what stops the same year
-                being printed twice inside one pill.
-
-                Each end is its own button and the arrow is neither of them. */}
-                {book.startedOn || book.finishedOn ? (
-                  <div className={styles.span}>
-                    <button
-                      type="button"
-                      className={styles.spanEnd}
-                      data-unset={!book.startedOn || undefined}
-                      onClick={() => setPicking('opened')}
-                      aria-label={
-                        book.startedOn
-                          ? `Started ${shortDate(book.startedOn)}. Change the day.`
-                          : 'No start date yet. Set one.'
-                      }
-                    >
-                      {/* The label carries its own clipping so the button does not.
-                      `overflow: hidden` on the button would crop its own 44px
-                      tap pseudo back to the 33 it paints. */}
-                      <span className={styles.spanText}>{span.start ?? 'no start date'}</span>
-                    </button>
-                    <span className={styles.spanArrow} aria-hidden="true">
-                      →
-                    </span>
-                    <button
-                      type="button"
-                      className={styles.spanEnd}
-                      data-unset={!book.finishedOn || undefined}
-                      onClick={() => setPicking('closed')}
-                      aria-label={
-                        book.finishedOn
-                          ? `Finished ${shortDate(book.finishedOn)}. Change the day.`
-                          : 'Still reading. Set the day you finished.'
-                      }
-                    >
-                      <span className={styles.spanText}>{span.finish ?? 'still reading'}</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className={styles.span}>
-                    <button
-                      type="button"
-                      className={styles.spanEnd}
-                      onClick={() => setPicking('opened')}
-                    >
-                      <span className={styles.spanText}>Add reading dates</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* The head's own star — see `.headSpark`. Last child on purpose: it
-              is lifted out of flow, so its only job in the markup is to be
-              somewhere it can never take part in the row's layout. */}
-              <Sparkle size={15} className={styles.headSpark} />
-            </div>
-          </div>
-        </div>
-
-        {/* ── One line: what to show, and the order it hangs in ─────────── */}
-        <div className={styles.tabsRow}>
-          {/* All, then the kinds one after another, running off the trailing
-              edge for the reader to pull through.
-
-              It has been three things and this is the one that costs a single
-              line: wrapping put all seven on screen at once but stacked three
-              rows deep and ate a third of the pinned head, and dropping the
-              names to fit them on one row made seven identical grey glyphs
-              nobody should have to decode. Names stay; the row scrolls. */}
-          <div className={styles.tabs} role="group" aria-label="Show only">
-            <button
-              type="button"
-              className={styles.tab}
-              aria-pressed={sift.types.length === 0}
-              data-on={sift.types.length === 0 || undefined}
-              onClick={() => setSift((s) => ({ ...s, types: [] }))}
-            >
-              All
-            </button>
-            {KINDS.map((t) => {
-              const { Icon, label } = KIND[t]
-              const on = sift.types.includes(t)
-              return (
-                <button
-                  key={t}
-                  type="button"
-                  className={styles.tab}
-                  aria-pressed={on}
-                  data-on={on || undefined}
-                  style={{ '--kind': `var(${KIND[t].hue})` } as CSSProperties}
-                  onClick={() => setSift((s) => toggleType(s, t))}
-                >
-                  <Icon size={14} />
-                  {label}
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Order, off the other end, as one button and nothing else.
-
-              It used to be its own label, its own glyph and its own hit area
-              welded into one shape — two pieces of text and a control, which
-              is not a button on this phone or any other. One round control the
-              size of every other round control in the app.
-
-              And it used to cycle. Four orders is a loop a thumb can walk, but
-              walking it is the only way to find out what the loop contains:
-              every tap silently rearranged thirteen cards and named neither
-              what had just been applied nor what was coming next, so the
-              reader was left inferring the rule from the result. Sorting is a
-              choice among four, and a choice among four is a list you can
-              read. The sheet says what is being ordered, spells out all four
-              orders, and marks the one already in force — one tap to look,
-              one tap to change, and no tap that changes something by accident.
-
-              A label beside the glyph would have been the cheap fix and the
-              wrong one: it would say where you are and still never say where
-              you could go. */}
-          <button
-            type="button"
-            className={styles.sortBtn}
-            onClick={() => setOrdering(true)}
-            aria-haspopup="dialog"
-            aria-label={`Order: ${SORT_SHORT[sift.order]}. Change the order.`}
-            title={`Order: ${SORT_SHORT[sift.order]}`}
-          >
-            <SortIcon size={18} />
-          </button>
-        </div>
       </header>
 
-      {/* ── The scroll: only the thread moves ───────────────────────────── */}
+      {/* ── The scroll: the book, the rail, and the thread, in one move ──── */}
       <div className={styles.scroller} ref={scroller} onScroll={onScroll}>
         <div className={`${pageStyles.column} ${styles.column}`}>
+          {/* Everything about the book lives beside its cover — name, author,
+              how it is being read, and its dates — so this is one contained
+              block instead of a column of rows.
+
+              And it is the first thing in the thread, not a pinned zone above
+              it. Reading takes it away because reading scrolls, which is the
+              only mechanism on this page that has ever moved at the speed the
+              reader is moving. */}
+          <div className={styles.headTop} ref={head}>
+            {/* Sized in CSS rather than by prop, because its width is not a
+            free choice any more: the board's height is the height of the
+            record beside it, and 2:3 is what turns one into the other. */}
+            <BookCover
+              title={book.title}
+              author={book.author}
+              covers={book.covers}
+              size="small"
+              className={styles.cover}
+            />
+            {/* Everything that is *about* the book, in one column: name, byline,
+            formats, dates. The cover is the other column and holds nothing
+            but the cover.
+
+            Two alignment edges on the whole head, which is the point. The
+            dates used to sit outside this block on a full-width line of
+            their own, so their leading edge lined up with the spine of the
+            book and with nothing in the column of writing above them —
+            three edges to read where there should have been two. */}
+            <div className={styles.about}>
+              {/* One column with one rhythm, and exactly one thing bound tighter
+              than the rest.
+
+              It used to be two groups held apart by a seam, and the seam was
+              where the head went wrong: the record's floor came off the
+              cover's 2:3, `space-between` pushed every spare pixel into that
+              one join, and a short title turned it into a band of dead air
+              under the byline that belonged to nothing. The join was doing
+              the work of the leftover space.
+
+              Now the column is even — 16 down its whole length — and the
+              grouping is carried by the one gap that is *tighter*: the title
+              and its byline sit at 8, half of everything else, which is the
+              whole of the 2× the grouping needs. Spare height falls to the
+              foot of the column, where a cover taller than its own caption
+              is just what a book beside a paragraph looks like. */}
+              <div className={styles.identity}>
+                {/* Up to two lines. One line was a height rule — it kept the
+                pinned head the same size per book — but it also truncated
+                most real titles at this width, and the space it saved was
+                the space that opened under the byline. Two lines spends it
+                on the name instead. The full text stays on the element. */}
+                <h1 className={styles.title} title={book.title}>
+                  {book.title}
+                </h1>
+                <p className={styles.author}>
+                  {book.author} · {facts}
+                </p>
+              </div>
+
+              {/* No wrapper. The row used to sit in a div whose only job was to
+              carry a top margin, and that margin was one of the three
+              hand-placed numbers this column was rebuilt to get rid of. */}
+              <FormatRow
+                small
+                value={formatsOf(book)}
+                onChange={(next) => void setFormats(book.id, next)}
+              />
+
+              {/* The reading span: one pill, two tappable ends, an arrow between.
+
+              A date, an arrow and a second date is already a sentence, so
+              there are no labels — nobody reads "Jul 2 → still reading" and
+              wonders which end is which. The two ends are formatted together
+              rather than one at a time, which is what stops the same year
+              being printed twice inside one pill.
+
+              Each end is its own button and the arrow is neither of them. */}
+              {book.startedOn || book.finishedOn ? (
+                <div className={styles.span}>
+                  <button
+                    type="button"
+                    className={styles.spanEnd}
+                    data-unset={!book.startedOn || undefined}
+                    onClick={() => setPicking('opened')}
+                    aria-label={
+                      book.startedOn
+                        ? `Started ${shortDate(book.startedOn)}. Change the day.`
+                        : 'No start date yet. Set one.'
+                    }
+                  >
+                    {/* The label carries its own clipping so the button does not.
+                    `overflow: hidden` on the button would crop its own 44px
+                    tap pseudo back to the 33 it paints. */}
+                    <span className={styles.spanText}>{span.start ?? 'no start date'}</span>
+                  </button>
+                  <span className={styles.spanArrow} aria-hidden="true">
+                    →
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.spanEnd}
+                    data-unset={!book.finishedOn || undefined}
+                    onClick={() => setPicking('closed')}
+                    aria-label={
+                      book.finishedOn
+                        ? `Finished ${shortDate(book.finishedOn)}. Change the day.`
+                        : 'Still reading. Set the day you finished.'
+                    }
+                  >
+                    <span className={styles.spanText}>{span.finish ?? 'still reading'}</span>
+                  </button>
+                </div>
+              ) : (
+                <div className={styles.span}>
+                  <button
+                    type="button"
+                    className={styles.spanEnd}
+                    onClick={() => setPicking('opened')}
+                  >
+                    <span className={styles.spanText}>Add reading dates</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* The head's own star — see `.headSpark`. Last child on purpose: it
+            is lifted out of flow, so its only job in the markup is to be
+            somewhere it can never take part in the row's layout. */}
+            <Sparkle size={15} className={styles.headSpark} />
+          </div>
+
+          {/* ── One line: what to show, and the order it hangs in ─────────
+              It sticks to the top of the thread. Under the book while there is
+              a book to be under, and a glass bar the instant there isn't —
+              which is the same instant the bar above takes the book's name,
+              because both are reading one observation of where the head is. */}
+          <div className={styles.tabsRow} data-parked={parked || undefined}>
+            {/* All, then the kinds one after another, running off the trailing
+                edge for the reader to pull through.
+
+                It has been three things and this is the one that costs a single
+                line: wrapping put all seven on screen at once but stacked three
+                rows deep and ate a third of the pinned head, and dropping the
+                names to fit them on one row made seven identical grey glyphs
+                nobody should have to decode. Names stay; the row scrolls. */}
+            <div className={styles.tabs} role="group" aria-label="Show only">
+              <button
+                type="button"
+                className={styles.tab}
+                aria-pressed={sift.types.length === 0}
+                data-on={sift.types.length === 0 || undefined}
+                onClick={() => setSift((s) => ({ ...s, types: [] }))}
+              >
+                All
+              </button>
+              {KINDS.map((t) => {
+                const { Icon, label } = KIND[t]
+                const on = sift.types.includes(t)
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    className={styles.tab}
+                    aria-pressed={on}
+                    data-on={on || undefined}
+                    style={{ '--kind': `var(${KIND[t].hue})` } as CSSProperties}
+                    onClick={() => setSift((s) => toggleType(s, t))}
+                  >
+                    <Icon size={14} />
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Order, off the other end, as one button and nothing else.
+
+                It used to be its own label, its own glyph and its own hit area
+                welded into one shape — two pieces of text and a control, which
+                is not a button on this phone or any other. One round control the
+                size of every other round control in the app.
+
+                And it used to cycle. Four orders is a loop a thumb can walk, but
+                walking it is the only way to find out what the loop contains:
+                every tap silently rearranged thirteen cards and named neither
+                what had just been applied nor what was coming next, so the
+                reader was left inferring the rule from the result. Sorting is a
+                choice among four, and a choice among four is a list you can
+                read. The sheet says what is being ordered, spells out all four
+                orders, and marks the one already in force — one tap to look,
+                one tap to change, and no tap that changes something by accident.
+
+                A label beside the glyph would have been the cheap fix and the
+                wrong one: it would say where you are and still never say where
+                you could go. */}
+            <button
+              type="button"
+              className={styles.sortBtn}
+              onClick={() => setOrdering(true)}
+              aria-haspopup="dialog"
+              aria-label={`Order: ${SORT_SHORT[sift.order]}. Change the order.`}
+              title={`Order: ${SORT_SHORT[sift.order]}`}
+            >
+              <SortIcon size={18} />
+            </button>
+          </div>
+
           <ol className={styles.thread}>
             {forward && seal}
             {rows.map(({ keep, tie }) => (
