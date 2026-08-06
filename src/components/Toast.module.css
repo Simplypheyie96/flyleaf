@@ -1,12 +1,30 @@
-/* Shared style for the gentle bottom notices (update ready, install invite).
-   Sits above the bottom-bar zone, never covers content permanently. */
-.toast {
+/* Shared style for the gentle bottom notices (update ready, install invite,
+   the one backup nudge). Sits above the bottom-bar zone, never covers content
+   permanently.
+
+   THE DOCK EXISTS BECAUSE THERE ARE THREE OF THESE NOW. Each notice used to
+   pin itself to the same point above the bottom bar, which was fine while only
+   one could ever be on screen and silently stacked two on top of each other
+   the day that stopped being true — an update landing while the install invite
+   is up is not a rare case, it is a Tuesday. One fixed column, newest nearest
+   the bar, and each notice is an ordinary block inside it. */
+.dock {
   position: fixed;
   left: 50%;
   bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
   translate: -50% 0;
   z-index: 60;
   width: min(92vw, 420px);
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-2);
+  /* The column is only ever as tall as its notices; without this it would be
+     an invisible sheet of glass over the bottom of every screen. */
+  pointer-events: none;
+}
+
+.toast > * {
+  pointer-events: auto;
 }
 
 .body {

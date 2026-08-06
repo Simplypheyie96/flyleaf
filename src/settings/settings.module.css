@@ -1,0 +1,205 @@
+/* The shape every settings card takes.
+
+   Lifted out of Settings.module.css once the page grew past one card: name,
+   journey, install, support and the legal pages all want the same heading /
+   hint / control stack, and a second copy of it in each file is how five cards
+   end up with five different paddings.
+
+   The route keeps its masthead; everything below the masthead is here. */
+
+.section {
+  --paper-pad: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Heading and control share the first line; the description runs full width
+   underneath both. A control parked beside a heading has no dead space to its
+   right, and a description given the whole width has room to be a sentence
+   rather than a fragment. */
+.sectionHead {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: var(--space-4);
+  row-gap: var(--space-1);
+}
+
+.sectionTitle {
+  grid-column: 1;
+  font-size: var(--text-lg);
+}
+
+.sectionControl {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.sectionHint {
+  grid-column: 1 / -1;
+  font-size: var(--text-xs);
+  color: var(--color-ink-soft);
+  /* A span, not a <p>: the reading measure in index.css caps paragraphs at
+     --measure, which is right for prose and irrelevant to two short lines
+     already inside a 560px column. */
+  text-wrap: pretty;
+}
+
+/* One text field, the app's own: the sunken paper the add-book sheet uses,
+   not a browser input. --field-fill is a shade under the card it sits on in
+   both themes, which is what makes it read as a slot rather than a button. */
+.field {
+  inline-size: 100%;
+  min-block-size: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-md);
+  background: var(--field-fill);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--text-md);
+  transition: border-color var(--dur-quick) var(--ease-out);
+}
+
+.field::placeholder {
+  color: var(--color-ink-soft);
+  opacity: 0.7;
+}
+
+.field:focus-visible {
+  outline: none;
+  border-color: var(--color-accent-text);
+}
+
+/* Buttons sit in a row that wraps rather than shrinking: two labels of real
+   words at 360px do not fit side by side, and half a word is worse than a
+   second line. */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The secondary verb. Glass and hairline — the same material as every other
+   piece of chrome in the app — never a white slab beside the ink pill. */
+.quiet {
+  min-block-size: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pill);
+  background: var(--control-fill);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+  box-shadow: inset 0 1px 0 var(--control-highlight);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-press) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
+}
+
+.quiet:hover {
+  background: color-mix(in oklab, var(--control-fill) 70%, var(--color-ink) 8%);
+}
+
+.quiet:active {
+  transform: translateY(var(--press));
+}
+
+.quiet:disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+/* The honest line about where the data is. Ink, not a warning colour, until
+   there is something to lose and no copy of it — then it earns the accent. */
+.warn {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+.warn[data-cold] {
+  color: var(--color-ink);
+}
+
+.note {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+
+.note[data-tone='bad'] {
+  color: var(--color-danger);
+}
+
+/* The paragraph that explains rather than instructs. Smaller and softer than
+   the hint above the buttons, because it is read once. */
+.fine {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.65;
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+/* A card whose whole body is a list of links out — legal, install, credits. */
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--text-md);
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-press) var(--ease-out),
+    border-color var(--dur-press) var(--ease-out);
+}
+
+.link:hover {
+  border-color: var(--control-border);
+  background: var(--control-fill);
+}
+
+.linkHint {
+  flex: none;
+  color: var(--color-ink-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quiet,
+  .field,
+  .link {
+    transition-duration: 0.01ms;
+  }
+  .quiet:active {
+    transform: none;
+  }
+}
