@@ -25,8 +25,8 @@
   background: var(--field-fill);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
-  font-weight: 620;
-  letter-spacing: 0.04em;
+  font-weight: var(--weight-strong);
+  letter-spacing: var(--track-caps);
   color: var(--color-ink-soft);
   white-space: nowrap;
   cursor: pointer;

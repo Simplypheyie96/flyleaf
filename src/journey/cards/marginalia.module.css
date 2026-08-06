@@ -126,7 +126,7 @@
   font-weight: var(--weight-italic);
   font-size: var(--text-lg);
   font-style: italic;
-  line-height: 1.35;
+  line-height: var(--leading-snug);
   letter-spacing: -0.005em;
   color: var(--color-ink);
   max-inline-size: var(--measure);
@@ -150,7 +150,7 @@
   padding-block-end: 2px;
   font-family: var(--font-hand);
   font-size: var(--text-lg);
-  line-height: 1.7;
+  line-height: var(--leading-read);
   color: var(--color-ink);
   max-inline-size: var(--measure);
   text-wrap: pretty;
@@ -304,7 +304,7 @@
 
 .who {
   font-variant-caps: all-small-caps;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--track-caps);
   color: var(--color-ink);
 }
 
@@ -355,10 +355,10 @@
 .legend {
   margin: var(--space-3) 0 0;
   font-family: var(--font-sans);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   font-size: var(--text-xs);
   line-height: var(--leading-tight);
-  letter-spacing: 0.16em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--color-ink);
 }
@@ -413,7 +413,7 @@
   font-weight: var(--weight-label);
   font-size: var(--text-sm);
   line-height: var(--leading-tight);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--track-caps);
   text-transform: uppercase;
   color: var(--color-ink);
   text-wrap: balance;

@@ -9,8 +9,14 @@ import styles from './fold.module.css'
    they opened Settings to do. What folds is prose: seven sets of install steps
    of which six are for devices this reader does not own.
 
-   Everything is one <button>: the name, the state and the plus are a single
-   target the full width of the card and never shorter than a thumb. */
+   Everything is one <button>: the name, the state and the chevron are a single
+   target the full width of the card and never shorter than a thumb.
+
+   The chevron is the same one the small-print rows end in, turned a quarter
+   turn when the row is open. A row that opens and a row that goes somewhere
+   are the same promise to a reader — something more is through here — and
+   answering one with a chevron and the other with a plus made a card of eight
+   rows look like two cards shuffled together. */
 
 interface FoldProps {
   title: string
@@ -38,7 +44,9 @@ function Fold({ title, meta, start = false, children }: FoldProps) {
         >
           <span className={styles.name}>{title}</span>
           {meta ? <span className={styles.meta}>{meta}</span> : null}
-          <span className={styles.pm} aria-hidden="true" />
+          <span className={styles.chev} aria-hidden="true">
+            ›
+          </span>
         </button>
       </h3>
 

@@ -116,7 +116,7 @@
   padding-block-end: var(--space-1);
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label);
   text-align: center;
   text-transform: uppercase;
   /* Soft, not faint. The faint token is marked large-or-decorative in

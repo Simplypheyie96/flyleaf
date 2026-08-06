@@ -9,33 +9,35 @@ import { createRoot } from 'react-dom/client'
    a picket fence: every line is dense, nothing has air in it, and the eye has
    to work at a page it is supposed to linger over.
 
-   EB Garamond is the book's voice now. It is an old-style face with wide
-   round bowls, short stems and a small x-height, so the same sentence takes
-   more width and less height and reads slower in the way a book reads slower.
-   Source Sans 3 is the app's own voice: a humanist sans with open apertures
-   and generous counters, which is what makes an 11px capital label legible
-   without shouting. Both are variable, so weight is now an axis on both
-   voices rather than only on the sans.
+   Newsreader is the book's voice, roman and italic, and it is the only serif
+   here now. There were three: EB Garamond for the book, and Instrument Serif
+   twice — once for every italic in the app and once for the one upright
+   stamped word — because Garamond's variable file ships no italic and the
+   browser was shearing the roman over to fake it. A sheared roman is not an
+   italic: it loses the single-storey a, the entry strokes, the narrower set,
+   everything that makes a slope read as a change of voice rather than a
+   change of angle. Instrument was brought in to fix that and did, at the
+   price of a masthead and its own subtitle being set in two different
+   typefaces on the same card.
 
-   Instrument Serif comes back, but only for the slope. EB Garamond ships no
-   italic in the variable file we load, so every italic line in the app was a
-   fake one — the browser shearing the roman over and calling it done, which
-   costs the italic its own letterforms (the single-storey a, the entry
-   strokes, the narrower set) and leaves a slanted book face instead of a
-   cursive one. Instrument's italic is drawn rather than sheared, and its
-   higher contrast and tighter fit are exactly what an aside wants: the
-   sentence changes voice instead of changing angle. One weight and one style
-   is all that is pulled in — the italic cut and nothing else — because
-   Instrument is not the book's voice any more and must not be able to become
-   it again by accident.
+   Newsreader ends both problems with one family. Its italic is drawn. Its
+   x-height is large enough that titles hold their colour at 460 instead of
+   the 500 Garamond needed to stop looking a size down. And it was made for
+   reading on a screen, which is the whole job.
 
-   Patrick Hand is the reader's hand and is deliberately left alone. */
-import '@fontsource-variable/eb-garamond'
+   Source Sans 3 is the app's own voice and is unchanged: a humanist sans with
+   open apertures and generous counters, which is what makes an 11px capital
+   label legible without shouting. Patrick Hand is the reader's hand and is
+   likewise left alone.
+
+   Both serif cuts are the weight-axis files rather than the optical-size
+   ones. Optical sizing is real and this app spans 11px to 34px, but the opsz
+   cut is 276KB of latin against 124KB, and 150KB on first paint is a poor
+   trade for a phone-first app that must open offline. The tracking tokens do
+   that job by hand at the two ends that need it. */
+import '@fontsource-variable/newsreader/wght.css'
+import '@fontsource-variable/newsreader/wght-italic.css'
 import '@fontsource-variable/source-sans-3'
-import '@fontsource/instrument-serif/400-italic.css'
-/* The roman cut, for the one upright thing set in this face: the stance on a
-   plot thread's tab. See --font-stamp. */
-import '@fontsource/instrument-serif/400.css'
 import '@fontsource/patrick-hand'
 import './styles/tokens.css'
 import './styles/motion.css'

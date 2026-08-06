@@ -36,8 +36,11 @@
   color: var(--color-ink-soft);
 }
 
+/* A section title, one step under the masthead it sits below. At the same step
+   the two competed, and a card in the middle of the page read as the name of
+   the page. */
 .headTitle {
-  font-size: var(--text-xl);
+  font-size: var(--text-lg);
   letter-spacing: var(--track-title);
   text-wrap: balance;
 }

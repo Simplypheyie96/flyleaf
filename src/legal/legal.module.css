@@ -17,17 +17,20 @@
   padding-block-start: var(--space-2);
 }
 
+/* The page-title step, the same one Home, Library and Settings use. This page
+   is reached from a row inside Settings, so a title larger than the screen it
+   was opened from would put the hierarchy the wrong way round. */
 .title {
   font-family: var(--font-serif);
-  font-size: var(--text-2xl);
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1.15;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-serif);
+  letter-spacing: var(--track-title);
+  line-height: var(--leading-display);
 }
 
 .lede {
   font-size: var(--text-md);
-  line-height: 1.55;
+  line-height: var(--leading-body);
   color: var(--color-ink-soft);
 }
 
@@ -35,7 +38,7 @@
    this page that tells you whether what follows is current. */
 .stamp {
   font-size: var(--text-2xs);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--color-ink-faint);
 }
@@ -53,12 +56,12 @@
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: color-mix(in oklch, var(--color-accent-text), transparent 94%);
   font-size: var(--text-sm);
-  line-height: 1.6;
+  line-height: var(--leading-body);
   color: var(--color-ink);
 }
 
 .draft strong {
-  font-weight: 620;
+  font-weight: var(--weight-strong);
 }
 
 /* Read this and you have read the page. Set one step up from the body so it
@@ -73,8 +76,8 @@
 .summaryTitle {
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-weight: var(--weight-strong);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--color-ink-soft);
 }
@@ -87,7 +90,7 @@
   padding: 0;
   list-style: none;
   font-size: var(--text-md);
-  line-height: 1.6;
+  line-height: var(--leading-body);
   color: var(--color-ink);
   text-wrap: pretty;
 }
@@ -129,8 +132,11 @@
 .heading {
   font-family: var(--font-serif);
   font-size: var(--text-lg);
-  font-weight: 500;
-  line-height: 1.25;
+  /* The book face's own weight, not the sans's. 500 is what a sans label is
+     set at; asked of the serif it sets a hair heavy, and these headings sat
+     beside serif headings elsewhere in the app that were not. */
+  font-weight: var(--weight-serif);
+  line-height: var(--leading-tight);
   /* The heading belongs to the paragraph under it, so it sits closer to that
      than to the section above — the gap on .sheet does the separating. */
   margin-block-end: calc(-1 * var(--space-1));
@@ -140,12 +146,12 @@
 .section p {
   max-inline-size: none;
   font-size: var(--text-base);
-  line-height: 1.72;
+  line-height: var(--leading-read);
   color: var(--color-ink);
 }
 
 .section strong {
-  font-weight: 620;
+  font-weight: var(--weight-strong);
 }
 
 .section ul {
@@ -155,7 +161,9 @@
   margin: 0;
   padding-inline-start: var(--space-4);
   font-size: var(--text-base);
-  line-height: 1.6;
+  /* A list on these pages is prose that happens to be numbered — it reads at
+     the same leading as the paragraphs it sits between, not at UI leading. */
+  line-height: var(--leading-read);
   color: var(--color-ink);
 }
 
@@ -217,7 +225,7 @@
   box-shadow: inset 0 1px 0 var(--control-highlight-paper);
   color: var(--color-ink);
   font-size: var(--text-sm);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   text-decoration: none;
   transition: background-color var(--dur-press) var(--ease-out);
 }

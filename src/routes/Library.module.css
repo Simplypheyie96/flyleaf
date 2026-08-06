@@ -88,7 +88,7 @@
 .displayName {
   font-family: var(--font-sans);
   font-size: var(--text-xs);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--track-caps);
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -106,7 +106,7 @@
 .sheetTitle {
   margin: 0 0 var(--space-4);
   font-size: var(--text-lg);
-  letter-spacing: -0.01em;
+  letter-spacing: var(--track-title);
 }
 
 .viewList {
@@ -192,7 +192,8 @@
    rather than an off-scale 2rem. */
 .title {
   font-size: var(--text-xl);
-  letter-spacing: -0.01em;
+  line-height: var(--leading-display);
+  letter-spacing: var(--track-title);
   /* Two words, and the display control now sits beside them. A display serif
      breaking after "The" is the one thing this masthead may never do, so the
      control gives up its word before the title gives up its line. */
@@ -337,7 +338,7 @@
   max-width: none;
   font-family: var(--font-sans);
   font-size: var(--text-xs);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--color-ink-faint);
   text-align: center;
@@ -959,7 +960,7 @@
   position: relative;
   font-family: var(--font-sans);
   font-size: 0.5625rem;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   opacity: 0.75;
   /* The author never wraps either: it is the item the flex row squeezes
@@ -1078,7 +1079,7 @@
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--text-xs);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--track-caps);
   color: var(--color-ink-faint);
   font-variant-numeric: tabular-nums;
 }
@@ -1099,7 +1100,7 @@
   flex: 1 1 auto;
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
 }
 
@@ -1196,14 +1197,14 @@
   font-family: var(--font-serif);
   font-weight: var(--weight-serif);
   font-size: var(--text-lg);
-  line-height: 1.3;
+  line-height: var(--leading-snug);
   color: var(--color-ink);
 }
 
 .bareHint {
   margin: 0;
   font-size: var(--text-sm);
-  line-height: 1.65;
+  line-height: var(--leading-read);
   color: var(--color-ink-soft);
   text-wrap: pretty;
 }

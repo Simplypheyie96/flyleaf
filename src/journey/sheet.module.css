@@ -222,7 +222,7 @@
   gap: var(--space-2);
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
-  letter-spacing: 0.1em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--color-ink-soft);
 }
@@ -240,7 +240,7 @@
 .optional {
   font-family: var(--font-sans);
   font-size: var(--text-xs);
-  font-weight: 400;
+  font-weight: var(--weight-body);
   letter-spacing: 0;
   text-transform: none;
   color: var(--color-ink-faint);
@@ -355,8 +355,8 @@
   background: var(--field-fill);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
-  font-weight: 620;
-  letter-spacing: 0.04em;
+  font-weight: var(--weight-strong);
+  letter-spacing: var(--track-caps);
   color: var(--color-ink-soft);
   white-space: nowrap;
   cursor: pointer;
@@ -413,7 +413,7 @@
   background: none;
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
-  letter-spacing: 0.1em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--color-accent-text);
   cursor: pointer;
@@ -477,7 +477,7 @@
   background: var(--field-fill);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
-  font-weight: 620;
+  font-weight: var(--weight-strong);
   color: var(--color-ink);
   cursor: pointer;
 }
@@ -588,7 +588,7 @@
   background: none;
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
-  letter-spacing: 0.1em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--color-accent-text);
   cursor: pointer;

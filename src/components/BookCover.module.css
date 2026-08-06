@@ -74,7 +74,7 @@
   font-family: var(--font-serif);
   font-weight: var(--weight-serif);
   font-size: 10.8cqw;
-  line-height: 1.2;
+  line-height: var(--leading-tight);
   text-wrap: balance;
   /* The measure here is about seven ems, so a genuinely long word —
      "Cartographer's" — is wider than the band and rides out over the edge of
@@ -96,7 +96,7 @@
 .author {
   font-family: var(--font-sans);
   font-size: 6.7cqw;
-  letter-spacing: 0.09em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;

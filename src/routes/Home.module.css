@@ -30,7 +30,11 @@
    label, so this doesn't have to shout to be read as the title. */
 .title {
   font-size: var(--text-xl);
-  letter-spacing: -0.01em;
+  /* A masthead sets its own leading. The 1.15 every other heading inherits is
+     sized for a heading that sits in a column of text; at 28px with a subtitle
+     directly beneath, it opens a gap that reads as a missing line. */
+  line-height: var(--leading-display);
+  letter-spacing: var(--track-title);
 }
 
 /* Handwriting is rationed to note cards now, so this is an italic standfirst
@@ -140,7 +144,7 @@
    title should wrap to two comfortable lines, never overflow. */
 .heroTitle {
   font-size: var(--text-md);
-  line-height: 1.25;
+  line-height: var(--leading-tight);
   text-wrap: balance;
   overflow-wrap: break-word;
 }
@@ -148,7 +152,7 @@
 .heroAuthor {
   font-family: var(--font-sans);
   font-size: var(--text-xs);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--color-ink-soft);
 }
@@ -180,7 +184,7 @@
   gap: var(--space-3);
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--track-caps);
   /* the page count and percentage both climb as you read; proportional digits
      would shift the row on every update */
   font-variant-numeric: tabular-nums;
@@ -291,7 +295,7 @@
   display: block;
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--track-caps);
   text-transform: uppercase;
   color: var(--color-ink-soft);
 }
@@ -316,7 +320,7 @@
   font-weight: var(--weight-italic);
   font-style: italic;
   font-size: var(--text-md);
-  line-height: 1.55;
+  line-height: var(--leading-body);
   margin-top: var(--space-3);
 }
 
@@ -449,7 +453,7 @@
   font-weight: var(--weight-italic);
   font-style: italic;
   font-size: var(--text-sm);
-  line-height: 1.55;
+  line-height: var(--leading-body);
   color: var(--color-ink-soft);
   text-wrap: pretty;
 }
@@ -460,7 +464,7 @@
   font-family: var(--font-serif);
   font-weight: var(--weight-serif);
   font-size: var(--text-md);
-  line-height: 1.3;
+  line-height: var(--leading-snug);
   color: var(--color-ink);
   text-wrap: balance;
 }
@@ -490,7 +494,7 @@
 }
 
 .emptyHeadline {
-  font-size: var(--text-xl);
+  font-size: var(--text-lg);
 }
 
 .emptyBody {

@@ -34,8 +34,8 @@
   border-radius: var(--radius-pill);
   text-decoration: none;
   font-size: var(--text-sm);
-  font-weight: 620;
-  letter-spacing: 0.04em;
+  font-weight: var(--weight-strong);
+  letter-spacing: var(--track-caps);
   color: var(--color-ink-soft);
   cursor: pointer;
   white-space: nowrap;
