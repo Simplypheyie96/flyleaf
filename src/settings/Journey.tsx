@@ -1,56 +1,79 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import LeafButton from '../components/LeafButton'
 import { Row } from './Group'
 import db from '../data/db'
 import { download, exportJourney, importJourney, lastExport, markExported } from '../data/backup'
 import { getHandle, setHandle } from '../data/reader'
 import styles from './settings.module.css'
 
-/* Two cards: what the reader is called, and where their journey actually is.
+/* What the reader is called, and where their journey actually is.
 
-   They sit together because they are the same subject seen twice — the name
-   is the only thing Flyleaf knows about a reader, and the journey card is the
-   honest account of what that means: nothing of theirs has left this device,
-   and nothing will unless they carry it themselves.
+   The same subject seen twice — the name is the only thing Flyleaf knows about
+   a reader, and the backup rows are the honest account of what local-first
+   means: nothing of theirs has left this device, and nothing will unless they
+   carry it themselves.
 
-   The status line is deliberately not a reassuring tick. Local-first is a
-   promise and a risk in the same sentence, and a reader who has never
-   exported should be told so plainly the one time they come looking. */
+   Said in rows, not paragraphs. "Last saved: never" on one line does the work
+   the three-sentence warning used to do, and does it where the eye already is
+   — beside the two rows that fix it. */
+
+/* The mark at the end of an action row. Every other row in this card answers
+   its label on the right — a count, a date — and two rows ending in nothing
+   would leave the right-hand column half drawn. Out for the same reason the
+   chevron is out on a link row: it says which way the file is going. */
+function Tray({ out }: { out?: boolean }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {out ? <path d="M12 3v11" /> : <path d="M12 14V3" />}
+      {out ? <path d="M8 10.5 12 14.5l4-4" /> : <path d="M8 6.5 12 3l4 3.5" />}
+      <path d="M4 16v3.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V16" />
+    </svg>
+  )
+}
 
 function when(at: number) {
   const days = Math.floor((Date.now() - at) / 86_400_000)
-  if (days <= 0) return 'today'
-  if (days === 1) return 'yesterday'
+  if (days <= 0) return 'Today'
+  if (days === 1) return 'Yesterday'
   if (days < 30) return `${days} days ago`
-  return new Date(at).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Date(at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function NameCard() {
   const [name, setName] = useState(getHandle)
 
-  /* First on the page, and never folded away. It is the one thing Flyleaf
-     knows about a reader, it is a single field, and a new reader arriving from
-     onboarding to change the name they just picked should find it in front of
-     them rather than behind a row they have to guess at. */
+  /* The field sits on the row's own line, right-aligned, the way a value does.
+     A full-width box under a label is a form; this is one word about the
+     reader, and it belongs beside the word that asks for it. */
   return (
     <Row
       title="Your name"
-      hint="What Flyleaf calls you, and the name written on a journey you export. It stays on this device."
-    >
-      <input
-        type="text"
-        className={styles.field}
-        value={name}
-        aria-label="Your name"
-        placeholder="Reader"
-        maxLength={32}
-        autoComplete="off"
-        spellCheck={false}
-        onChange={(e) => setName(e.target.value)}
-        onBlur={() => setHandle(name)}
-      />
-    </Row>
+      control={
+        <input
+          type="text"
+          className={styles.fieldInline}
+          value={name}
+          aria-label="Your name"
+          placeholder="Reader"
+          maxLength={32}
+          autoComplete="off"
+          spellCheck={false}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={() => setHandle(name)}
+        />
+      }
+    />
   )
 }
 
@@ -66,9 +89,9 @@ function BackupCard() {
   const [note, setNote] = useState<Note>(null)
   const fileInput = useRef<HTMLInputElement>(null)
 
-  /* `markExported` fires this so the date under the button updates without a
-     reload — the same event the handle uses, since both are one-line facts
-     about the reader kept outside the database. */
+  /* `markExported` fires this so the date updates without a reload — the same
+     event the handle uses, since both are one-line facts about the reader kept
+     outside the database. */
   useEffect(() => {
     const sync = () => setExported(lastExport())
     window.addEventListener('flyleaf-reader', sync)
@@ -117,70 +140,74 @@ function BackupCard() {
   const kept = counts ? counts.books + counts.keeps > 0 : false
 
   return (
-    <Row
-      /* Not "Your journey" again — that is the caption over this card, and a
-         row repeating its own group's name says nothing twice. This says the
-         thing the caption cannot: where it all actually is. */
-      title="Kept on this device"
-      /* The count beside the title, because it is the answer to the question
-         that brings anyone to this section: how much is there to lose. */
-      control={
-        counts ? (
-          <span className={styles.count}>
-            {counts.books} {counts.books === 1 ? 'book' : 'books'} · {counts.keeps}{' '}
-            {counts.keeps === 1 ? 'memory' : 'memories'}
-          </span>
-        ) : undefined
-      }
-      hint="Everything you have kept is held on this device only. Nothing is on our servers."
-    >
-      {/* The one uncomfortable sentence, said once and not repeated: clearing
-          this browser's storage takes the journey with it. */}
-      <p className={styles.warn} data-cold={!exported && kept ? '' : undefined}>
-        {exported
-          ? `Last copy saved ${when(exported)}. Anything kept since then is only here.`
-          : kept
-            ? 'You have never saved a copy. If this browser is cleared, these memories go with it.'
-            : 'Once you start keeping things, save a copy here so they survive this browser.'}
-      </p>
+    <>
+      <Row
+        /* Not "Your journey" again — that is the caption over this card, and a
+           row repeating its own group's name says nothing twice. This says the
+           thing the caption cannot: where it all actually is. */
+        title="Kept on this device"
+        control={
+          counts ? (
+            <span className={styles.value}>
+              {counts.books} {counts.books === 1 ? 'book' : 'books'} · {counts.keeps}{' '}
+              {counts.keeps === 1 ? 'memory' : 'memories'}
+            </span>
+          ) : undefined
+        }
+      />
 
-      <div className={styles.row}>
-        <LeafButton onClick={save} disabled={busy !== null || !kept}>
-          {busy === 'out' ? 'Saving…' : 'Save a copy'}
-        </LeafButton>
-        <button
-          type="button"
-          className={styles.quiet}
-          disabled={busy !== null}
-          onClick={() => fileInput.current?.click()}
-        >
-          {busy === 'in' ? 'Reading…' : 'Restore from a file'}
-        </button>
-        <input
-          ref={fileInput}
-          type="file"
-          accept="application/json,.json"
-          className={styles.hiddenInput}
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) void restore(file)
-          }}
-        />
-      </div>
+      {/* The uncomfortable fact as a value rather than a warning paragraph.
+          "Never", in the reader's own ink rather than the soft grey the other
+          values use, is the whole of what the three sentences here used to
+          say — and it earns the emphasis only while there is something to
+          lose and no copy of it. */}
+      <Row
+        title="Last saved"
+        control={
+          <span className={styles.value} data-cold={!exported && kept ? '' : undefined}>
+            {exported ? when(exported) : 'Never'}
+          </span>
+        }
+      />
+
+      <button type="button" className={styles.action} disabled={busy !== null || !kept} onClick={save}>
+        {busy === 'out' ? 'Saving…' : 'Save a copy'}
+        <span className={styles.mark}>
+          <Tray out />
+        </span>
+      </button>
+
+      <button
+        type="button"
+        className={styles.action}
+        disabled={busy !== null}
+        onClick={() => fileInput.current?.click()}
+      >
+        {busy === 'in' ? 'Reading…' : 'Restore from a file'}
+        <span className={styles.mark}>
+          <Tray />
+        </span>
+      </button>
+
+      <input
+        ref={fileInput}
+        type="file"
+        accept="application/json,.json"
+        className={styles.hiddenInput}
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) void restore(file)
+        }}
+      />
 
       {note && (
-        <p className={styles.note} data-tone={note.tone} role="status">
-          {note.text}
-        </p>
+        <Row>
+          <p className={styles.note} data-tone={note.tone} role="status">
+            {note.text}
+          </p>
+        </Row>
       )}
-
-      <p className={styles.fine}>
-        A saved copy is one file holding every book, every word, every recording
-        and picture. Open it on any device — phone, tablet, someone else's
-        laptop — and the journey comes back. It is a snapshot, so save a fresh
-        one now and then.
-      </p>
-    </Row>
+    </>
   )
 }
 

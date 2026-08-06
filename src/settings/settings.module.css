@@ -1,54 +1,113 @@
-/* The shape every settings card takes.
+/* The parts a settings row is built from: a value on the right, a field on the
+   right, and a whole row that is itself a button or a link.
 
-   Lifted out of Settings.module.css once the page grew past one card: name,
-   journey, install, support and the legal pages all want the same heading /
-   hint / control stack, and a second copy of it in each file is how five cards
-   end up with five different paddings.
+   Everything a row used to carry — a heading, a hint, a paragraph, a pair of
+   pill buttons stacked underneath — is gone. A row is one line. What needs
+   explaining is explained once in the group's footnote, and what needs doing
+   is a row that does it. */
 
-   The route keeps its masthead; everything below the masthead is here. */
-
-.section {
-  --paper-pad: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-/* Heading and control share the first line; the description runs full width
-   underneath both. A control parked beside a heading has no dead space to its
-   right, and a description given the whole width has room to be a sentence
-   rather than a fragment. */
-.sectionHead {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  column-gap: var(--space-4);
-  row-gap: var(--space-1);
-}
-
-.sectionTitle {
-  grid-column: 1;
-  font-size: var(--text-lg);
-}
-
-.sectionControl {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.sectionHint {
-  grid-column: 1 / -1;
-  font-size: var(--text-xs);
+/* The right-hand answer to a row's label: a count, a date, a state. */
+.value {
+  font-size: var(--text-sm);
   color: var(--color-ink-soft);
-  /* A span, not a <p>: the reading measure in index.css caps paragraphs at
-     --measure, which is right for prose and irrelevant to two short lines
-     already inside a 560px column. */
-  text-wrap: pretty;
+  white-space: nowrap;
 }
 
-/* One text field, the app's own: the sunken paper the add-book sheet uses,
-   not a browser input. --field-fill is a shade under the card it sits on in
-   both themes, which is what makes it read as a slot rather than a button. */
+/* One value earns the reader's own ink: "Never", while there is something to
+   lose and no copy of it. */
+.value[data-cold] {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+/* A field parked where a value would be. No box, no border — the row is the
+   box. Right-aligned so it reads as the answer to the label opposite it. */
+.fieldInline {
+  inline-size: 160px;
+  max-inline-size: 100%;
+  min-block-size: 32px;
+  padding: 0 var(--space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--text-base);
+  text-align: end;
+}
+
+.fieldInline::placeholder {
+  color: var(--color-ink-soft);
+  opacity: 0.7;
+}
+
+.fieldInline:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+/* A row that is a button, and a row that is a link — the same object twice.
+   The whole row is the target, so the hover fill reaches the card's edges the
+   way a settings row should rather than floating as a pill inside one. */
+.action,
+.link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  inline-size: 100%;
+  min-block-size: 48px;
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--dur-press) var(--ease-out);
+}
+
+.action:hover:not(:disabled),
+.link:hover {
+  background: color-mix(in oklab, transparent, var(--color-ink) 4%);
+}
+
+.action:focus-visible,
+.link:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -3px;
+}
+
+.action:disabled {
+  color: var(--color-ink-soft);
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* The glyph trailing a row that does something, rather than goes somewhere.
+   Soft, so it reads as a sign and not a second control. */
+.mark {
+  flex: none;
+  display: inline-flex;
+  color: var(--color-ink-soft);
+}
+
+/* The chevron trailing a row that goes somewhere. Sized to match the plus on
+   the rows that open, so a card has one consistent right-hand column of marks
+   rather than a plus at one weight and a stray comma at another. */
+.linkHint {
+  flex: none;
+  font-size: var(--text-lg);
+  line-height: 1;
+  color: var(--color-ink-soft);
+}
+
+/* ── Used on the sheets, where a form is actually the right answer ───────── */
+
 .field {
   inline-size: 100%;
   min-block-size: var(--tap-min);
@@ -72,9 +131,9 @@
   border-color: var(--color-accent-text);
 }
 
-/* Buttons sit in a row that wraps rather than shrinking: two labels of real
-   words at 360px do not fit side by side, and half a word is worse than a
-   second line. */
+/* Buttons on a sheet sit in a row that wraps rather than shrinking: two labels
+   of real words at 360px do not fit side by side, and half a word is worse
+   than a second line. */
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -82,61 +141,17 @@
   gap: var(--space-2);
 }
 
-/* The secondary verb. Glass and hairline — the same material as every other
-   piece of chrome in the app — never a white slab beside the ink pill. */
-.quiet {
-  min-block-size: var(--tap-min);
-  padding: 0 var(--space-4);
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius-pill);
-  background: var(--control-fill);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
-  backdrop-filter: blur(var(--glass-blur)) saturate(170%);
-  box-shadow: inset 0 1px 0 var(--control-highlight);
-  color: var(--color-ink);
-  font-family: inherit;
-  font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background-color var(--dur-press) var(--ease-out),
-    transform var(--dur-press) var(--ease-out);
-}
-
-.quiet:hover {
-  background: color-mix(in oklab, var(--control-fill) 70%, var(--color-ink) 8%);
-}
-
-.quiet:active {
-  transform: translateY(var(--press));
-}
-
-.quiet:disabled {
-  opacity: 0.5;
-  cursor: default;
-  transform: none;
-}
-
 .hiddenInput {
   display: none;
 }
 
-/* The honest line about where the data is. Ink, not a warning colour, until
-   there is something to lose and no copy of it — then it earns the accent. */
-.warn {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-ink-soft);
-  text-wrap: pretty;
-}
-
-.warn[data-cold] {
-  color: var(--color-ink);
-}
-
+/* What just happened, after an action. Transient, so it is allowed the two
+   lines a permanent hint is not. */
 .note {
   margin: 0;
+  max-inline-size: none;
   font-size: var(--text-sm);
+  line-height: 1.5;
   color: var(--color-ink);
   text-wrap: pretty;
 }
@@ -145,72 +160,19 @@
   color: var(--color-danger);
 }
 
-/* The paragraph that explains rather than instructs. Smaller and softer than
-   the hint above the buttons, because it is read once. */
 .fine {
   margin: 0;
+  max-inline-size: none;
   font-size: var(--text-xs);
-  line-height: 1.65;
+  line-height: 1.6;
   color: var(--color-ink-soft);
   text-wrap: pretty;
 }
 
-/* The count beside "Your journey" — how much there is to lose, on the line
-   that asks the question. */
-.count {
-  font-size: var(--text-xs);
-  color: var(--color-ink-soft);
-  white-space: nowrap;
-}
-
-/* A row that is only a way out — a legal page, a credit. Its own group row, so
-   it carries the row padding itself and the hover fill reaches the card's
-   edges the way a settings row should rather than floating as a pill in the
-   middle of one. */
-.link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  min-block-size: 52px;
-  padding: var(--space-3) var(--space-4);
-  background: none;
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  font-size: var(--text-md);
-  font-weight: 500;
-  text-align: start;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background-color var(--dur-press) var(--ease-out);
-}
-
-.link:hover {
-  background: color-mix(in oklab, transparent, var(--color-ink) 4%);
-}
-
-.link:focus-visible {
-  outline: 2px solid var(--color-accent-text);
-  outline-offset: -3px;
-}
-
-/* The chevron trailing a link row. Sized to match the plus on the rows that
-   open, so a card of rows has one consistent right-hand column of marks rather
-   than a plus at one weight and a stray comma at another. */
-.linkHint {
-  flex: none;
-  font-size: var(--text-lg);
-  line-height: 1;
-  color: var(--color-ink-soft);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .quiet,
-  .field,
-  .link {
+  .action,
+  .link,
+  .field {
     transition-duration: 0.01ms;
-  }
-  .quiet:active {
-    transform: none;
   }
 }

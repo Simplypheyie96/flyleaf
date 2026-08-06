@@ -134,14 +134,11 @@ function Tip() {
     return (
       <Row
         title="Thank you"
-        control={stage.amount ? <span className={card.count}>{naira(stage.amount)}</span> : undefined}
+        control={stage.amount ? <span className={card.value}>{naira(stage.amount)}</span> : undefined}
       >
         <span className={styles.thanks}>
           <Sparkle size={18} className={styles.spark} />
-          <span className={styles.warm}>
-            That genuinely helps, and it keeps Flyleaf free for everyone else.
-            Back to your books.
-          </span>
+          <span className={styles.warm}>That keeps Flyleaf free for everyone else.</span>
         </span>
       </Row>
     )
@@ -151,26 +148,22 @@ function Tip() {
 
   return (
     <>
-      <Row
-        /* Not "buy the maker a coffee" — the caption above this card already
-           says whose coffee it is, and a row that repeats its own group's
-           words reads as a stutter. */
-        title="Buy a coffee"
-        hint="Flyleaf is free, has no ads, and is made by one person. Nothing here is ever locked — this is only a way to say thank you."
+      {/* One row, and the whole checkout behind it. Not "buy the maker a
+          coffee" — the caption above this card already says whose coffee it
+          is, and a row repeating its own group's words reads as a stutter. */}
+      <button
+        type="button"
+        className={card.action}
+        onClick={() => {
+          setStage({ at: 'asking' })
+          setOpen(true)
+        }}
       >
-        <div className={card.row}>
-          <button
-            type="button"
-            className={card.quiet}
-            onClick={() => {
-              setStage({ at: 'asking' })
-              setOpen(true)
-            }}
-          >
-            Send a coffee
-          </button>
-        </div>
-      </Row>
+        Buy a coffee
+        <span className={card.linkHint} aria-hidden="true">
+          ›
+        </span>
+      </button>
 
       <Sheet
         open={open}

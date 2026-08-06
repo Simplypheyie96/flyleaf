@@ -1,19 +1,15 @@
-/* The install guide's print — a lead row, one row per device, and the note
-   about updates. The card, the hairlines and the corner radius belong to the
-   group these rows sit in; this is only what is written on them. */
-
-/* ── The sheet this same print is also raised on ─────────────────────────── */
+/* ── The sheet this same print is also raised on ────────────────────────── */
 
 .guide {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 .head {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .headLine {
@@ -22,7 +18,16 @@
   gap: var(--space-3);
 }
 
-/* The same frosted disc every sheet in the app closes with. */
+.title {
+  margin: 0;
+  margin-inline-end: auto;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-lg);
+  line-height: 1.25;
+  color: var(--color-ink);
+}
+
 .close {
   flex: none;
   inline-size: var(--tap-min);
@@ -41,14 +46,13 @@
   color: var(--color-ink);
 }
 
-.title {
+.lede {
   margin: 0;
-  margin-inline-end: auto;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
-  font-size: var(--text-xl);
-  line-height: 1.25;
-  color: var(--color-ink);
+  max-inline-size: none;
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
 }
 
 /* The rows on the sheet, pulled out by their own inset so their text lines up
@@ -59,20 +63,20 @@
 
 /* ── The rows themselves, on the sheet and in Settings alike ─────────────── */
 
-/* The lead. Glyph in a disc, then what installing is and what it costs. */
 .lead {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
+  display: flex;
+  align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  min-block-size: 56px;
 }
 
 .mark {
+  flex: none;
   display: grid;
   place-items: center;
-  inline-size: 40px;
-  block-size: 40px;
+  inline-size: 32px;
+  block-size: 32px;
   border-radius: var(--radius-pill);
   background: var(--color-ink);
   color: var(--color-paper);
@@ -81,50 +85,56 @@
 .leadBody {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 1px;
   min-inline-size: 0;
-  /* The disc is 40 and the first line of text is not, so the two are optically
-     aligned by nudging the text rather than centring the disc — a disc centred
-     against three lines of copy floats in the middle of nowhere. */
-  padding-block-start: 4px;
+  margin-inline-end: auto;
 }
 
 .leadTitle {
   font-family: var(--font-sans);
-  font-size: var(--text-md);
-  font-weight: 600;
+  font-size: var(--text-base);
+  font-weight: 500;
   line-height: 1.3;
   color: var(--color-ink);
 }
 
 .leadHint {
   font-size: var(--text-xs);
-  line-height: 1.6;
+  line-height: 1.4;
   color: var(--color-ink-soft);
-  text-wrap: pretty;
 }
 
-.actRow {
-  padding: var(--space-4);
+/* The one-tap route, when the browser has actually offered one. On the lead
+   row rather than a row of its own — it answers the sentence beside it, and a
+   button on its own line under that sentence is a second row saying the same
+   thing. Glass and hairline, never a white slab. */
+.go {
+  flex: none;
+  min-block-size: 34px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pill);
+  background: var(--control-fill);
+  box-shadow: inset 0 1px 0 var(--control-highlight);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--dur-press) var(--ease-out);
 }
 
-/* Inside an opened device row. */
-.lede {
-  margin: 0;
-  max-inline-size: none;
-  font-size: var(--text-sm);
-  line-height: 1.65;
-  color: var(--color-ink-soft);
-  text-wrap: pretty;
+.go:hover {
+  background: color-mix(in oklab, var(--control-fill) 70%, var(--color-ink) 8%);
 }
 
-/* The steps. Numbered by us rather than by a list marker: the marker sits
-   outside the content box and cannot be lined up with a 34px glyph tile, and
-   a step's number belongs with its sentence anyway. */
+/* Three lines, numbered, and nothing else. The 34px icon discs and STEP
+   eyebrows that used to sit here turned three short instructions into half a
+   screen; the numeral carries the order on its own. */
 .steps {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-2);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -132,52 +142,18 @@
 
 .step {
   display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
-  gap: var(--space-3);
-}
-
-.stepMark {
-  display: grid;
-  place-items: center;
-  inline-size: 34px;
-  block-size: 34px;
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius-md);
-  background: var(--control-fill);
-  box-shadow: inset 0 1px 0 var(--control-highlight);
-  color: var(--color-ink);
-}
-
-.stepBody {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-inline-size: 0;
-  padding-block-start: 1px;
-}
-
-.stepCount {
-  font-size: var(--text-2xs, 11px);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-soft);
-}
-
-.stepText {
+  grid-template-columns: 20px 1fr;
+  align-items: baseline;
+  gap: var(--space-2);
   font-size: var(--text-sm);
-  line-height: 1.6;
+  line-height: 1.45;
   color: var(--color-ink);
   text-wrap: pretty;
 }
 
-.fine {
-  margin: 0;
-  max-inline-size: none;
-  padding: var(--space-3) var(--space-4);
+.count {
   font-size: var(--text-xs);
-  line-height: 1.7;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   color: var(--color-ink-soft);
-  text-wrap: pretty;
 }
