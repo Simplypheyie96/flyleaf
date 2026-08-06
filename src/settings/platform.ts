@@ -51,138 +51,72 @@ export function detect(): Device {
   return 'other'
 }
 
-export type Glyph = 'share' | 'add' | 'menu' | 'window'
-
-export interface Step {
-  glyph: Glyph
-  text: string
-}
-
 interface Guide {
   label: string
-  /** The line above the steps — what this device can actually do. */
-  lede: string
-  steps: Step[]
+  steps: string[]
 }
 
-/* Written as instructions a reader can follow with the phone in their hand:
-   the control is named the way the OS names it, and where it is on screen is
-   part of the sentence. "Tap Share" is useless if you have never noticed the
-   Share button; "the Share button at the bottom of the screen — a square with
-   an arrow coming out of it" is not. */
+/* Three lines a reader can follow with the phone in their hand, and nothing
+   else. The control is named the way the OS names it and placed on screen in
+   the same breath — "tap Share" is useless to anyone who has never noticed the
+   Share button — but the sentence stops there. Every word of reassurance and
+   explanation that used to live here is now one footnote under the whole
+   group, said once instead of seven times. */
 export const GUIDES: Record<Device, Guide> = {
   iphone: {
     label: 'iPhone',
-    lede: 'Safari on iPhone never offers to install anything. Three taps, and Flyleaf sits on your home screen like any other app.',
     steps: [
-      {
-        glyph: 'share',
-        text: 'Open Flyleaf in Safari and tap the Share button at the bottom of the screen — a square with an arrow coming out of the top.',
-      },
-      {
-        glyph: 'add',
-        text: 'Scroll the list of actions down until you find Add to Home Screen, and tap it.',
-      },
-      {
-        glyph: 'window',
-        text: 'Tap Add in the top right. Flyleaf gets its own icon, and opens without Safari around it.',
-      },
+      'In Safari, tap Share at the bottom of the screen.',
+      'Scroll down the list and tap Add to Home Screen.',
+      'Tap Add.',
     ],
   },
   ipad: {
     label: 'iPad',
-    lede: 'Same three steps as an iPhone, with the Share button somewhere else — iPad keeps it in the top toolbar.',
     steps: [
-      {
-        glyph: 'share',
-        text: 'Open Flyleaf in Safari and tap the Share button in the toolbar along the top, near the address bar.',
-      },
-      { glyph: 'add', text: 'Choose Add to Home Screen from the list.' },
-      {
-        glyph: 'window',
-        text: 'Tap Add. Flyleaf appears on the home screen and opens in its own window.',
-      },
+      'In Safari, tap Share in the toolbar along the top.',
+      'Choose Add to Home Screen.',
+      'Tap Add.',
     ],
   },
   android: {
     label: 'Android',
-    lede: 'Chrome on Android can do this in one tap — and if it has not offered, the menu has it.',
     steps: [
-      {
-        glyph: 'window',
-        text: 'If an Install button appeared above, tap it and you are done.',
-      },
-      {
-        glyph: 'menu',
-        text: 'Otherwise open Chrome’s menu — the three dots at the top right — and choose Install app. Older versions call it Add to Home screen.',
-      },
-      { glyph: 'add', text: 'Confirm with Install.' },
+      'Tap Install above, if it appeared.',
+      'Otherwise open Chrome’s menu — three dots, top right.',
+      'Choose Install app, then confirm.',
     ],
   },
   chromium: {
     label: 'Chrome / Edge',
-    lede: 'Flyleaf can live in its own window, in your dock or taskbar, with no browser around it.',
     steps: [
-      {
-        glyph: 'window',
-        text: 'If an Install button appeared above, click it. Otherwise look for the small install icon at the right-hand end of the address bar.',
-      },
-      {
-        glyph: 'menu',
-        text: 'No icon? Open the browser menu — ⋮ in Chrome, … in Edge — and choose Install Flyleaf. Chrome files it under Cast, save and share.',
-      },
-      { glyph: 'add', text: 'Confirm with Install.' },
+      'Click Install above, if it appeared.',
+      'Otherwise click the install icon at the end of the address bar.',
+      'No icon? Browser menu → Install Flyleaf.',
     ],
   },
   'safari-mac': {
     label: 'Safari on Mac',
-    lede: 'Safari on macOS Sonoma and later can put Flyleaf in the Dock. It calls it adding to the Dock rather than installing.',
     steps: [
-      {
-        glyph: 'share',
-        text: 'Open Flyleaf in Safari and click the Share button in the toolbar.',
-      },
-      { glyph: 'add', text: 'Choose Add to Dock.' },
-      {
-        glyph: 'window',
-        text: 'Click Add. Flyleaf gets a Dock icon and its own window.',
-      },
+      'Click Share in the Safari toolbar.',
+      'Choose Add to Dock.',
+      'Click Add.',
     ],
   },
   firefox: {
     label: 'Firefox',
-    lede: 'Firefox on a computer cannot add web apps to your dock — that is a Firefox limitation, not something Flyleaf can work around.',
     steps: [
-      {
-        glyph: 'window',
-        text: 'Open Flyleaf in Chrome, Edge or Safari on the same computer, and the install option will be there.',
-      },
-      {
-        glyph: 'menu',
-        text: 'On an Android phone, Firefox can do it: open the menu and choose Install.',
-      },
-      {
-        glyph: 'add',
-        text: 'Either way, nothing you have saved is affected. Your journey lives on the device, and a bookmark keeps Flyleaf reachable meanwhile.',
-      },
+      'Firefox on a computer cannot do this.',
+      'Open Flyleaf in Chrome, Edge or Safari instead.',
+      'On Android, Firefox can: menu → Install.',
     ],
   },
   other: {
     label: 'Something else',
-    lede: 'Most browsers can do this; they all name it differently.',
     steps: [
-      {
-        glyph: 'menu',
-        text: 'Open your browser’s menu and look for Install, Install app, Add to Home screen or Add to Dock.',
-      },
-      {
-        glyph: 'window',
-        text: 'If none of those are there, open Flyleaf in Chrome, Edge or Safari instead.',
-      },
-      {
-        glyph: 'add',
-        text: 'Flyleaf works perfectly well in a browser tab either way — installing only removes the browser from around it.',
-      },
+      'Open your browser’s menu.',
+      'Look for Install, Add to Home screen or Add to Dock.',
+      'If it is not there, use Chrome, Edge or Safari.',
     ],
   },
 }

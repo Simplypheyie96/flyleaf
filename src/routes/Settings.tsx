@@ -22,7 +22,12 @@ import styles from './Settings.module.css'
    change stays in front of them — the name field, the theme switch, the two
    backup buttons. What folds is prose: seven sets of install steps, six of
    them for devices this reader does not own. Folding a switch only puts a tap
-   between someone and the thing they opened Settings to do. */
+   between someone and the thing they opened Settings to do.
+
+   And every row is one line high. The explaining lives in the footnote under
+   each card, said once, where it can be read or skipped — not repeated as a
+   hint under every label, which is what turned this page into an essay with
+   switches buried in it. */
 
 function Settings() {
   return (
@@ -38,16 +43,15 @@ function Settings() {
         <div className={styles.list}>
           {/* The reader first: their name, then the theme they read in. Both
               are one line each, so they share a card. */}
-          <Group label="You">
+          <Group label="You" note="Auto follows your device from day into night.">
             <NameCard />
-            <Row
-              title="Theme"
-              control={<ThemeToggle />}
-              hint="Auto follows your device from day into night. Day and Night hold until you change them."
-            />
+            <Row title="Theme" control={<ThemeToggle />} />
           </Group>
 
-          <Group label="Your journey">
+          <Group
+            label="Your journey"
+            note="Held on this device only, never on our servers. A saved copy is one file with everything in it — open it anywhere to bring your journey back."
+          >
             <BackupCard />
           </Group>
 
@@ -55,12 +59,18 @@ function Settings() {
               for the thing rather than the place it lands — the first row
               already says "Add to your home screen", and a caption repeating
               its own first row is a stutter. */}
-          <Group label="Install Flyleaf">
+          <Group
+            label="Install Flyleaf"
+            note="Installing only takes the browser away from around it. No update ever clears what you have written."
+          >
             <InstallHow />
           </Group>
 
           {TIP_JAR && (
-            <Group label="Support the maker">
+            <Group
+              label="Support the maker"
+              note="Flyleaf is free, has no ads, and is made by one person. Nothing here is ever locked."
+            >
               <Tip />
             </Group>
           )}
