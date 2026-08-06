@@ -59,6 +59,7 @@ import {
 } from '../components/TabIcons'
 import { formatsOf, type Entry, type EntryType } from '../data/db'
 import { useBook, useEntries } from '../data/useBook'
+import { did } from '../onboarding/progress'
 import Keep from '../journey/Keep'
 import KeepSheet from '../journey/KeepSheet'
 import KeepsakeSheet from '../journey/KeepsakeSheet'
@@ -199,6 +200,13 @@ function BookJourney() {
   const bookId = Number.isFinite(parsed) ? parsed : undefined
 
   const book = useBook(bookId)
+
+  // Opening a book's thread is the second step of the first page, and it is a
+  // visit rather than a keep — so it records itself once a real book is under
+  // it, not merely because the route matched.
+  useEffect(() => {
+    if (book) did('journey')
+  }, [book])
   const entries = useEntries(bookId)
 
   const [sift, setSift] = useState<Sift>(ALL)

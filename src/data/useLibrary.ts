@@ -47,3 +47,29 @@ export function useLatestKeeps(
     return Object.fromEntries(pairs)
   }, [key])
 }
+
+/** The last few things kept, across every book — Home's timeline.
+
+    Ordered by the primary key rather than `createdAt`: `++id` is an
+    autoincrement, so descending id *is* newest-first, and it is an index
+    Dexie can walk backwards from the end. Sorting on `createdAt` would need
+    an index that does not exist, or a full read of the table — including
+    every recording — to sort a list of five.
+
+    `limit` before `toArray` matters: only the rows that are actually shown
+    are materialised, so the blobs of the other four hundred stay on disk. */
+export function useRecentKeeps(count = 6): Entry[] | undefined {
+  return useLiveQuery(
+    () => db.entries.orderBy('id').reverse().limit(count).toArray(),
+    [count],
+  )
+}
+
+/** How many memories a single book is carrying. Counted on the compound
+    index, so nothing is read to produce the number. */
+export function useKeepCount(bookId: number | undefined): number | undefined {
+  return useLiveQuery(
+    () => (bookId === undefined ? 0 : db.entries.where('bookId').equals(bookId).count()),
+    [bookId],
+  )
+}

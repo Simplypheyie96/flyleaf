@@ -14,6 +14,7 @@ import SplashScreen from "./components/SplashScreen";
 import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
 import UpdateToast from "./components/UpdateToast";
 import BackupNudge from "./components/BackupNudge";
+import Welcome from "./onboarding/Welcome";
 import BoardLab from "./routes/BoardLab";
 import BookJourney from "./routes/BookJourney";
 import CardLab from "./routes/CardLab";
@@ -119,6 +120,10 @@ function App() {
   return (
     <BrowserRouter>
       <SplashScreen />
+      {/* Outside the routes on purpose: the welcome is the app's front door,
+          not a page, and it must cover whichever screen a fresh install lands
+          on. It removes itself the moment it is answered or skipped. */}
+      <Welcome />
 
       <Routes>
         <Route path="/" element={<Home />} />
