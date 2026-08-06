@@ -16,6 +16,12 @@
   /* Fully flat: hairline + lit top edge only. No drop shadows on paper. */
   box-shadow: inset 0 1px 0 var(--card-edge-light);
   rotate: var(--paper-rotate, 0deg);
+
+  /* Any control printed on this card gets the on-paper frost instead of the
+     sky frost, redirected here rather than in each component's stylesheet so
+     a button cannot end up white by being moved onto paper. See tokens.css. */
+  --control-fill: var(--control-fill-paper);
+  --control-highlight: var(--control-highlight-paper);
 }
 
 /* Entry-type surfaces — a quote never looks like a note.

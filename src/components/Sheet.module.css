@@ -44,6 +44,10 @@
 .panel {
   --glass-pad: 0;
   --glass-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  /* Same reason as PaperSurface: at 96% scrim this panel is a solid surface,
+     not sky, so the frost on its controls has to tint down rather than up. */
+  --control-fill: var(--control-fill-paper);
+  --control-highlight: var(--control-highlight-paper);
   width: 100%;
   max-width: 560px;
   /* Tall enough to hold a list worth scanning, short enough that the page
