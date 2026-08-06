@@ -1,8 +1,10 @@
+import { Link } from 'react-router-dom'
 import PaperSurface from '../components/PaperSurface'
 import Sparkle from '../components/Sparkle'
 import ThemeToggle from '../components/ThemeToggle'
 import Journey from '../settings/Journey'
 import Tip from '../settings/Tip'
+import { DOCS } from '../legal/documents'
 import { openInstallGuide } from '../settings/installable'
 import { GUIDES, detect, installed } from '../settings/platform'
 import card from '../settings/settings.module.css'
@@ -79,6 +81,29 @@ function Settings() {
         </PaperSurface>
 
         <Tip />
+
+        {/* Last, and deliberately plain. The three documents are the only part
+            of Settings a reader opens once; they are also the part that has to
+            be findable the day somebody goes looking for it. */}
+        <PaperSurface className={card.section}>
+          <div className={card.sectionHead}>
+            <h2 className={card.sectionTitle}>The small print</h2>
+            <span className={card.sectionHint}>
+              What Flyleaf knows about you, what it promises, and who made the
+              parts it did not.
+            </span>
+          </div>
+          <div className={card.links}>
+            {DOCS.map((doc) => (
+              <Link key={doc.slug} to={`/legal/${doc.slug}`} className={card.link}>
+                {doc.title}
+                <span className={card.linkHint} aria-hidden="true">
+                  ›
+                </span>
+              </Link>
+            ))}
+          </div>
+        </PaperSurface>
       </div>
     </main>
   )

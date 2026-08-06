@@ -15,6 +15,7 @@ import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
 import UpdateToast from "./components/UpdateToast";
 import BackupNudge from "./components/BackupNudge";
 import Welcome from "./onboarding/Welcome";
+import Legal from "./legal/Legal";
 import InstallGuide from "./settings/InstallGuide";
 import BoardLab from "./routes/BoardLab";
 import BookJourney from "./routes/BookJourney";
@@ -69,8 +70,14 @@ function NavPills() {
 function Shell({ onAdd }: { onAdd: () => void }) {
   const { pathname } = useLocation();
   // A journey is a room you go into and come back out of; the card gallery is
-  // a workbench. Neither wants the app's map painted over it.
-  if (pathname.startsWith("/book/") || pathname.startsWith("/lab/")) return null;
+  // a workbench; a policy is a document you were handed and will hand back.
+  // None of them wants the app's map painted over it.
+  if (
+    pathname.startsWith("/book/") ||
+    pathname.startsWith("/lab/") ||
+    pathname.startsWith("/legal/")
+  )
+    return null;
 
   return (
     <>
@@ -131,6 +138,7 @@ function App() {
         <Route path="/library" element={<Library />} />
         <Route path="/book/:id" element={<BookJourney />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/legal/:slug" element={<Legal />} />
         <Route path="/styleguide" element={<Styleguide />} />
         <Route path="/lab/cards" element={<CardLab />} />
         <Route path="/lab/home" element={<HomeLab />} />

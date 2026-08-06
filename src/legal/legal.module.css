@@ -1,0 +1,234 @@
+/* A document, printed on the app's paper.
+
+   The whole page is one typographic decision repeated: reading type, generous
+   leading, and enough air between a heading and the paragraph under it that
+   the eye can find its place after looking away. Legal text is read in short
+   bursts by people who are slightly wary; the layout's job is to make coming
+   back easy.
+
+   Nothing here is a new material. The sheet is PaperSurface, the summary is
+   PaperSurface, the bar is the app's own back bar. The only thing this file
+   introduces is the rhythm between them. */
+
+.masthead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-block-start: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.lede {
+  font-size: var(--text-md);
+  line-height: 1.55;
+  color: var(--color-ink-soft);
+}
+
+/* Small, tracked, and above the fold on purpose: the date is the one fact on
+   this page that tells you whether what follows is current. */
+.stamp {
+  font-size: var(--text-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* The admission, and it looks like one.
+
+   Not a card — a card would make it part of the document. It is a note pinned
+   to the front of the document by the person who wrote it, so it sits on the
+   sky in its own hand, with a rule down its leading edge the way a margin note
+   is marked. */
+.draft {
+  max-inline-size: none;
+  padding: var(--space-3) var(--space-4);
+  border-inline-start: 2px solid var(--color-accent-text);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: color-mix(in oklch, var(--color-accent-text), transparent 94%);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-ink);
+}
+
+.draft strong {
+  font-weight: 620;
+}
+
+/* Read this and you have read the page. Set one step up from the body so it
+   reads as the document's own voice rather than as a preamble to it. */
+.summary {
+  --paper-pad: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.summaryTitle {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.shortList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-md);
+  line-height: 1.6;
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+
+/* A leaf-blue tick rather than a bullet: four things that are true, not four
+   items on a list. Drawn in the accent so the summary carries one mark of the
+   app's colour and the long text below carries none. */
+.shortList li {
+  position: relative;
+  padding-inline-start: var(--space-5);
+}
+
+.shortList li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0.62em;
+  inline-size: 10px;
+  block-size: 6px;
+  border-inline-start: 1.5px solid var(--color-accent-text);
+  border-block-end: 1.5px solid var(--color-accent-text);
+  rotate: -45deg;
+}
+
+/* One sheet, all the sections. See Legal.tsx for why this is not eight cards. */
+.sheet {
+  --paper-pad: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.heading {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  line-height: 1.25;
+  /* The heading belongs to the paragraph under it, so it sits closer to that
+     than to the section above — the gap on .sheet does the separating. */
+  margin-block-end: calc(-1 * var(--space-1));
+}
+
+/* Body copy for reading at length, not for scanning a settings row. */
+.section p {
+  max-inline-size: none;
+  font-size: var(--text-base);
+  line-height: 1.72;
+  color: var(--color-ink);
+}
+
+.section strong {
+  font-weight: 620;
+}
+
+.section ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: var(--space-4);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-ink);
+}
+
+.section li::marker {
+  color: var(--color-ink-faint);
+}
+
+/* Links out. Underlined, because in a document about who else is involved the
+   reader has to be able to see which words hand them to somebody else. */
+.out {
+  color: var(--color-accent-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  text-decoration-color: color-mix(in oklch, var(--color-accent-text), transparent 55%);
+  transition: text-decoration-color var(--dur-press) var(--ease-out);
+}
+
+.out:hover {
+  text-decoration-color: var(--color-accent-text);
+}
+
+/* Something the maker has not filled in. It has to be obvious at a glance and
+   from across the room, without looking like an error the reader caused. */
+.slot {
+  padding: 0.1em 0.4em;
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklch, var(--color-accent-text), transparent 88%);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--color-accent-text), transparent 72%);
+  color: var(--color-ink);
+  font-size: 0.94em;
+}
+
+/* The other two documents, at the foot. A reader who has just read one of
+   these is the most likely person in the world to read another.
+
+   These take the ON-PAPER frost even though they sit on the sky, because at
+   the bottom of a four-thousand-pixel page the sky gradient has bottomed out
+   into mist — near-white — and white frost over near-white is a white slab.
+   The sky pair is correct where there is sky; down here there effectively is
+   none, so the frost has to tint down. By night the gradient stays dusk, and
+   the on-paper pair is a lift there, so both ends behave. */
+.siblings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sibling {
+  min-block-size: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pill);
+  background: var(--control-fill-paper);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+  box-shadow: inset 0 1px 0 var(--control-highlight-paper);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color var(--dur-press) var(--ease-out);
+}
+
+.sibling:hover {
+  background: color-mix(in oklab, var(--control-fill-paper) 70%, var(--color-ink) 8%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .out,
+  .sibling {
+    transition-duration: 0.01ms;
+  }
+}
