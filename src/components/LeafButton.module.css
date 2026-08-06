@@ -17,7 +17,7 @@
   color: var(--color-on-action);
   font-family: var(--font-sans);
   font-size: var(--text-base);
-  font-weight: 620;
+  font-weight: var(--weight-strong);
   letter-spacing: 0.01em;
   cursor: pointer;
   box-shadow: var(--elevation-1);

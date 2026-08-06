@@ -479,14 +479,13 @@ const licences: Doc = {
       content: (
         <>
           <p>
-            Four faces, all under the{' '}
+            Three faces, all under the{' '}
             <Out href="https://openfontlicense.org/">SIL Open Font Licence 1.1</Out>,
             served from Flyleaf's own files rather than a font network:
           </p>
           <ul>
-            <li>EB Garamond — titles and reading</li>
+            <li>Newsreader — titles, quotes and reading, roman and italic</li>
             <li>Source Sans 3 — labels and body</li>
-            <li>Instrument Serif — the quiet italic voice</li>
             <li>Patrick Hand — the handwritten greeting</li>
           </ul>
           <p>

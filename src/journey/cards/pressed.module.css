@@ -169,7 +169,7 @@
   font-weight: var(--weight-italic);
   font-size: var(--text-md);
   font-style: italic;
-  line-height: 1.45;
+  line-height: var(--leading-body);
   color: var(--color-ink);
   max-inline-size: var(--measure);
   text-wrap: pretty;
@@ -851,7 +851,7 @@
   font-weight: var(--weight-label);
   font-size: var(--text-sm);
   line-height: var(--leading-tight);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--track-caps);
   text-transform: uppercase;
   color: var(--color-ink);
   text-wrap: balance;

@@ -394,18 +394,25 @@
      screen holding four faces at once reads as an accident.
 
        serif  the book and the reader — titles, section heads, quotes, and
-              any value worth reading as a value. EB Garamond: an old-style
-              book face with wide round bowls, short stems and a small
-              x-height. The pair before it was chosen for being narrow, on the
-              argument that a book title is the longest string in the app and
-              the face should earn its room back horizontally. It did — the
-              seeded title sets at 308px here against ~246 there, a quarter
-              wider — and the price was a screen that read as a picket fence.
-              Narrow, tall and tightly fitted is the shape of a headline, not
-              of something you are meant to sit with. This costs width and
-              buys air, which is the right trade for a reading app.
-              It is variable, 400–800, so every serif rule states
-              --weight-serif rather than the 400 they all used to state.
+              any value worth reading as a value. Newsreader: a transitional
+              text face drawn for reading on screens, variable 200–800, with a
+              real italic in the same family.
+
+              It replaced EB Garamond, which was chosen for air and gave it,
+              and had two faults this app could not carry. Its x-height is
+              small, so at the sizes this app actually lives at — a card title
+              at 18px, a row value at 14 — it set a step smaller than it
+              measured, and --weight-serif had to be pushed to 500 to put the
+              colour back. And its variable file has no italic in it at all,
+              which is how the app ended up with a SECOND serif standing in
+              for the slope. A masthead in one book face over a subtitle in
+              another is not a change of voice, it is two typefaces, and it
+              read as one on every screen that used both.
+
+              Newsreader answers both. Larger x-height, so 460 holds the line
+              where 500 was needed. A drawn italic — single-storey a, entry
+              strokes on the ascenders, a narrower set — so the slope is the
+              same voice sloped, which is the only thing an italic is for.
        sans   the app — body copy, buttons, anything that runs to a sentence.
               Source Sans 3: a humanist sans with open apertures and generous
               counters, drawn for interface text at small sizes. It also sets
@@ -417,85 +424,113 @@
        hand   note cards, and nowhere else. The only decorative thing on the
               screen, which is what makes it read as a note. Upright print,
               not cursive — a note exists to be reread, so legibility beats
-              flourish. Deliberately unchanged.
-       italic every sloped line in the app. Instrument Serif, italic cut — see
-              --font-italic below for why the book face does not set its own.
-       stamp  the same face standing upright, and only where a shape exists to
-              hold one word: today that is the stance on a plot thread's tab.
-              See --font-stamp.  */
-  /* Three steps, and no more — a scale of five weights is how a system stops
-     meaning anything.
+              flourish. Deliberately unchanged.  */
+  /* Four steps in the sans, two in the serif, and every rule in the app names
+     one of them. It named six before — 400, 450, 500, 560, 600 and 620, the
+     last three arrived at separately in different files on different days —
+     and the trouble with six is not that any one is wrong, it is that 560 and
+     600 and 620 are the same weight to the eye and a system that draws
+     distinctions nobody can see has stopped being a system.
 
-       card   450. One notch above the page's 400. Card text is short, sits on
-              a tinted fill rather than on the page's paper, and is read in
-              glances; 400 is tuned for a paragraph and reads thin here.
-       label  560. The small uppercase labels — a stance, a date, a filed-under.
-              At 11px, in capitals, on a pastel, these are the thinnest marks in
-              the app, and until now a monospace's even stroke was carrying
-              them. A proportional face has to be asked.
-       serif  500. New, and only because the serif can now be asked. An
-              old-style face carries less ink per stem than the tall narrow one
-              it replaced, so at 400 a card title looks a step smaller than it
-              measures. 500 restores the colour without turning the title bold,
-              which 600 does immediately in this family.
-       italic 400, because the italic face has exactly one weight and asking a
-              single-master face for 500 gets a synthesised smear rather than a
-              refusal. It also does not need the extra: Instrument's italic
-              already carries more ink per stem than Garamond's roman, which is
-              the whole reason it was brought in for the slope. */
+       body   400. The page. Paragraphs, prose, anything that runs long.
+       card   450. One notch up. Card text is short, sits on a tinted fill
+              rather than on the page's paper, and is read in glances; 400 is
+              tuned for a paragraph and reads thin here.
+       medium 500. The interface speaking in its own voice — a row's label, a
+              tab, a value worth reading before the words around it.
+       strong 600. Buttons, and the small uppercase labels a stance or a date
+              is set in. At 11px in capitals those are the thinnest marks on
+              the screen and a proportional face has to be asked. It absorbed
+              560 and 620, which were both this.
+
+       serif  460. The book face is variable, so it can be asked. Newsreader
+              carries enough ink at 460 to hold a title against sans body
+              beside it; the 500 the old face needed would read as bold here.
+       italic 450. A slope leaning away from its own roman wants to be a hair
+              lighter than it, not heavier — and unlike the single-master face
+              this replaced, asking for 450 now gets a drawn weight rather
+              than a synthesised smear. */
+  --weight-body: 400;
   --weight-card: 450;
-  --weight-label: 560;
-  --weight-serif: 500;
-  --weight-italic: 400;
+  --weight-medium: 500;
+  --weight-strong: 600;
+  /* The old name for --weight-strong, kept because sixteen rules across the
+     app say "label" and mean exactly this. */
+  --weight-label: var(--weight-strong);
+  --weight-serif: 460;
+  --weight-italic: 450;
 
-  --font-serif: 'EB Garamond Variable', Georgia, 'Times New Roman', serif;
+  --font-serif: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
   --font-sans: 'Source Sans 3 Variable', system-ui, -apple-system, sans-serif;
   --font-hand: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
-  /* The slope, and only the slope. Garamond's variable file has no italic in
-     it, so every `font-style: italic` in the app was the browser shearing the
-     roman over — an obliqued book face, not an italic one, with none of the
-     letterforms that make an italic legible as a change of voice rather than a
-     change of angle. Instrument Serif's italic is drawn: single-storey a,
-     entry strokes on the ascenders, a narrower set. Garamond stands behind it
-     in the stack so a line that fails to load slopes rather than straightens,
-     which is the failure that keeps the meaning. */
-  --font-italic: 'Instrument Serif', 'EB Garamond Variable', Georgia, serif;
-  /* The same face upright, for a label that has a shape built around it. The
-     sans sets every other small capital in the app and should keep doing it:
-     those run in rows — a date beside a page number beside a side — and a
-     display serif at 11px in a row of metadata is costume. A tab is the
-     opposite case. It is one word, alone, inside a silhouette drawn for it,
-     large enough to carry a real cap height, and a high-contrast serif is what
-     makes it read as a title on a file rather than a chip on a card.
-     Single-master, so anything asking for weight here gets a synthesised smear
-     — every rule using this states --weight-italic. */
-  --font-stamp: 'Instrument Serif', 'EB Garamond Variable', Georgia, serif;
+  /* Both of these used to name a second serif — Instrument, brought in
+     because the old book face shipped no italic. Newsreader ships one, so
+     they are the book face now, and the app is down from three serifs to one.
+     The names are kept rather than swept away because they still say
+     something the value cannot: `--font-italic` marks a line that is sloped
+     on purpose, `--font-stamp` a word set inside a shape drawn to hold it.
+     Both still pair with --weight-italic, which is what keeps a slope from
+     going heavier than the roman it leans away from. */
+  --font-italic: var(--font-serif);
+  --font-stamp: var(--font-serif);
 
-  /* One step smaller nearly everywhere than it used to be. The scale below
-     ~15px is where this app actually lives — meta lines, chips, captions — so
-     that end has the most steps and the top end has the fewest. */
+  /* Eight steps, and every adjacent pair differs by enough to see. The old
+     scale had 14 and 15 next to each other — a seven per cent step, which is
+     no step at all — and it was carrying the app's two commonest jobs,
+     secondary copy and body. Two sizes the eye reads as one size means the
+     hierarchy between them was never doing any work; only colour was, which
+     is why so much of this app read as one flat grey field of text.
+
+     So 15 is gone. Body is 16 — the browser's own default, the size a reading
+     app has no business going under, and the size iOS stops zooming inputs
+     at, which retires a special case as well.
+
+     The top of the scale grew, because it was timid. A page title at 24 over
+     a body at 15 is a ratio of 1.6, and 1.6 is the ratio between a heading
+     and a subheading, not between a page's name and its contents. 28 and 34
+     are iOS's own Title 1 and Large Title, which is the right neighbourhood
+     for a screen that wants Apple restraint and a book's presence at once. */
   --text-2xs: 0.6875rem; /* 11 — stamped labels, tracked out */
-  --text-xs: 0.75rem; /* 12 — captions */
+  --text-xs: 0.75rem; /* 12 — captions, footnotes */
   --text-sm: 0.875rem; /* 14 — labels, secondary copy */
-  --text-base: 0.9375rem; /* 15 — UI body */
-  --text-md: 1.0625rem; /* 17 — reading serif, quotes */
-  --text-lg: 1.25rem; /* 20 — section titles */
-  --text-xl: 1.5rem; /* 24 — page titles */
-  --text-2xl: 1.875rem; /* 30 — display, once per screen at most */
+  --text-base: 1rem; /* 16 — UI body */
+  --text-md: 1.125rem; /* 18 — reading serif, quotes */
+  --text-lg: 1.375rem; /* 22 — section titles */
+  --text-xl: 1.75rem; /* 28 — page titles */
+  --text-2xl: 2.125rem; /* 34 — display, once per screen at most */
 
-  /* iOS Safari zooms the page whenever an input's text is under 16px, and the
-     UI body size is deliberately under that now. Every field opts back up. */
-  --text-field: 1rem; /* 16 — never smaller, on any input */
+  /* Kept as a name rather than a number. iOS Safari zooms the page whenever an
+     input's text is under 16px; body is 16 now, so a field asking for this
+     gets the body size and the rule enforces itself. */
+  --text-field: var(--text-base);
 
-  --leading-tight: 1.15;
-  --leading-snug: 1.35;
-  --leading-body: 1.6;
+  /* Five, by role, and tied to size: the bigger the type, the tighter it sets.
+     There were twenty before — 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55,
+     1.6, 1.65, 1.7, 1.72 all live at once — which is not a rhythm, it is
+     forty separate decisions that never met each other.
+
+     --leading-body moved 1.6 → 1.5 as body moved 15 → 16, so the line box is
+     the same 24px it always was: the type grew inside the rhythm rather than
+     pushing it apart. 1.6 at 15px was also simply too loose for the measures
+     this app uses — a card three-quarters of a phone wide runs about 30
+     characters, and leading wants to come in as the measure comes in, not
+     stay at the setting a full-width page of prose asked for. */
+  --leading-display: 1.05; /* 28–34, a title's own line */
+  --leading-tight: 1.15; /* 18–22 headings */
+  --leading-snug: 1.35; /* row titles, buttons, card text */
+  --leading-body: 1.5; /* UI prose at 16 */
+  --leading-read: 1.65; /* long-form serif — the legal pages, a long quote */
   --measure: 60ch;
 
-  /* Large type wants to be pulled in; small uppercase wants to be let out. */
+  /* Large type wants to be pulled in; small uppercase wants to be let out, and
+     how far out depends on how small. --track-label is for 11px capitals,
+     --track-caps for the 12–14px ones, which close up far less and looked
+     scattered at the same setting. Between them they replaced eight raw
+     values from 0.04em to 0.16em. */
   --track-display: -0.02em;
   --track-title: -0.01em;
   --track-label: 0.07em;
+  --track-caps: 0.05em;
 
   /* Every journey card but the note ends in a line of prose, and a line box
      carries half its leading below the last glyph. At --leading-body on

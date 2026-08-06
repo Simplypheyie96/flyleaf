@@ -131,8 +131,9 @@ export const PAD = 96
    the page actually loaded: document.fonts.load() resolves with an empty list
    and no error when the family is unknown, so a wrong name here does not throw
    — it just draws the whole picture in the system fallback and says nothing.
-   These read "Geist" until now, which is a face this app has never shipped. */
-export const SERIF = '"EB Garamond Variable", Georgia, serif'
+   These have been wrong twice: once naming "Geist", a face this app has never
+   shipped, and once naming EB Garamond after the app had moved off it. */
+export const SERIF = '"Newsreader Variable", Georgia, serif'
 export const SANS = '"Source Sans 3 Variable", system-ui, sans-serif'
 
 /** Canvas takes no font it has not been told to load, whatever the CSS did.

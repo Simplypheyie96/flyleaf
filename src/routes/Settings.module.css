@@ -10,7 +10,8 @@
 
 .title {
   font-size: var(--text-xl);
-  letter-spacing: -0.01em;
+  line-height: var(--leading-display);
+  letter-spacing: var(--track-title);
 }
 
 .subtitle {

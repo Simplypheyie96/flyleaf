@@ -35,7 +35,7 @@
 
 .message {
   font-size: var(--text-sm);
-  line-height: 1.5;
+  line-height: var(--leading-body);
   color: var(--color-ink);
 }
 
@@ -54,7 +54,7 @@
   background: transparent;
   color: var(--color-ink-soft);
   font-size: var(--text-sm);
-  font-weight: 620;
+  font-weight: var(--weight-strong);
   cursor: pointer;
 }
 

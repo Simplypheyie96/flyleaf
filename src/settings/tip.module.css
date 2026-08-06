@@ -30,8 +30,11 @@
   margin-inline-end: auto;
   font-family: var(--font-serif);
   font-weight: var(--weight-serif);
-  font-size: var(--text-xl);
-  line-height: 1.25;
+  /* A step under the page title, never level with it. This sheet opens from a
+     row inside Settings, and a heading the same size as the screen it came
+     from tells a reader they have arrived somewhere bigger than they have. */
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
   color: var(--color-ink);
 }
 
@@ -57,7 +60,7 @@
 .lede {
   margin: 0;
   font-size: var(--text-sm);
-  line-height: 1.65;
+  line-height: var(--leading-read);
   color: var(--color-ink-soft);
   text-wrap: pretty;
 }
@@ -97,7 +100,7 @@
   backdrop-filter: blur(var(--glass-blur)) saturate(170%);
   box-shadow: inset 0 1px 0 var(--control-highlight);
   color: var(--color-ink);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 /* A slot rather than a fourth button: typing an amount is a different action
@@ -156,7 +159,7 @@
 .warm {
   margin: 0;
   font-size: var(--text-sm);
-  line-height: 1.65;
+  line-height: var(--leading-read);
   color: var(--color-ink-soft);
   text-wrap: pretty;
 }

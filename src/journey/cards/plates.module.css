@@ -126,7 +126,7 @@
   font-weight: var(--weight-italic);
   font-size: var(--text-md);
   font-style: italic;
-  line-height: 1.45;
+  line-height: var(--leading-body);
   color: var(--color-ink);
   /* The line stops at the card's trailing padding, not before it.
 
@@ -385,7 +385,7 @@
   font-family: var(--font-serif);
   font-weight: var(--weight-serif);
   font-size: var(--text-sm);
-  line-height: 1.4;
+  line-height: var(--leading-snug);
   letter-spacing: 0.02em;
   text-align: center;
   text-wrap: balance;
@@ -503,8 +503,8 @@
   font-family: var(--font-sans);
   font-weight: var(--weight-label);
   font-size: var(--text-xs);
-  line-height: 1.4;
-  letter-spacing: 0.08em;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   /* Reversed out of the band. The thread hue is dark enough in both themes for
      this to be the readable direction. */
