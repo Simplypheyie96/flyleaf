@@ -24,6 +24,9 @@ import styles from './AddBookSheet.module.css'
 interface AddBookSheetProps {
   open: boolean
   onClose: () => void
+  /** Words to open with, when the reader came from the Library's search
+      already knowing what they were looking for. */
+  seed?: string
 }
 
 /* Three stages, one sheet. Search is where nearly everyone starts and ends;
@@ -36,7 +39,7 @@ type Stage =
   | { kind: 'manual' }
   | { kind: 'confirm'; book: BookResult }
 
-function AddBookSheet({ open, onClose }: AddBookSheetProps) {
+function AddBookSheet({ open, onClose, seed = '' }: AddBookSheetProps) {
   const field = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
   const [stage, setStage] = useState<Stage>({ kind: 'search' })
@@ -46,9 +49,13 @@ function AddBookSheet({ open, onClose }: AddBookSheetProps) {
   // not a draft, and reopening to someone else's half-typed search is a bug.
   useEffect(() => {
     if (open) {
-      setQuery('')
+      setQuery(seed)
       setStage({ kind: 'search' })
     }
+    // `seed` is deliberately not a dependency: it is what the sheet opened
+    // with, and a reader editing the query afterwards must not have it typed
+    // back over them if anything upstream re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   /* The reader opened a sheet whose only purpose is this field, so the field

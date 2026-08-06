@@ -1550,3 +1550,36 @@
     transform: none;
   }
 }
+
+/* THE KEEP THE SEARCH SENT YOU TO.
+
+   A ring rather than a wash: the cards already carry colour of their own, and
+   a tint over one of them reads as a different kind of keep rather than as
+   "this one". It fades on its own after a couple of seconds, because it is an
+   answer to a question the reader has stopped asking by then. */
+.notch[data-found] > * {
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 0 0 2px color-mix(in oklab, var(--kind, var(--color-accent-text)) 55%, transparent),
+    var(--elevation-2);
+  animation: keepFound 2.4s var(--ease-out) both;
+}
+
+@keyframes keepFound {
+  0% {
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--kind, var(--color-accent-text)) 70%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--kind, var(--color-accent-text)) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 2px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notch[data-found] > * {
+    /* The ring still appears and still goes; it just does not fade. */
+    animation: none;
+  }
+}

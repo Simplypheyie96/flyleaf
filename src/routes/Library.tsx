@@ -7,6 +7,9 @@ import SpineArt from '../books/SpineArt'
 import SpineMark from '../books/SpineMark'
 import { seedFrom } from '../books/seed'
 import GlassSurface from '../components/GlassSurface'
+import Results from '../search/Results'
+import { useArchive } from '../search/archive'
+import search from '../search/search.module.css'
 import Sparkle from '../components/Sparkle'
 import PaperSurface from '../components/PaperSurface'
 import Sheet from '../components/Sheet'
@@ -547,6 +550,33 @@ function Library() {
   // away behind the masthead button rather than laid out in the toolbar.
   const [picking, setPicking] = useState(false)
 
+  /* THE ARCHIVE SEARCH (06) LIVES HERE, not in a tab of its own.
+
+     What the reader is looking for is nearly always a thing they kept, and
+     the things they kept are the books on this shelf — so the field that
+     finds them belongs over the shelf, and typing in it replaces the shelf
+     with what it found rather than opening a second screen to hold the
+     answer.
+
+     Two scopes, said in words rather than implied: everything you have kept,
+     and the catalogue of books you do not have yet. The second hands off to
+     the add sheet with the words already typed, because the catalogue search
+     and the add flow are the same act — you do not look a book up in order to
+     read about it, you look it up in order to shelve it. */
+  const [query, setQuery] = useState('')
+  const found = useArchive(query)
+  const asking = query.trim().length >= 2
+
+  /* Handing the words to the add sheet, which is the one place in the app
+     that knows how to turn a catalogue result into a shelved book with a
+     cover. An event rather than a prop: the sheet is mounted once at the root
+     beside the two shells that open it, and threading a setter through the
+     router to reach it would make every route that never searches carry the
+     add flow's state. */
+  function findBook(words: string) {
+    window.dispatchEvent(new CustomEvent('flyleaf-find-book', { detail: words.trim() }))
+  }
+
   /* Open the sheet on the layout that is already chosen.
 
      `showModal` gives focus to the first focusable thing inside the dialog,
@@ -684,10 +714,12 @@ function Library() {
                 <input
                   type="search"
                   className={styles.searchInput}
-                  placeholder="Search"
+                  placeholder="Search everything you have kept"
                   aria-label="Search your books and memories"
                   autoComplete="off"
                   spellCheck={false}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
                 />
               </div>
             </GlassSurface>
@@ -715,6 +747,39 @@ function Library() {
           </div>
         )}
 
+        {/* The two scopes. They arrive with the words rather than sitting
+            over an empty field, because until something is typed there is no
+            question for them to answer. */}
+        {asking && (
+          <GlassSurface className={search.scopes}>
+            <button type="button" className={search.scope} aria-pressed={true}>
+              Everything you kept
+            </button>
+            <button
+              type="button"
+              className={search.scope}
+              aria-pressed={false}
+              onClick={() => findBook(query)}
+            >
+              Find a book
+            </button>
+          </GlassSurface>
+        )}
+
+        {asking && found.status === 'done' && (
+          <Results
+            archive={found.archive}
+            query={found.query}
+            onFindBook={() => findBook(query)}
+          />
+        )}
+
+        {asking && found.status !== 'done' && (
+          <p className={styles.empty}>Looking through everything you have kept…</p>
+        )}
+
+        {!asking && (
+          <>
         {/* `data-shelf` is how the add sheet knows there is somewhere for a
             book to land. Added here rather than checked by route so it stays
             true by construction: if this is on screen, so are the books. */}
@@ -842,6 +907,8 @@ function Library() {
           <p className={styles.count}>
             {libraryBooks.length} {libraryBooks.length === 1 ? 'book' : 'books'}
           </p>
+        )}
+          </>
         )}
 
         {/* The folded display control, opened. Written out in words here
