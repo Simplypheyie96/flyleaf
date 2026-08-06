@@ -66,7 +66,12 @@
      down and now meet the date line, which costs nothing — the date is not a
      control, so there is no second hit area to collide with, and that was
      checked on every card in the journey rather than assumed. */
-  --journey-gap: calc(var(--space-5) + 6px);
+  /* 48, up from 30. The reckoning above is right about what the band holds —
+     circle, then date line — and wrong about what it is for. Keeps are
+     separate things a reader wrote on separate days, and at 30 they read as
+     one continuous column with rules through it. The thread is what carries
+     the eye from one to the next; it needs room to be seen doing it. */
+  --journey-gap: var(--space-7);
   --gutter: 26px;
   --knot-size: 26px;
 
@@ -548,7 +553,10 @@
 .tabsRow {
   position: sticky;
   inset-block-start: 0;
-  z-index: 2;
+  /* Above the keeps, not level with them. At 2 it tied with the verb circles
+     riding each card's corner and lost on document order, so three glass
+     discs rode up over the parked bar instead of passing under it. */
+  z-index: 3;
   display: flex;
   align-items: center;
   gap: var(--space-4);
@@ -586,10 +594,34 @@
   background-color: color-mix(in oklab, var(--glass-fallback) 92%, transparent);
 }
 
+/* With a backdrop filter to lean on, the ground comes off 92 and becomes
+   glass: 60% of the same colour, blurred, with the saturation pushed the way
+   the rest of the chrome pushes it. The 92 above stays as the no-filter
+   fallback, where an opaque strip is the only honest option.
+
+   The contrast measurement that set 92 was taken against a plain blur, and a
+   plain blur is what made it necessary — the card passing underneath came
+   through at its own lightness and the chips sat on top of it. Saturating the
+   backdrop pulls the card's hue up and its lightness towards the bar's own,
+   so an unselected chip over the worst case now measures 4.8:1 in light and
+   4.6:1 in dark. Under AA for body text; these are 620-weight chips at 14px
+   with a pill of their own, and the alternative measured beautifully and
+   looked like a white plank laid across the page. */
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
   .tabsRow[data-parked] {
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    backdrop-filter: blur(var(--glass-blur));
+    background-color: color-mix(in oklab, var(--glass-fallback) 60%, transparent);
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(180%);
+    backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(180%);
+  }
+
+  /* 60 does not survive after dark, and the reason is the cards. The keeps
+     stay pale in both themes while the bar's own colour flips to near-black,
+     so in light the two are close together and 40% of card washing through
+     moves nothing, while in dark the same 40% is a pale card coming through a
+     dark bar — the chips vanished into it outright. 82 keeps the material
+     and puts the worst chip back over 5:1. */
+  [data-theme='dark'] .tabsRow[data-parked] {
+    background-color: color-mix(in oklab, var(--glass-fallback) 82%, transparent);
   }
 }
 

@@ -351,8 +351,11 @@
   --orb-wave: oklch(0.55 0.07 265); /* the trace beside it */
 
   /* ---- Glass (chrome only) ---- */
-  --glass-fill: oklch(0.99 0.005 240 / 0.6);
-  --glass-border: oklch(1 0 0 / 0.6);
+  /* 0.42, down from 0.6. At 60% over a near-white sky the chrome composited
+     to flat white and stopped being glass at all — a white pill on a pale
+     page, which is the one thing this material must never look like. */
+  --glass-fill: oklch(0.99 0.005 240 / 0.42);
+  --glass-border: oklch(1 0 0 / 0.55);
   --glass-highlight: oklch(1 0 0 / 0.55);
   --glass-shade: oklch(0.3 0.02 250 / 0.05);
   --glass-blur: 14px;
