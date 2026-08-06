@@ -57,11 +57,12 @@ import {
   SortIcon,
   TrashIcon,
 } from '../components/TabIcons'
-import { formatsOf, type Book, type Entry, type EntryType } from '../data/db'
+import { formatsOf, type Entry, type EntryType } from '../data/db'
 import { useBook, useEntries } from '../data/useBook'
 import Keep from '../journey/Keep'
 import KeepSheet from '../journey/KeepSheet'
 import KeepsakeSheet from '../journey/KeepsakeSheet'
+import PlateSheet from '../journey/PlateSheet'
 import FairCopySheet from '../journey/FairCopySheet'
 import BookMenu from '../journey/BookMenu'
 import { KIND, KINDS, SIDE } from '../journey/kinds'
@@ -124,16 +125,16 @@ const SORT_SHORT: Record<Order, string> = {
 
 interface NotchProps {
   keep: Entry
-  book: Book
   tie?: Tie
   /* False once every visible keep is the same substance — see `showSide` at
      the call site. */
   showSide: boolean
   onEdit: (keep: Entry) => void
+  onShare: (keep: Entry) => void
   onDelete: (keep: Entry) => void
 }
 
-function Notch({ keep, book, tie, showSide, onEdit, onDelete }: NotchProps) {
+function Notch({ keep, tie, showSide, onEdit, onShare, onDelete }: NotchProps) {
   const { Icon, hue, side } = KIND[keep.type]
   return (
     <li
@@ -184,7 +185,7 @@ function Notch({ keep, book, tie, showSide, onEdit, onDelete }: NotchProps) {
           </span>
           {showSide && <em className={styles.whenSide}>{SIDE[side].word}</em>}
         </p>
-        <Keep keep={keep} book={book} onEdit={onEdit} onDelete={onDelete} />
+        <Keep keep={keep} onEdit={onEdit} onShare={onShare} onDelete={onDelete} />
       </div>
     </li>
   )
@@ -205,6 +206,10 @@ function BookJourney() {
      never be both. */
   const [adding, setAdding] = useState<EntryType | null>(null)
   const [editing, setEditing] = useState<Entry | null>(null)
+  /* Which keep is being made into a picture. Null closes the plate sheet; the
+     sheet itself remembers the last one it was handed, so the picture doesn't
+     blink out from under the closing animation. */
+  const [sharing, setSharing] = useState<Entry | null>(null)
   const [picking, setPicking] = useState<'opened' | 'closed' | null>(null)
   const [ordering, setOrdering] = useState(false)
   const [keepsakeOpen, setKeepsakeOpen] = useState(false)
@@ -737,10 +742,10 @@ function BookJourney() {
               <Notch
                 key={keep.id}
                 keep={keep}
-                book={book}
                 tie={tie}
                 showSide={showSide}
                 onEdit={setEditing}
+                onShare={setSharing}
                 onDelete={(k) => void deleteKeep(k)}
               />
             ))}
@@ -967,6 +972,14 @@ function BookJourney() {
         onClose={() => setKeepsakeOpen(false)}
         book={book}
         keeps={keeps}
+      />
+
+      {/* The same press, one keep instead of the whole reading. */}
+      <PlateSheet
+        open={sharing !== null}
+        onClose={() => setSharing(null)}
+        keep={sharing}
+        book={book}
       />
 
       <FairCopySheet open={fairOpen} onClose={() => setFairOpen(false)} book={book} keeps={keeps} />

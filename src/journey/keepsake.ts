@@ -47,12 +47,18 @@ export interface Palette {
 /* Fixed sRGB rather than the app's live tokens. An exported picture has to look
    the same in a message thread as it did in the sheet, and a reader who picked
    a pale card at midnight must not be sent a dark one because their phone had
-   turned the app over. */
+   turned the app over.
+
+   Every colour here is set as TEXT somewhere — `soft` carries the date and the
+   author's name, `accent` carries the provenance under a quote — so all three
+   clear 4.5:1 on their own paper. Bloom's two and Fern's accent were the pale
+   ones (3.7–4.4) and are a step deeper for it; the hue is the one that was
+   chosen, only the ink is stronger. */
 export const PALETTES: Palette[] = [
   { id: 'flyleaf', label: 'Flyleaf', paper: '#f4f7fb', ink: '#161d29', soft: '#5c6674', accent: '#2f6f6a' },
   { id: 'dusk', label: 'Dusk', paper: '#1b2230', ink: '#eef1f6', soft: '#96a1b3', accent: '#e0b25f' },
-  { id: 'bloom', label: 'Bloom', paper: '#fbf1ec', ink: '#38292a', soft: '#8b736d', accent: '#c1614e' },
-  { id: 'fern', label: 'Fern', paper: '#eef3ec', ink: '#1e2c22', soft: '#5c6e5e', accent: '#3d7c53' },
+  { id: 'bloom', label: 'Bloom', paper: '#fbf1ec', ink: '#38292a', soft: '#7b625c', accent: '#a84c3b' },
+  { id: 'fern', label: 'Fern', paper: '#eef3ec', ink: '#1e2c22', soft: '#5c6e5e', accent: '#37704b' },
 ]
 
 export interface Look {
@@ -119,15 +125,15 @@ export function shapeWorks(k: Keepsake, shape: Shape) {
    reader never finds out at the far end that the last line was cropped off. */
 export const W = 1080
 export const H = 1350
-const PAD = 96
+export const PAD = 96
 
 /* The same two families the app is set in. These names have to match a face
    the page actually loaded: document.fonts.load() resolves with an empty list
    and no error when the family is unknown, so a wrong name here does not throw
    — it just draws the whole picture in the system fallback and says nothing.
    These read "Geist" until now, which is a face this app has never shipped. */
-const SERIF = '"EB Garamond Variable", Georgia, serif'
-const SANS = '"Source Sans 3 Variable", system-ui, sans-serif'
+export const SERIF = '"EB Garamond Variable", Georgia, serif'
+export const SANS = '"Source Sans 3 Variable", system-ui, sans-serif'
 
 /** Canvas takes no font it has not been told to load, whatever the CSS did.
     Both families are variable, so every weight the picture draws has to be
@@ -147,7 +153,7 @@ export async function readyFonts() {
    makes them read as stamped rather than shouted; the canvas has to be told
    both. ctx.letterSpacing sticks to the context once set, so it is put back
    here rather than left for the next fillText to inherit it. */
-function stamp(ctx: CanvasRenderingContext2D, text: string, x: number, y: number) {
+export function stamp(ctx: CanvasRenderingContext2D, text: string, x: number, y: number) {
   const was = ctx.letterSpacing
   ctx.font = `600 22px ${SANS}`
   ctx.letterSpacing = '2.6px'
@@ -155,7 +161,7 @@ function stamp(ctx: CanvasRenderingContext2D, text: string, x: number, y: number
   ctx.letterSpacing = was
 }
 
-function wrap(ctx: CanvasRenderingContext2D, text: string, max: number) {
+export function wrap(ctx: CanvasRenderingContext2D, text: string, max: number) {
   const out: string[] = []
   for (const para of text.split('\n')) {
     let line = ''
@@ -183,15 +189,15 @@ function scatter(seed: number) {
   }
 }
 
-function ground(ctx: CanvasRenderingContext2D, look: Look) {
-  ctx.fillStyle = look.palette.paper
+export function ground(ctx: CanvasRenderingContext2D, palette: Palette) {
+  ctx.fillStyle = palette.paper
   ctx.fillRect(0, 0, W, H)
 
   /* The tooth. At 4.5% of the ink over about 1.4% of the plate it is not
      visible as dots at any size anyone will see this at — it just stops the
      paper reading as a flat fill, which is the whole of what a stock does. */
   const rand = scatter(9973)
-  ctx.fillStyle = look.palette.ink
+  ctx.fillStyle = palette.ink
   ctx.globalAlpha = 0.045
   for (let i = 0; i < 5200; i++) {
     ctx.fillRect(rand() * W, rand() * H, 2, 2)
@@ -200,7 +206,7 @@ function ground(ctx: CanvasRenderingContext2D, look: Look) {
 
   /* The plate's edge. One hairline inside the bleed, which is what makes a
      picture read as a printed thing rather than as a screenshot. */
-  ctx.strokeStyle = look.palette.soft
+  ctx.strokeStyle = palette.soft
   ctx.globalAlpha = 0.35
   ctx.lineWidth = 2
   ctx.strokeRect(40.5, 40.5, W - 81, H - 81)
@@ -208,19 +214,25 @@ function ground(ctx: CanvasRenderingContext2D, look: Look) {
 }
 
 /* The lowest baseline anything but the imprint may use. */
-const FLOOR = H - PAD - 130
+export const FLOOR = H - PAD - 130
 
-/** The book, at the foot of every shape. Attribution is not decoration. */
-function foot(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
+/** The book, at the foot of every shape. Attribution is not decoration.
+    Takes the two strings rather than the whole reading, because the plate a
+    single keep is printed on carries the same imprint and is not a reading. */
+export function foot(
+  ctx: CanvasRenderingContext2D,
+  of: { title: string; author: string },
+  palette: Palette,
+) {
   const y = H - PAD - 8
   ctx.textAlign = 'left'
-  ctx.fillStyle = look.palette.ink
+  ctx.fillStyle = palette.ink
   ctx.font = `500 40px ${SERIF}`
-  const title = wrap(ctx, k.title, W - PAD * 2)[0]
+  const title = wrap(ctx, of.title, W - PAD * 2)[0]
   ctx.fillText(title, PAD, y - 34)
 
-  ctx.fillStyle = look.palette.soft
-  stamp(ctx, k.author.toUpperCase(), PAD, y)
+  ctx.fillStyle = palette.soft
+  stamp(ctx, of.author.toUpperCase(), PAD, y)
 }
 
 /* The colophon's own floor. It ends in a single stamped author line rather
@@ -419,7 +431,7 @@ function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   }
 
 
-  foot(ctx, k, look)
+  foot(ctx, k, look.palette)
 }
 
 function drawTally(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
@@ -461,7 +473,7 @@ function drawTally(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   }
 
 
-  foot(ctx, k, look)
+  foot(ctx, k, look.palette)
 }
 
 export function drawKeepsake(canvas: HTMLCanvasElement, k: Keepsake, look: Look) {
@@ -470,7 +482,7 @@ export function drawKeepsake(canvas: HTMLCanvasElement, k: Keepsake, look: Look)
   canvas.width = W
   canvas.height = H
   ctx.textBaseline = 'alphabetic'
-  ground(ctx, look)
+  ground(ctx, look.palette)
   if (look.shape === 'line') drawLine(ctx, k, look)
   else if (look.shape === 'tally') drawTally(ctx, k, look)
   else drawColophon(ctx, k, look)
