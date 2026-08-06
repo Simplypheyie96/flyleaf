@@ -296,7 +296,7 @@ function Board({ empty }: { empty: boolean }) {
     return (
       <div className={styles.board}>
         <header className={styles.head}>
-          <h1 className={styles.headTitle}>Nothing pinned up yet.</h1>
+          <h2 className={styles.headTitle}>Nothing pinned up yet.</h2>
           <p className={styles.headLine}>
             Open a book and this wall fills with its world — the people in it,
             where it happens, and what you suspect.
@@ -319,11 +319,11 @@ function Board({ empty }: { empty: boolean }) {
           homepage about the object rather than about what is inside it. */}
       <header className={styles.head}>
         <p className={styles.headKicker}>You are in</p>
-        <h1 className={styles.headTitle}>
+        <h2 className={styles.headTitle}>
           <Link to={`/book/${BOOK.id}`} className={styles.headLink}>
             {BOOK.title}
           </Link>
-        </h1>
+        </h2>
         <p className={styles.headLine}>
           {BOOK.author}
           <span className={styles.sep} aria-hidden="true">·</span>
