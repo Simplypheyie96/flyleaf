@@ -15,6 +15,7 @@ import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
 import UpdateToast from "./components/UpdateToast";
 import BackupNudge from "./components/BackupNudge";
 import Welcome from "./onboarding/Welcome";
+import InstallGuide from "./settings/InstallGuide";
 import BoardLab from "./routes/BoardLab";
 import BookJourney from "./routes/BookJourney";
 import CardLab from "./routes/CardLab";
@@ -137,6 +138,10 @@ function App() {
       </Routes>
 
       <Shell onAdd={() => setAdding(true)} />
+      {/* One instance, opened by an event: the Settings row asks for it, and
+          so does the invitation when the browser has no install route to
+          offer. Neither of them is on screen at the same time as the other. */}
+      <InstallGuide />
       <AddBookSheet
         open={adding}
         seed={seed}
