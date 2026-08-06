@@ -66,16 +66,38 @@
    sort row and the search scopes — never a white slab. They wrap rather than
    scroll: seven short labels on a phone are three tidy rows, and a horizontal
    scroller hides the last two behind an edge nobody thinks to push. */
+/* Caption and chips are one thing, so they keep their own small gap rather than
+   inheriting the column's — a label a full step away from what it labels reads
+   as a heading over everything below it. */
+.pick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pickName {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
 .devices {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
+/* Every chip carries its hairline, not only the chosen one. A borderless chip
+   next to a bordered one does not read as "unselected", it reads as a caption
+   — and a reader who cannot tell that "iPhone" is a thing to press never finds
+   out that their device is covered at all. Selection is then the fill, which
+   is a difference in weight rather than a difference in kind. */
 .device {
   min-block-size: 34px;
   padding: 0 var(--space-3);
-  border: 1px solid transparent;
+  border: 1px solid var(--control-border);
   border-radius: var(--radius-pill);
   background: none;
   color: var(--color-ink-soft);
@@ -94,7 +116,6 @@
 }
 
 .device[aria-pressed='true'] {
-  border-color: var(--control-border);
   background: var(--control-fill);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
   backdrop-filter: blur(var(--glass-blur)) saturate(170%);

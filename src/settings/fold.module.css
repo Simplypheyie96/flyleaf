@@ -1,0 +1,138 @@
+/* A settings row that opens. Paper card outside, list row inside. */
+
+.fold {
+  /* The card's padding lives on the trigger and the body instead, so the tap
+     target reaches the card's own edges rather than stopping short of them
+     with a 16px dead margin all the way round. */
+  --paper-pad: 0;
+  overflow: clip;
+}
+
+.heading {
+  margin: 0;
+  font: inherit;
+  font-weight: inherit;
+}
+
+.trigger {
+  inline-size: 100%;
+  min-block-size: 60px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  font-weight: var(--weight-serif);
+  font-size: var(--text-lg);
+  line-height: 1.2;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-press) var(--ease-out);
+}
+
+.trigger:hover {
+  background: color-mix(in oklab, transparent, var(--color-ink) 4%);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -3px;
+  border-radius: inherit;
+}
+
+.name {
+  margin-inline-end: auto;
+}
+
+/* What the section is set to. A step down in size, weight and colour from the
+   heading, because at body size the eye cannot tell which half of the line is
+   the subject and which is the answer. */
+.meta {
+  /* Never the thing that gives way. Flex would shrink it first — it is the
+     shorter of the two — and "Andr…" as the answer to which device this is is
+     worse than a heading that takes a second line. The heading wraps; the
+     state stays whole. */
+  flex: none;
+  max-inline-size: 60%;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* The plus. Two bars in one box; opening rotates the upright one flat onto the
+   other, so a plus becomes a minus in a single move rather than swapping for a
+   different glyph. */
+.pm {
+  position: relative;
+  flex: none;
+  inline-size: 18px;
+  block-size: 18px;
+  color: var(--color-ink-soft);
+}
+
+.pm::before,
+.pm::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 50%;
+  block-size: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+  transform: translateY(-50%);
+}
+
+.pm::after {
+  transform: translateY(-50%) rotate(90deg);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.trigger[aria-expanded='true'] .pm {
+  color: var(--color-ink);
+}
+
+.trigger[aria-expanded='true'] .pm::after {
+  transform: translateY(-50%) rotate(0deg);
+}
+
+/* 0fr → 1fr is the one honest way to animate to a height nobody has measured.
+   The inner element must be the one that clips, hence the two boxes. */
+.wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-base) var(--ease-out);
+}
+
+.wrap[data-open] {
+  grid-template-rows: 1fr;
+}
+
+.body {
+  overflow: hidden;
+  min-block-size: 0;
+}
+
+/* The section's own contents, inset to the card's padding and hung under a
+   hairline that shows where the row ends and its contents begin. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-block-start: 1px solid var(--control-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger,
+  .pm::after,
+  .wrap {
+    transition-duration: 0.01ms;
+  }
+}

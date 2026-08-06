@@ -138,21 +138,23 @@
   color: var(--color-ink-soft);
 }
 
-/* Afterwards. Centred, short, and over in one breath — a thank-you that goes
-   on is asking for something else. */
+/* Afterwards. Short, and over in one breath — a thank-you that goes on is
+   asking for something else. The sparkle sits beside the sentence rather than
+   above it: this is one line inside a settings row, not a receipt. */
 .thanks {
-  align-items: center;
-  text-align: center;
-  gap: var(--space-2);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
 }
 
 .spark {
+  flex: none;
+  margin-block-start: 2px;
   color: var(--color-accent-text);
 }
 
 .warm {
   margin: 0;
-  max-inline-size: 34ch;
   font-size: var(--text-sm);
   line-height: 1.65;
   color: var(--color-ink-soft);

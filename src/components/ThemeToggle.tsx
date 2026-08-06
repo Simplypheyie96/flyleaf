@@ -17,6 +17,9 @@ const OPTIONS: {
 interface ThemeToggleProps {
   /** Id of the visible label naming this control, where the screen has one. */
   labelledBy?: string
+  /** Told after a change, for a caller printing the current mode elsewhere —
+      the folded Settings row says "Day" on its closed line. */
+  onChange?: (pref: ThemePref) => void
 }
 
 /**
@@ -26,12 +29,13 @@ interface ThemeToggleProps {
  * glyph + word — so the control the reader meets in Settings is one they have
  * already learnt downstairs.
  */
-function ThemeToggle({ labelledBy }: ThemeToggleProps) {
+function ThemeToggle({ labelledBy, onChange }: ThemeToggleProps) {
   const [pref, setPrefState] = useState<ThemePref>(getPref)
 
   function choose(value: ThemePref) {
     setPref(value)
     setPrefState(value)
+    onChange?.(value)
   }
 
   return (
