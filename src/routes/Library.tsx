@@ -7,6 +7,8 @@ import SpineArt from '../books/SpineArt'
 import SpineMark from '../books/SpineMark'
 import { seedFrom } from '../books/seed'
 import GlassSurface from '../components/GlassSurface'
+import LeafButton from '../components/LeafButton'
+import Vignette from '../brand/Vignette'
 import Results from '../search/Results'
 import { useArchive } from '../search/archive'
 import { did } from '../onboarding/progress'
@@ -799,10 +801,19 @@ function Library() {
               and a full library must not flash its own empty state on the way
               in. */}
           {books && libraryBooks.length === 0 && (
-            <p className={styles.empty}>
-              Nothing on the shelf yet. Add the book you are reading, and it
-              will be here — cover and all.
-            </p>
+            <PaperSurface taped rotate={-0.8} className={styles.bare}>
+              {/* Two spines leaning into the gap where a third would stand.
+                  An empty shelf is the one screen with nothing to look at, so
+                  it gets the drawing and the way to fill it — not a sentence
+                  floating in the middle of the sky. */}
+              <Vignette scene="shelf" />
+              <p className={styles.bareLine}>Nothing on the shelf yet.</p>
+              <p className={styles.bareHint}>
+                Add the book you are reading, and it will be here — cover and
+                all.
+              </p>
+              <LeafButton onClick={() => findBook('')}>Add a book</LeafButton>
+            </PaperSurface>
           )}
 
           {hasBooks && view === 'Stack' && (
