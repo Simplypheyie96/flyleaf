@@ -1,0 +1,328 @@
+/* The archive, found.
+
+   Results are rows on the page's own paper rather than seven floating cards:
+   a result list is a thing you scan, and scanning wants one left edge and one
+   rhythm. Each kind still carries its identity — the group heading takes its
+   colour and its glyph — but the colour is on the heading and the mark, never
+   a wash behind the words, because seven tinted blocks in a column is a
+   swatch book and not a list. */
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* The line that admits the search only came close. */
+.approx {
+  margin: 0;
+  padding-inline: var(--space-2);
+  font-family: var(--font-italic);
+  font-weight: var(--weight-italic);
+  font-style: italic;
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+/* The count wears the kind's colour, which is the whole of the colour budget
+   for a group: a small filled capsule reads at a glance and cannot be
+   mistaken for a tap target the way a tinted heading can. */
+.groupCount {
+  display: grid;
+  place-items: center;
+  min-inline-size: 22px;
+  block-size: 20px;
+  padding-inline: 6px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--kind, var(--color-ink-soft)) 22%, transparent);
+  color: var(--color-ink);
+  font-size: var(--text-2xs, 11px);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* One result. Hairline and control glass on hover — the same material the
+   settings links wear, so a tappable row looks the same everywhere. */
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: var(--space-3);
+  min-block-size: var(--tap-min);
+  padding: var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  text-decoration: none;
+  transition:
+    background-color var(--dur-press) var(--ease-out),
+    border-color var(--dur-press) var(--ease-out);
+}
+
+.row:hover {
+  border-color: var(--control-border);
+  background: var(--control-fill);
+}
+
+.row:active {
+  transform: translateY(var(--press));
+}
+
+/* The glyph, in a disc of its own kind's colour at a wash. 40px so it lines
+   up with the 44 of a cover thumbnail without either looking cropped. */
+.mark {
+  display: grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in oklab, var(--kind, var(--color-ink-soft)) 26%, transparent);
+  background: color-mix(in oklab, var(--kind, var(--color-ink-soft)) 12%, transparent);
+  color: var(--color-ink);
+  overflow: hidden;
+}
+
+.coverMark {
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+}
+
+/* A picture keeps its photo-corner mount, at a size that still reads. */
+.thumb {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.thumbEmpty {
+  inline-size: 100%;
+  block-size: 100%;
+  background: color-mix(in oklab, var(--kind, var(--color-ink-soft)) 16%, transparent);
+}
+
+/* The voice mark: a small orb over four bars. Still — the pulse belongs to
+   the journey, where a recording can actually be played. */
+.voiceMark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.orb {
+  inline-size: 12px;
+  block-size: 12px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in oklab, var(--kind) 60%, white 40%),
+    var(--kind)
+  );
+  box-shadow: 0 0 6px color-mix(in oklab, var(--kind) 45%, transparent);
+}
+
+.wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  block-size: 12px;
+}
+
+.wave i {
+  inline-size: 2px;
+  block-size: calc(12px * var(--h));
+  border-radius: 1px;
+  background: color-mix(in oklab, var(--kind) 60%, transparent);
+}
+
+.rowBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-inline-size: 0;
+}
+
+.rowName {
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  line-height: 1.3;
+  color: var(--color-ink);
+  /* One line: a result row is a pointer, not the thing itself. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowText {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-ink);
+  /* Two lines of the reader's own words, which is enough to recognise a note
+     and not enough to make the list a wall. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.rowMeta {
+  font-size: var(--text-xs);
+  color: var(--color-ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Nothing found. Not a dead end: the most likely reason a reader's own
+   archive does not have it is that the book is not on the shelf yet. */
+.blank {
+  --paper-pad: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.blankLine {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  line-height: 1.35;
+  color: var(--color-ink);
+}
+
+.blankHint {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+.blankAct {
+  min-block-size: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pill);
+  background: var(--control-fill);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+  box-shadow: inset 0 1px 0 var(--control-highlight);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--dur-press) var(--ease-out);
+}
+
+.blankAct:hover {
+  background: color-mix(in oklab, var(--control-fill) 70%, var(--color-ink) 8%);
+}
+
+/* The two scopes, said plainly. A segmented control in the app's own control
+   glass rather than two tabs: these are not places, they are which archive
+   the words are being asked of. */
+.scopes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+}
+
+.scope {
+  min-block-size: 34px;
+  padding: 0 var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-ink-soft);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-press) var(--ease-out),
+    color var(--dur-press) var(--ease-out);
+}
+
+.scope[aria-pressed='true'] {
+  border-color: var(--control-border);
+  background: var(--control-fill);
+  box-shadow: inset 0 1px 0 var(--control-highlight);
+  color: var(--color-ink);
+}
+
+.scope:hover {
+  color: var(--color-ink);
+}
+
+/* Results settle in rather than appearing. One stagger, capped, so a long
+   list does not end in a slow crawl of rows. */
+@media (prefers-reduced-motion: no-preference) {
+  .group {
+    animation: settle var(--dur-base) var(--ease-out) both;
+  }
+  .group:nth-child(2) {
+    animation-delay: 40ms;
+  }
+  .group:nth-child(3) {
+    animation-delay: 80ms;
+  }
+  .group:nth-child(n + 4) {
+    animation-delay: 120ms;
+  }
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .scope,
+  .blankAct {
+    transition-duration: 0.01ms;
+  }
+  .row:active {
+    transform: none;
+  }
+}

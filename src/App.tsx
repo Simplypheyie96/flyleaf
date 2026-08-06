@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BrowserRouter,
   NavLink,
@@ -103,6 +103,18 @@ function App() {
   // desktop rail — but there is only ever one sheet, so it is opened from
   // here rather than from either shell.
   const [adding, setAdding] = useState(false);
+  // What the add sheet should already have typed in it — the Library's
+  // "Find a book" scope hands its words over this way.
+  const [seed, setSeed] = useState("");
+
+  useEffect(() => {
+    function find(event: Event) {
+      setSeed((event as CustomEvent<string>).detail ?? "");
+      setAdding(true);
+    }
+    window.addEventListener("flyleaf-find-book", find);
+    return () => window.removeEventListener("flyleaf-find-book", find);
+  }, []);
 
   return (
     <BrowserRouter>
@@ -120,7 +132,14 @@ function App() {
       </Routes>
 
       <Shell onAdd={() => setAdding(true)} />
-      <AddBookSheet open={adding} onClose={() => setAdding(false)} />
+      <AddBookSheet
+        open={adding}
+        seed={seed}
+        onClose={() => {
+          setAdding(false);
+          setSeed("");
+        }}
+      />
 
       {/* One column, so an update landing while the install invite is up
           stacks instead of overlapping it. */}

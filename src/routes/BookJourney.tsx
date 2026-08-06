@@ -37,7 +37,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import BookCover from '../components/BookCover'
 import FormatRow from '../components/FormatRow'
 import GlassSurface from '../components/GlassSurface'
@@ -138,6 +138,7 @@ function Notch({ keep, tie, showSide, onEdit, onShare, onDelete }: NotchProps) {
   const { Icon, hue, side } = KIND[keep.type]
   return (
     <li
+      id={`keep-${keep.id}`}
       className={styles.notch}
       style={
         {
@@ -307,6 +308,32 @@ function BookJourney() {
 
   const keeps = useMemo(() => entries ?? [], [entries])
   const rows: Row[] = useMemo(() => arrange(keeps, sift), [keeps, sift])
+
+  /* ARRIVING FROM THE SEARCH. A result in the Library links to
+     /book/42#keep-317, and the browser cannot honour that hash itself: the
+     thread is not in the document when the route mounts — Dexie has not
+     answered — so by the time the notch exists the navigation is long over.
+
+     So it is honoured here, once, on the render where the keep first exists.
+     `rows.length` is the trigger rather than a timeout, and the guard keeps a
+     later re-render (a filter, a new keep) from yanking the reader back to
+     where they came in. */
+  const { hash } = useLocation()
+  const arrived = useRef('')
+  useEffect(() => {
+    if (!hash.startsWith('#keep-') || arrived.current === hash || !rows.length) return
+    const notch = document.getElementById(hash.slice(1))
+    if (!notch) return
+    arrived.current = hash
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    notch.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'center' })
+    // A brief mark, so the reader's eye lands on the right card in a thread
+    // of forty. Removed rather than left on: it is an answer to a question
+    // that has now been answered.
+    notch.dataset.found = ''
+    const timer = setTimeout(() => delete notch.dataset.found, 2400)
+    return () => clearTimeout(timer)
+  }, [hash, rows.length])
 
   /* Where the book is, asked once per crossing rather than once per frame.
 
