@@ -42,7 +42,9 @@ import './styles/motion.css'
 import './index.css'
 import { applyTheme, getPref } from './theme'
 /* TEMPORARY — delete this import, the call below, and src/data/seed.ts when
-   previews no longer need a shelf to look at. */
+   previews no longer need a shelf to look at. Development only: five invented
+   books arriving in a real reader's library on the day they install the app is
+   not a demo, it is somebody else's shelf in their house. */
 import { seedLibrary } from './data/seed'
 import App from './App.tsx'
 
@@ -52,9 +54,11 @@ applyTheme(getPref())
    land rather than holding the first paint for a database write. Reported
    though — a seed that fails silently looks exactly like a seed that decided
    not to run, and the difference is worth a line in the console. */
-seedLibrary().catch((error) => {
-  console.error('The preview shelf could not be laid down.', error)
-})
+if (import.meta.env.DEV) {
+  seedLibrary().catch((error) => {
+    console.error('The preview shelf could not be laid down.', error)
+  })
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
