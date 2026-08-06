@@ -241,6 +241,16 @@
   --control-border: oklch(0.42 0.03 250 / 0.14);
   --control-highlight: oklch(1 0 0 / 0.5);
 
+  /* The same material, for controls standing ON a paper card rather than on
+     the sky. White frost over the sky is glass; white frost over near-white
+     paper (0.988) composites to 0.993 and is a white slab with a hairline
+     round it — the exact thing this app does not do. On paper the frost tints
+     the other way, a cool step DOWN from the card, which is what makes a
+     button read as a button there. By night the card is already dark, so a
+     lift is the correct direction and these fall back to the sky values. */
+  --control-fill-paper: oklch(0.42 0.03 250 / 0.06);
+  --control-highlight-paper: oklch(1 0 0 / 0.55);
+
   /* ---- Entry-card tints (each type owns a surface, per refs) ---- */
   /* Tints are whispers over the sky, not opaque paper — enough hue to tell
      a quote from a note, never enough to go muddy against the blue. */
@@ -634,6 +644,11 @@
   --control-fill: oklch(0.9 0.02 258 / 0.11);
   --control-border: oklch(0.95 0.015 250 / 0.17);
   --control-highlight: oklch(0.95 0.015 250 / 0.11);
+
+  /* On night-slate paper a pale film already reads as raised, so the on-paper
+     pair is the sky pair, one notch denser to survive the lighter card. */
+  --control-fill-paper: oklch(0.9 0.02 258 / 0.14);
+  --control-highlight-paper: var(--control-highlight);
 
   /* ---- Entry-card tints: moonlit ----
 

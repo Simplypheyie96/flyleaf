@@ -188,8 +188,13 @@
   background: var(--control-fill);
 }
 
+/* The device we guessed, trailing the row. At body size it reads as a second
+   heading and the eye cannot tell which half of the line is the link, so it
+   sits a step down in both size and weight — a caption on the row, not part
+   of it. */
 .linkHint {
   flex: none;
+  font-size: var(--text-xs);
   color: var(--color-ink-soft);
 }
 

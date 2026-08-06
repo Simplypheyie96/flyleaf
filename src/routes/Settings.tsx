@@ -2,6 +2,7 @@ import PaperSurface from '../components/PaperSurface'
 import Sparkle from '../components/Sparkle'
 import ThemeToggle from '../components/ThemeToggle'
 import Journey from '../settings/Journey'
+import Tip from '../settings/Tip'
 import { openInstallGuide } from '../settings/installable'
 import { GUIDES, detect, installed } from '../settings/platform'
 import card from '../settings/settings.module.css'
@@ -76,6 +77,8 @@ function Settings() {
             </span>
           </div>
         </PaperSurface>
+
+        <Tip />
       </div>
     </main>
   )
