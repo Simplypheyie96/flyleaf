@@ -139,11 +139,17 @@
   inline-size: var(--act-size);
   block-size: var(--act-size);
   padding: 0;
-  border: 1px solid var(--tint-border);
+  border: 1px solid var(--glass-border);
   border-radius: 50%;
-  background: var(--tint-reverse);
+  /* Glass, not a white coin. These are chrome — the same three verbs as the
+     sort control at the top of the page — so they wear the same material as
+     the rest of the chrome does, and the card's own hue washes up through
+     them instead of being covered by a disc of paint. */
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   box-shadow: var(--elevation-1);
-  color: var(--tint-ink-soft);
+  color: var(--color-ink-soft);
   cursor: pointer;
   transition:
     color var(--dur-press) var(--ease-out),
