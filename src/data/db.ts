@@ -240,4 +240,19 @@ db.version(5)
       }),
   )
 
+/* One added index, and nothing else changes.
+
+   `type` is the only question the first-page guide asks — "has this reader
+   ever kept a quote / a note / a recording / a picture / a thread" — and
+   asking it without an index means reading the whole table, which on this
+   schema means loading every recording and every photograph into memory to
+   answer nine boolean questions on a cold Home.
+
+   Purely additive: Dexie builds the index on upgrade, every row already
+   written is already valid, and there is no upgrade function to get wrong. */
+db.version(6).stores({
+  books: 'id, addedAt, title',
+  entries: '++id, bookId, type, [bookId+createdAt]',
+})
+
 export default db

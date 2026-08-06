@@ -9,6 +9,7 @@ import { seedFrom } from '../books/seed'
 import GlassSurface from '../components/GlassSurface'
 import Results from '../search/Results'
 import { useArchive } from '../search/archive'
+import { did } from '../onboarding/progress'
 import search from '../search/search.module.css'
 import Sparkle from '../components/Sparkle'
 import PaperSurface from '../components/PaperSurface'
@@ -567,6 +568,12 @@ function Library() {
   const found = useArchive(query)
   const asking = query.trim().length >= 2
 
+  // Same as the shelf views: a search leaves nothing behind, so the moment one
+  // actually runs it marks itself off the first page.
+  useEffect(() => {
+    if (asking) did('search')
+  }, [asking])
+
   /* Handing the words to the add sheet, which is the one place in the app
      that knows how to turn a catalogue result into a shelved book with a
      cover. An event rather than a prop: the sheet is mounted once at the root
@@ -650,6 +657,10 @@ function Library() {
 
   function choose(next: ShelfView) {
     if (next === view) return
+    // The first page has no way to see this in the data — laying the shelf out
+    // is a preference, not a keep — so the act records itself here, where the
+    // reader's own gesture is.
+    did('shelf')
     localStorage.setItem(VIEW_KEY, next)
     runSwitch(() => setView(next), { setPhase, schedule })
   }
