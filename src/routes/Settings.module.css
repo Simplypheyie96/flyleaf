@@ -21,15 +21,14 @@
   color: var(--color-ink-soft);
 }
 
-/* The rows, closer together than the page's own rhythm. The column gap is
-   sized for cards a screenful tall — between six folded rows it reads as six
-   separate pages rather than one list, and the eye stops grouping them. Tight
-   enough to be a list, loose enough that each row is still its own piece of
-   paper. */
+/* Between groups. Wider than the gap inside a group — which is a hairline —
+   so the break between two subjects is unmistakably larger than the break
+   between two rows of the same subject. That difference is the only thing
+   making the page a set of groups rather than a run of rows. */
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-5);
 }
 
 /* The same little star Home wears — the pages read as one book. Inline in

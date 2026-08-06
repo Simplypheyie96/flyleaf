@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import LeafButton from '../components/LeafButton'
-import Fold from './Fold'
+import { Row } from './Group'
 import db from '../data/db'
 import { download, exportJourney, importJourney, lastExport, markExported } from '../data/backup'
 import { getHandle, setHandle } from '../data/reader'
@@ -29,16 +29,15 @@ function when(at: number) {
 function NameCard() {
   const [name, setName] = useState(getHandle)
 
-  /* First on the page, and open on arrival. It is the one thing Flyleaf knows
-     about a reader, it is the only field here, and a new reader arriving from
-     onboarding to change the name they just picked should find it already
-     waiting rather than have to guess which line it is behind. */
+  /* First on the page, and never folded away. It is the one thing Flyleaf
+     knows about a reader, it is a single field, and a new reader arriving from
+     onboarding to change the name they just picked should find it in front of
+     them rather than behind a row they have to guess at. */
   return (
-    <Fold title="Your name" meta={name || 'Reader'} start>
-      <span className={styles.sectionHint}>
-        What Flyleaf calls you, and the name written on a journey you export. It
-        stays on this device.
-      </span>
+    <Row
+      title="Your name"
+      hint="What Flyleaf calls you, and the name written on a journey you export. It stays on this device."
+    >
       <input
         type="text"
         className={styles.field}
@@ -51,7 +50,7 @@ function NameCard() {
         onChange={(e) => setName(e.target.value)}
         onBlur={() => setHandle(name)}
       />
-    </Fold>
+    </Row>
   )
 }
 
@@ -118,23 +117,23 @@ function BackupCard() {
   const kept = counts ? counts.books + counts.keeps > 0 : false
 
   return (
-    <Fold
-      title="Your journey"
-      /* The count on the closed row, because it is the answer to the question
+    <Row
+      /* Not "Your journey" again — that is the caption over this card, and a
+         row repeating its own group's name says nothing twice. This says the
+         thing the caption cannot: where it all actually is. */
+      title="Kept on this device"
+      /* The count beside the title, because it is the answer to the question
          that brings anyone to this section: how much is there to lose. */
-      meta={
-        counts
-          ? `${counts.books} ${counts.books === 1 ? 'book' : 'books'} · ${counts.keeps} ${
-              counts.keeps === 1 ? 'memory' : 'memories'
-            }`
-          : undefined
+      control={
+        counts ? (
+          <span className={styles.count}>
+            {counts.books} {counts.books === 1 ? 'book' : 'books'} · {counts.keeps}{' '}
+            {counts.keeps === 1 ? 'memory' : 'memories'}
+          </span>
+        ) : undefined
       }
+      hint="Everything you have kept is held on this device only. Nothing is on our servers."
     >
-      <span className={styles.sectionHint}>
-        Everything you have kept is held on this device only. Nothing is on our
-        servers.
-      </span>
-
       {/* The one uncomfortable sentence, said once and not repeated: clearing
           this browser's storage takes the journey with it. */}
       <p className={styles.warn} data-cold={!exported && kept ? '' : undefined}>
@@ -181,7 +180,7 @@ function BackupCard() {
         laptop — and the journey comes back. It is a snapshot, so save a fresh
         one now and then.
       </p>
-    </Fold>
+    </Row>
   )
 }
 

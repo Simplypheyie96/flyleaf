@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Sheet from '../components/Sheet'
 import { CloseIcon } from '../components/TabIcons'
 import InstallHow from './InstallHow'
+import { groupStyles } from './Group'
 import { onInstallGuide } from './installable'
 import styles from './install.module.css'
 
@@ -43,9 +44,18 @@ function InstallGuide() {
               <CloseIcon size={20} />
             </button>
           </div>
+          <p className={styles.lede}>
+            Its own icon, full screen, works offline. Find your device below.
+          </p>
         </header>
 
-        <InstallHow />
+        {/* The same rows as the Settings group, so the hairlines between them
+            are drawn by the same rule rather than a second copy of it. On the
+            sheet the paper is the sheet's own, so the card here is only the
+            list — the border and fill are turned off. */}
+        <div className={`${groupStyles.card} ${styles.rows}`}>
+          <InstallHow lead={false} />
+        </div>
       </div>
     </Sheet>
   )

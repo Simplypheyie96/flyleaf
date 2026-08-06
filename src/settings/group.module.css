@@ -1,0 +1,80 @@
+/* A named group of rows on one card. */
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* The group's name, above the paper rather than on it. Small, spaced and
+   quiet — it is a signpost read at a glance on the way past, so it must not
+   compete with the rows it is pointing at. */
+.label {
+  margin: 0;
+  padding-inline: var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+/* No padding of its own — every row brings its own, so a row can run its
+   contents to the card's edges. `clip` keeps the hairlines and the hover fills
+   inside the corner radius. */
+.card {
+  --paper-pad: 0;
+  overflow: clip;
+}
+
+/* The one hairline between rows. Never above the first or below the last: a
+   line at the card's own edge doubles the border that is already there. */
+.card > * + *:not(dialog) {
+  border-block-start: 1px solid var(--control-border);
+}
+
+/* A sheet raised by one of these rows is a child of the card in the markup and
+   nothing to do with it on screen — it opens in the top layer, full width. It
+   must never be given a row's hairline. */
+.card > dialog {
+  border-block-start: 0;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+/* Title and control share the first line; the hint runs the full width
+   underneath both. A control parked beside the title leaves no dead space to
+   its right, and a hint given the whole width can be a sentence. */
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 28px;
+}
+
+.title {
+  margin-inline-end: auto;
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-ink);
+}
+
+.control {
+  flex: none;
+}
+
+.hint {
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
