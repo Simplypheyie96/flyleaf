@@ -1,0 +1,218 @@
+/* The flyleaf. See Flyleaf.tsx for why the homepage is a blank page; this file
+   only says how the paper is drawn.
+
+   One rule governs the whole thing: the ruled block is TYPOGRAPHIC, not
+   decorative. Its rules are spaced at the writing line's own line-height and
+   its first rule sits under the baseline of the hand, so the ink lands on a
+   line rather than near one. Change the hand's size or leading and both
+   numbers here have to move with it — that is the cost of the illusion, and it
+   is stated here so the next person changing the size knows. */
+
+.flyleaf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ── The page ──────────────────────────────────────────────────────────────
+
+   Generous on all four sides, because a flyleaf's margins are the reason it
+   reads as the front of a book rather than as a form field. */
+
+.page {
+  --paper-pad: var(--space-5);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* The book's name, printed rather than written — small, tracked, quiet. It is
+   the only thing on this page that the reader did not put there. */
+.imprint {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.sep {
+  padding-inline: 0.5em;
+  color: var(--color-ink-faint);
+}
+
+/* ── The ruled block ───────────────────────────────────────────────────────
+
+   Nine rules, drawn as a repeating gradient so they are paper rather than
+   markup. The block is tall enough to read as a page with room on it and short
+   enough that the stack under it is on the same screen on a 375-wide phone.
+
+   `--rule` is the writing line's height and everything else is derived from
+   it, so the rules stay under the ink when the type scale steps up at 600px. */
+.ruled {
+  --rule: 34px;
+  position: relative;
+  min-block-size: calc(var(--rule) * 4);
+  padding-block-start: 2px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--rule) - 1px),
+    color-mix(in oklab, var(--color-ink) 13%, transparent) calc(var(--rule) - 1px),
+    color-mix(in oklab, var(--color-ink) 13%, transparent) var(--rule)
+  );
+  /* The rules fade out down the page: a real flyleaf's rules are a printed
+     grid, but a screen full of even lines reads as a spreadsheet. Fading them
+     says "there is more page here" without drawing eight more of them.
+
+     The hold has to reach the third rule, not the second. Faded from 45% the
+     block emptied out into plain paper below the writing, and the gap between
+     the last visible rule and the button read as a layout mistake rather than
+     as room to write. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 72%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 72%, transparent 100%);
+}
+
+/* The ink. The one handwritten thing on this screen and the reason the
+   direction exists — the app's own hand, in the accent, sitting on the first
+   rule with its descenders crossing it the way real writing does. */
+.hand {
+  font-family: var(--font-hand);
+  font-size: var(--text-md);
+  /* Matches --rule exactly: 34 / 18 = 1.889. Stated as a ratio so it tracks
+     the size rather than the pixel. */
+  line-height: 1.889;
+  color: var(--color-accent-text);
+  max-inline-size: none;
+  text-wrap: pretty;
+}
+
+.nib {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ── The stack ─────────────────────────────────────────────────────────────
+
+   Leaves already written on. Overlapped rather than spaced, so the pile has a
+   fore-edge — but only by a few pixels, because a real overlap would hide the
+   line of text that is the whole point of showing them. */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.stackLabel {
+  padding-inline: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.leaves {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A negative margin rather than a gap, because `gap` cannot go below zero.
+   Each leaf sits ON the one above it by a few pixels, which is what makes the
+   run a pile rather than a list; the tilts do the rest. */
+.leaf + .leaf {
+  margin-block-start: -6px;
+}
+
+.leaf {
+  --paper-pad: 0;
+  position: relative;
+  /* The fore-edge: the kind's own colour down the leading edge, which is the
+     only place a leaf's type is stated. A row of five coloured icons would be
+     a legend; a coloured edge is a tab in a pile of paper. */
+  border-inline-start: 2px solid var(--edge);
+  overflow: hidden;
+}
+
+.leafLink {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  color: inherit;
+  text-decoration: none;
+}
+
+.leafMark {
+  display: grid;
+  place-items: center;
+  /* Optically centred on the first line of the text beside it, not on the
+     block: 15px glyph in a 24px line box. */
+  block-size: calc(var(--text-base) * var(--leading-snug));
+  color: var(--edge);
+}
+
+.leafText {
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
+  font-weight: var(--weight-serif);
+  line-height: var(--leading-snug);
+  color: var(--color-ink);
+  /* Two lines and no more. A leaf in a pile shows what a leaf in a pile shows:
+     enough to know which one it is. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  text-wrap: pretty;
+}
+
+.leafWhen {
+  grid-column: 2;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+}
+
+/* The unwritten stack. A dashed outline the height of a leaf rather than a
+   sentence in the middle of nothing — the shape is the message. */
+.blank {
+  display: flex;
+  align-items: center;
+  min-block-size: 64px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed color-mix(in oklab, var(--color-ink) 20%, transparent);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--color-ink-faint);
+  max-inline-size: none;
+}
+
+.foot {
+  padding-inline: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--color-ink-soft);
+  max-inline-size: none;
+}
+
+.footLink {
+  color: var(--color-accent-text);
+  text-decoration: none;
+}
+
+.footLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}

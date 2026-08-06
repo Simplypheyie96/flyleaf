@@ -14,6 +14,7 @@ import SplashScreen from "./components/SplashScreen";
 import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
 import UpdateToast from "./components/UpdateToast";
 import BackupNudge from "./components/BackupNudge";
+import { isCandidateFrame } from "./routes/home/directions";
 import Welcome from "./onboarding/Welcome";
 import Legal from "./legal/Legal";
 import InstallGuide from "./settings/InstallGuide";
@@ -160,12 +161,17 @@ function App() {
       />
 
       {/* One column, so an update landing while the install invite is up
-          stacks instead of overlapping it. */}
-      <div className={toast.dock}>
-        <UpdateToast />
-        <InstallPrompt />
-        <BackupNudge />
-      </div>
+          stacks instead of overlapping it.
+
+          Off inside a `?home=` frame — see home/directions.tsx. Temporary,
+          and it goes when the home-screen directions do. */}
+      {!isCandidateFrame() && (
+        <div className={toast.dock}>
+          <UpdateToast />
+          <InstallPrompt />
+          <BackupNudge />
+        </div>
+      )}
     </BrowserRouter>
   );
 }

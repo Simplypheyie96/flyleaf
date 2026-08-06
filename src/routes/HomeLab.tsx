@@ -14,15 +14,15 @@
    is in these frames is what is on a phone — including the bottom bar and the
    add button, which sit outside the route and would otherwise be missing.
 
-   Adding a candidate means adding a row to HOME_DIRECTIONS in home/Recent.tsx.
-   Nothing here needs to know what the candidates are.
+   Adding a candidate means adding a row to HOME_DIRECTIONS in
+   home/directions.tsx. Nothing here needs to know what the candidates are.
 
    Not reachable from the app's own navigation, and it comes out with the
    losing directions once one is chosen. */
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { HOME_DIRECTIONS } from './home/Recent'
+import { HOME_DIRECTIONS } from './home/directions'
 import styles from './HomeLab.module.css'
 
 /* Both states matter and they are not the same design question, so the page

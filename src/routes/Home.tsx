@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import BookCover from '../components/BookCover'
 import LeafButton from '../components/LeafButton'
 import Mascot from '../components/Mascot'
@@ -10,6 +10,7 @@ import { useLibrary, useKeepCount, useRecentKeeps } from '../data/useLibrary'
 import { getHandle } from '../data/reader'
 import { KIND } from '../journey/kinds'
 import FirstPage from '../onboarding/FirstPage'
+import { directionFor } from './home/directions'
 import pageStyles from './page.module.css'
 import styles from './Home.module.css'
 
@@ -244,6 +245,20 @@ function Home() {
   const recent = useRecentKeeps(6)
   const [name, setName] = useState(getHandle)
 
+  /* THE CANDIDATE SWITCH, AND IT IS TEMPORARY.
+
+     `?home=a|b|c` swaps the body of this page for one of the directions in
+     home/directions.tsx, and `&empty` forces the first-run state so both can be
+     compared without emptying the database. /lab/home iframes this page at
+     phone width to put them side by side.
+
+     With no query the page is exactly what it was — the old feed — so nothing
+     ships until a direction is chosen. Both this block and the feed under it
+     come out at that point; see home/directions.tsx. */
+  const query = new URLSearchParams(useLocation().search)
+  const candidate = directionFor(query.get('home'))
+  const forceEmpty = query.has('empty')
+
   useEffect(() => {
     const sync = () => setName(getHandle())
     window.addEventListener('flyleaf-reader', sync)
@@ -277,9 +292,15 @@ function Home() {
           <Sparkle className={`${styles.sparkle} ${styles.sparkleMast}`} />
         </header>
 
-        <FirstPage />
+        {!candidate && <FirstPage />}
 
-        {settled && shelf.length === 0 ? (
+        {candidate ? (
+          /* A direction owns the whole body, including its own first-run
+             state and its own line about which book this is. That is the
+             point of comparing them: a home screen is not a section under a
+             hero, it is what the screen is. */
+          <candidate.Body empty={forceEmpty || (settled && shelf.length === 0)} />
+        ) : settled && shelf.length === 0 ? (
           <PaperSurface taped rotate={-0.8}>
             <div className={styles.empty}>
               <h2 className={styles.emptyHeadline}>Your shelf is waiting.</h2>
