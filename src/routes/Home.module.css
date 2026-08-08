@@ -305,11 +305,17 @@
    it is 55% and blurred, and a creature showing through the page as a smudge
    under the book's own title would have been a much worse idea than it sounds.
 
-   The window's height is the whole drawing above its ledge: the peek pose is
-   drawn to stop dead at y=79 in a box that opens at −15, so 94 of its 118 width
-   units stand above the edge — 48px at the 60px width used here. Nothing is
-   cropped; the ears clear the top of the window with the same margin they clear
-   their own viewBox.
+   The creature is the app's one rabbit — the Lottie in `src/rabbit` — in its
+   peek pose, at 72px. That pose is a full sitting animal, not a drawn bust,
+   so the ledge has to cut it at a waistline rather than at the drawing's own
+   floor. Every number below is measured on the rendered pose at frame 40, as
+   fractions of the 72px box: ear tip at 4.5%, head top 22.9%, eyes 42–52%,
+   muzzle from ~53%, paws (up at the face) ending at 70.9%, chin at 71.7%.
+
+   The ledge cuts the box at 72% — just under the chin and the raised paws —
+   so what stands up is ears, face and both paws, 48.6px of it, and the body
+   and feet stay behind the paper. That 48.6 deliberately matches the 48px the
+   old hand-drawn bust showed, so the animal reads the same size it always did.
 
    The window clips sideways too, which is the whole hiding mechanism: ducked
    below the ledge, the creature is behind the paper rather than faded out.
@@ -317,14 +323,14 @@
    ghost.
 
    IT NEVER GOES ALL THE WAY DOWN, and that is the correction this whole
-   section is built around. Hiding used to mean `translateY(112%)` — 56px on a
-   50px drawing in a 54px window, so "ducked" was two pixels past gone and a
-   third of the loop had no rabbit in it at all. Watched rather than read, that
-   is not a shy animal; it is an empty card that occasionally produces one.
+   section is built around. Hiding used to mean `translateY(112%)` — two
+   pixels past gone, so a third of the loop had no rabbit in it at all.
+   Watched rather than read, that is not a shy animal; it is an empty card
+   that occasionally produces one.
 
-   So the floor is 62% — 31px, which leaves the ear tips 11.8px above the
-   card's edge and cuts the drawing off at viewBox y 18, well above the head at
-   32. Ears and nothing else. The animal is on screen for every frame of the
+   So the floor is 52% — which puts the ledge at 20% of the box, above the
+   head that starts at 22.9%, and leaves 11.2px of ear tips above the card's
+   edge. Ears and nothing else. The animal is on screen for every frame of the
    loop, and the loop is about how much of it you can see. */
 .stage {
   position: relative;
@@ -338,23 +344,23 @@
   --tab-w: 148px;
   --tab-x: var(--space-4);
 
-  /* WHERE THE WALK STOPS, measured rather than guessed — the previous −20px was
-     a guess and it was the bug a reader kept reporting as "the rabbit passes
-     through Currently reading".
+  /* WHERE THE WALK STOPS, measured rather than guessed — a guessed −20px was
+     the bug a reader kept reporting as "the rabbit passes through Currently
+     reading": the box stopped, the animal inside it did not.
 
-     The creature is a 60px box, but it is not 60px of creature: the peek pose
-     draws its leading paw at x=24 of a 118-unit viewBox, so 12.2px of that box
-     is empty air in front of the animal. Stopping the BOX 20px short of the
-     tab's trailing edge therefore stopped the ANIMAL 7.8px past it — and since
-     the tab carries z-index 2 against this creature's 1, those 7.8px were not
-     an overlap the eye could read as contact. The paw simply went missing
-     behind the words.
+     The creature is a 72px box, but it is not 72px of creature: above the
+     ledge, the leading ink is the cheek at 29.6% of the box, so 21.3px of the
+     box is empty air in front of the face. Stopping the BOX on the tab's
+     trailing edge would bury the face a fifth of a box deep in the words —
+     and since the tab carries z-index 2 against this creature's 1, that is
+     not an overlap the eye could read as contact; the face would simply go
+     missing behind them.
 
-     12px puts the drawn paw on the tab's trailing edge with two tenths of a
+     21px puts the drawn cheek on the tab's trailing edge with a third of a
      pixel to spare. Everything after that is the collision's own doing: it is
-     `.lurkBump` that pushes 4px further in, which is exactly the overlap that
-     should exist, for the three frames an impact lasts. */
-  --lurk-stop: calc(var(--tab-x) + var(--tab-w) - 12px);
+     `.lurkBump` that pushes ~4px further in, which is exactly the overlap
+     that should exist, for the three frames an impact lasts. */
+  --lurk-stop: calc(var(--tab-x) + var(--tab-w) - 21px);
   /* Where the loop rests, and a cap on how far it is from the tab. Named
      because three keyframes and the reduced-motion fallback have to agree on
      it; capped because the walk is timed in SECONDS and this end of it was
@@ -371,7 +377,7 @@
      clear of the words. `min()` rather than a breakpoint because the crossover
      is a distance, not a device — and because a rabbit that changed where it
      lived at 760px would be a second thing to keep true. */
-  --lurk-home: min(calc(100% - 62px), calc(var(--lurk-stop) + 170px));
+  --lurk-home: min(calc(100% - 74px), calc(var(--lurk-stop) + 170px));
 }
 
 .lurk {
@@ -383,15 +389,15 @@
      other, and a clip on the nominal edge would leave the paws hanging over a
      hairline of sky at whichever end is lower. */
   bottom: calc(100% - 2px);
-  /* 48px is the drawing's own height above the ledge and was the window's
-     height too, which left it nothing: the moment the body stretched on impact
-     the ear tips were shaved off by the frame. Six more pixels was the headroom
-     that stretch needs — and four more again for the gait, which lifts the
-     whole animal 3px at the top of each lollop. Stacked worst case (impact
-     stretch on the up-beat of a step) the ear tips reach 4.6px inside the
-     frame at 58, against 0.6px at 54. Both clear; only one of them clears by
-     enough to still be true if the drawing is ever renudged. */
-  block-size: 58px;
+  /* 48.6px stands above the ledge, and making that the window's height would
+     leave it nothing: the moment the body stretched on impact the ear tips
+     would be shaved off by the frame. The impact's scaleY(1.1) pivots at the
+     box's bottom, 20px below the ledge, so it lifts the ear tips 6.9px; the
+     gait lifts the whole animal 3px more at the top of each lollop. Stacked
+     worst case (impact stretch on the up-beat of a step) is 58.8px — 62
+     clears it by 3.2, which stays true through the drawing's own ~0.5px of
+     breathing bob. */
+  block-size: 62px;
   overflow: hidden;
   pointer-events: none;
 }
@@ -432,10 +438,10 @@
    rather than 22s with an empty card for seven of them. */
 .lurkRun {
   position: absolute;
-  /* The svg's own bottom sits a shade below the ledge — the pose ends 3 units
-     past the rail — so it hangs two pixels under the window to put the rail on
-     the card's edge. */
-  bottom: -2px;
+  /* The ledge cuts the box at 72% of its 72px (see the section note), so the
+     box's bottom 28% — 20px of body and feet — hangs below the window's
+     bottom edge, hidden behind the paper. */
+  bottom: -20px;
   left: var(--lurk-home);
   /* Linear, and the one track here that is: see above — an eased approach
      telegraphs the collision the whole story depends on not being seen. */
@@ -458,16 +464,17 @@
 }
 
 /* UP AND DOWN — three heights, all of them measured on the drawing rather than
-   picked, because this pose keeps its face very low in its own box and the eye
-   notices the difference between "eyes over the edge" and "eyes under it" at a
-   resolution of about four pixels.
+   picked, because the eye notices the difference between "eyes over the edge"
+   and "eyes under it" at a resolution of about four pixels.
 
-     62%  ears. 31px down; tips 11.8px proud of the card, cut off at viewBox 18
-          against a head that starts at 32. This is the floor — see `.lurk`.
-      20% eyes. 10px down; the pupils run 49–54 against an edge at 54, so the
-          eye is all there and the muzzle is not. A face deciding whether to
-          come back.
-       0% up. The whole animal above the edge, 42.8px of it.
+     52%  ears. 37px down puts the ledge at 20% of the box — above the head,
+          which starts at 22.9% — leaving 11.2px of ear tips proud of the
+          card. This is the floor — see the section note above `.stage`.
+     18%  eyes. 13px down puts the ledge at 54%: the eyes run 42–52%, the
+          muzzle starts at ~53%, so the eye is all there and the muzzle is
+          not. A face deciding whether to come back.
+      0%  up. Ears, face and both raised paws above the edge, 48.6px of it;
+          the ledge sits at the chin.
 
    The −5% on the way up is the overshoot that makes it a creature popping up
    instead of a panel sliding. There is no overshoot on the way DOWN at 53–57:
@@ -480,7 +487,7 @@
 @keyframes lurkRise {
   0%,
   14% {
-    transform: translateY(62%);
+    transform: translateY(52%);
   }
   18% {
     transform: translateY(-5%);
@@ -491,15 +498,15 @@
   }
   57%,
   64% {
-    transform: translateY(62%);
+    transform: translateY(52%);
   }
   68%,
   71% {
-    transform: translateY(20%);
+    transform: translateY(18%);
   }
   74%,
   100% {
-    transform: translateY(62%);
+    transform: translateY(52%);
   }
 }
 
@@ -555,17 +562,18 @@
     transform: none;
   }
   53% {
-    /* Seven to travel four. --lurk-stop parks the drawn paw exactly ON the
-       tab's trailing edge, so these are the only frames in the loop where
-       anything overlaps, and the overlap is what sells the contact.
+    /* Six and a half to travel four. --lurk-stop parks the drawn cheek
+       exactly ON the tab's trailing edge, so these are the only frames in the
+       loop where anything overlaps, and the overlap is what sells the
+       contact.
 
-       But the squash fights the shove, and by more than it looks: scaleX about
-       a 50% origin pulls the leading ink back by (1 − 0.84) × half the distance
-       from the box's centre to that ink, which is 2.85px here. Written as the
-       −4 it wants to read as, the animal arrived 0.8px into the tab — a frame
-       of contact so slight that on screen it stopped short instead. −7 lands
-       the 4. Measure the ink, not the box. */
-    transform: translateX(-7px) scaleX(0.84) scaleY(1.1);
+       But the squash fights the shove: scaleX about a 50% origin pulls the
+       leading ink back by (1 − 0.84) × the distance from the box's centre to
+       that ink — the cheek sits 14.7px off centre, so 2.35px here. Written as
+       the −4 it wants to read as, the animal would arrive 1.65px into the tab
+       — a frame of contact too slight to read. −6.4 lands the 4. Measure the
+       ink, not the box. */
+    transform: translateX(-6.4px) scaleX(0.84) scaleY(1.1);
   }
   56% {
     transform: translateX(6px) scaleX(1.05) scaleY(0.95) rotate(5deg);
