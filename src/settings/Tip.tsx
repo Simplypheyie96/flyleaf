@@ -42,6 +42,46 @@ const PRESETS = [1000, 2500, 5000]
 
 const naira = (n: number) => `₦${n.toLocaleString('en-NG')}`
 
+/** Everything api/tip ever answers with, across both of its two calls. */
+interface Answer {
+  url?: string
+  error?: string
+  paid?: boolean
+  amount?: number
+}
+
+/** What the server said, or why it could not be read. */
+type Said = { got: 'offline' } | { got: 'broken' } | { got: 'reply'; ok: boolean; body: Answer }
+
+/* A reply that is not JSON is not a connection problem.
+
+   This cost a real evening. A crashed function on Vercel answers with a
+   PLAIN-TEXT 500, so `response.json()` throws on the body — and that throw
+   used to land in the same catch as a genuinely dead network, which told the
+   reader to check a connection that was perfectly fine. Being told the wrong
+   cause of a failure is worse than being told nothing: it spends somebody's
+   time ruling out the one thing that was never wrong.
+
+   So the three ways this can fail are kept apart. `fetch` rejecting is the
+   only one that means the device never got out to the network. A reply that
+   arrives but does not parse is our end falling over. And a parsed reply is
+   the server talking, whatever it has to say. */
+async function askServer(path: string, init?: RequestInit): Promise<Said> {
+  let reply: Response
+  try {
+    reply = await fetch(path, init)
+  } catch {
+    return { got: 'offline' }
+  }
+
+  const text = await reply.text()
+  try {
+    return { got: 'reply', ok: reply.ok, body: JSON.parse(text) as Answer }
+  } catch {
+    return { got: 'broken' }
+  }
+}
+
 type Stage =
   | { at: 'asking' }
   | { at: 'opening' }
@@ -72,18 +112,24 @@ function Tip() {
     window.history.replaceState(null, '', here.pathname + here.search)
 
     setStage({ at: 'checking' })
-    fetch(`/api/tip?reference=${encodeURIComponent(reference)}`)
-      .then((r) => r.json())
-      .then((out: { paid?: boolean; amount?: number }) => {
-        setStage(
-          out.paid
-            ? { at: 'thanks', amount: out.amount ?? 0 }
-            : { at: 'stuck', why: 'That payment did not go through. Nothing was taken.' },
-        )
-      })
-      .catch(() =>
-        setStage({ at: 'stuck', why: 'Could not reach Paystack to check. Try again in a moment.' }),
+    void askServer(`/api/tip?reference=${encodeURIComponent(reference)}`).then((said) => {
+      /* The careful one. A reader is standing here having just typed their
+         card into Paystack, so "we could not check" must never be worded as
+         "it did not work" — the money may well have moved. Only Paystack
+         answering a flat no is allowed to say nothing was taken. */
+      if (said.got !== 'reply' || !said.ok) {
+        setStage({
+          at: 'stuck',
+          why: 'Could not check that payment just now. If it went through, Paystack has emailed you a receipt.',
+        })
+        return
+      }
+      setStage(
+        said.body.paid
+          ? { at: 'thanks', amount: said.body.amount ?? 0 }
+          : { at: 'stuck', why: 'That payment did not go through. Nothing was taken.' },
       )
+    })
   }, [])
 
   /* A failure on the way back has no sheet to appear in — the reader arrived
@@ -111,21 +157,32 @@ function Tip() {
     }
 
     setStage({ at: 'opening' })
-    try {
-      const reply = await fetch('/api/tip', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ amount: chosen, email: email.trim() }),
-      })
-      const out = (await reply.json()) as { url?: string; error?: string }
-      if (!reply.ok || !out.url) {
-        setStage({ at: 'stuck', why: out.error ?? 'Could not open Paystack just now.' })
-        return
-      }
-      window.location.href = out.url
-    } catch {
-      setStage({ at: 'stuck', why: 'Could not reach Paystack. Check your connection.' })
+    const said = await askServer('/api/tip', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ amount: chosen, email: email.trim() }),
+    })
+
+    /* Nothing has been taken in any of these — the checkout has not opened
+       yet, so nobody has typed a card number. Each one says so, because the
+       first thing a person wonders when a payment screen fails is whether it
+       failed after taking the money. */
+    if (said.got === 'offline') {
+      setStage({ at: 'stuck', why: 'No connection. Nothing has been taken — try again once you are back online.' })
+      return
     }
+    if (said.got === 'broken') {
+      setStage({
+        at: 'stuck',
+        why: 'Flyleaf’s own end of the tip jar is not answering. Nothing has been taken — this one is the maker’s to fix.',
+      })
+      return
+    }
+    if (!said.ok || !said.body.url) {
+      setStage({ at: 'stuck', why: said.body.error ?? 'Could not open Paystack just now.' })
+      return
+    }
+    window.location.href = said.body.url
   }
 
   /* Afterwards the card stops asking. Somebody who has just given something
