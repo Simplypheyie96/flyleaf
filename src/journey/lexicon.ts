@@ -57,6 +57,42 @@ export function count(n: number, of: { one: string; many: string }) {
   return `${spell(n)} ${n === 1 ? of.one : of.many}`
 }
 
+/** What a journey is made of, in the app's own two words: "8 whispers · 4 in
+    ink". The line under a book's title on its journey page.
+
+    THIS IS WHERE WHISPERS AND INK BECOME REAL. The pair was defined in
+    kinds.ts and then printed in exactly two places: the empty state, which by
+    definition only a reader with nothing sees, and one faint italic on a
+    keep's meta line that hides itself whenever every keep is the same
+    substance — so a reader whose journey is all quotes never met the words at
+    all. Everywhere else the count said "12 keeps", which is a number and not
+    an idea. A private vocabulary nobody is taught is not a voice, it is an
+    in-joke with yourself.
+
+    The header is the right place for it because it is the one line every
+    reader passes on the way into every book, and because it is where the
+    distinction is actually useful: how much of this came out of the book, and
+    how much you put down yourself.
+
+    DIGITS, NOT WORDS, unlike the prose surfaces — see the note on `spell`.
+    It is a data line, and data lines take figures.
+
+    "in ink" rather than "ink" because ink is a mass noun and "4 ink" is not
+    English. Each side disappears at zero rather than printing "0 whispers",
+    which is a fact nobody asked for — and an empty journey returns nothing at
+    all rather than "nothing kept yet", because the page below is already an
+    empty state saying exactly that, at length, with something to do about it. */
+export function tally(keeps: Entry[]) {
+  let whispers = 0
+  for (const keep of keeps) if (KIND[keep.type].side === 'whisper') whispers += 1
+  const ink = keeps.length - whispers
+
+  const parts: string[] = []
+  if (whispers > 0) parts.push(`${whispers} ${whispers === 1 ? 'whisper' : 'whispers'}`)
+  if (ink > 0) parts.push(`${ink} in ink`)
+  return parts.join(' · ')
+}
+
 /** Whole days between two calendar days, inclusive of the first. */
 export function daysBetween(a: string, b: string) {
   const ms = fromISO(b).getTime() - fromISO(a).getTime()
@@ -219,6 +255,100 @@ export function epigraph(book: Book, keeps: Entry[]): Epigraph {
   return { line, on }
 }
 
+/* ── The finis ────────────────────────────────────────────────────────────
+
+   The mirror of the epigraph, and the pair is the point: a thread that is tied
+   on at one end and simply stops at the other has no ending, only a last item.
+   So the closing gets the same three parts the opening has — a pennant, a
+   dated meta line, an inscription of two sentences — drawn from pools built
+   the same way and picked with the same seed, so one book always closes the
+   same way it always opened.
+
+   IT IS A MARK, NOT A LOCK. Nothing about a finished book is read-only: the
+   reader can still write in it, edit what is there, and change the date that
+   put this here. The second sentence in the `none` pool says so out loud, and
+   the note under the colophon says it in plain words on every closing. That is
+   the owner's own framing — "they can still edit things and add more things at
+   a later date too" — and it is the whole difference between an ending and a
+   deadline. */
+
+const CLOSED_ON: Record<string, string[]> = {
+  physical: [
+    'Shut it for the last time on',
+    'Closed the back board on',
+    'Turned the final page on',
+    'Set it back on the shelf on',
+  ],
+  digital: [
+    'Reached the last screen on',
+    'Watched the bar run out on',
+    'Closed the file for good on',
+    'Swiped the final page away on',
+  ],
+  audio: [
+    'Heard the narrator sign off on',
+    'Let the last track run out on',
+    'Took the headphones out on',
+    'Reached the end of the recording on',
+  ],
+  none: ['Finished it on', 'Came to the end on', 'Closed this one on', 'Ended it on'],
+}
+
+const THE_END: Record<string, string[]> = {
+  physical: [
+    'The spine is broken in now, in the good way.',
+    'It will never sit flat again. Correct.',
+    'There is a crease at one corner you will remember.',
+    'It smells of wherever you read it.',
+  ],
+  digital: [
+    'No spine to crack, and it still took a fortnight.',
+    'The device has already forgotten. You have not.',
+    'Nothing to shelve, so it is shelved here.',
+    'The screen went dark and stayed dark.',
+  ],
+  audio: [
+    'The room is very quiet now.',
+    'You will hear that voice for a few days yet.',
+    'It ended somewhere, and you were walking.',
+    'Headphones out. The street sounds strange.',
+  ],
+  both: [
+    'Paper and voice, both run out, one book.',
+    'Two ways through it, and both of them ended.',
+  ],
+  none: [
+    'That is the whole of it.',
+    'Finished — and still yours to write in.',
+    'The end of the reading, not the end of the page.',
+  ],
+}
+
+export interface Finis {
+  /** The inscription itself, two short sentences. */
+  line: string
+  /** The day the reader closed it. */
+  on: string
+}
+
+/** Only ever called for a book with `finishedOn` set — the caller renders
+    nothing at all otherwise, because a book still being read has no ending to
+    describe and inventing one would be the app deciding the reader was done.
+
+    Salted 3 and 4 rather than 1 and 2 so the closing never lands on the same
+    index of its pool as the opening did. Same seed, different sentence. */
+export function finis(book: Book, on: string): Finis {
+  const formats = formatsOf(book)
+  const voice = formats.length > 1 ? 'both' : (formats[0] ?? 'none')
+  const closer = CLOSED_ON[voice === 'both' ? 'physical' : voice] ?? CLOSED_ON.none
+  const after = THE_END[voice] ?? THE_END.none
+
+  return {
+    on,
+    line: `${pick(closer, book.id, 3)} ${dayPhrase(on)}. ${pick(after, book.id, 4)}`,
+  }
+}
+
 /* ── The colophon ─────────────────────────────────────────────────────────
 
    The block at the foot of a journey, and the thing the reader shares: the
@@ -288,6 +418,23 @@ export function colophon(book: Book, keeps: Entry[]): ColophonLine[] {
   }
 
   return lines
+}
+
+/* What the closing seal prints under its inscription: the SHAPE of a reading,
+   not its contents.
+
+   Two cuts from the full colophon, each for its own reason. Opened and Closed
+   go because the two seals already print those dates in words, inches apart —
+   a date repeated on the same screen reads as a bug, not as emphasis. And the
+   named things go (Followed, Been to, Wondered about) because every one of
+   those names is already written out above, on the keep the reader made it on;
+   listing them again at the foot of the page they are standing on is an index
+   for a page you can see. The keepsake still carries the whole colophon,
+   because a picture leaves the page and has to stand alone. This does not. */
+const TAIL = new Set(['Over', 'Read as', 'Kept'])
+
+export function colophonTail(book: Book, keeps: Entry[]): ColophonLine[] {
+  return colophon(book, keeps).filter((line) => TAIL.has(line.term))
 }
 
 /* ── The fair copy ────────────────────────────────────────────────────────

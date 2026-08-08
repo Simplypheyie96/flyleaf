@@ -32,11 +32,11 @@
    disc big enough to be the first thing your thumb finds, the recording's own
    shape beside it filling as it runs, and the time trailing. */
 
+import type { CSSProperties, KeyboardEvent, PointerEvent } from 'react'
 import { Avatar } from '../avatars'
 import { STANCE } from '../kinds'
 import { PauseIcon, PlayIcon } from '../../components/TabIcons'
-import { waveBars } from './art'
-import { clock, usePlayback, type CardProps } from './shared'
+import { clock, usePlayback, useWave, type CardProps } from './shared'
 import s from './redraw.module.css'
 
 /* ══ CHARACTER ════════════════════════════════════════════════════════════
@@ -113,28 +113,109 @@ export function Thread({ keep }: CardProps) {
    Reversed out of the page in both themes, because a recording is a device and
    not a piece of paper — the one object in the journey with no paper at all.
 
-   The transport is the card. What was here before drew a soft orb with a 20px
-   glyph inside it and a waveform beside it, and the honest description of that
-   is a decoration you could also press: nothing about it said *play* at a
-   glance. So the disc is 56, filled in the voice hue, and it is the first
-   thing on the leading edge — the same size and the same place a portrait sits
-   on a character card, which is the only other keep that leads with a circle.
+   THE RECORDING IS THE CARD. This led with a 56px filled disc and put the
+   sound beside it as a 28-bar strip at a third of the disc's height, on the
+   argument that a voice memo is a thing you operate and the control should be
+   the first thing your thumb finds. The argument holds for the *control* and
+   fails for the *card*: from arm's length what you saw was a circle with a
+   texture next to it, and a circle is what every button in every app looks
+   like. A recording looks like exactly one thing, and this is now that thing —
+   the real decoded peaks, full width, tall enough to read a sentence's shape
+   in, filling as the tape runs.
 
-   The waveform is a scrubber's worth of feedback and no more: it fills as the
-   tape runs, so you can see at a glance how far in you are without the card
-   pretending to be a media player. */
+   And once the shape is real and that size, it has to be the scrubber. The
+   loud part is visibly *there*; a card that draws where the reader raised
+   their voice and then only lets you play from the top is showing you a door
+   with no handle. */
+
+const BARS = 46
 
 export function Voice({ keep }: CardProps) {
-  const { playing, at, toggle, ready } = usePlayback(keep.media)
-  const bars = waveBars(keep.id, 28)
-  const played = Math.round(at * bars.length)
-  /* Elapsed while it runs, the whole length at rest — the two readings a
-     listener actually wants, never both at once, and tabular so swapping
-     between them never moves the row. */
-  const showing = at && keep.duration ? at * keep.duration : keep.duration
+  const { playing, at, length, toggle, seek, ready } = usePlayback(keep.media)
+  const bars = useWave(keep.media, keep.id, BARS)
+
+  /* The row's own figure first — it is there the instant the card paints,
+     where the file's is only known once the browser has read the header. */
+  const total = keep.duration || length
+  const live = ready && total > 0
+
+  /* Elapsed over the whole length. Both, rather than the one-or-the-other this
+     card used to swap between: the moment the wave became scrubbable the
+     listener needs to know where they are *and* how much is left, and a figure
+     that silently changes meaning when playback starts is a riddle. Tabular,
+     so counting up never shifts the row. */
+  const now = clock(at * total)
+  const whole = clock(total)
+
+  function nudge(event: KeyboardEvent<HTMLDivElement>) {
+    if (!live) return
+    const step = event.key === 'ArrowLeft' ? -5 : event.key === 'ArrowRight' ? 5 : 0
+    if (step) {
+      event.preventDefault()
+      seek(at + step / total)
+      return
+    }
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault()
+      seek(event.key === 'Home' ? 0 : 1)
+    }
+  }
+
+  function scrub(event: PointerEvent<HTMLDivElement>) {
+    if (!live) return
+    const box = event.currentTarget.getBoundingClientRect()
+    seek((event.clientX - box.left) / box.width)
+  }
 
   return (
-    <article className={`${s.card} ${s.recorder}`}>
+    <article className={`${s.card} ${s.recorder}`} data-playing={playing || undefined}>
+      {/* A slider, because what it sets is a position in a recording and not a
+          yes or no. Arrow keys move five seconds and Home/End go to the ends —
+          the contract the platform's own audio element already offers, so
+          there is nothing new to learn here.
+
+          The bars themselves are two stacked rows rather than one row of
+          two-tone bars: a bar is two pixels wide, and the boundary between
+          heard and not-yet has to be able to fall inside one. */}
+      <div
+        className={s.wave}
+        style={{ '--played': live ? at : 0 } as CSSProperties}
+        role="slider"
+        tabIndex={live ? 0 : -1}
+        aria-label="Position in this voice memo"
+        aria-disabled={live ? undefined : true}
+        aria-valuemin={0}
+        aria-valuemax={Math.round(total)}
+        aria-valuenow={Math.round(at * total)}
+        aria-valuetext={`${now} of ${whole}`}
+        onPointerDown={scrub}
+        onKeyDown={nudge}
+      >
+        <span className={s.bars} aria-hidden="true">
+          {bars.map((height, i) => (
+            /* The index rides along so a running memo can ripple: each bar's
+               bob is offset from its neighbour's by a beat. */
+            <span
+              key={i}
+              className={s.waveBar}
+              style={{ blockSize: `${height * 100}%`, '--i': i } as CSSProperties}
+            />
+          ))}
+        </span>
+        <span className={s.barsHeard} aria-hidden="true">
+          {bars.map((height, i) => (
+            /* The index rides along so a running memo can ripple: each bar's
+               bob is offset from its neighbour's by a beat. */
+            <span
+              key={i}
+              className={s.waveBar}
+              style={{ blockSize: `${height * 100}%`, '--i': i } as CSSProperties}
+            />
+          ))}
+        </span>
+        <span className={s.head} aria-hidden="true" />
+      </div>
+
       <div className={s.transport}>
         <button
           type="button"
@@ -143,20 +224,14 @@ export function Voice({ keep }: CardProps) {
           disabled={!ready}
           aria-label={playing ? 'Pause this voice memo' : 'Play this voice memo'}
         >
-          {playing ? <PauseIcon size={24} /> : <PlayIcon size={24} />}
+          {playing ? <PauseIcon size={20} /> : <PlayIcon size={20} />}
         </button>
-        <span className={s.wave} aria-hidden="true">
-          {bars.map((height, i) => (
-            <span
-              key={i}
-              className={s.waveBar}
-              data-played={i < played ? '' : undefined}
-              style={{ blockSize: `${Math.round(height * 100)}%` }}
-            />
-          ))}
-        </span>
-        <span className={s.elapsed}>{clock(showing)}</span>
+        <p className={s.elapsed}>
+          {now}
+          <span className={s.of}> / {whole}</span>
+        </p>
       </div>
+
       {keep.text && <p className={s.said}>{keep.text}</p>}
     </article>
   )

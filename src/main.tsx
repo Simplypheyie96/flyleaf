@@ -3,42 +3,51 @@ import { createRoot } from 'react-dom/client'
 /* Self-hosted so the archive still reads with no network, and so the share
    canvas can draw with them without tainting.
 
-   Both text faces were replaced because the pair before them ran tall and
-   narrow. Instrument Serif and Instrument Sans share a skeleton with long
-   stems, tight sidebearings and a high x-height, and a screen of it reads as
-   a picket fence: every line is dense, nothing has air in it, and the eye has
-   to work at a page it is supposed to linger over.
+   THREE FAMILIES, AND EACH ONE HAS A JOB IT DOES NOT SHARE.
 
-   Newsreader is the book's voice, roman and italic, and it is the only serif
-   here now. There were three: EB Garamond for the book, and Instrument Serif
-   twice — once for every italic in the app and once for the one upright
-   stamped word — because Garamond's variable file ships no italic and the
-   browser was shearing the roman over to fake it. A sheared roman is not an
-   italic: it loses the single-storey a, the entry strokes, the narrower set,
-   everything that makes a slope read as a change of voice rather than a
-   change of angle. Instrument was brought in to fix that and did, at the
-   price of a masthead and its own subtitle being set in two different
-   typefaces on the same card.
+   A previous pass collapsed the whole app onto one face, because the pass
+   before THAT had four fighting — a display serif, a text sans, a monospace
+   for labels, a script for the name. One face fixed the noise and cost the
+   app its voice: an archive of what somebody underlined in a novel was set
+   entirely in interface type, and the reader's own sentences looked like
+   settings rows.
 
-   Newsreader ends both problems with one family. Its italic is drawn. Its
-   x-height is large enough that titles hold their colour at 460 instead of
-   the 500 Garamond needed to stop looking a size down. And it was made for
-   reading on a screen, which is the whole job.
+   The fix is not a count, it is a rule — and the rule is about ROLE, not size:
 
-   Source Sans 3 is the app's own voice and is unchanged: a humanist sans with
-   open apertures and generous counters, which is what makes an 11px capital
-   label legible without shouting. Patrick Hand is the reader's hand and is
-   likewise left alone.
+   EB GARAMOND NAMES THINGS. Headings, and only headings: page titles, section
+   labels, book titles, card titles, the reader's name. A book has a face and
+   it is this one — old-style, modelled, a real drawn italic — so the things
+   the app names come out looking like the spine of something rather than a
+   field in a form.
 
-   Both serif cuts are the weight-axis files rather than the optical-size
-   ones. Optical sizing is real and this app spans 11px to 34px, but the opsz
-   cut is 276KB of latin against 124KB, and 150KB on first paint is a poor
-   trade for a phone-first app that must open offline. The tracking tokens do
-   that job by hand at the two ends that need it. */
-import '@fontsource-variable/newsreader/wght.css'
-import '@fontsource-variable/newsreader/wght-italic.css'
-import '@fontsource-variable/source-sans-3'
-import '@fontsource/patrick-hand'
+   QUICKSAND SAYS THINGS. Everything that is read as words rather than scanned
+   as a name: body copy, all the text inside a card, and every piece of
+   interface furniture — labels, buttons, tabs, counts, dates, fields, chips,
+   hints. Geometric, rounded, low-contrast, with an x-height tall enough to
+   survive a 375px phone, which is exactly what a paragraph on a small screen
+   needs and exactly what an old-style serif does not have.
+
+   A serif set of headings over a rounded-sans body is a deliberate contrast
+   pairing. The failure this replaced was the opposite instinct — serif for
+   anything long, sans for anything small — which put an old-style face at 13px
+   in card captions where it simply goes muddy.
+
+   KALAM stays exactly where it was: what the reader writes into a note. A
+   journal has a hand in it; that is the whole conceit of a flyleaf. A pen
+   rather than a marker — even stroke, no bounce, legible down a paragraph —
+   at 300 and 400 only, because a heavy hand becomes a novelty face. Notes
+   only. Not the reader's name: an app printing a handle is not handwriting.
+
+   Weight axes only, no optical-size cuts: those files are more than double the
+   bytes and the tracking tokens do that job by hand at the two ends that need
+   it. Quicksand ships no italic at all, which is fine — every italic in the
+   app is editorial, so it was always Garamond's to draw. This app must open
+   offline on a phone. */
+import '@fontsource-variable/quicksand/wght.css'
+import '@fontsource-variable/eb-garamond/wght.css'
+import '@fontsource-variable/eb-garamond/wght-italic.css'
+import '@fontsource/kalam/300.css'
+import '@fontsource/kalam/400.css'
 import './styles/tokens.css'
 import './styles/motion.css'
 import './index.css'

@@ -91,8 +91,10 @@
      over the line — never text under a circle, but close enough to read as
      one. 24 takes it to 8.4 clear with the targets off the line entirely.
      The six pixels are handed back to the journey gap below, which is where
-     this row's cost always lands. */
-  inset-block-end: calc(-1 * var(--space-4) - 8px);
+     this row's cost always lands — and now actually does. The hang is a global
+     token so the list underneath can add it to its own gap instead of silently
+     absorbing it; see --acts-hang in tokens.css. */
+  inset-block-end: calc(-1 * var(--acts-hang));
   inset-inline-end: 0;
   z-index: 2;
   display: flex;

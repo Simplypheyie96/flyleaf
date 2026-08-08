@@ -5,9 +5,11 @@
    directions stop being three directions and become one template with three
    skins — which is exactly the failure the directions exist to fix. */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Entry } from '../../data/db'
 import { STANCE } from '../kinds'
+import { waveBars } from './art'
+import { peaks } from '../sound'
 
 export interface CardProps {
   keep: Entry
@@ -39,25 +41,34 @@ export function usePlayback(media: Blob | undefined) {
   const player = useRef<HTMLAudioElement | null>(null)
   const [playing, setPlaying] = useState(false)
   const [at, setAt] = useState(0)
+  /* Read off the file rather than off the row. A keep normally carries the
+     length it was recorded at, but one restored from a journey file written by
+     an older version may not, and a card that cannot say how long a recording
+     is cannot offer to seek within it. */
+  const [length, setLength] = useState(0)
 
   useEffect(() => {
     if (!url) return
     const audio = new Audio(url)
     player.current = audio
     const tick = () => setAt(audio.duration ? audio.currentTime / audio.duration : 0)
+    const measure = () => setLength(Number.isFinite(audio.duration) ? audio.duration : 0)
     const done = () => {
       setPlaying(false)
       setAt(0)
     }
+    audio.addEventListener('loadedmetadata', measure)
     audio.addEventListener('timeupdate', tick)
     audio.addEventListener('ended', done)
     return () => {
       audio.pause()
+      audio.removeEventListener('loadedmetadata', measure)
       audio.removeEventListener('timeupdate', tick)
       audio.removeEventListener('ended', done)
       player.current = null
       setPlaying(false)
       setAt(0)
+      setLength(0)
     }
   }, [url])
 
@@ -73,13 +84,61 @@ export function usePlayback(media: Blob | undefined) {
     }
   }
 
-  return { playing, at, toggle, ready: Boolean(url) }
+  /** Go to a fraction of the way in. Set optimistically as well as on the
+      element, because `timeupdate` does not fire until the next frame of audio
+      has been decoded and the playhead should land under the finger rather
+      than a moment after it. */
+  const seek = (p: number) => {
+    const audio = player.current
+    if (!audio?.duration) return
+    const to = Math.min(1, Math.max(0, p))
+    audio.currentTime = to * audio.duration
+    setAt(to)
+  }
+
+  return { playing, at, length, toggle, seek, ready: Boolean(url) }
+}
+
+/** The recording's own shape, in `count` bars, each 0–1.
+ *
+ *  The real peaks, decoded off the blob, with the seeded stand-in drawn until
+ *  they arrive and left in place for good if they never do — a codec this
+ *  browser cannot read, or a memo whose recording is not on this device.
+ *
+ *  It matters that this is the real thing. A trace derived from the row's id is
+ *  a decoration that happens to be shaped like sound: the loud part of it is
+ *  not where the reader raised their voice, and the pause in the middle is not
+ *  where they stopped to think. Once you can scrub by it, an invented shape is
+ *  worse than none — it points at moments that are not there. */
+export function useWave(media: Blob | undefined, seed: number, count: number) {
+  const stand = useMemo(() => waveBars(seed, count), [seed, count])
+  const [real, setReal] = useState<number[]>()
+
+  useEffect(() => {
+    if (!media) {
+      setReal(undefined)
+      return
+    }
+    let alive = true
+    peaks(media, count)
+      .then((shape) => {
+        if (alive) setReal(shape)
+      })
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [media, count])
+
+  return real ?? stand
 }
 
 /** m:ss. Used on every voice card in every direction — the one thing about a
     recording that has no room for interpretation. */
 export function clock(seconds: number | undefined) {
-  if (!seconds || !Number.isFinite(seconds)) return '—:——'
+  /* Zero is a reading, not a gap: a memo sitting at its own start is at 0:00,
+     and only a length nobody knows gets the dashes. */
+  if (seconds === undefined || !Number.isFinite(seconds)) return '—:——'
   const whole = Math.round(seconds)
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`
 }

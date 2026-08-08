@@ -9,6 +9,32 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+
+  /* No axis list here. Every face the app ships is weight-only — Quicksand, EB
+     Garamond, Kalam — so the warmth is in the drawing rather than in a
+     setting. Optical sizing stays: it is a no-op on faces without an opsz axis
+     and correct on any that gain one. */
+  font-optical-sizing: auto;
+
+  /* THE PAIRING'S ONE CORRECTION, SET ONCE, AT THE TOP, FOR EVERYTHING.
+
+     font-size-adjust is inherited, so declaring it here means every element in
+     the app renders at the same OPTICAL size for a given --text-* step, in
+     whichever family it happens to be set in. That is what makes the scale a
+     scale rather than a suggestion: `font-size: var(--text-md)` now means one
+     thing, and a rule is free to switch families without also having to
+     re-tune its size. Without it, the serif runs about a step and a half
+     smaller than the sans at identical numbers, and the only way to make a
+     page look right is a private size for every serif rule — which is how a
+     type system quietly stops existing.
+
+     It covers the fallbacks too. Palatino and Georgia have very different
+     x-heights from Garamond's, so a cold load used to jolt the whole page when
+     the real face arrived; held to the same ratio, the swap is invisible.
+
+     The hand opts out. See --font-adjust in tokens.css for why. */
+  font-size-adjust: var(--font-adjust);
+
   /* The sky lives on <html> so the cloud layers (body pseudo-elements at
      z-index -1) can float above it but under all content. */
   background: linear-gradient(
@@ -24,7 +50,7 @@ body {
   margin: 0;
   min-height: 100svh;
   color: var(--color-ink);
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-base);
   line-height: var(--leading-body);
 }
@@ -64,6 +90,37 @@ body {
   background: transparent;
 }
 
+/* THE SKY, ONCE, AS A VALUE.
+
+   Three lumpy cumulus built from overlapping ellipses, each sitting in a wide
+   soft halo so it has mist around it rather than an edge. Thirteen gradients,
+   and the reason they are a custom property rather than a rule is that the
+   splash screen needs the same sky.
+
+   The splash is `position: fixed; z-index: 100` with its own gradient, so it
+   paints straight over `body::before` and `body::after` — the first thing a
+   reader ever saw of this app was the one flat surface in it, in a project
+   whose own brief says a background never is one. Its `::before` now draws
+   this same list. Copying thirteen gradients into a second file would have
+   guaranteed the two skies drifted apart on the first tweak; naming it means
+   there is one sky and two windows onto it. */
+:root {
+  --sky-clouds:
+    radial-gradient(20% 7% at 14% 12%, var(--cloud-core), transparent 58%),
+    radial-gradient(16% 8% at 26% 9%, var(--cloud-core), transparent 58%),
+    radial-gradient(22% 7% at 30% 14%, var(--cloud-core), transparent 58%),
+    radial-gradient(13% 5.5% at 40% 11%, var(--cloud-core), transparent 56%),
+    radial-gradient(18% 6.5% at 78% 34%, var(--cloud-core), transparent 58%),
+    radial-gradient(14% 6% at 88% 31%, var(--cloud-core), transparent 56%),
+    radial-gradient(20% 6% at 84% 38%, var(--cloud-core), transparent 58%),
+    radial-gradient(17% 6% at 18% 72%, var(--cloud-core), transparent 58%),
+    radial-gradient(13% 5% at 28% 69%, var(--cloud-core), transparent 56%),
+    radial-gradient(19% 5.5% at 25% 75%, var(--cloud-core), transparent 58%),
+    radial-gradient(50% 18% at 26% 12%, var(--cloud), transparent 72%),
+    radial-gradient(44% 16% at 84% 34%, var(--cloud), transparent 72%),
+    radial-gradient(46% 15% at 23% 72%, var(--cloud), transparent 72%);
+}
+
 /* Soft cloud masses drifting behind everything — pure gradients, no images. */
 body::before {
   content: '';
@@ -71,24 +128,7 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    /* cloud 1 — upper left: lumpy cumulus from overlapping ellipses */
-    radial-gradient(20% 7% at 14% 12%, var(--cloud-core), transparent 58%),
-    radial-gradient(16% 8% at 26% 9%, var(--cloud-core), transparent 58%),
-    radial-gradient(22% 7% at 30% 14%, var(--cloud-core), transparent 58%),
-    radial-gradient(13% 5.5% at 40% 11%, var(--cloud-core), transparent 56%),
-    /* cloud 2 — right, mid-page */
-    radial-gradient(18% 6.5% at 78% 34%, var(--cloud-core), transparent 58%),
-    radial-gradient(14% 6% at 88% 31%, var(--cloud-core), transparent 56%),
-    radial-gradient(20% 6% at 84% 38%, var(--cloud-core), transparent 58%),
-    /* cloud 3 — lower left drift */
-    radial-gradient(17% 6% at 18% 72%, var(--cloud-core), transparent 58%),
-    radial-gradient(13% 5% at 28% 69%, var(--cloud-core), transparent 56%),
-    radial-gradient(19% 5.5% at 25% 75%, var(--cloud-core), transparent 58%),
-    /* wide soft halos so each cloud sits in mist */
-    radial-gradient(50% 18% at 26% 12%, var(--cloud), transparent 72%),
-    radial-gradient(44% 16% at 84% 34%, var(--cloud), transparent 72%),
-    radial-gradient(46% 15% at 23% 72%, var(--cloud), transparent 72%);
+  background-image: var(--sky-clouds);
 }
 
 /* Fine grain so the sky feels like textured paper, not a flat gradient. */
@@ -99,18 +139,19 @@ body::after {
   z-index: -1;
   pointer-events: none;
   opacity: var(--grain-bg-opacity);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-image: var(--grain-tile);
 }
 
 h1,
 h2,
 h3 {
-  font-family: var(--font-serif);
-  /* Stated, not inherited: the page is set in the sans at 400, and a heading
-     that took that weight would come out a step lighter than the body it sits
-     over, because the serif carries less ink per stem. Size still carries the
-     hierarchy between h1 and h3 — the weight is one value for all three. */
-  font-weight: var(--weight-serif);
+  font-family: var(--font-app);
+  /* Stated, not inherited: the page is set at 400, and with one family in the
+     app a heading that also took 400 would be nothing but a larger paragraph.
+     Size still carries the hierarchy between h1 and h3 — the weight is one
+     value for all three, and its job is only to separate a heading from the
+     text under it. */
+  font-weight: var(--weight-display);
   line-height: var(--leading-tight);
   color: var(--color-ink);
   text-wrap: balance;
@@ -142,4 +183,14 @@ button {
   outline: 2px solid var(--color-accent-text);
   outline-offset: 3px;
   border-radius: 2px;
+}
+
+/* A placeholder is a hint, not an answer. Left alone it inherits whatever
+   weight the field itself types in — medium in most of the app's inputs — and
+   a hint at the answer's own weight reads as an answer already given. The
+   owner caught it: "why are placeholders these bold?" Weight only; each
+   field's own colour stays its own. */
+input::placeholder,
+textarea::placeholder {
+  font-weight: var(--weight-body);
 }

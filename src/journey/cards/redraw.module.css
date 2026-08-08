@@ -131,21 +131,24 @@
   color: color-mix(in oklab, var(--tint-character), var(--tint-ink) 32%);
 }
 
-/* Size carries the step, not weight. At 17 against the account's 14 the two
-   read as one block; 20 against 14 is a step you can see without looking for
-   it.
+/* 16 over the account's 13, and BOTH ends moved. The pair used to be 18 over
+   14 — one step apart on the old scale and legible enough, but the name was
+   sitting a step above the app's own reading size for no reason a reader could
+   name, and on a phone a long one took three lines before the card had said
+   anything.
 
-   Weight could carry some of it now that the serif is variable — but the two
-   lines here are a name and the account of a person, and they are the same
-   voice saying two different lengths of thing. Size is the honest difference
-   between them. Pushing the name to 600 as well would make it an announcement
-   rather than a heading. */
+   Size and weight now split the work rather than size doing all of it: 16/700
+   against 13/450 is a step you see instantly, and it is the same step every
+   other card in the app makes between its heading and its body. That
+   consistency is the point — a person's name should not be the one heading in
+   the app drawn to a private scale. */
 .name {
   margin: 0;
   min-inline-size: 0;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
-  font-size: var(--text-lg);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
+  font-size: var(--text-base);
   line-height: var(--leading-snug);
   letter-spacing: var(--track-title);
   color: var(--color-ink);
@@ -161,9 +164,9 @@
    rule visibly high. */
 .about {
   margin: var(--space-3) 0 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-weight: var(--weight-card);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
   /* The line stops at the card's trailing padding, not before it.
@@ -350,8 +353,8 @@
   border-start-end-radius: var(--radius-sm);
   /* The card's own paper, not a fill laid on it. A folder tab is the folder. */
   background: var(--paper-tone);
-  font-family: var(--font-stamp);
-  font-weight: var(--weight-italic);
+  font-family: var(--font-app);
+  font-weight: var(--weight-medium);
   font-size: var(--text-sm);
   line-height: 1;
   letter-spacing: var(--track-label);
@@ -409,36 +412,62 @@
    The face has one weight now, so that argument has nowhere to go, and the
    card does not miss it: since it was redrawn it shares no shape with any
    other keep, and a heading does not have to carry a distinction the whole
-   object is already making. Same 20 as the character name. */
+   object is already making. Same 16 as the character name. */
+/* 16, and it WRAPS.
+
+   This was 18 on one nowrap line with an ellipsis, and the two faults
+   compounded into the worst version of the same mistake: the question was the
+   largest thing on the card AND the only thing on it you could not finish
+   reading. "Does the lighthouse keeper know abo…" on a 375px phone. A title
+   the reader wrote themselves, cut off at the point where it starts to mean
+   something.
+
+   Two lines instead of one, and the clamp is what makes the size drop safe —
+   a heading that can take a second line does not need to be small to fit, it
+   needs to be allowed to run on. Three would let one long question own the
+   whole card, so two is the ceiling and the full text stays reachable in the
+   element's `title`. */
 .asked {
   /* The title is the first thing in the column, so the card's head is 24 of
-     padding plus this line's own empty leading above the capitals. On a 20px
-     serif at --leading-snug that is ~6px, which put the question 31.5 from the
-     card's edge against 25.5 under the last line of the working note — the
-     head visibly deeper than the foot on the one card whose head is text.
-     Trim the leading rather than the padding: the step stays 24, and the
-     question now starts where the note ends. Same correction as
-     `--leading-slack` at the foot, sized for this face at this size. */
-  margin: -6px 0 0;
+     padding plus this line's own empty leading above the capitals — which
+     would put the question 29 from the card's edge against 25.5 under the
+     last line of the working note, the head deeper than the foot on the one
+     card whose head is text. Trim the leading rather than the padding: the
+     step stays 24, and the question now starts where the note ends. Same
+     correction as `--leading-slack` at the foot.
+
+     IN `em`, NOT PIXELS. It was -5px, measured by hand against this line at
+     16. The size is a token and the token moved — the title dropped to 14
+     because at 16 it was three pixels and two hundred weight units louder
+     than the note it heads, which is the "titles so big you cannot read what
+     was entered" complaint — and a hand-measured pixel correction silently
+     becomes wrong the moment that happens. -0.3em is the same 5px at 16 and
+     the right 4.2 at 14, and stays right at whatever this token becomes
+     next. */
+  margin: -0.3em 0 0;
   max-inline-size: 100%;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
-  font-size: var(--text-lg);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
+  font-size: var(--text-base);
   line-height: var(--leading-snug);
   letter-spacing: var(--track-title);
   color: var(--color-ink);
-  white-space: nowrap;
+  text-wrap: pretty;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* The working note. Sans, secondary, capped at the measure — the same voice
    the note and the dossier use everywhere else in the app. */
 .working {
   margin: var(--space-4) 0 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-weight: var(--weight-card);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
   /* The line stops at the card's trailing padding, not before it.
@@ -485,28 +514,136 @@
   --color-ink-faint: color-mix(in oklch, var(--color-paper), transparent 40%);
 }
 
+/* ── The recording ────────────────────────────────────────────────────────
+
+   Full width and 64 tall, which is the whole change: at 34px beside a disc the
+   shape was a texture, and a texture is not a record of anything. At this size
+   you can see where the sentence started, where the reader paused, and where
+   they got to the part they wanted to say — which is what makes it worth
+   scrubbing by rather than a decorated progress bar.
+
+   `touch-action: none` because the whole strip is a drag target: without it
+   the browser decides halfway through a scrub that the gesture was a page
+   scroll and the journey slides away under the finger. */
+.wave {
+  position: relative;
+  inline-size: 100%;
+  block-size: 64px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  touch-action: none;
+}
+
+/* Nothing to seek in — no recording on this device, or a codec the browser
+   could not read. Dimmed rather than hidden: the memo is real, and a card that
+   drops its own subject is more alarming than one that shows it greyed. */
+.wave[aria-disabled='true'] {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.wave:focus-visible {
+  outline: 2px solid var(--tint-reverse);
+  outline-offset: 4px;
+}
+
+.bars,
+.barsHeard {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  /* The strip above them owns every pointer event, so a scrub that begins on a
+     bar is still a scrub on the strip. */
+  pointer-events: none;
+}
+
+/* 44 rather than a third. The card's ink lifts after dark — the page goes
+   nearly black and the card sits above it — so a third of paper on top of it
+   measured 2.73 at night against the 3 a meaningful graphic needs. This clears
+   it in both and still leaves the heard bars an obvious distance ahead. */
+.bars {
+  color: color-mix(in oklab, var(--tint-reverse) 44%, transparent);
+}
+
+/* The same shape again, lit, clipped to how far in we are. A clip rather than
+   a width, so the boundary can fall inside a bar instead of snapping between
+   them, and so the two rows can never disagree about where a bar is. */
+.barsHeard {
+  color: var(--tint-reverse);
+  clip-path: inset(0 calc(100% - var(--played, 0) * 100%) 0 0);
+}
+
+.waveBar {
+  flex: 1 1 0;
+  min-inline-size: 2px;
+  /* A peak of nearly nothing is still a moment of the recording; a bar of no
+     height reads as a gap in the file rather than as a breath. */
+  min-block-size: 3px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+}
+
+/* While a memo is talking the shape ripples: each bar bobs on a scale of its
+   own height, a beat behind its neighbour, so the wave reads as sound moving
+   through it. Transform only — no layout, no paint storm — and nothing here
+   moves until the reader presses play, so scrolling past a journey of memos is
+   still a still page. It is also the answer to *which one is talking* when the
+   card that is playing has scrolled half out of view. */
+.recorder[data-playing] .waveBar {
+  transform-origin: center;
+  animation: bob 860ms var(--ease-move) calc(var(--i, 0) * -70ms) infinite alternate;
+}
+
+@keyframes bob {
+  from {
+    transform: scaleY(0.66);
+  }
+  to {
+    transform: scaleY(1.08);
+  }
+}
+
+/* The playhead. A hairline and not a handle: the strip is wide enough to hit
+   anywhere along, so the mark only has to say *here*, and a grab handle would
+   imply the bars either side are not also targets. Faded out at the very
+   start, where it would otherwise sit as a stray tick against the edge. */
+.head {
+  position: absolute;
+  inset-block: 2px;
+  inset-inline-start: calc(var(--played, 0) * 100%);
+  inline-size: 2px;
+  margin-inline-start: -1px;
+  border-radius: var(--radius-pill);
+  background: var(--tint-reverse);
+  opacity: calc(min(var(--played, 0) * 40, 1) * 0.8);
+  pointer-events: none;
+}
+
+/* ── The transport ────────────────────────────────────────────────────────
+
+   Under the recording, not beside it. It was 56px and led the card; now the
+   shape above it is the card and this is what you press to run it — still on
+   the tap-target floor with room to spare, and still the only filled thing
+   here, so there is no question which object is the button. */
 .transport {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
 }
 
-/* 56, filled, and first on the leading edge. The orb this replaces was a soft
-   disc with a 20px glyph floating inside it, which is a decoration you can
-   also press — nothing about it said *play* before you had already worked out
-   that it might. Filled and this size, there is nothing else it could be, and
-   it is the same diameter as the cameo on a character card, which is the only
-   other keep that leads with a circle.
-
-   Lightened off the hue rather than set to it: the voice periwinkle measured
-   3.3 against this card's ink in daylight and 2.3 after dark, and a control
-   that is the whole point of the card has to clear 3 in both. */
+/* Lightened off the hue rather than set to it: the voice periwinkle measured
+   3.3 against this card's ink in daylight and 2.3 after dark, and the one
+   control on the card has to clear 3 in both. */
 .play {
   flex: none;
   display: grid;
   place-items: center;
-  inline-size: 56px;
-  block-size: 56px;
+  inline-size: 44px;
+  block-size: 44px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -527,51 +664,31 @@
   cursor: default;
 }
 
-/* The recording's own shape, filling as it runs. A scrubber's worth of
-   feedback and no more — the bars are not draggable, because a card in a
-   journey is not a media player and a target that looks draggable and is not
-   is worse than no target. */
-.wave {
-  flex: 1;
-  min-inline-size: 0;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  block-size: 34px;
-}
-
-/* 44 rather than a third. The card's ink lifts after dark — the page goes
-   nearly black and the card sits above it — so a third of paper on top of it
-   measured 2.73 at night against the 3 a meaningful graphic needs. This clears
-   it in both and still leaves the played bars an obvious distance ahead. */
-.waveBar {
-  flex: 1 1 0;
-  min-inline-size: 2px;
-  border-radius: 1px;
-  background: color-mix(in oklab, var(--tint-reverse) 44%, transparent);
-}
-
-.waveBar[data-played] {
-  background: var(--tint-reverse);
-}
-
+/* Pushed to the trailing edge so the figure lines up with the end of the
+   recording above it rather than floating loose beside the disc. */
 .elapsed {
-  flex: none;
-  font-family: var(--font-sans);
+  margin: 0 0 0 auto;
+  font-family: var(--font-app);
   font-weight: var(--weight-label);
   font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
-  color: var(--color-ink-soft);
+  color: var(--color-ink);
+}
+
+/* The whole length is context for the elapsed figure, not a second reading of
+   equal weight. */
+.of {
+  color: var(--color-ink-faint);
 }
 
 /* What was said about the recording, in the reader's own words. Same voice as
    the working note, reversed. */
 .said {
   margin: var(--space-4) 0 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-weight: var(--weight-card);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
   /* Meets the card's trailing padding — same reasoning as `.about` above. */
@@ -582,5 +699,12 @@
   .strand,
   .play {
     transition-duration: 0.01ms;
+  }
+  /* The ripple goes: it is scale on a lit graphic, which is exactly the class
+     of motion the preference is asking about. The fill and the playhead stay,
+     because those are not decoration — they are the position in the
+     recording, and there is nothing else on the card that carries it. */
+  .recorder[data-playing] .waveBar {
+    animation: none;
   }
 }

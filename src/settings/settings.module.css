@@ -22,6 +22,15 @@
 
 /* A field parked where a value would be. No box, no border — the row is the
    box. Right-aligned so it reads as the answer to the label opposite it. */
+/* "None" standing in for a value that has not been chosen. Same size and
+   colour as any other row value, so an unset row reads as unset rather than as
+   broken. */
+.none {
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-ink-faint);
+}
+
 .fieldInline {
   inline-size: 160px;
   max-inline-size: 100%;
@@ -61,7 +70,7 @@
   border: 0;
   background: none;
   color: var(--color-ink);
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-base);
   font-weight: var(--weight-medium);
   line-height: var(--leading-snug);

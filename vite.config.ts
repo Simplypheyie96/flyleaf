@@ -20,6 +20,14 @@ export default defineConfig({
   define: {
     __PREVIEW_SEED__: JSON.stringify(true),
   },
+  /* Listen on the network, not just on loopback.
+
+     This is a mobile-first app and it is reviewed on a phone, but `npm run dev`
+     binds to localhost only — which resolves to the phone itself, so the phone
+     gets nothing. Binding to every interface lets the phone open the dev server
+     over the same wifi at http://<this-mac>:5173. Dev server only; it has no
+     bearing on what Vercel builds or serves. */
+  server: { host: true },
   plugins: [
     react(),
     VitePWA({
@@ -58,7 +66,28 @@ export default defineConfig({
         ],
       },
       workbox: {
+        /* Deliberately no mp3 here. The ambience beds are a quarter of a
+           megabyte, and precaching makes every reader pay for them at install
+           — including the ones who never turn the sound on. They are fetched
+           the first time somebody actually plays a layer and cached from then
+           on by the rule below, so the cost lands only on the readers who
+           wanted it and offline still works from the second play onwards. */
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /\/ambience\/.*\.mp3$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'flyleaf-ambience',
+              expiration: { maxEntries: 8 },
+              /* Audio is served with a 206 when the browser range-requests it;
+                 without this workbox refuses to cache the partial and the file
+                 is refetched on every single play. */
+              cacheableResponse: { statuses: [0, 200] },
+              rangeRequests: true,
+            },
+          },
+        ],
       },
     }),
   ],

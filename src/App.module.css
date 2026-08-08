@@ -106,6 +106,32 @@
   padding: 0;
 }
 
+/* …AND THE FILL HAS TO ACTUALLY BE VISIBLE, WHICH IT WAS NOT.
+
+   The note above is right that the rail's active tab is "the same square
+   filled" — that is the whole mechanism once the label is gone. Measured, the
+   mechanism was not running: the fill came out 1.16 against the rail glass in
+   light and the hairline 1.05. Neither is a boundary. In the bottom bar this
+   never mattered, because there the active tab is 102px wide against 46 and
+   carries the word "Home" at 14.6 — the growth IS the signal and the tint is
+   only a wash behind it. Strip the label for the column and the tint is asked
+   to do a job it was never strong enough for, leaving the current page marked
+   by nothing but its icon sitting at 0.25 lightness against 0.44 — about 2:1,
+   which is a difference you can find if you already know to look for it.
+
+   The border carries it now, at --color-ink-soft: ~4.9:1 against the glass in
+   light and strong in dark, which clears the 3:1 that WCAG 1.4.11 asks of a
+   control's state boundary. Deliberately the border and not the fill. A fill
+   dark enough to reach 3:1 on its own would make the active tab a solid ink
+   circle roughly a finger's width above the FAB, which is already a solid ink
+   shape — two of them stacked in one rail and the eye stops being able to tell
+   which one is the button. A ring reads instantly as "you are here" and stays
+   quiet. The soft wash inside it stays exactly as it was; it was never the
+   problem, it just was not the answer either. */
+.railNav .navPill[aria-current='page'] {
+  border-color: var(--color-ink-soft);
+}
+
 @media (min-width: 1024px) {
   .bottomBar {
     display: none;

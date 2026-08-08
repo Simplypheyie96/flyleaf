@@ -22,6 +22,11 @@ interface BookCoverProps {
   width?: number
   rotate?: number
   size?: CoverSize
+  /** A board with the needlework and nothing set on it. `thumb` is already
+   *  bare because a title is unreadable at 44px; this asks for the same thing
+   *  at any size, for the one place a cover is an ornament rather than a book
+   *  you are being asked to identify. */
+  bare?: boolean
   className?: string
 }
 
@@ -46,6 +51,7 @@ function BookCover({
   width,
   rotate = 0,
   size = 'full',
+  bare = false,
   className,
 }: BookCoverProps) {
   // A URL that 404s, times out, or returns something that isn't an image must
@@ -80,7 +86,7 @@ function BookCover({
     .filter(Boolean)
     .join(' ')
 
-  const typeset = size !== 'thumb'
+  const typeset = size !== 'thumb' && !bare
 
   return (
     <div className={className_} style={style}>

@@ -1,0 +1,597 @@
+/* The printed journal. See Journal.tsx for why this is a page rather than a
+   PDF library, and for the shape of what it renders.
+
+   Two documents in one stylesheet: the screen version, which is a preview
+   sitting on the app's sky, and the print version at the bottom, which is the
+   actual deliverable. Everything above @media print is the preview; the block
+   at the end takes the furniture away and hands the page to the printer. */
+
+.journal {
+  padding: var(--space-5) var(--space-4) var(--space-7);
+}
+
+@media (min-width: 700px) {
+  .journal {
+    padding-inline: var(--space-6);
+  }
+}
+
+/* ---- the preview's own chrome (screen only) ---- */
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  max-inline-size: 46rem;
+  margin: 0 auto var(--space-4);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--tap-min);
+  padding-inline-end: var(--space-2);
+  color: var(--color-ink-soft);
+  font-family: var(--font-app);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--color-ink);
+}
+
+.print {
+  min-block-size: var(--tap-min);
+  padding: var(--space-3) var(--space-5);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-action);
+  color: var(--color-on-action);
+  font-family: var(--font-app);
+  font-size: var(--text-base);
+  font-weight: var(--weight-strong);
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: var(--elevation-1);
+  transition: background-color var(--dur-quick) var(--ease-out);
+}
+
+.print:disabled {
+  background: var(--color-action-disabled);
+  color: var(--color-on-action-disabled);
+  box-shadow: none;
+  cursor: default;
+}
+
+/* Said once, above the paper, and never printed. A reader who has never made a
+   PDF from a browser needs the name of the destination menu, not a warning. */
+.how {
+  max-inline-size: 46rem;
+  margin: 0 auto var(--space-5);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+}
+
+.how strong {
+  color: var(--color-ink);
+  font-weight: var(--weight-strong);
+}
+
+/* ---- the paper ---- */
+
+/* A JOURNAL IS PAPER, IN BOTH THEMES.
+
+   These are the light values, re-declared. The app's dark tokens are set on
+   [data-theme='dark'] at the document root and inherit all the way down, so a
+   reader in dark mode would otherwise get a night-slate page with candle-cream
+   type — and print it as a black rectangle. Only the tokens this subtree
+   actually reads are listed, and the drawn covers need most of them: they are
+   retuned per theme (see --book-cover-l and the floss values in tokens.css) so
+   that embroidery still reads on a dark card, and the daylight tuning is the
+   one that belongs on paper.
+
+   Declared HERE and not on the route, which is the version this shipped with
+   for about four minutes. The route also holds the back link and the sentence
+   explaining where the PDF comes from, and those two are not on the paper —
+   they are on the night sky, in the reader's actual theme. Forcing light ink
+   that far up put near-black type on a dusk-indigo background and made the
+   whole explanation disappear. The light tokens belong to the paper, so they
+   start at the paper's edge.
+
+   `print-color-adjust: exact` is the other half. Chrome and Safari drop
+   backgrounds from a printed page by default, which would take the covers, the
+   rules and every tint with them. This is a document whose colour IS the
+   content, so it opts back in. */
+.sheet {
+  --color-paper: oklch(0.988 0.003 240);
+  --color-ink: oklch(0.25 0.015 255);
+  --color-ink-soft: oklch(0.44 0.02 250);
+  --color-ink-faint: oklch(0.51 0.02 245);
+  --book-cover-l: 0.945;
+  --book-cover-c: 0.05;
+  --floss-l: 0.66;
+  --floss-c: 0.165;
+  --floss-green-l: 0.6;
+  --floss-green-c: 0.115;
+  --floss-cream: oklch(0.99 0.008 85);
+  --cover-ink: oklch(0.25 0.015 255);
+  --cover-ink-soft: oklch(0.5 0.02 255);
+  --book-shade: oklch(0.2 0.02 250);
+  /* The one rule weight the whole document is drawn with. */
+  --rule: oklch(0.25 0.015 255 / 0.14);
+
+  color-scheme: light;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  max-inline-size: 46rem;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-7);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: 0 1px 2px oklch(0.2 0.02 250 / 0.06), 0 12px 32px -18px oklch(0.2 0.02 250 / 0.4);
+}
+
+@media (min-width: 700px) {
+  .sheet {
+    padding: var(--space-7) var(--space-7) calc(var(--space-7) * 1.2);
+  }
+}
+
+/* ---- the bookplate ---- */
+
+/* The front page, and it is a BOOKPLATE rather than a cover: the mark, whose
+   journal it is, what it covers, and what is in it. No app name on it — see
+   the rule in the brief. What a reader holds should be theirs. */
+.plate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block-end: var(--space-6);
+  border-block-end: 1px solid var(--rule);
+  text-align: center;
+}
+
+.plateMark {
+  color: var(--color-ink);
+  opacity: 0.5;
+}
+
+.plateTitle {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-size: var(--text-2xl, 1.5rem);
+  font-weight: var(--weight-display-read);
+  line-height: var(--leading-display);
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+.platePeriod,
+.plateTally,
+.printed {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--color-ink-soft);
+}
+
+.plateTally {
+  color: var(--color-ink-faint);
+}
+
+.printed {
+  margin-block-start: var(--space-3);
+  color: var(--color-ink-faint);
+  font-size: var(--text-xs);
+}
+
+/* The list of what is in the journal. No page numbers: nothing in a browser
+   can know where a page will break, and an index that lies is worse than no
+   index. It is a contents list for the eye — what is here, in the order it
+   happened. */
+.contents {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  inline-size: 100%;
+  max-inline-size: 28rem;
+  text-align: start;
+}
+
+.contents li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block: var(--space-2);
+  border-block-end: 1px dotted var(--rule);
+}
+
+/* The rules separate the entries; there is nothing after the last one to
+   separate it from, and a rule floating above the bottom margin reads as a
+   list that got cut off. */
+.contents li:last-child {
+  border-block-end: 0;
+}
+
+.contentsTitle {
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-size: var(--text-md);
+  font-weight: var(--weight-display-read);
+}
+
+.contentsAuthor {
+  flex: none;
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+  text-align: end;
+}
+
+/* ---- a book ---- */
+
+.chapter {
+  padding-block-start: var(--space-7);
+}
+
+.chapterHead {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-5);
+  padding-block-end: var(--space-5);
+  border-block-end: 1px solid var(--rule);
+}
+
+/* Flat on the page. The shelf tilts its covers because a stack of books is a
+   physical pile; a plate in a book is squared up to the type beside it. */
+.cover {
+  flex: none;
+  rotate: 0deg;
+}
+
+.chapterWords {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.bookTitle {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-display-read);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.author {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-base);
+  color: var(--color-ink-soft);
+}
+
+.facts,
+.tally {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  color: var(--color-ink-faint);
+}
+
+.tally {
+  text-transform: lowercase;
+}
+
+/* ---- the keeps ---- */
+
+/* The plot thread, printed. The app hangs a book's memories off a woven spine
+   running down the screen; on paper it is a hairline in the margin with a
+   notch at each keep — the same idea at the weight paper can hold.
+
+   No colour per kind, deliberately. The screen tells quotes from notes by the
+   shape of the card, and the app's own rule is that colour is the last thing
+   distinguishing them; a printed page that suddenly ran five inks would be
+   louder than anything else in this project. The kind is said in a word. */
+.thread {
+  position: relative;
+  padding-block-start: var(--space-5);
+  padding-inline-start: var(--space-5);
+}
+
+.thread::before {
+  content: '';
+  position: absolute;
+  inset-block: var(--space-5) var(--space-3);
+  inset-inline-start: 3px;
+  inline-size: 1px;
+  background: var(--rule);
+}
+
+.keep {
+  position: relative;
+  padding-block-end: var(--space-5);
+}
+
+.keep::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0.45em;
+  inset-inline-start: calc(-1 * var(--space-5) + 1px);
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: var(--color-ink-faint);
+}
+
+.meta {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  color: var(--color-ink-faint);
+}
+
+.kind {
+  color: var(--color-ink-soft);
+  font-weight: var(--weight-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.name {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-display-read);
+  line-height: var(--leading-tight);
+}
+
+.body {
+  margin: 0;
+  max-inline-size: var(--measure);
+  font-family: var(--font-app);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  color: var(--color-ink);
+  text-wrap: pretty;
+  white-space: pre-wrap;
+}
+
+/* A quote is the book's voice, so it takes the reading face and a margin rule
+   — the printed equivalent of the app's quote card, which does the same job
+   with a coloured rail. */
+.body[data-kind='quote'] {
+  padding-inline-start: var(--space-4);
+  border-inline-start: 2px solid var(--rule);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust);
+  font-size: var(--text-md);
+  line-height: var(--leading-read);
+}
+
+/* And a note is the reader's own hand, on paper as on screen. */
+.body[data-kind='note'] {
+  font-family: var(--font-hand);
+  /* Not normalised to the sans — see --font-adjust in tokens.css. */
+  font-size-adjust: none;
+  font-weight: var(--weight-hand);
+  font-size: var(--text-md);
+  line-height: 1.7;
+}
+
+.stance {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-strong);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* ---- voice and pictures ---- */
+
+.voice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-inline-size: 22rem;
+  margin-block-end: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+}
+
+.wave {
+  flex: 1;
+  min-inline-size: 0;
+  block-size: 24px;
+  fill: var(--color-ink-soft);
+}
+
+.length {
+  flex: none;
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-soft);
+}
+
+.picture {
+  display: block;
+  max-inline-size: 100%;
+  max-block-size: 92mm;
+  margin-block-end: var(--space-3);
+  border-radius: var(--radius-sm);
+  /* A photo-corner mount would need four absolutely-placed elements around an
+     image of unknown size; a hairline does the same job on paper. */
+  box-shadow: 0 0 0 1px var(--rule);
+}
+
+/* ---- the back of the book ---- */
+
+/* See AlsoRead in Journal.tsx. It shares .contents with the front, which is the
+   point: the two lists are the same object — what is in this journal — split
+   by whether there was anything to print. */
+.also {
+  padding-block-start: var(--space-7);
+}
+
+.alsoTitle {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-display-read);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+}
+
+.alsoNote {
+  margin: var(--space-2) 0 var(--space-4);
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  color: var(--color-ink-faint);
+}
+
+/* Wider than the front contents, which sits centred under a title and wants to
+   stay narrow, but still capped. Uncapped it ran the full 46rem and put a book
+   on the far left with its author seven inches away on the far right — two
+   columns with a desert between them rather than a line you can read across.
+
+   The rule above it belongs HERE and not on the caption, which is where it
+   started. A caption is a <p>, and every <p> in this app inherits the 60ch
+   measure — so at --text-xs the caption's rule stopped dead at 427.7px while
+   the list under it ran to 544px, two stacked edges in one section missing
+   each other by an inch and a bit. Hung off the list, the rule is the list's
+   own width by construction and cannot drift from it again. */
+.also .contents {
+  margin-block-start: 0;
+  max-inline-size: 34rem;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--rule);
+}
+
+.nothing {
+  margin: var(--space-5) 0 0;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-ink-faint);
+}
+
+/* ---- the actual print ---- */
+
+@page {
+  size: A4;
+  margin: 16mm 15mm 18mm;
+}
+
+@media print {
+  /* THE SKY DOES NOT GO THROUGH A PRINTER.
+
+     Every other surface in Flyleaf floats on the open-sky gradient, and on
+     screen that is the whole atmosphere of the app. On paper it is a full-bleed
+     powder-blue rectangle on all five sheets — the sky is on `html` and the
+     cloud and grain layers are `body::before`/`::after`, none of which is
+     inside `.sheet`, so `print-color-adjust: exact` down there never reached
+     them. First real print came out with every page flooded corner to corner,
+     which is a cartridge for something the reader cannot even read.
+
+     Scoped with `:has()` rather than written as a bare `body::before`, because
+     this stylesheet ships in the main bundle and a bare rule would quietly
+     strip the sky off anything else anybody ever prints. It lifts only while
+     the journal is the page on screen.
+
+     Both elements, not just one. The sky is on `html` and gets used as the
+     page canvas, so whitening `body` alone left every sheet clean right up to
+     the point the body box ended — and then the last page went blue from the
+     final line to the bottom edge, where the canvas was showing through. */
+  html:has(.journal),
+  body:has(.journal) {
+    background: #fff;
+  }
+
+  body:has(.journal)::before,
+  body:has(.journal)::after {
+    display: none;
+  }
+
+  .journal {
+    padding: 0;
+  }
+
+  /* The preview's furniture is not part of the document. */
+  .bar,
+  .how {
+    display: none;
+  }
+
+  .sheet {
+    max-inline-size: none;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  /* Each book opens a page, the way a chapter does. The bookplate closes the
+     one it is on. `break-before` on the first chapter would leave a blank
+     sheet after the plate, so the plate's own break-after is the only one that
+     runs at the join.
+
+     The inset is stated in millimetres and not as `block-size: 100%` with the
+     contents centred, which is what shipped first and what does nothing at all:
+     a percentage height resolves against a parent that has no height of its
+     own, so it computed to auto and the title sat crushed against the top
+     margin with three quarters of the sheet blank under it. `100vh` would
+     resolve in Chrome and misbehave elsewhere, and a page box it overshoots by
+     a millimetre costs a blank sheet. A measured drop is the same thing a
+     typesetter would have done anyway: 58mm into a 263mm column puts the title
+     a little above the middle, where the eye expects a title page to sit. */
+  .plate {
+    padding-block-start: 58mm;
+    border-block-end: 0;
+    break-after: page;
+  }
+
+  .chapter,
+  .also {
+    padding-block-start: 0;
+    break-before: page;
+  }
+
+  .chapter:first-of-type {
+    break-before: auto;
+  }
+
+  /* A keep split across a page break loses the date at the top of it, which is
+     the one thing making it a memory rather than a paragraph. */
+  .keep,
+  .voice,
+  .chapterHead {
+    break-inside: avoid;
+  }
+
+  .picture {
+    max-block-size: 80mm;
+  }
+}

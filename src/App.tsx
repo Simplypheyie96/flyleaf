@@ -11,17 +11,15 @@ import GlassSurface from "./components/GlassSurface";
 import InstallPrompt from "./components/InstallPrompt";
 import LeafButton from "./components/LeafButton";
 import SplashScreen from "./components/SplashScreen";
+import FlowerField from "./brand/FlowerField";
 import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
 import UpdateToast from "./components/UpdateToast";
-import BackupNudge from "./components/BackupNudge";
-import { isCandidateFrame } from "./routes/home/directions";
 import Welcome from "./onboarding/Welcome";
 import Legal from "./legal/Legal";
+import Journal from "./journal/Journal";
 import InstallGuide from "./settings/InstallGuide";
-import BoardLab from "./routes/BoardLab";
 import BookJourney from "./routes/BookJourney";
 import CardLab from "./routes/CardLab";
-import HomeLab from "./routes/HomeLab";
 import Home from "./routes/Home";
 import Library from "./routes/Library";
 import Settings from "./routes/Settings";
@@ -71,12 +69,15 @@ function NavPills() {
 function Shell({ onAdd }: { onAdd: () => void }) {
   const { pathname } = useLocation();
   // A journey is a room you go into and come back out of; the card gallery is
-  // a workbench; a policy is a document you were handed and will hand back.
-  // None of them wants the app's map painted over it.
+  // a workbench; a policy is a document you were handed and will hand back;
+  // the journal is a sheet of paper about to go through a printer. None of
+  // them wants the app's map painted over it — and on the journal the tab bar
+  // would be the one thing standing between the reader and the page.
   if (
     pathname.startsWith("/book/") ||
     pathname.startsWith("/lab/") ||
-    pathname.startsWith("/legal/")
+    pathname.startsWith("/legal/") ||
+    pathname.startsWith("/journal")
   )
     return null;
 
@@ -108,6 +109,41 @@ function Shell({ onAdd }: { onAdd: () => void }) {
   );
 }
 
+/* The toasts, in one column so an update landing while the install invite is up
+   stacks instead of overlapping it.
+
+   THE BACKUP NUDGE USED TO BE HERE AND IS GONE. 09 asks the app to gently
+   nudge readers toward a backup, and this was that nudge: once, at six keeps,
+   dismissible, never repeating. It was still wrong. Saving a copy already has
+   a permanent home in Settings, so the toast added no route the reader did not
+   have — it only added a floating panel across the bottom of whatever they
+   were doing, and being once-per-device is no comfort when the once lands on
+   the screen you are trying to read. A standing place to do a thing beats an
+   interruption telling you to go do it. Backup lives in Settings; the app does
+   not chase you about it. (Owner's call, and it overrides 09.)
+
+   Workbench routes get no dock: it is fixed and centred, so it paints its
+   toast straight across the middle of whatever is being judged — chrome
+   belonging to the app, sitting on top of the thing under the lamp. The
+   journal is out for the same reason and one worse: a toast that arrives while
+   the print dialog is opening ends up ON the paper.
+
+   A component rather than a condition in App's body, because the pathname test
+   needs a hook and App is what renders the router. Same shape as Shell above,
+   for the same reason. */
+function Dock() {
+  const { pathname } = useLocation();
+  if (pathname.startsWith("/lab/") || pathname.startsWith("/journal"))
+    return null;
+
+  return (
+    <div className={toast.dock}>
+      <UpdateToast />
+      <InstallPrompt />
+    </div>
+  );
+}
+
 function App() {
   // The add action exists twice — once in the phone's bottom bar, once in the
   // desktop rail — but there is only ever one sheet, so it is opened from
@@ -116,18 +152,33 @@ function App() {
   // What the add sheet should already have typed in it — the Library's
   // "Find a book" scope hands its words over this way.
   const [seed, setSeed] = useState("");
+  // A sentence somebody typed on their first run, waiting for a book to hang
+  // on. It is NOT the search term above — that one gets typed into Open
+  // Library, and this one is theirs. See startWriting in routes/home/Draw.tsx
+  // for why a keep cannot exist without a book in the first place.
+  const [firstKeep, setFirstKeep] = useState("");
 
   useEffect(() => {
     function find(event: Event) {
       setSeed((event as CustomEvent<string>).detail ?? "");
       setAdding(true);
     }
+    function first(event: Event) {
+      setFirstKeep((event as CustomEvent<string>).detail ?? "");
+    }
     window.addEventListener("flyleaf-find-book", find);
-    return () => window.removeEventListener("flyleaf-find-book", find);
+    window.addEventListener("flyleaf-first-keep", first);
+    return () => {
+      window.removeEventListener("flyleaf-find-book", find);
+      window.removeEventListener("flyleaf-first-keep", first);
+    };
   }, []);
 
   return (
     <BrowserRouter>
+      {/* Behind every page, before anything: the faint flowers in the sky.
+          Fixed and z-indexed under the routes, so no page has to know. */}
+      <FlowerField />
       <SplashScreen />
       {/* Outside the routes on purpose: the welcome is the app's front door,
           not a page, and it must cover whichever screen a fresh install lands
@@ -140,10 +191,9 @@ function App() {
         <Route path="/book/:id" element={<BookJourney />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/legal/:slug" element={<Legal />} />
+        <Route path="/journal" element={<Journal />} />
         <Route path="/styleguide" element={<Styleguide />} />
         <Route path="/lab/cards" element={<CardLab />} />
-        <Route path="/lab/home" element={<HomeLab />} />
-        <Route path="/lab/board" element={<BoardLab />} />
       </Routes>
 
       <Shell onAdd={() => setAdding(true)} />
@@ -154,24 +204,21 @@ function App() {
       <AddBookSheet
         open={adding}
         seed={seed}
+        firstKeep={firstKeep}
         onClose={() => {
           setAdding(false);
           setSeed("");
+          // Cleared on the way out, whether the book was added or the sheet
+          // was abandoned — the next book somebody shelves must not silently
+          // inherit a line they wrote weeks ago. Nothing is lost by backing
+          // out: the first-run card is still behind the sheet with the words
+          // still in its box, so pressing Keep again sends them down here
+          // again.
+          setFirstKeep("");
         }}
       />
 
-      {/* One column, so an update landing while the install invite is up
-          stacks instead of overlapping it.
-
-          Off inside a `?home=` frame — see home/directions.tsx. Temporary,
-          and it goes when the home-screen directions do. */}
-      {!isCandidateFrame() && (
-        <div className={toast.dock}>
-          <UpdateToast />
-          <InstallPrompt />
-          <BackupNudge />
-        </div>
-      )}
+      <Dock />
     </BrowserRouter>
   );
 }

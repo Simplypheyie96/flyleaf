@@ -1,0 +1,328 @@
+/* THE CLOCK — the block under the room.
+
+   It borrows the room's chrome rather than inventing any: the same hairline
+   over glass as the sound chips, the same uppercase eyebrow as "Lamp on". It
+   is part of this corner of the screen, not a widget that landed on it.
+
+   The state is carried by COLOUR AND ONE DOT, not by a second layout. A block
+   that rearranges itself when the clock starts would make the reader re-find
+   everything at exactly the moment they are trying to settle down and read. */
+
+/* No drop shadow — the owner's call, and the right one for this card: glass
+   over the sky already separates by blur and hairline, and the smudge under
+   it read as dirt in the dark theme. The hairline is the whole edge. */
+.clock {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-fill);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out);
+}
+
+/* The bookmark, hung from the card's top edge in the gap between the title
+   block and the digits — the one column of the face with nothing in it. It
+   sits flush to the border like a ribbon caught in a closing book, and it
+   answers the lamp: handwriting blue at rest, the lamp's honey while the
+   clock runs. */
+.ribbon {
+  position: absolute;
+  inset-block-start: -1px;
+  inset-inline-end: 112px;
+  color: color-mix(in oklab, var(--color-accent-text) 88%, transparent);
+  filter: drop-shadow(0 1px 1px color-mix(in oklab, var(--shadow-tint) 18%, transparent));
+  transition: color var(--dur-base) var(--ease-out);
+}
+.clock[data-on] .ribbon {
+  color: var(--color-accent);
+}
+
+/* Running. The wash is the ACCENT-TEXT blue, not the honey accent — the
+   owner's eye caught why: honey over the dark theme's glass mixes down to a
+   khaki that reads as disabled, the opposite of "alive". The blue is the same
+   ink the eyebrow and its beating dot turn, so the whole card tells the
+   running state in one colour, and it stays a cool, live tint in both
+   themes. */
+.clock[data-on] {
+  border-color: color-mix(in oklab, var(--color-accent-text) 45%, transparent);
+  background: color-mix(in oklab, var(--color-accent-text) 8%, var(--glass-fill));
+}
+
+/* ── the face ───────────────────────────────────────────────────────────── */
+
+.face {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+/* `min-width: 0` because a flex item will not shrink below its content by
+   default, and without it a long title pushes the digits off the card rather
+   than wrapping. */
+.what {
+  min-width: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* The live dot. It exists only while the clock runs, which is the whole point
+   — a label reading "Reading now" over a stopped clock would be a lie, and a
+   dot that is always there says nothing. */
+.clock[data-on] .eyebrow {
+  color: var(--color-accent-text);
+}
+.clock[data-on] .eyebrow::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent-text);
+  animation: tick 2s var(--ease-out) infinite;
+}
+
+@keyframes tick {
+  0%,
+  70%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  35% {
+    transform: scale(1.45);
+    opacity: 0.35;
+  }
+}
+
+/* Two lines at most, then it stops. A title long enough to need a third line
+   is a subtitle, and the whole title is one tap away on the book itself. */
+.book {
+  font-family: var(--font-read);
+  font-size: var(--text-base);
+  font-weight: var(--weight-card);
+  line-height: var(--leading-snug);
+  color: var(--color-ink);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+/* THE DIGITS ARE THE BOOK FACE. Everything else on this card is interface,
+   but the time you spent reading belongs to the reading — so it is set in the
+   Garamond the titles wear, two sizes up from anything else here. Measured
+   before trusting it: the face's lining figures are tabular by default
+   (1:11:11 and 0:00:00 render at the same width), so a serif clock cannot
+   twitch sideways as it counts.
+
+   Faint until it is running. A stopped clock reading 0:00 in full ink is the
+   loudest thing on the card and says nothing; lit, it is the thing you look
+   at. That is the whole hierarchy, and it costs one colour. */
+.digits {
+  margin: 0;
+  flex: none;
+  font-family: var(--font-read);
+  font-size: 2rem;
+  font-weight: var(--weight-display-read);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-display);
+  color: var(--color-ink-faint);
+  transition: color var(--dur-base) var(--ease-out);
+}
+.clock[data-on] .digits {
+  color: var(--color-ink);
+}
+
+/* ── the action ─────────────────────────────────────────────────────────── */
+
+/* NOT the app's ink pill.
+
+   Every other primary button in Flyleaf finishes a form the reader opened on
+   purpose — an entry, a book, a payment. This one sits under a drawing of a
+   quiet room, and a full-width slab of near-black there takes the lead away
+   from the thing the whole section is for: the eye went room, then black bar.
+   So it takes the chrome of the sound chips a few pixels above it, one size up
+   — hairline over glass, ink text, a real 44 — and it is the only control on
+   this card, so it reads as the thing to press without shouting.
+
+   Full width all the same. There is one thing to do here, and a pill at its
+   natural width in the middle of a column reads as an afterthought. */
+.go {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pill);
+  background: var(--control-fill);
+  box-shadow: inset 0 1px 0 var(--control-highlight);
+  /* A button does not inherit the page's family. */
+  font-family: var(--font-app);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition:
+    color var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out),
+    background var(--dur-quick) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
+}
+.go:active {
+  transform: translateY(var(--press));
+}
+.go:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+/* It does NOT change with the clock. It used to take the sound chips' lit
+   pairing, and in dark mode that was honey over an already honey-tinted card —
+   accent on accent, which mixed down to a flat khaki slab that read as disabled
+   rather than live.
+
+   The deeper problem was that it was a fourth voice saying the same thing. The
+   card tints, the eyebrow turns blue and grows a beating dot, the digits come up
+   to full ink, and the label itself changes from Start to Stop. The state is
+   already told four times over. The button is the control, not the readout, and
+   a control that restyles itself under the reader's thumb is the one part of
+   this that has to stay where it was put. */
+
+/* ── what has been kept ─────────────────────────────────────────────────── */
+
+.tally {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+/* ── nothing on the shelf to time ───────────────────────────────────────── */
+
+/* One paragraph and a way out. No button, because the only button this state
+   could offer would throw its own result away. */
+.clock[data-empty] {
+  padding: var(--space-4) var(--space-5);
+}
+
+.idle {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+/* The log row, dressed in the app's own needlework. The seam above it is
+   DASHED, not solid — the same stitch every cover on the shelf carries — and
+   it is the handwriting blue rather than a grey hairline, so the row reads as
+   something sewn into the card instead of a divider dropped on it. The glyph
+   is a small ledger; the chevron takes a step when the row is touched, which
+   is the one place this card is allowed a flourish. */
+.log {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--tap-min);
+  margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-5)) calc(-1 * var(--space-5));
+  padding: var(--space-2) var(--space-5);
+  border: 0;
+  border-block-start: 1px dashed color-mix(in oklab, var(--color-accent-text) 40%, transparent);
+  background: none;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-accent-text);
+  text-align: start;
+  cursor: pointer;
+  transition: color var(--dur-quick) var(--ease-out);
+}
+.log svg {
+  flex: none;
+  opacity: 0.85;
+}
+.logHint {
+  flex: none;
+  margin-inline-start: auto;
+  font-size: var(--text-lg);
+  line-height: 1;
+  color: inherit;
+  transition: transform var(--dur-quick) var(--ease-out);
+}
+@media (hover: hover) {
+  .log:hover {
+    color: var(--color-ink);
+  }
+  .log:hover .logHint {
+    transform: translateX(3px);
+  }
+}
+.log:active .logHint {
+  transform: translateX(3px);
+}
+.log:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+@media (prefers-reduced-motion: reduce) {
+  .logHint {
+    transition-duration: 1ms;
+  }
+}
+
+/* Worn by a Link in the empty state — a button brings its own chrome and
+   font, so both are put down here. */
+.link {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--font-app);
+  font-size: inherit;
+  color: var(--color-accent-text);
+  font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.link:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clock,
+  .go,
+  .digits {
+    transition-duration: 1ms !important;
+  }
+  .clock[data-on] .eyebrow::before {
+    animation: none;
+  }
+}

@@ -24,11 +24,38 @@ export function HomeIcon({ size = 22 }: IconProps) {
   )
 }
 
+/* AN OPEN BOOK, AND IT SHOULD NEVER HAVE BEEN ANYTHING ELSE.
+
+   This closed for one release, into a board with a spine band and a ribbon,
+   because the brand mark had briefly become an open book too and two open books
+   in the same chrome read as the app branding itself rather than naming a
+   place. That was a real problem solved at the wrong end. The mark is the
+   rosette now — the blossom already stitched into every cover and already on
+   the keep button — so the collision is gone, and with it the only argument for
+   shutting this one.
+
+   Open is the better drawing on its own merits, which is why it was here first.
+   It is the shape of the thing the tab actually holds: books, being read. The
+   two pages off a centre spine give it a silhouette nothing else in the bar
+   has, and at 22px a wide low shape is easier to tell from the shelf's uprights
+   than another vertical rectangle was.
+
+   It also serves FormatRow's "Physical" alongside the headphones and the
+   screen — an open book, a slab, a headband: three objects the reader holds,
+   far enough apart in outline to be told apart at 20px.
+
+   Clearances follow the same rule as ShelfIcon below: a 1.8 stroke overhangs
+   0.9 either side, so nothing sits closer than about 2.4 to its neighbour or
+   the two strokes fuse into one dark bar. */
 export function BookIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <g {...strokeProps}>
+        {/* Both leaves in one closed outline, sagging away from the spine the
+            way paper does when a book is held open in two hands. */}
         <path d="M12 6.5 C 10 4.8 7 4.5 4.5 5.2 L 4.5 18 C 7 17.3 10 17.6 12 19.2 C 14 17.6 17 17.3 19.5 18 L 19.5 5.2 C 17 4.5 14 4.8 12 6.5 Z" />
+        {/* The spine, drawn rather than left as a gap — at this size a slot of
+            negative space between two fills closes up. */}
         <path d="M12 6.5 L 12 19.2" />
       </g>
     </svg>
@@ -68,13 +95,27 @@ export function NoteIcon({ size = 22 }: IconProps) {
   )
 }
 
+/* A microphone held in a cradle that comes most of the way round it.
+
+   The obvious way to tie this to the listening orb was to put the orb's wave
+   in it: a capsule standing over five bars. It looked right at 110px and it
+   failed at the size it is actually used — 15px in the filter row, where the
+   bars are eleven hundredths of an em apart and merge into one dark block
+   under a dot. Cutting to three bars only made it a smaller smudge.
+
+   So the wave stays where a wave is legible (the orb while you talk, the bar
+   trace when you play it back) and this glyph goes back to being a microphone,
+   which is the one shape that survives 15px. What it takes from the orb is the
+   ROUND: the cradle used to be a shallow saucer sitting under the capsule, and
+   it now rises past the capsule's own shoulders on both sides, so the whole
+   silhouette reads as a circle with a mic in it. Same family, no mush. */
 export function VoiceIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <g {...strokeProps}>
-        <rect x="9.5" y="4.5" width="5" height="10" rx="2.5" />
-        <path d="M6 11.5 C 6 15 8.5 17 12 17 C 15.5 17 18 15 18 11.5" />
-        <path d="M12 17 L 12 20" />
+        <rect x="9.75" y="3.5" width="4.5" height="8.5" rx="2.25" />
+        <path d="M6.4 8.8 C 6.4 15 8.9 17.2 12 17.2 C 15.1 17.2 17.6 15 17.6 8.8" />
+        <path d="M12 17.2 L 12 20.5" />
       </g>
     </svg>
   )
@@ -147,6 +188,19 @@ export function PauseIcon({ size = 22 }: IconProps) {
         <rect x="8.4" y="6" width="2.9" height="12" rx="1.2" />
         <rect x="12.7" y="6" width="2.9" height="12" rx="1.2" />
       </g>
+    </svg>
+  )
+}
+
+/* Stop, and only ever inside the recording orb. Pause is the right glyph for a
+   thing you will resume; a recording that is stopped is finished, and offering
+   the reader two vertical bars there promises a second half that never comes.
+   Softened corners so it reads as an object in the sphere rather than a chip
+   cut out of it. */
+export function StopIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="7.2" y="7.2" width="9.6" height="9.6" rx="2.6" fill="currentColor" />
     </svg>
   )
 }
@@ -415,6 +469,28 @@ export function OpeningIcon({ size = 22 }: IconProps) {
   )
 }
 
+/** The closing, and the only other glyph allowed to be a claim. It is the
+    opening pennant mirrored about the middle of its own staff: same staff, same
+    flag, but the flag has slid to the foot. Read down the thread the two marks
+    say one thing — run up on the first day, lowered on the last.
+
+    Deliberately NOT a tick, a lock or a flag-with-a-cross. Those all say
+    "completed", which is a task word; this book was not a task. */
+export function ClosingIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M7.5 3.5 L 7.5 20.5" />
+        <path
+          d="M7.5 19 L 18 16.4 C 18.6 16.25 18.6 15.4 18 15.2 L 7.5 11.8 Z"
+          fill="currentColor"
+          stroke="none"
+        />
+      </g>
+    </svg>
+  )
+}
+
 /** More, on a keep. Three dots is the one place a convention beats a drawing:
     a reader looking for "everything else" looks here first. */
 export function MoreIcon({ size = 22 }: IconProps) {
@@ -598,6 +674,18 @@ export function CheckIcon({ size = 22 }: IconProps) {
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <g {...strokeProps}>
         <path d="M5 12.5 L 10 17.5 L 19 6.5" />
+      </g>
+    </svg>
+  )
+}
+
+/* The funnel, because forty years of interfaces have taught every reader what
+   it means, drawn with the house's round caps rather than as a solid wedge. */
+export function FilterIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M4.5 6 H 19.5 L 14 12.5 V 18 L 10 16 V 12.5 Z" />
       </g>
     </svg>
   )

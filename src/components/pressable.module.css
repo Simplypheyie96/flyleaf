@@ -1,0 +1,56 @@
+/* What makes a control feel like a made object.
+
+   A hairline of light along the top edge, the shape settling into shadow along
+   the bottom, and the same paper grain the cards carry — pressed in when you
+   push it, and gone entirely when it is disabled, because a disabled control
+   is not a made object, it is an absence.
+
+   This lived inside LeafButton, which meant the only buttons in the app with
+   any surface to them were the handful of primary pills. Every secondary
+   action on every sheet — record again, copy the words, cancel — was a flat
+   fill with a hairline round it, in an app whose whole argument is that the
+   things you touch are made of something. So the recipe is its own file and
+   both compose it, rather than one of them owning it and the other going
+   without.
+
+   Composed, not copied: `composes: pressable from '...'` puts both class names
+   on the element, so there is one declaration of what a pressed edge is. */
+.pressable {
+  position: relative;
+}
+
+/* The light on it. On a pseudo-element rather than in the button's own
+   box-shadow because :hover, :active and :disabled each replace that shadow
+   wholesale — the edge should survive all three. */
+.pressable::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 var(--action-sheen),
+    inset 0 -1px 1px var(--action-shade);
+}
+
+/* The surface. The same tile as the paper, at a heavier hand — a button is
+   held, and the grain is what your eye reads as something to press. */
+.pressable::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--grain-action-opacity);
+  background-image: var(--grain-tile);
+}
+
+/* Pressed: the light stops catching the top edge and falls inside instead. */
+.pressable:active::before {
+  box-shadow: inset 0 1px 2px var(--action-shade);
+}
+
+.pressable:disabled::before,
+.pressable:disabled::after {
+  display: none;
+}

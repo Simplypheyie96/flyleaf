@@ -44,18 +44,52 @@ interface RowProps {
   /** Anything that cannot sit on the title's line — an open fold's contents, a
       status line after an action. Not a description of the setting. */
   children?: ReactNode
+  /** Given together, the children fold away and the row's own line becomes the
+      thing that opens them. Only for a row whose contents are a tray of
+      choices — the setting itself stays on the line, always readable. Leave
+      both off and the row is a plain row with its contents always out. */
+  open?: boolean
+  onFold?: () => void
 }
 
-function Row({ title, control, children }: RowProps) {
+function Row({ title, control, children, open, onFold }: RowProps) {
+  const head = (
+    <>
+      {title && <span className={styles.title}>{title}</span>}
+      {control && <div className={styles.control}>{control}</div>}
+    </>
+  )
+
+  if (!onFold)
+    return (
+      <div className={styles.row}>
+        {(title || control) && <div className={styles.head}>{head}</div>}
+        {children}
+      </div>
+    )
+
   return (
-    <div className={styles.row}>
-      {(title || control) && (
-        <div className={styles.head}>
-          {title && <span className={styles.title}>{title}</span>}
-          {control && <div className={styles.control}>{control}</div>}
-        </div>
-      )}
-      {children}
+    <div className={`${styles.row} ${styles.rowFold}`} data-folded={open ? undefined : ''}>
+      <button
+        type="button"
+        className={`${styles.head} ${styles.headFold}`}
+        onClick={onFold}
+        aria-expanded={open}
+      >
+        {head}
+        <span className={styles.chevron} aria-hidden="true" />
+      </button>
+      {/* `grid-template-rows: 1fr → 0fr` on the wrapper, not a height: what is
+          inside is a wrapping grid of faces, and how many rows it takes depends
+          on how wide the phone is.
+
+          `inert` rather than `hidden`, because `hidden` is `display: none` and
+          a box that is not displayed cannot animate out of existence — it just
+          vanishes. `inert` takes the shut tray out of the tab order and out of
+          the accessibility tree while leaving it a size to collapse. */}
+      <div className={styles.foldBox} inert={!open}>
+        <div className={styles.foldInner}>{children}</div>
+      </div>
     </div>
   )
 }

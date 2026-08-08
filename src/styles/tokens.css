@@ -34,6 +34,26 @@
      (soft 0.44, faint 0.51) and still reads as the quietest ink on the page. */
   --color-ink-faint: oklch(0.51 0.02 245);
 
+  /* ---- The rabbit ----
+
+     Its own six, not borrowed from the ink ramp, and that is deliberate: the
+     character has to be the same animal in both themes, and every other
+     colour in this file is tuned to disappear into a surface. A mascot that
+     restyles itself per theme is a graphic, not a character.
+
+     The outline is a warm-cool near-black rather than --color-ink, so the
+     drawing sits slightly apart from the type around it — a rabbit outlined
+     in exactly the heading colour reads as a piece of the heading. */
+  --bun-ink: oklch(0.33 0.032 262);
+  --bun-coat: oklch(0.995 0.004 250);
+  --bun-pink: oklch(0.845 0.075 20);
+  --bun-blush: oklch(0.82 0.095 18);
+  /* The puddle the sleeper lies in, and the pencil it holds. Both come off
+     the sky and the honey the app already uses, so the one warm mark and the
+     one cool one belong to the same world as the cards. */
+  --bun-pool: oklch(0.885 0.05 235);
+  --bun-tool: oklch(0.83 0.1 78);
+
   /* ---- An unlit pager dot ----
 
      The faint ink above with its softening carried in the colour rather than
@@ -155,6 +175,7 @@
   --floss-green-l: 0.6; /* foliage sits back from the blooms */
   --floss-green-c: 0.115;
   --floss-cream: oklch(0.99 0.008 85);
+
   /* Modelling: where the board turns away from the light, and where it
      catches it. Both are composited at low alpha over the board itself, so
      they have to sit either side of it in lightness in BOTH themes — at
@@ -299,6 +320,14 @@
   --tint-ink: var(--color-ink);
   --tint-ink-soft: var(--color-ink-soft);
   --tint-ink-faint: var(--color-ink-faint);
+  /* The blue a link or a quiet verb is written in, on a card. It was the one
+     name in this set that was never mapped, so every accent-coloured control
+     printed on a tinted surface — Dictate, Another face — went on asking the
+     ROOM for its colour while everything beside it asked the card. By day that
+     is invisible, because the two lamps agree; after dark the room's accent is
+     a moonlit periwinkle meant for a dark sky, and it was landing on a 0.87
+     lavender sheet at 1.07:1. Not faint — gone. */
+  --tint-accent: var(--color-accent-text);
   /* What a glyph reversed OUT of the ink is filled with — the play triangle
      sitting in its dark disc — and, more often, the ground of any hole punched
      through a card: the oval a portrait is mounted in, the disc a verb rides.
@@ -360,6 +389,35 @@
   --orb-glow: oklch(0.72 0.12 278 / 0.42); /* the bloom it casts on the card */
   --orb-wave: oklch(0.55 0.07 265); /* the trace beside it */
 
+  /* ---- The orb's stage: the one surface in the app that never turns ----
+
+     Stated once, like the orb above it and for a stronger version of the same
+     reason. The brief asks for exactly one futuristic object in a scrapbook,
+     and an object is only futuristic against something. A field of lit dots on
+     the app's own pale field fill is a grey disc with specks on it — which is
+     what the recording panel had been, and the reason the real orb was never
+     recognisable as the one that was installed.
+
+     So the panel is a dark slab in both themes, and it is the only thing here
+     that does not answer to the room. By day it is the one dark object on a
+     bright page; after dark it is a hole cut into a page that is already dim.
+     Both readings are the same reading — the light in it is its own.
+
+     Deeper at night rather than lighter, which looks backwards written down.
+     The night page runs 0.32ish, so a 0.255 slab would have separated by four
+     hundredths and read as a smudge; 0.20 puts it clearly *under* the sheet,
+     and a recess is the shape this object already has.
+
+     Ink is stated too, because --color-ink flips and this surface does not.
+     The soft pair clears 6:1 on both slabs — measured, not assumed. */
+  --orb-stage: oklch(0.255 0.03 264);
+  --orb-stage-edge: oklch(0.95 0.015 250 / 0.16);
+  --orb-stage-ink: oklch(0.97 0.006 250);
+  --orb-stage-ink-soft: oklch(0.8 0.018 258);
+  /* What the slab is lit by. The orb draws flat monochrome dots and casts
+     nothing; without this the panel is a black rectangle with a rash. */
+  --orb-stage-lit: oklch(0.72 0.09 270 / 0.22);
+
   /* ---- Glass (chrome only) ---- */
   /* 0.42, down from 0.6. At 60% over a near-white sky the chrome composited
      to flat white and stopped being glass at all — a white pill on a pale
@@ -379,58 +437,71 @@
     0 3px 8px oklch(0.3 0.03 250 / 0.04);
   --elevation-3: 0 2px 8px oklch(0.3 0.03 250 / 0.06);
 
+  /* ---- Paper grain ----
+
+     THE TILE ITSELF, and it lives here because it had four copies. The same
+     160px turbulence was pasted into index.css, PaperSurface, GlassSurface and
+     LeafButton, each with a comment telling the next person to remember to
+     change the other three — which is a note that the material had stopped
+     being one material and become four that happened to agree. It is one
+     declaration now, and everything that wants the surface asks for it.
+
+     160px because at that size it never repeats visibly across anything in the
+     app, from a pill to a full-bleed background. */
+  --grain-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+
   /* ---- Paper grain strength ---- */
   --grain-opacity: 0.035;
 
+  /* THE SAME GRAIN, OVER INK. The filled controls carry the paper's texture
+     too — they are objects in this world, not chrome dropped on top of it —
+     but a near-black surface swallows fine noise, so it takes roughly three
+     times the strength to read as the same material. Measured, not guessed:
+     below about 0.07 the pill goes flat again on a phone screen. */
+  --grain-action-opacity: 0.1;
+
+  /* And the edge of a pressed shape: light caught along the top, the form
+     settling into its own shadow along the bottom. One pixel each, which is
+     all it takes — more and the button starts to look moulded, which is a
+     2010 button, not a stamp pressed into a page. */
+  --action-sheen: oklch(1 0 0 / 0.14);
+  --action-shade: oklch(0.15 0.02 260 / 0.3);
+
+  /* ---- Blossom field ----
+
+     THE PATTERN THAT WAS ON THE PILLS, PUT BACK — but printed, not stamped.
+
+     What used to be there was the mark's venation drawn once across the whole
+     face at 16%, plus a second differently-proportioned copy on the add
+     button. That came off for a good reason (LeafButton.module.css keeps the
+     argument): a logo enlarged behind a label is a watermark, and two versions
+     of it made the identity look like two identities.
+
+     A FIELD is not a watermark. Three little rosettes scattered in a 30px tile
+     — different sizes, different angles, none of them centred, none of them
+     the size a mark is ever used at — reads the way endpaper reads: as what
+     the object is printed on. It is the same flower, so it is still ours; it
+     is small and repeating, so nobody mistakes it for the logo.
+
+     Baked colour rather than currentColor, because an SVG in `url()` is its
+     own document and inherits nothing. Hence twice — white on the ink pill by
+     day, ink on the moonlit pill by night. The two travel together.
+
+     The alphas are not the same number on purpose: dark marks on a pale pill
+     carry further than pale marks on a dark one, so night runs lighter. Both
+     are well under the 16% the old etch used — this is meant to be found on
+     the second look, not read on the first. */
+  --bloom-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cdefs%3E%3Cpath id='b' d='M12 2.7 A3.5 2.8 -90 1 1 12 9.7 A3.5 2.8 -90 1 1 12 2.7 Z M20.845 9.126 A3.5 2.8 -18 1 1 14.187 11.29 A3.5 2.8 -18 1 1 20.845 9.126 Z M17.466 19.524 A3.5 2.8 54 1 1 13.352 13.86 A3.5 2.8 54 1 1 17.466 19.524 Z M6.534 19.524 A3.5 2.8 126 1 1 10.648 13.86 A3.5 2.8 126 1 1 6.534 19.524 Z M3.155 9.126 A3.5 2.8 198 1 1 9.813 11.29 A3.5 2.8 198 1 1 3.155 9.126 Z M10.2 12 A1.8 1.8 0 1 1 13.8 12 A1.8 1.8 0 1 1 10.2 12 Z'/%3E%3C/defs%3E%3Cg fill='%23ffffff' fill-opacity='0.11'%3E%3Cuse href='%23b' transform='translate(7 7) rotate(-8) scale(0.34) translate(-12 -12)'/%3E%3Cuse href='%23b' transform='translate(22 18) rotate(24) scale(0.26) translate(-12 -12)'/%3E%3Cuse href='%23b' transform='translate(24 4) rotate(-30) scale(0.22) translate(-12 -12)'/%3E%3Cuse href='%23b' transform='translate(9 22) rotate(14) scale(0.2) translate(-12 -12)'/%3E%3C/g%3E%3C/svg%3E");
+
   /* ---- Type ----
-     Three voices, split by who is speaking. Two of them do all the work; the
-     third only ever appears inside a note card. There was a fourth — a
-     monospace kept for short stamped labels — and it is gone. It was doing the
-     job of a *format*, not of a voice: every rule that asked for it was an
-     uppercase, letter-spaced label, and uppercase plus tracking is what made
-     those read as stamped, not the face. Six of them also wanted digits to
-     line up, and those already carry font-variant-numeric: tabular-nums, which
-     the sans honours. So the mono was a fourth typeface buying nothing, and a
-     screen holding four faces at once reads as an accident.
+     ONE FAMILY, AND THE WEIGHT LADDER IS THE WHOLE HIERARCHY.
 
-       serif  the book and the reader — titles, section heads, quotes, and
-              any value worth reading as a value. Newsreader: a transitional
-              text face drawn for reading on screens, variable 200–800, with a
-              real italic in the same family.
-
-              It replaced EB Garamond, which was chosen for air and gave it,
-              and had two faults this app could not carry. Its x-height is
-              small, so at the sizes this app actually lives at — a card title
-              at 18px, a row value at 14 — it set a step smaller than it
-              measured, and --weight-serif had to be pushed to 500 to put the
-              colour back. And its variable file has no italic in it at all,
-              which is how the app ended up with a SECOND serif standing in
-              for the slope. A masthead in one book face over a subtitle in
-              another is not a change of voice, it is two typefaces, and it
-              read as one on every screen that used both.
-
-              Newsreader answers both. Larger x-height, so 460 holds the line
-              where 500 was needed. A drawn italic — single-storey a, entry
-              strokes on the ascenders, a narrower set — so the slope is the
-              same voice sloped, which is the only thing an italic is for.
-       sans   the app — body copy, buttons, anything that runs to a sentence.
-              Source Sans 3: a humanist sans with open apertures and generous
-              counters, drawn for interface text at small sizes. It also sets
-              every short uppercase label — a date, a page number, a side —
-              where the stamped quality comes from the capitals and the
-              tracking rather than from a second face. The counters are why:
-              an 11px capital in a compact grotesque closes up and turns into
-              a row of vertical strokes.
-       hand   note cards, and nowhere else. The only decorative thing on the
-              screen, which is what makes it read as a note. Upright print,
-              not cursive — a note exists to be reread, so legibility beats
-              flourish. Deliberately unchanged.  */
-  /* Four steps in the sans, two in the serif, and every rule in the app names
-     one of them. It named six before — 400, 450, 500, 560, 600 and 620, the
-     last three arrived at separately in different files on different days —
-     and the trouble with six is not that any one is wrong, it is that 560 and
-     600 and 620 are the same weight to the eye and a system that draws
-     distinctions nobody can see has stopped being a system.
+     With four faces, a title could be a title just by being a different face,
+     and the weights were free to drift — six of them existed (400, 450, 500,
+     560, 600, 620), three arrived at separately in different files on
+     different days. With one face there is nowhere for that to hide: weight is
+     now carrying the work a change of face used to do for free, so every step
+     has to be a step you can actually see.
 
        body   400. The page. Paragraphs, prose, anything that runs long.
        card   450. One notch up. Card text is short, sits on a tinted fill
@@ -443,13 +514,13 @@
               the screen and a proportional face has to be asked. It absorbed
               560 and 620, which were both this.
 
-       serif  460. The book face is variable, so it can be asked. Newsreader
-              carries enough ink at 460 to hold a title against sans body
-              beside it; the 500 the old face needed would read as bold here.
-       italic 450. A slope leaning away from its own roman wants to be a hair
-              lighter than it, not heavier — and unlike the single-master face
-              this replaced, asking for 450 now gets a drawn weight rather
-              than a synthesised smear. */
+     Note what is NOT here: no weight below 400. Both axes offer lighter (300
+     in Quicksand), and every one of those steps is unusable at 13–16px — the
+     stems thin out until the text looks faded rather than light. The lightest
+     thing on any screen should be a colour, not a weight.
+
+     Display sits apart, below, because a heading is answering a different
+     question than a row of interface text. */
   --weight-body: 400;
   --weight-card: 450;
   --weight-medium: 500;
@@ -457,57 +528,167 @@
   /* The old name for --weight-strong, kept because sixteen rules across the
      app say "label" and mean exactly this. */
   --weight-label: var(--weight-strong);
-  --weight-serif: 460;
-  --weight-italic: 450;
+  /* Headings, in the SANS. 700 is the top of Quicksand's axis and it needs to
+     be: a geometric face at 600 against body at 500 is a difference you have
+     to go looking for. Round terminals keep it warm rather than stern — the
+     same number in a grotesk would be shouting. */
+  --weight-display: 700;
+  /* Headings, in the SERIF — and it is a different number on purpose.
 
-  --font-serif: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Source Sans 3 Variable', system-ui, -apple-system, sans-serif;
-  --font-hand: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
-  /* Both of these used to name a second serif — Instrument, brought in
-     because the old book face shipped no italic. Newsreader ships one, so
-     they are the book face now, and the app is down from three serifs to one.
-     The names are kept rather than swept away because they still say
-     something the value cannot: `--font-italic` marks a line that is sloped
-     on purpose, `--font-stamp` a word set inside a shape drawn to hold it.
-     Both still pair with --weight-italic, which is what keeps a slope from
-     going heavier than the roman it leans away from. */
-  --font-italic: var(--font-serif);
-  --font-stamp: var(--font-serif);
+     Garamond at 700 is not a heavier version of the same voice, it is a
+     different and much blunter one: old-style faces put their weight into the
+     stems and the modelling collapses, so a page title set at display weight
+     reads as a bold run rather than as a title. It does not need the weight
+     anyway. The reason --weight-display is 700 is that the sans has nothing
+     but weight to signal a heading with. The serif signals it by being the
+     serif — the face has already changed by the time the eye arrives — so 600
+     is enough to hold the top of the page, and it keeps the modelling that is
+     the entire reason the serif is here. */
+  --weight-display-read: 600;
 
-  /* Eight steps, and every adjacent pair differs by enough to see. The old
-     scale had 14 and 15 next to each other — a seven per cent step, which is
-     no step at all — and it was carrying the app's two commonest jobs,
-     secondary copy and body. Two sizes the eye reads as one size means the
-     hierarchy between them was never doing any work; only colour was, which
-     is why so much of this app read as one flat grey field of text.
+  /* THE SERIF NAMES THINGS. THE SANS SAYS THINGS.
 
-     So 15 is gone. Body is 16 — the browser's own default, the size a reading
-     app has no business going under, and the size iOS stops zooming inputs
-     at, which retires a special case as well.
+     The split is the whole system, so it is stated once, here, in the file
+     everything else reads from:
 
-     The bottom five steps are fixed. The top three are not, and that is the
-     correction: 28 and 34 are iOS's Title 1 and Large Title, but iOS spends
-     them on a screen whose content is a list of grey rows, and this app's
-     content is paper. A 28px serif masthead over a taped card with a 22px
-     serif title inside it puts three loud things in the first 300px of a
-     phone, and the page reads as shouting before a word of it is the
-     reader's own. So the phone gets 24 / 20 and the room above 600px gets
-     28 / 22 — the hierarchy is identical, the volume is not. Below the fold
-     nothing changes: 16 is still body, and 18 is still what a kept line is
-     read at, because those two are sized for reading and not for presence. */
-  --text-2xs: 0.6875rem; /* 11 — stamped labels, tracked out */
-  --text-xs: 0.75rem; /* 12 — captions, footnotes */
-  --text-sm: 0.875rem; /* 14 — labels, secondary copy */
-  --text-base: 1rem; /* 16 — UI body */
-  --text-md: 1.125rem; /* 18 — reading serif, quotes */
-  --text-lg: 1.25rem; /* 20 — section + card titles */
-  --text-xl: 1.5rem; /* 24 — page titles */
-  --text-2xl: 1.75rem; /* 28 — display, once per screen at most */
+       --font-read  headings, and only headings.  Page titles, section labels,
+                                         book titles, card titles, the reader's
+                                         name. Anything the app is NAMING.
+       --font-app   everything read as words.  Body copy, all text inside a
+                                         card, and every piece of interface
+                                         furniture — labels, buttons, tabs,
+                                         counts, dates, fields, chips, hints.
+       --font-hand  the reader's hand.   Notes only. Not their name.
 
-  /* Kept as a name rather than a number. iOS Safari zooms the page whenever an
-     input's text is under 16px; body is 16 now, so a field asking for this
-     gets the body size and the rule enforces itself. */
-  --text-field: var(--text-base);
+     The test is one question: is this line a NAME for something, or is it
+     something somebody reads? "The Salt Path" is a name. The sentence they
+     underlined inside it is not. That question has a stable answer at every
+     size, which is why the rule holds where "serif for big, sans for small"
+     falls apart — an 11px card caption and a 28px count both get typed wrong
+     by a size rule.
+
+     EB GARAMOND for the names. Old-style, modelled, with a true drawn italic
+     — a book's face, because these ARE books, and it is what stops a shelf
+     looking like a list of records. Axis 400–800, roman and italic, so nothing
+     anywhere is synthesised. It is kept OFF long text on purpose: an old-style
+     serif at 13px in a card caption goes muddy on a phone, which is the exact
+     failure the previous pass shipped.
+
+     QUICKSAND for the words. Geometric, rounded, low-contrast, with an
+     x-height tall enough to hold at 11px on a 375px screen. Not literary, and
+     that is the point — under serif headings it reads as clear modern paper
+     rather than as a second opinion about what century this is. Axis 300–700,
+     the whole ladder this app needs and no more.
+
+     KALAM stays where it was: what the reader types into a note. A hand
+     belongs in a journal — that is the conceit of a flyleaf — and it is the
+     one place a third voice is the point rather than noise. A pen, not a
+     marker: even stroke, no bounce, legible down a paragraph. */
+  --font-app: 'Quicksand Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-read: 'EB Garamond Variable', Iowan Old Style, Palatino, Georgia, serif;
+  --font-hand: 'Kalam', 'Segoe Print', 'Bradley Hand', cursive;
+
+  /* THE ONE NUMBER THAT MAKES A PAIRING LOOK LIKE A DECISION.
+
+     Two families at the same font-size are not the same size on screen. What
+     the eye measures is the x-height, and Garamond's is far shorter than
+     Quicksand's — set both at 16px and the serif looks like it lost an
+     argument. Every naive fix for this is a per-rule size bump, which is how
+     a type scale rots: eight steps become eight steps plus a dozen
+     exceptions, and six months later nobody knows which sizes are the system.
+
+     So it is corrected once, at the family, and the scale stays honest. Every
+     --text-* step means the same optical size in both faces, and a rule can
+     switch families without touching its size. --font-adjust is the measured
+     x-height ratio of Quicksand, which is the face the scale was tuned on;
+     the serif is told to match it.
+
+     Cheap insurance too: the number is what the FALLBACK stack gets held to
+     as well, so Palatino or Georgia standing in on a cold load is the same
+     optical size as Garamond rather than a page-wide jolt when it swaps.
+
+     THE HAND IS EXEMPT, and every rule that sets --font-hand turns this off.
+     Kalam being optically small is not a defect to correct — it is why a
+     handwritten line can sit at 24px next to 18px headings and still read as
+     an aside rather than a shout. Normalising it would make the reader's name
+     on Home the largest thing on the screen and their notes louder than the
+     quotes they were written about. A hand is not a third text face competing
+     on the same ladder; it is a margin note, and margin notes are small.
+
+     MEASURED, not guessed. Rendered at 100px and read off the canvas by
+     actualBoundingBoxAscent of "x": Quicksand 0.5162, EB Garamond roman
+     0.4050, its italic 0.4443, Georgia 0.4814, Palatino 0.4712. So the serif
+     is asked to grow about 27% — 16px of Garamond sets at roughly 20.4 to
+     stand level with 16px of Quicksand, which is simply what an old-style
+     face costs and why "just use the same number" never looks right. */
+  --font-adjust: 0.516;
+
+  /* AND THE SECOND REGIME, because "optical size" means two different things
+     depending on whether the type is being read or being read AS A NAME.
+
+     In a paragraph, apparent size is x-height: that is the band the eye tracks
+     along, so matching x-heights is what makes two families set at 16 look like
+     one size. In a heading it is cap height: a title is a short run of caps and
+     ascenders that the eye takes in as a shape, and nobody scans the waistline
+     of a three-word title.
+
+     Held to the x-match, Garamond's caps overshoot badly — its cap sits at
+     0.654 of the em against Quicksand's 0.700 while its x-height is only 0.418
+     against 0.529, so equalising the small letters throws the capitals 20%
+     over. That is not theory: at --text-lg it made "Currently reading" louder
+     on the page than the book title inside it, and section furniture out-
+     shouting the content is an inverted hierarchy, not a serif.
+
+     So display serif matches CAPS instead — 0.700 / 0.654 x 0.418 = 0.4475,
+     which asks Garamond to grow about 7% rather than 27%. Its x-height then
+     sits ~15% under the sans, which is not a flaw to fix either: small
+     counters under tall capitals is precisely what makes an old-style heading
+     read as literary rather than as a large label.
+
+     The line between the two is the same line the families are split on — is
+     this the app naming something, or a sentence somebody is reading? — so it
+     tracks --weight-display-read almost exactly, and the two declarations
+     travel together. */
+  --font-adjust-cap: 0.4475;
+
+  /* Kalam's own weights. It is a static family, so these are the three files
+     that exist rather than points on an axis — and only the first two ship. */
+  --weight-hand: 300;
+  --weight-hand-strong: 400;
+
+  /* Eight steps, and the one that matters is --text-md.
+
+     THE CENTRE OF GRAVITY IS THE READING SIZE, NOT THE HEADING. This is an
+     app for reading back what you wrote, so 16 is the fixed point and
+     everything else is placed relative to it. Titles are the things that had
+     to come down: an entry card's heading was 19 against content at 17 — two
+     steps apart, both large, and on a 375px phone the heading ate the card
+     and got truncated before the sentence under it had started.
+
+     So the ladder inverts where it should. A card's TITLE is 14 at weight
+     700; its CONTENT is 16 at 400. Smaller and bolder against larger and
+     lighter — because on an entry card the thing the reader came back for is
+     the sentence, not the label on it. Titles only outgrow the body at the
+     top of a page, where there is nothing to outrank.
+
+     Nothing above 24 exists on a phone. The top three steps grow once there
+     is room for them (600px+: 20 / 23 / 28); the hierarchy is identical
+     either way, only the volume moves. */
+  --text-2xs: 0.6875rem; /* 11 — capitalised micro-labels, tracked out */
+  --text-xs: 0.75rem; /* 12 — captions, dates, counts */
+  --text-sm: 0.8125rem; /* 13 — descriptions, secondary copy */
+  --text-base: 0.875rem; /* 14 — UI body, buttons, rows, card titles */
+  --text-md: 1rem; /* 16 — THE READING SIZE: kept lines, quotes, notes */
+  --text-lg: 1.125rem; /* 18 — section headings */
+  --text-xl: 1.25rem; /* 20 — page titles */
+  --text-2xl: 1.5rem; /* 24 — masthead, once per screen at most */
+
+  /* A NUMBER, not var(--text-base), and that is the point. iOS Safari zooms
+     the whole page whenever an input's text is under 16px, so this one size
+     has to stay 16 no matter where the body scale goes. It was an alias while
+     body happened to be 16; the moment body dropped to 15 the alias would
+     have quietly broken every field in the app. */
+  --text-field: 1rem;
 
   /* Five, by role, and tied to size: the bigger the type, the tighter it sets.
      There were twenty before — 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55,
@@ -524,7 +705,7 @@
   --leading-tight: 1.15; /* 18–22 headings */
   --leading-snug: 1.35; /* row titles, buttons, card text */
   --leading-body: 1.5; /* UI prose at 16 */
-  --leading-read: 1.65; /* long-form serif — the legal pages, a long quote */
+  --leading-read: 1.65; /* long-form — the legal pages, a long quote */
   --measure: 60ch;
 
   /* Large type wants to be pulled in; small uppercase wants to be let out, and
@@ -572,6 +753,20 @@
      the line and takes twelve off every card's height, without dropping to the
      16 the old set used, which did read as cramped. */
   --card-pad: 18px;
+
+  /* How far a keep's share/edit/delete row hangs below the card it belongs to.
+     Global because two modules need the same number and neither owns it: the
+     row is drawn in Keep.module.css and PAID FOR in whatever list the card is
+     standing in.
+
+     That second half is the whole reason this token exists. The journey's gap
+     between keeps was set on the card's own box, so every one of these rows
+     spent 24 of it before the next keep started — 48px of declared gap arrived
+     as 24 on a phone and 8 on a wide screen, and the thread read as one
+     squeezed column of cards rather than a series of separate days. A gap
+     measured to the wrong edge is not a gap, and it cannot be found by reading
+     either file on its own. */
+  --acts-hang: calc(var(--space-4) + 8px);
 
   /* ---- Radius ---- */
   --radius-sm: 8px;
@@ -642,9 +837,9 @@
    keep in step. */
 @media (min-width: 600px) {
   :root {
-    --text-lg: 1.375rem; /* 22 */
-    --text-xl: 1.75rem; /* 28 */
-    --text-2xl: 2.125rem; /* 34 */
+    --text-lg: 1.25rem; /* 20 */
+    --text-xl: 1.4375rem; /* 23 */
+    --text-2xl: 1.75rem; /* 28 */
   }
 }
 
@@ -779,6 +974,16 @@
      regression dressed up as a theme, so this stays a step under the day
      faint's effective contrast rather than a step over it. */
   --tint-ink-faint: oklch(0.45 0.022 265);
+  /* The card-side accent, and the whole reason this name exists. The room's
+     night accent is 0.78 — a moonlit blue built to carry on a dark sky, which
+     on a 0.95 sheet measured 1.07:1. Not low: unreadable, the same lightness
+     printed on itself.
+
+     0.43 rather than the day value's 0.45, following the rule the rest of this
+     block already keeps: the tints carry more chroma than plain paper does, so
+     an accent holding on white does not automatically hold on a lavender or a
+     honey wash. Measured on the strongest of them rather than the palest. */
+  --tint-accent: oklch(0.43 0.085 252);
   --tint-reverse: oklch(0.95 0.01 250);
   /* Same reasoning as the day value, pointed the same way — a lit card wants a
      dark interior rule in either theme, because the card is pale in both. 0.12
@@ -819,7 +1024,28 @@
 
   --color-ink: oklch(0.92 0.012 250);
   --color-ink-soft: oklch(0.74 0.018 255);
-  --color-ink-faint: oklch(0.62 0.02 258);
+  /* 0.67, not 0.62. Measured on the night paper this actually sits on — a
+     date under a keep, a term in the colophon — 0.62 came out at 3.97:1,
+     which is under AA and always was; the light block's faint ink clears 5.5
+     on its own paper, so the two themes were not holding the same floor. At
+     0.67 it measures 4.83 and the ramp is intact: ink 11.4, soft 6.3, faint
+     4.8, still three clearly separate voices. */
+  --color-ink-faint: oklch(0.67 0.02 258);
+
+  /* ---- The rabbit, after dark ----
+
+     Same animal, one stop quieter. The coat comes down from 0.995 to 0.93
+     because a pure-white shape on a dusk-indigo sky is the brightest thing
+     on the screen by a distance, and the eye goes to it before it goes to
+     the sentence the rabbit is there to illustrate. The OUTLINE stays dark:
+     inverting it to a light line would redraw the character rather than
+     dim it, and the coat is light enough in both themes to carry a dark
+     line either way. */
+  --bun-coat: oklch(0.93 0.012 250);
+  --bun-pink: oklch(0.77 0.08 20);
+  --bun-blush: oklch(0.74 0.095 18);
+  --bun-pool: oklch(0.46 0.055 250);
+  --bun-tool: oklch(0.76 0.1 78);
 
   /* The unlit dot after dark — see the light block for why the softening
      lives in the colour instead of in an `opacity`. */
@@ -854,6 +1080,10 @@
   --color-quote: oklch(0.7 0.06 140);
   --color-note: oklch(0.75 0.09 85);
   --color-voice: oklch(0.72 0.07 268);
+  /* The one surface that does not turn — but it does have to stay a recess,
+     and a 0.255 slab on a 0.32 night page is not one. See the light block. */
+  --orb-stage: oklch(0.2 0.028 264);
+  --orb-stage-lit: oklch(0.75 0.09 270 / 0.26);
   --color-image: oklch(0.72 0.08 45);
   --color-place: oklch(0.72 0.07 195);
   --color-thread: oklch(0.72 0.07 300);
@@ -894,6 +1124,7 @@
   --floss-green-l: 0.58;
   --floss-green-c: 0.115;
   --floss-cream: oklch(0.99 0.008 85);
+
   /* A cover's title is printed in --color-ink, which at night is pale because
      every other night surface is dark. A lit board is the one that is not, so
      it gets its own ink rather than the global one. */
@@ -935,4 +1166,17 @@
   --elevation-3: 0 2px 6px oklch(0.08 0.01 265 / 0.3);
 
   --grain-opacity: 0.02;
+
+  /* Night inverts the pill — it is the pale object now, on a dark page — so
+     the grain needs less of itself, and the sheen more: a light surface shows
+     its own top edge the way a dark one cannot. */
+  --grain-action-opacity: 0.07;
+  --action-sheen: oklch(1 0 0 / 0.5);
+  --action-shade: oklch(0.2 0.03 265 / 0.14);
+
+  /* The same three blossoms, inked instead of bleached, and quieter: a dark
+     mark on a pale pill carries about half again as far as the reverse. Same
+     tile, same scatter — only the two colour values differ, so the day and
+     night pills are printed off one plate. */
+  --bloom-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cdefs%3E%3Cpath id='b' d='M12 2.7 A3.5 2.8 -90 1 1 12 9.7 A3.5 2.8 -90 1 1 12 2.7 Z M20.845 9.126 A3.5 2.8 -18 1 1 14.187 11.29 A3.5 2.8 -18 1 1 20.845 9.126 Z M17.466 19.524 A3.5 2.8 54 1 1 13.352 13.86 A3.5 2.8 54 1 1 17.466 19.524 Z M6.534 19.524 A3.5 2.8 126 1 1 10.648 13.86 A3.5 2.8 126 1 1 6.534 19.524 Z M3.155 9.126 A3.5 2.8 198 1 1 9.813 11.29 A3.5 2.8 198 1 1 3.155 9.126 Z M10.2 12 A1.8 1.8 0 1 1 13.8 12 A1.8 1.8 0 1 1 10.2 12 Z'/%3E%3C/defs%3E%3Cg fill='%23262a3a' fill-opacity='0.07'%3E%3Cuse href='%23b' transform='translate(7 7) rotate(-8) scale(0.34) translate(-12 -12)'/%3E%3Cuse href='%23b' transform='translate(22 18) rotate(24) scale(0.26) translate(-12 -12)'/%3E%3Cuse href='%23b' transform='translate(24 4) rotate(-30) scale(0.22) translate(-12 -12)'/%3E%3Cuse href='%23b' transform='translate(9 22) rotate(14) scale(0.2) translate(-12 -12)'/%3E%3C/g%3E%3C/svg%3E");
 }

@@ -8,3 +8,6 @@ dist/
 
 # The template is documentation, not a key.
 !.env.example
+
+# Local browser-session logs from the review harness.
+.playwright-mcp/

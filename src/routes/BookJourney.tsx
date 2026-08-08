@@ -41,7 +41,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import BookCover from '../components/BookCover'
 import FormatRow from '../components/FormatRow'
 import GlassSurface from '../components/GlassSurface'
-import Mascot from '../components/Mascot'
+import Bunny from '../rabbit/Bunny'
 import Sheet from '../components/Sheet'
 import Sparkle from '../components/Sparkle'
 import CalendarPicker from '../components/date/CalendarPicker'
@@ -50,6 +50,7 @@ import {
   CheckIcon,
   ChevronIcon,
   CloseIcon,
+  ClosingIcon,
   FairCopyIcon,
   KeepIcon,
   OpeningIcon,
@@ -59,7 +60,6 @@ import {
 } from '../components/TabIcons'
 import { formatsOf, type Entry, type EntryType } from '../data/db'
 import { useBook, useEntries } from '../data/useBook'
-import { did } from '../onboarding/progress'
 import Keep from '../journey/Keep'
 import KeepSheet from '../journey/KeepSheet'
 import KeepsakeSheet from '../journey/KeepsakeSheet'
@@ -67,7 +67,7 @@ import PlateSheet from '../journey/PlateSheet'
 import FairCopySheet from '../journey/FairCopySheet'
 import BookMenu from '../journey/BookMenu'
 import { KIND, KINDS, SIDE } from '../journey/kinds'
-import { epigraph, keptLabel } from '../journey/lexicon'
+import { colophonTail, epigraph, finis, keptLabel, tally } from '../journey/lexicon'
 import { finish, removeKeep, setDates, setFormats } from '../journey/keeps'
 import {
   ALL,
@@ -200,13 +200,6 @@ function BookJourney() {
   const bookId = Number.isFinite(parsed) ? parsed : undefined
 
   const book = useBook(bookId)
-
-  // Opening a book's thread is the second step of the first page, and it is a
-  // visit rather than a keep — so it records itself once a real book is under
-  // it, not merely because the route matched.
-  useEffect(() => {
-    if (book) did('journey')
-  }, [book])
   const entries = useEntries(bookId)
 
   const [sift, setSift] = useState<Sift>(ALL)
@@ -441,10 +434,13 @@ function BookJourney() {
 
   const opening = epigraph(book, keeps)
   const forward = runsForward(sift.order)
-  /* Digits, not words: this is a data line, and "ten" makes a number harder
-     to find than "10". The spelled-out counts stay in the prose surfaces
-     (the colophon), where they belong. */
-  const facts = `${keeps.length} ${keeps.length === 1 ? 'keep' : 'keeps'}`
+  /* What this book is carrying, split into the two substances rather than
+     totalled. "12 keeps" is a number; "8 whispers · 4 in ink" is the same
+     number saying what kind of reading this was — mostly the book's voice, or
+     mostly the reader's. It is also the only line on any screen that teaches
+     the two words, which is why it is here and not on a meta line somewhere.
+     See `tally` in journey/lexicon.ts. */
+  const facts = tally(keeps)
   /* Both ends at once, because the year on one of them depends on the other. */
   const span = spanPair(book.startedOn, book.finishedOn)
 
@@ -480,6 +476,68 @@ function BookJourney() {
         <p className={styles.openLine}>
           {opening.line}
           <Sparkle size={12} className={styles.openSpark} />
+        </p>
+      </div>
+    </li>
+  )
+
+  /* The last notch, and the other half of the pair.
+     ═══════════════════════════════════════════════
+
+     A thread tied on at one end and simply stopping at the other has no
+     ending, only a last item — and a journey that trails off is the one thing
+     a keepsake must not do. So the close is built from the same three parts as
+     the opening (a mark in the gutter, a dated meta line, an inscription) and
+     from the same seeded pools, so one book always closes the way it always
+     opened. Under it, three facts: how long, in what, how much. That is a
+     printer's colophon at the foot of a book, which is exactly what this is.
+
+     IT ONLY EXISTS WHEN THE READER SAID SO. `finishedOn` is set from the date
+     row and from nowhere else — the app never decides a book is finished on
+     the reader's behalf, not at 100% of the page count, not after a long
+     silence. A book with no closing date has no closing seal, and that is not
+     a missing state: it is a book still being read.
+
+     AND IT IS A MARK, NOT A LOCK. Nothing goes read-only. Every keep can still
+     be written, edited and deleted, new ones still land on the thread, and
+     clearing the date takes this whole seal back off again. The note under the
+     facts says so in plain words rather than leaving the reader to test it,
+     because a page that LOOKS finished is exactly where someone stops trying.
+     (The owner's framing: "they can still edit things and add more things at a
+     later date too.") */
+  const ending = book.finishedOn ? finis(book, book.finishedOn) : null
+  const tail = book.finishedOn ? colophonTail(book, keeps) : []
+  const closing = ending && (
+    <li className={styles.notch} data-closing="" key="closing">
+      <span className={styles.gutter} aria-hidden="true">
+        <span className={styles.knot}>
+          <ClosingIcon size={14} />
+        </span>
+      </span>
+      <div className={styles.hang}>
+        <p className={styles.when}>
+          <span className={styles.whenDay}>{keptLabel(ending.on)} · the last day</span>
+        </p>
+        <p className={styles.closeLine}>{ending.line}</p>
+        {tail.length > 0 && (
+          <dl className={styles.colophon}>
+            {tail.map(({ term, detail }) => (
+              <div className={styles.fact} key={term}>
+                <dt>{term}</dt>
+                <dd>{detail}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {/* Points at the date row at the head of this page rather than quoting
+            its label. The label there reads "Still reading it, actually",
+            which is the right thing for a button and the wrong thing to have
+            hard-coded twice — the copy would go stale the first time either
+            one is touched. Naming the place survives that; naming the words
+            does not. */}
+        <p className={styles.closeNote}>
+          Nothing is sealed. Keep writing in this book whenever you like, and the dates at
+          the top of this page are still yours to change or take off.
         </p>
       </div>
     </li>
@@ -572,127 +630,156 @@ function BookJourney() {
               it. Reading takes it away because reading scrolls, which is the
               only mechanism on this page that has ever moved at the speed the
               reader is moving. */}
-          <div className={styles.headTop} ref={head}>
-            {/* Sized in CSS rather than by prop, because its width is not a
-            free choice any more: the board's height is the height of the
-            record beside it, and 2:3 is what turns one into the other. */}
-            <BookCover
-              title={book.title}
-              author={book.author}
-              covers={book.covers}
-              size="small"
-              className={styles.cover}
-            />
-            {/* Everything that is *about* the book, in one column: name, byline,
-            formats, dates. The cover is the other column and holds nothing
-            but the cover.
+          {/* The head and its hours, observed as ONE block.
 
-            Two alignment edges on the whole head, which is the point. The
-            dates used to sit outside this block on a full-width line of
-            their own, so their leading edge lined up with the spine of the
-            book and with nothing in the column of writing above them —
-            three edges to read where there should have been two. */}
-            <div className={styles.about}>
-              {/* One column with one rhythm, and exactly one thing bound tighter
-              than the rest.
+              The rail below sticks the moment this box's last pixel leaves the
+              top of the scroll, and the bar above takes the book's name off the
+              same observation — see the note on `--head-tail`. Hanging the
+              hours off the outside of the observed box would have separated
+              those two moments by exactly the height of the hours; hanging it
+              inside keeps them the same moment, and keeps them so whether or
+              not this book has ever been timed. */}
+          <div className={styles.headBlock} ref={head}>
+            <div className={styles.headTop}>
+              {/* Sized in CSS rather than by prop, because its width is not a
+              free choice any more: the board's height is the height of the
+              record beside it, and 2:3 is what turns one into the other. */}
+              <BookCover
+                title={book.title}
+                author={book.author}
+                covers={book.covers}
+                size="small"
+                className={styles.cover}
+              />
+              {/* Everything that is *about* the book, in one column: name, byline,
+              formats, dates. The cover is the other column and holds nothing
+              but the cover.
 
-              It used to be two groups held apart by a seam, and the seam was
-              where the head went wrong: the record's floor came off the
-              cover's 2:3, `space-between` pushed every spare pixel into that
-              one join, and a short title turned it into a band of dead air
-              under the byline that belonged to nothing. The join was doing
-              the work of the leftover space.
+              Two alignment edges on the whole head, which is the point. The
+              dates used to sit outside this block on a full-width line of
+              their own, so their leading edge lined up with the spine of the
+              book and with nothing in the column of writing above them —
+              three edges to read where there should have been two. */}
+              <div className={styles.about}>
+                {/* One column with one rhythm, and exactly one thing bound tighter
+                than the rest.
 
-              Now the column is even — 16 down its whole length — and the
-              grouping is carried by the one gap that is *tighter*: the title
-              and its byline sit at 8, half of everything else, which is the
-              whole of the 2× the grouping needs. Spare height falls to the
-              foot of the column, where a cover taller than its own caption
-              is just what a book beside a paragraph looks like. */}
-              <div className={styles.identity}>
-                {/* Up to two lines. One line was a height rule — it kept the
-                pinned head the same size per book — but it also truncated
-                most real titles at this width, and the space it saved was
-                the space that opened under the byline. Two lines spends it
-                on the name instead. The full text stays on the element. */}
-                <h1 className={styles.title} title={book.title}>
-                  {book.title}
-                </h1>
-                <p className={styles.author}>
-                  {book.author} · {facts}
-                </p>
+                It used to be two groups held apart by a seam, and the seam was
+                where the head went wrong: the record's floor came off the
+                cover's 2:3, `space-between` pushed every spare pixel into that
+                one join, and a short title turned it into a band of dead air
+                under the byline that belonged to nothing. The join was doing
+                the work of the leftover space.
+
+                Now the column is even — 16 down its whole length — and the
+                grouping is carried by the one gap that is *tighter*: the title
+                and its byline sit at 8, half of everything else, which is the
+                whole of the 2× the grouping needs. Spare height falls to the
+                foot of the column, where a cover taller than its own caption
+                is just what a book beside a paragraph looks like. */}
+                <div className={styles.identity}>
+                  {/* Up to two lines. One line was a height rule — it kept the
+                  pinned head the same size per book — but it also truncated
+                  most real titles at this width, and the space it saved was
+                  the space that opened under the byline. Two lines spends it
+                  on the name instead. The full text stays on the element. */}
+                  <h1 className={styles.title} title={book.title}>
+                    {book.title}
+                  </h1>
+                  <p className={styles.author}>{book.author}</p>
+                  {/* Its own line, not appended to the byline. The byline is one
+                      nowrap line with an ellipsis on it — the head has to stay a
+                      fixed height per book — so "Raynor Winn · 8 whispers · 4 in
+                      ink" truncated to "RAYNOR WINN · NOTHING KEPT Y…" on a
+                      375px phone. A fact that only shows up on short names is
+                      not on the screen. */}
+                  {facts && <p className={styles.tally}>{facts}</p>}
+                </div>
+
+                {/* No wrapper. The row used to sit in a div whose only job was to
+                carry a top margin, and that margin was one of the three
+                hand-placed numbers this column was rebuilt to get rid of. */}
+                <FormatRow
+                  small
+                  value={formatsOf(book)}
+                  onChange={(next) => void setFormats(book.id, next)}
+                />
+
+                {/* The reading span: one pill, two tappable ends, an arrow between.
+
+                A date, an arrow and a second date is already a sentence, so
+                there are no labels — nobody reads "Jul 2 → still reading" and
+                wonders which end is which. The two ends are formatted together
+                rather than one at a time, which is what stops the same year
+                being printed twice inside one pill.
+
+                Each end is its own button and the arrow is neither of them. */}
+                {book.startedOn || book.finishedOn ? (
+                  <div className={styles.span}>
+                    <button
+                      type="button"
+                      className={styles.spanEnd}
+                      data-unset={!book.startedOn || undefined}
+                      onClick={() => setPicking('opened')}
+                      aria-label={
+                        book.startedOn
+                          ? `Started ${shortDate(book.startedOn)}. Change the day.`
+                          : 'No start date yet. Set one.'
+                      }
+                    >
+                      {/* The label carries its own clipping so the button does not.
+                      `overflow: hidden` on the button would crop its own 44px
+                      tap pseudo back to the 33 it paints. */}
+                      <span className={styles.spanText}>{span.start ?? 'no start date'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.spanEnd}
+                      data-unset={!book.finishedOn || undefined}
+                      onClick={() => setPicking('closed')}
+                      aria-label={
+                        book.finishedOn
+                          ? `Finished ${shortDate(book.finishedOn)}. Change the day.`
+                          : 'Still reading. Set the day you finished.'
+                      }
+                    >
+                      {/* The arrow rides INSIDE the second end, not between the
+                          two. On a wide column that renders identically; on a
+                          column narrow enough to fold the pill, the arrow now
+                          leads the second line — "Mar 14, 2019 / → still
+                          reading" — so the fold reads as a sentence turning,
+                          not as a word that fell out of the capsule. The owner
+                          sent a screenshot of exactly that dangling word. */}
+                      <span className={styles.spanArrow} aria-hidden="true">
+                        →
+                      </span>
+                      <span className={styles.spanText}>{span.finish ?? 'still reading'}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className={styles.span}>
+                    <button
+                      type="button"
+                      className={styles.spanEnd}
+                      onClick={() => setPicking('opened')}
+                    >
+                      <span className={styles.spanText}>Add reading dates</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* No wrapper. The row used to sit in a div whose only job was to
-              carry a top margin, and that margin was one of the three
-              hand-placed numbers this column was rebuilt to get rid of. */}
-              <FormatRow
-                small
-                value={formatsOf(book)}
-                onChange={(next) => void setFormats(book.id, next)}
-              />
-
-              {/* The reading span: one pill, two tappable ends, an arrow between.
-
-              A date, an arrow and a second date is already a sentence, so
-              there are no labels — nobody reads "Jul 2 → still reading" and
-              wonders which end is which. The two ends are formatted together
-              rather than one at a time, which is what stops the same year
-              being printed twice inside one pill.
-
-              Each end is its own button and the arrow is neither of them. */}
-              {book.startedOn || book.finishedOn ? (
-                <div className={styles.span}>
-                  <button
-                    type="button"
-                    className={styles.spanEnd}
-                    data-unset={!book.startedOn || undefined}
-                    onClick={() => setPicking('opened')}
-                    aria-label={
-                      book.startedOn
-                        ? `Started ${shortDate(book.startedOn)}. Change the day.`
-                        : 'No start date yet. Set one.'
-                    }
-                  >
-                    {/* The label carries its own clipping so the button does not.
-                    `overflow: hidden` on the button would crop its own 44px
-                    tap pseudo back to the 33 it paints. */}
-                    <span className={styles.spanText}>{span.start ?? 'no start date'}</span>
-                  </button>
-                  <span className={styles.spanArrow} aria-hidden="true">
-                    →
-                  </span>
-                  <button
-                    type="button"
-                    className={styles.spanEnd}
-                    data-unset={!book.finishedOn || undefined}
-                    onClick={() => setPicking('closed')}
-                    aria-label={
-                      book.finishedOn
-                        ? `Finished ${shortDate(book.finishedOn)}. Change the day.`
-                        : 'Still reading. Set the day you finished.'
-                    }
-                  >
-                    <span className={styles.spanText}>{span.finish ?? 'still reading'}</span>
-                  </button>
-                </div>
-              ) : (
-                <div className={styles.span}>
-                  <button
-                    type="button"
-                    className={styles.spanEnd}
-                    onClick={() => setPicking('opened')}
-                  >
-                    <span className={styles.spanText}>Add reading dates</span>
-                  </button>
-                </div>
-              )}
+              {/* The head's own star — see `.headSpark`. Last child on purpose: it
+              is lifted out of flow, so its only job in the markup is to be
+              somewhere it can never take part in the row's layout. */}
+              <Sparkle size={15} className={styles.headSpark} />
             </div>
 
-            {/* The head's own star — see `.headSpark`. Last child on purpose: it
-            is lifted out of flow, so its only job in the markup is to be
-            somewhere it can never take part in the row's layout. */}
-            <Sparkle size={15} className={styles.headSpark} />
+            {/* The hours, under the record and folded shut. Nothing at all
+                until this book has actually been sat with. */}
+            {/* The sittings ledger used to sit here. The owner moved it
+                out — the reading log is a sheet off the Home clock now, so
+                the journal page stays about the reading. */}
           </div>
 
           {/* ── One line: what to show, and the order it hangs in ─────────
@@ -771,8 +858,14 @@ function BookJourney() {
             </button>
           </div>
 
+          {/* Both seals sit at the ends the ORDER puts them at, not at the ends
+              of the markup. Oldest-first, the opening is at the top and the
+              close at the foot; newest-first they swap, because "the day you
+              opened it" above today's keep would read as the latest news. Both
+              survive every filter — they are where the thread is tied on and
+              off, not entries that happen to be of some kind. */}
           <ol className={styles.thread}>
-            {forward && seal}
+            {forward ? seal : closing}
             {rows.map(({ keep, tie }) => (
               <Notch
                 key={keep.id}
@@ -784,17 +877,29 @@ function BookJourney() {
                 onDelete={(k) => void deleteKeep(k)}
               />
             ))}
-            {!forward && seal}
+            {forward ? closing : seal}
           </ol>
 
-          {/* Two empty states, one leaf. A filter that comes up dry offers
-              the way back; a journey with nothing kept yet says what will
-              live here — in the book's own serif, on a dashed leaf, not as a
-              bare sentence floating in the dark. */}
+          {/* Two empty states on one leaf, and DELIBERATELY NOT THE SAME
+              CREATURE. They are two different nothings: a filter came up dry
+              (there IS a journey, you are just not looking at it) versus a
+              book nobody has written in yet (there is no journey). The same
+              rabbit doing the same thing under both would flatten that
+              difference into "no results" twice.
+
+              So one is hunting — awake, upright, peering out between both
+              paws, because what you asked for is somewhere and not here. The
+              other is asleep on its side, the same animal on the same empty
+              shelf in the Library: nothing has happened on this thread, and
+              nothing is going to until the reader writes the first line. */}
           {rows.length === 0 && keeps.length > 0 && (
             <div className={styles.nothing}>
-              <Mascot size={54} />
-              <span>Nothing of that kind on this thread yet.</span>
+              <Bunny pose="peek" size={132} />
+              <p className={styles.nothingLine}>Nothing of that kind here.</p>
+              <p className={styles.nothingHint}>
+                This book has plenty else on its thread — the filter is only looking for one sort
+                of thing.
+              </p>
               <button
                 type="button"
                 className={styles.clear}
@@ -807,11 +912,17 @@ function BookJourney() {
 
           {keeps.length === 0 && (
             <div className={styles.nothing}>
-              <Mascot size={54} />
-              <span>
-                Nothing on this thread yet. Whatever this book whispers to you, and whatever you put
-                down in your own ink, will hang right here.
-              </span>
+              {/* Larger than the 132 the other poses use here, because this is
+                  the only rabbit on the screen rather than one beside a thread
+                  of entries — an empty book has nothing else in it to hold the
+                  eye. Still smaller than the library's 180: one silent book is
+                  a smaller silence than a whole empty shelf. */}
+              <Bunny pose="sleep" size={152} />
+              <p className={styles.nothingLine}>Nothing on this thread yet.</p>
+              <p className={styles.nothingHint}>
+                Whatever this book whispers to you, and whatever you put down in your own ink, will
+                hang right here.
+              </p>
             </div>
           )}
 
@@ -822,20 +933,32 @@ function BookJourney() {
               under an empty leaf both are talking about nothing, and "the
               thread is still running" directly contradicts the leaf above it
               saying nothing has been kept. An empty journey gets one creature
-              and one sentence, not two of each. */}
-          {rows.length > 0 && (
+              and one sentence, not two of each.
+
+              AND ONLY WHILE THE BOOK IS STILL BEING READ. This used to carry a
+              second branch — "That is the whole of this one." — which was the
+              whole ending a finished book got. The closing seal is that now,
+              and it is a better one: dated, seeded, with the reading's facts
+              under it. Leaving both meant a finished journey ended twice in
+              nine hundred pixels, the second time in almost the same words.
+              What is left here is the one case the seal cannot cover, because
+              a book still being read has no last day to print. */}
+          {rows.length > 0 && !book.finishedOn && (
             <div className={styles.ending}>
               <span className={styles.tail} aria-hidden="true" />
-              {/* The bed is the sentence's own box, and it is the creature's
-                  whole world — see `.endBed`. */}
+              {/* NO CREATURE HERE, and that is the point of having five of
+                  them. There are five poses and five moments, one each; the
+                  end of a full thread would have to borrow one, and a reader
+                  who clears a dry filter would then watch the same rabbit do
+                  the same thing twice on one screen — which is the exact
+                  "pasted three times" feeling the poses exist to avoid. This
+                  moment already has its own two closers: the tail where the
+                  thread stops, and a sentence that reads what you kept. */}
               <div className={styles.endBed}>
                 <p className={styles.endLine}>
-                  {book.finishedOn
-                    ? 'That is the whole of this one.'
-                    : 'The thread is still running.'}
+                  The thread is still running.
                   <Sparkle size={13} className={styles.endSpark} />
                 </p>
-                <Mascot size={52} />
               </div>
             </div>
           )}
@@ -879,6 +1002,11 @@ function BookJourney() {
         <KeepIcon size={22} />
       </button>
 
+      {/* Keeping and changing are one sheet over this page, not a place you
+          travel to. A quote you want to write down is a thought you are having
+          *while looking at the thread* — sending the reader to another screen
+          for it loses the page they were on and makes a two-line note feel
+          like filing a form. The sheet keeps the journey visible behind it. */}
       <KeepSheet
         open={adding !== null || editing !== null}
         onClose={() => {
@@ -985,14 +1113,28 @@ function BookJourney() {
               setPicking(null)
             }}
           />
-          {/* Unfinishing has to clear the field rather than blank it, so it
-              is its own call and not a date. */}
-          {picking === 'closed' && book.finishedOn && (
+          {/* The way out of the finish picker, and it has to be here for every
+              book — not only for the ones that already have a finish date.
+
+              It used to be gated on `book.finishedOn`, which meant it appeared
+              in the one case where nobody needs it and was missing from the
+              one where everybody does. Tapping "still reading" on the head is
+              the commonest way into this sheet, and it landed the reader on a
+              calendar headed "The day you closed it" with no control on it
+              that says anything about still reading — the only way back out
+              was the × in the corner, which is a dismissal and not an answer.
+              So the reader looks for the button they were promised, does not
+              find it, and the whole exchange reads as broken.
+
+              Unfinishing has to clear the field rather than blank it, so it is
+              its own call and not a date; on a book that has no finish date
+              there is nothing to clear and the press is simply the way back. */}
+          {picking === 'closed' && (
             <button
               type="button"
               className={styles.unfinish}
               onClick={() => {
-                void finish(book.id, null)
+                if (book.finishedOn) void finish(book.id, null)
                 setPicking(null)
               }}
             >

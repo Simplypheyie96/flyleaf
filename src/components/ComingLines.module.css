@@ -1,0 +1,179 @@
+/* See ComingLines.tsx. Everything animated here is an opacity, so nothing on
+   the page relayouts while it runs. */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  border-radius: var(--radius-md);
+  animation: rise 620ms var(--ease-out) 220ms both;
+}
+
+/* Focusable so the pause is reachable without a pointer. It is not a control
+   and must not look like one, so there is no resting affordance at all — only
+   the ring, only when focused. */
+.wrap:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 6px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* THE LEAD-IN IS A HEADING. It was set as a micro-label — 11px, tracked out,
+   in capitals, in the faint ink — on the argument that it is the frame the
+   sentence hangs in rather than a section of its own. True of the words, wrong
+   about the screen. This is one of exactly two things the first run says, and
+   it was set at the app's smallest rank, four steps under a question in the
+   card above it and two under the sentence it was introducing. Owner, on the
+   screen: it "looks a bit tiny."
+
+   So it takes the rank it actually holds. Same serif, same size, same weight
+   and same sentence case as "Currently reading" and "Look what fell out" — the
+   two headings a reader meets on the real Home — because that is what this
+   becomes once there is something in the drawer, and a first run that teaches
+   the wrong shape has to be untaught.
+
+   SENTENCE CASE MATTERS AS MUCH AS THE SIZE. Small capitals are a format for
+   field names, and the moment a phrase with a voice is stamped in them it
+   stops sounding like a voice. "Then, as you read" is someone talking. */
+.lead {
+  /* The wrap's own gap is 8, which is right between the sentence and the marks
+     that count it and too tight under a heading. The extra 6 buys the heading
+     its own air without opening the gap under the sentence to match. */
+  margin: 0 0 6px;
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-display-read);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--track-title);
+  color: var(--color-ink);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.deck {
+  display: grid;
+  inline-size: 100%;
+  max-inline-size: 32ch;
+}
+
+.line,
+.lineOn {
+  grid-area: 1 / 1;
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  /* Full ink, not soft. The sentence is the content of this block, not a
+     caption under it, and at soft it sat a shade under a heading that had just
+     been raised — which would have made the section look MORE like a label
+     with a footnote than it did before. Size separates the two now; colour
+     does not have to as well. */
+  color: var(--color-ink);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* SEQUENCED, NOT CROSSFADED. Two lines at half opacity on top of each other
+   are a double exposure — for the 400ms in the middle of a crossfade neither
+   is readable. The outgoing line goes out first and the incoming one waits for
+   an empty cell: 260 out, 260 in, no overlap.
+
+   Visibility as well as opacity, because a transparent paragraph is still read
+   out and still catches a caret. It flips at the END of the fade out and at
+   the START of the fade in, so it is never the thing you see change. */
+.line {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 260ms ease-in,
+    visibility 0s linear 260ms;
+}
+
+.lineOn {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 260ms ease-out 260ms,
+    visibility 0s linear 260ms;
+}
+
+/* Reduced motion: the same three lines, printed. */
+.all {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-inline-size: 32ch;
+
+  font-family: var(--font-app);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  /* Matches `.line` above — see the note there on why this is full ink. */
+  color: var(--color-ink);
+  text-align: center;
+  text-wrap: pretty;
+}
+
+/* Which of the three, and how far through. Marks rather than dots, so they
+   read as stitches instead of as a carousel someone is meant to operate —
+   nothing here is pressable. */
+.marks {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.mark,
+.markOn {
+  inline-size: 14px;
+  block-size: 2px;
+  border-radius: 1px;
+  transition: background-color 420ms ease;
+}
+
+.mark {
+  background: var(--card-border);
+}
+
+.markOn {
+  background: var(--color-ink-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrap {
+    animation: fade-in 200ms ease 200ms both;
+  }
+
+  .line,
+  .lineOn,
+  .mark,
+  .markOn {
+    transition: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

@@ -6,37 +6,56 @@
    night is not a second set of assets, and a change to the palette moves the
    logo with it instead of leaving it behind. */
 
+/* THE AIR BESIDE THE MARK IS NOT A SPACING STEP, and treating it as one is why
+   the name looked like it had come loose from the flower.
+
+   The mark is radial, so its drawing does not touch its own box: measured off
+   the rendered path, the ink is 74.63% of the box wide and centred, leaving
+   12.69% of the box empty on each side. A 44px mark therefore brings 5.58px of
+   its own margin to the joint before any gap is declared. --space-3 on top of
+   that put 17px of air between the flower and the F — against a cap height of
+   14 at that size. Nearly a whole capital of nothing, in a lockup.
+
+   So the gap is stated ink to ink and the mark's dead margin is subtracted out
+   of it. 0.375rem is the target: a shade over a quarter of the cap, which is
+   what reads as one object rather than two. It has to be a negative margin
+   rather than a flex `gap`, because past a 47px mark the sum goes below zero
+   and a negative gap is simply invalid — the lockup would silently fall back
+   to the loose spacing this comment exists to remove. */
 .wordmark {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 0;
   color: var(--color-ink);
 }
 
-/* The leaf body: paper, with the same hairline every card carries, so the mark
-   sits on the sky like one more small piece of paper. */
-.leafBody {
-  fill: var(--color-paper);
-  /* Heavier than a card's hairline on purpose. A card's edge is helped by a
-     shadow and a whole rectangle of area; a 40px leaf has neither, and at 16%
-     ink it dissolved into the sky and read as a circle. */
-  stroke: color-mix(in oklch, var(--color-ink), transparent 68%);
-  stroke-width: 14;
-}
+/* SOLID INK, AND NO KEYLINE. An early mark was paper-filled with a grey outline
+   round it, which is how it came to look like a drawing of a logo rather than
+   one: at the size a mark is actually used — 20px beside the logotype, 32 in a
+   bar — a fill and its outline are the same few pixels arguing, and the whole
+   thing greys out. One value, full contrast, and the shape carries itself. The
+   air between the petals is a gap, not a stroke, for the same reason.
 
-.leafVeins {
-  stroke: var(--color-accent-text);
-  opacity: 0.8;
+   Ink and not the accent, because the accent is the handwriting's, and a mark
+   that borrows it starts competing with the reader's own hand on the page. */
+.markBody {
+  fill: var(--color-ink);
 }
 
 /* The name. Display serif, tightened a touch because a logotype is set closer
    than running text, and never a path — it inherits the type system. */
 .logotype {
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
   letter-spacing: -0.015em;
   line-height: 1;
   color: inherit;
+  /* The other half of the sum above: pull the name back over the mark's own
+     empty margin, then leave the target gap. --mark-size comes from
+     Wordmark.tsx, because the correction is a share of the drawing and has to
+     scale with it. */
+  margin-inline-start: calc(0.375rem - var(--mark-size, 32px) * 0.12685);
 }
 
 /* ---- Empty-state drawings ---- */
@@ -65,4 +84,21 @@
    faint enough that the line work is still what you read. */
 .accentFill {
   fill: color-mix(in oklch, var(--color-accent-text), transparent 88%);
+}
+
+/* ── the flower field — see FlowerField.tsx ─────────────────────────────── */
+
+.field {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Ink at a whisper. In the dark theme the ink is candle-cream, so the same
+   rule gives moonlit petals without a second palette. */
+.fieldFlower {
+  position: absolute;
+  fill: var(--color-ink);
+  opacity: 0.05;
 }

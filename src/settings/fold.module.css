@@ -19,7 +19,7 @@
   border: 0;
   background: none;
   color: var(--color-ink);
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-base);
   font-weight: var(--weight-medium);
   line-height: var(--leading-snug);

@@ -28,8 +28,13 @@
 .title {
   margin: 0;
   margin-inline-end: auto;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  /* The serif, like every other sheet title in the app — this was the last one
+     still in the sans at 700, which made it the loudest run of type anywhere
+     in Settings and the only heading on that screen that did not match the
+     others. */
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
   /* A step under the page title, never level with it. This sheet opens from a
      row inside Settings, and a heading the same size as the screen it came
      from tells a reader they have arrived somewhere bigger than they have. */

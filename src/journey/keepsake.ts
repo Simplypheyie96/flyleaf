@@ -42,6 +42,16 @@ export interface Palette {
   ink: string
   soft: string
   accent: string
+  /** What the paper is laid ON, when it is laid on anything.
+
+      The whole reading fills its plate and never needs this. One keep is
+      mounted on it — see the top of plate.ts — so the fifth colour arrived
+      with that picture rather than with these four. It is the deep relative of
+      each palette's own character, never a fifth hue: Flyleaf's is its teal,
+      Bloom's its clay, Fern's a step past its green, and Dusk goes the other
+      way and lightens, because a night palette whose mat is darker than its
+      paper has nowhere left to put the shadow. */
+  field: string
 }
 
 /* Fixed sRGB rather than the app's live tokens. An exported picture has to look
@@ -55,11 +65,41 @@ export interface Palette {
    ones (3.7–4.4) and are a step deeper for it; the hue is the one that was
    chosen, only the ink is stronger. */
 export const PALETTES: Palette[] = [
-  { id: 'flyleaf', label: 'Flyleaf', paper: '#f4f7fb', ink: '#161d29', soft: '#5c6674', accent: '#2f6f6a' },
-  { id: 'dusk', label: 'Dusk', paper: '#1b2230', ink: '#eef1f6', soft: '#96a1b3', accent: '#e0b25f' },
-  { id: 'bloom', label: 'Bloom', paper: '#fbf1ec', ink: '#38292a', soft: '#7b625c', accent: '#a84c3b' },
-  { id: 'fern', label: 'Fern', paper: '#eef3ec', ink: '#1e2c22', soft: '#5c6e5e', accent: '#37704b' },
+  { id: 'flyleaf', label: 'Flyleaf', paper: '#f4f7fb', ink: '#161d29', soft: '#5c6674', accent: '#2f6f6a', field: '#2f6f6a' },
+  { id: 'dusk', label: 'Dusk', paper: '#1b2230', ink: '#eef1f6', soft: '#96a1b3', accent: '#e0b25f', field: '#39435c' },
+  { id: 'bloom', label: 'Bloom', paper: '#fbf1ec', ink: '#38292a', soft: '#7b625c', accent: '#a84c3b', field: '#a84c3b' },
+  { id: 'fern', label: 'Fern', paper: '#eef3ec', ink: '#1e2c22', soft: '#5c6e5e', accent: '#37704b', field: '#2b5a3c' },
 ]
+
+/* The relative luminance of one of the palette's own hex strings. Small, and
+   here rather than in a helpers file, because its only job is to keep the
+   promise made just above the palettes: everything set as text clears 4.5:1 on
+   what it is set on. A promise checked by a function cannot rot the way one
+   checked by hand in a comment does. */
+function lum(hex: string) {
+  const n = parseInt(hex.slice(1), 16)
+  const parts = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const s = v / 255
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * parts[0] + 0.7152 * parts[1] + 0.0722 * parts[2]
+}
+
+function ratio(a: string, b: string) {
+  const [hi, lo] = [lum(a), lum(b)].sort((p, q) => q - p)
+  return (hi + 0.05) / (lo + 0.05)
+}
+
+/** Whichever of a palette's two inks its field can actually carry.
+
+    Three of the four fields are deep and take the pale paper; Dusk's is a
+    slate the pale ink shows on and the dark paper does not. Choosing by
+    measurement rather than by a per-palette fifth string means a palette
+    retuned later cannot quietly go unreadable — the worst it can do is change
+    its mind about which ink it wants. */
+export function onField(p: Palette) {
+  return ratio(p.paper, p.field) >= ratio(p.ink, p.field) ? p.paper : p.ink
+}
 
 export interface Look {
   shape: Shape
@@ -127,36 +167,55 @@ export const W = 1080
 export const H = 1350
 export const PAD = 96
 
-/* The same two families the app is set in. These names have to match a face
-   the page actually loaded: document.fonts.load() resolves with an empty list
-   and no error when the family is unknown, so a wrong name here does not throw
-   — it just draws the whole picture in the system fallback and says nothing.
-   These have been wrong twice: once naming "Geist", a face this app has never
-   shipped, and once naming EB Garamond after the app had moved off it. */
-export const SERIF = '"Newsreader Variable", Georgia, serif'
-export const SANS = '"Source Sans 3 Variable", system-ui, sans-serif'
+/* The two families the app is set in, and the picture keeps the same split the
+   screens do: FACE is the app labelling, FACE_READ is the book speaking.
+
+   These names have to match faces the page actually loaded. document.fonts
+   .load() resolves with an empty list and no error when the family is unknown,
+   so a wrong name here does not throw — it just draws the picture in the
+   system fallback and says nothing. It has been wrong three times: once naming
+   "Geist", a face this app has never shipped; once naming EB Garamond after
+   the app moved off it; and once holding a stale second constant for Nunito
+   Sans. That history is why the previous note argued for ONE constant, and the
+   argument was right for an app with one family. This one has two, so the
+   defence has to be somewhere else: every size the picture draws is loaded
+   explicitly in readyFonts() below, and anything missing from that list draws
+   in the fallback. Add a weight here, add it there. */
+export const FACE = '"Quicksand Variable", system-ui, sans-serif'
+export const FACE_READ = '"EB Garamond Variable", Palatino, Georgia, serif'
+
+/* Canvas has no font-size-adjust, so the correction the CSS gets for free has
+   to be applied by hand: Garamond's x-height is 0.405 of its em against
+   Quicksand's 0.5162, so a serif size is multiplied to stand level with a sans
+   one. Without it every title and quote on the plate sets a step small next to
+   the stamped labels around them, which on a picture somebody is about to
+   share is the difference between typeset and mismatched. */
+const READ_SCALE = 0.5162 / 0.405
+export const read = (px: number) => Math.round(px * READ_SCALE)
 
 /** Canvas takes no font it has not been told to load, whatever the CSS did.
     Both families are variable, so every weight the picture draws has to be
     asked for by name: loading 400 does not bring 500 with it. */
 export async function readyFonts() {
   await Promise.all([
-    document.fonts.load(`500 96px ${SERIF}`),
-    document.fonts.load(`italic 500 44px ${SERIF}`),
-    document.fonts.load(`400 32px ${SANS}`),
-    document.fonts.load(`600 22px ${SANS}`),
+    document.fonts.load(`600 22px ${FACE}`),
+    document.fonts.load(`700 150px ${FACE}`),
+    document.fonts.load(`400 36px ${FACE}`),
+    document.fonts.load(`600 96px ${FACE_READ}`),
+    document.fonts.load(`500 56px ${FACE_READ}`),
+    document.fonts.load(`400 46px ${FACE_READ}`),
   ])
   await document.fonts.ready
 }
 
 /* The stamped labels — a term, an author, a page, never a sentence. On screen
-   these are the sans in capitals with tracking on it, and the tracking is what
+   these are capitals with tracking on them, and the tracking is what
    makes them read as stamped rather than shouted; the canvas has to be told
    both. ctx.letterSpacing sticks to the context once set, so it is put back
    here rather than left for the next fillText to inherit it. */
 export function stamp(ctx: CanvasRenderingContext2D, text: string, x: number, y: number) {
   const was = ctx.letterSpacing
-  ctx.font = `600 22px ${SANS}`
+  ctx.font = `600 22px ${FACE}`
   ctx.letterSpacing = '2.6px'
   ctx.fillText(text, x, y)
   ctx.letterSpacing = was
@@ -190,20 +249,40 @@ function scatter(seed: number) {
   }
 }
 
+/** The tooth, over any rectangle. At about 4.5% alpha over 1.4% of the area it
+    is not visible as dots at any size anyone will see this at — it just stops
+    a fill reading as a fill, which is the whole of what a stock does.
+
+    It takes a rectangle rather than assuming the plate because the mounted
+    picture has three of them: the field, the sheet laid on it, and the little
+    board a drawn cover is printed on. Same tooth on all three, from here,
+    because a mount whose sheet has grain and whose mat does not looks like a
+    sheet pasted onto a screenshot. */
+export function speckle(
+  ctx: CanvasRenderingContext2D,
+  color: string,
+  alpha: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  count: number,
+  seed: number,
+) {
+  const rand = scatter(seed)
+  ctx.fillStyle = color
+  ctx.globalAlpha = alpha
+  for (let i = 0; i < count; i++) {
+    ctx.fillRect(x + rand() * w, y + rand() * h, 2, 2)
+  }
+  ctx.globalAlpha = 1
+}
+
 export function ground(ctx: CanvasRenderingContext2D, palette: Palette) {
   ctx.fillStyle = palette.paper
   ctx.fillRect(0, 0, W, H)
 
-  /* The tooth. At 4.5% of the ink over about 1.4% of the plate it is not
-     visible as dots at any size anyone will see this at — it just stops the
-     paper reading as a flat fill, which is the whole of what a stock does. */
-  const rand = scatter(9973)
-  ctx.fillStyle = palette.ink
-  ctx.globalAlpha = 0.045
-  for (let i = 0; i < 5200; i++) {
-    ctx.fillRect(rand() * W, rand() * H, 2, 2)
-  }
-  ctx.globalAlpha = 1
+  speckle(ctx, palette.ink, 0.045, 0, 0, W, H, 5200, 9973)
 
   /* The plate's edge. One hairline inside the bleed, which is what makes a
      picture read as a printed thing rather than as a screenshot. */
@@ -228,7 +307,7 @@ export function foot(
   const y = H - PAD - 8
   ctx.textAlign = 'left'
   ctx.fillStyle = palette.ink
-  ctx.font = `500 40px ${SERIF}`
+  ctx.font = `600 ${read(40)}px ${FACE_READ}`
   const title = wrap(ctx, of.title, W - PAD * 2)[0]
   ctx.fillText(title, PAD, y - 34)
 
@@ -246,11 +325,11 @@ const COLOPHON_FLOOR = H - PAD - 60
    colophon whose epigraph was sized against a different set of facts than the
    one printed beneath it would run off the bottom of the plate. */
 const TERM_STEP = 36
-const DETAIL_STEP = 44
+const DETAIL_STEP = 56
 const FACT_GAP = 24
 
 function factLines(ctx: CanvasRenderingContext2D, detail: string) {
-  ctx.font = `400 36px ${SANS}`
+  ctx.font = `400 ${read(36)}px ${FACE_READ}`
   return wrap(ctx, detail, W - PAD * 2).slice(0, 2)
 }
 
@@ -309,14 +388,14 @@ function epigraph(
 
   const quoted = `“${k.line.text}”`
   const setAt = (px: number) => {
-    ctx.font = `italic 500 ${px}px ${SERIF}`
+    ctx.font = `500 ${px}px ${FACE_READ}`
     return wrap(ctx, quoted, W - PAD * 2)
   }
 
-  let size = 44
+  let size = 56
   let lines = setAt(size)
   const fits = () => lines.length <= 3 && lines.length * size * 1.3 + EPI_GAP <= room
-  while (!fits() && size > 36) {
+  while (!fits() && size > 46) {
     size -= 2
     lines = setAt(size)
   }
@@ -334,7 +413,7 @@ function epigraph(
   const step = size * 1.3
   let y = top + size
   ctx.fillStyle = look.palette.ink
-  ctx.font = `italic 500 ${size}px ${SERIF}`
+  ctx.font = `500 ${size}px ${FACE_READ}`
   for (const line of lines) {
     ctx.fillText(line, PAD, y)
     y += step
@@ -351,10 +430,15 @@ function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   y += 76
 
   ctx.fillStyle = look.palette.ink
-  ctx.font = `500 76px ${SERIF}`
+  ctx.font = `600 ${read(76)}px ${FACE_READ}`
+  /* The step follows the size. 84 was 76 plus a tenth; the serif renders at 97
+     to stand level, so the step is 97 plus a tenth. Leaving it at 84 would set
+     a 97px title on an 84px line and collide the second line's ascenders into
+     the first's descenders — the failure mode of scaling a font without
+     scaling the leading that was tuned to it. */
   for (const line of wrap(ctx, k.title, W - PAD * 2).slice(0, 3)) {
     ctx.fillText(line, PAD, y)
-    y += 84
+    y += Math.round(read(76) * 1.1)
   }
 
   y += 12
@@ -387,7 +471,7 @@ function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
     y += TERM_STEP
 
     ctx.fillStyle = look.palette.ink
-    ctx.font = `400 36px ${SANS}`
+    ctx.font = `400 ${read(36)}px ${FACE_READ}`
     for (const line of lines) {
       ctx.fillText(line, PAD, y)
       y += DETAIL_STEP
@@ -406,10 +490,10 @@ function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
      either strand a six-word line in the middle of an empty card or push a
      long one off the bottom. */
   const room = H - PAD * 2 - 260
-  let size = 88
+  let size = 112
   let lines: string[] = []
-  for (; size >= 40; size -= 4) {
-    ctx.font = `500 ${size}px ${SERIF}`
+  for (; size >= 52; size -= 4) {
+    ctx.font = `600 ${size}px ${FACE_READ}`
     lines = wrap(ctx, `“${k.line.text}”`, W - PAD * 2)
     if (lines.length * size * 1.24 <= room) break
   }
@@ -419,7 +503,7 @@ function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
 
   ctx.textAlign = 'left'
   ctx.fillStyle = look.palette.ink
-  ctx.font = `500 ${size}px ${SERIF}`
+  ctx.font = `600 ${size}px ${FACE_READ}`
   for (const line of lines) {
     ctx.fillText(line, PAD, y)
     y += size * 1.24
@@ -444,11 +528,11 @@ function drawTally(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   y += 100
 
   ctx.fillStyle = look.palette.ink
-  ctx.font = `500 150px ${SERIF}`
+  ctx.font = `700 150px ${FACE}`
   ctx.fillText(String(k.kept), PAD, y + 40)
   const runOn = ctx.measureText(String(k.kept)).width
   ctx.fillStyle = look.palette.soft
-  ctx.font = `400 36px ${SANS}`
+  ctx.font = `400 36px ${FACE}`
   ctx.fillText(k.kept === 1 ? 'thing' : 'things', PAD + runOn + 24, y + 40)
   y += 130
 
@@ -464,11 +548,11 @@ function drawTally(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   for (const { label, count } of k.tally) {
     if (y > stop) break
     ctx.fillStyle = look.palette.ink
-    ctx.font = `500 64px ${SERIF}`
+    ctx.font = `700 64px ${FACE}`
     ctx.fillText(String(count), PAD, y)
 
     ctx.fillStyle = look.palette.soft
-    ctx.font = `400 34px ${SANS}`
+    ctx.font = `400 34px ${FACE}`
     ctx.fillText(label, PAD + 110, y)
     y += 84
   }

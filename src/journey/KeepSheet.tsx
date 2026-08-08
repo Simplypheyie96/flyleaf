@@ -29,6 +29,18 @@ import { useDictation } from './dictation'
 import { addKeep, editKeep } from './keeps'
 import styles from './sheet.module.css'
 
+/* The faces offered when a reader goes looking for a different one.
+
+   Zero is the face the name draws by itself and leads the row, so the one
+   already standing beside the field is the first thing in the pool rather than
+   a thirteenth option hidden behind the twelve alternatives.
+
+   Twelve, because the row has to be a set the eye can take in — two tidy rows
+   of six on a phone — and because the point of showing them is that the reader
+   can see the range and stop. A hundred faces is the blind cycle again with
+   the scrolling made visible. */
+const FACES = Array.from({ length: 12 }, (_, n) => n)
+
 interface Props {
   open: boolean
   onClose: () => void
@@ -45,6 +57,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
   const [text, setText] = useState('')
   const [name, setName] = useState('')
   const [face, setFace] = useState(0)
+  const [facing, setFacing] = useState(false)
   const [stance, setStance] = useState<Stance>('hunch')
   const [page, setPage] = useState('')
   const [chapter, setChapter] = useState('')
@@ -85,6 +98,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       setText(editing.text ?? '')
       setName(editing.name ?? '')
       setFace(editing.face ?? 0)
+      setFacing(false)
       setStance(editing.stance ?? 'hunch')
       setPage(editing.page !== undefined ? `${editing.page}` : '')
       setChapter(editing.chapter ?? '')
@@ -97,6 +111,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
     setText('')
     setName('')
     setFace(0)
+    setFacing(false)
     setStance('hunch')
     setPage('')
     setChapter('')
@@ -220,20 +235,34 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
             land. On its own row underneath it read as a second thing to deal
             with. Here it reads as what the field just produced.
 
-            The reader is never asked to pick. A grid of strangers asks them to
-            decide which one is Bel, and somebody who wrote down a habit rather
-            than a face has nothing to decide with. Tapping hands back another
-            from the same pool, for as long as they keep tapping — so the one
-            word sits on the label line at the trailing edge, exactly where
-            Dictate sits on the field below. */}
+            The reader is never asked to pick FIRST. Opening on a grid of
+            strangers asks somebody who wrote down a habit rather than a face to
+            decide which one is Bel before they have anything to decide with —
+            so the name still draws one on its own, and it is the only face on
+            screen until the reader says otherwise.
+
+            But saying otherwise now shows them the pool. This used to hand back
+            one more stranger per tap, out of a set the reader could not see:
+            fine if the second face happened to be right, and a slot machine if
+            it was not, because nothing on screen said whether the good one was
+            one tap away or nine, or how to get back to the one two taps ago.
+            The faces are cheap once the generator is in memory — the whole row
+            costs less than the picture already standing beside the field — so
+            they are laid out and chosen from, and the pick is a pick rather
+            than a spin. */}
         {asks.name && (
           <div className={styles.label}>
             <span className={styles.labelLine}>
               <label htmlFor={nameId}>{asks.name.label}</label>
               {type === 'character' && name.trim() && (
-                <button type="button" className={styles.faceSwap} onClick={() => setFace(face + 1)}>
+                <button
+                  type="button"
+                  className={styles.faceSwap}
+                  aria-expanded={facing}
+                  onClick={() => setFacing(!facing)}
+                >
                   <CycleIcon size={15} />
-                  Another face
+                  {facing ? 'Done' : 'Another face'}
                 </button>
               )}
             </span>
@@ -247,12 +276,32 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
                 maxLength={60}
                 autoFocus
               />
+              {/* The chosen one stays beside the field whether the row is open
+                  or shut: it is what the field just produced, and a picture
+                  that jumps somewhere else the moment you go to change it is a
+                  picture you have to find again afterwards. */}
               {type === 'character' && name.trim() && (
                 <span className={styles.facePlate}>
                   <Avatar name={name} note={text} face={face} />
                 </span>
               )}
             </span>
+            {type === 'character' && name.trim() && facing && (
+              <span className={styles.faceRow} role="group" aria-label="Pick a face">
+                {FACES.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={styles.facePick}
+                    aria-label={n ? `Face ${n + 1}` : 'The face this name draws'}
+                    aria-pressed={n === face}
+                    onClick={() => setFace(n)}
+                  >
+                    <Avatar name={name} note={text} face={n} />
+                  </button>
+                ))}
+              </span>
+            )}
           </div>
         )}
 
@@ -307,14 +356,27 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
               {dictateButton}
             </span>
             {longhand ? (
-              <textarea
-                id={textId}
-                className={styles.area}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder={asks.text.placeholder}
-                autoFocus={!asks.name}
-              />
+              /* THE FIELD IS SET IN THE FACE THE KEEP WILL BE READ BACK IN.
+                 sheet.module.css has carried `.penned`, the hung quotation
+                 mark, and the two `[data-kind]` rules since the kinds were
+                 built — and nothing ever put the attribute on the box, so
+                 every kind got the same grey rectangle and all of it was dead
+                 stylesheet. A quote is somebody else's sentence being copied
+                 out and it is typed in the book's own serif; a note is the
+                 reader's aside and it is typed in their hand. The other five
+                 are notes *about* a book and keep the plain box, which is why
+                 this is one attribute rather than a branch. */
+              <span className={styles.penned} data-kind={type}>
+                <textarea
+                  id={textId}
+                  className={styles.area}
+                  data-kind={type}
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder={asks.text.placeholder}
+                  autoFocus={!asks.name}
+                />
+              </span>
             ) : (
               <input
                 id={textId}

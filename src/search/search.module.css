@@ -17,9 +17,8 @@
 .approx {
   margin: 0;
   padding-inline: var(--space-2);
-  font-family: var(--font-italic);
-  font-weight: var(--weight-italic);
-  font-style: italic;
+  font-family: var(--font-app);
+  font-weight: var(--weight-medium);
   font-size: var(--text-sm);
   color: var(--color-ink-soft);
 }
@@ -171,7 +170,7 @@
 }
 
 .rowName {
-  font-family: var(--font-serif);
+  font-family: var(--font-app);
   font-size: var(--text-md);
   line-height: var(--leading-snug);
   color: var(--color-ink);
@@ -221,7 +220,7 @@
 
 .blankLine {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--font-app);
   font-size: var(--text-lg);
   line-height: var(--leading-snug);
   color: var(--color-ink);

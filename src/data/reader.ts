@@ -13,6 +13,7 @@
 
 const HANDLE_KEY = 'flyleaf-handle'
 const MET_KEY = 'flyleaf-met'
+const FACE_KEY = 'flyleaf-face'
 
 /** The name to greet, or an empty string before the reader has claimed one. */
 export function getHandle(): string {
@@ -31,6 +32,27 @@ export function setHandle(handle: string) {
   } catch {
     /* Private mode, or storage full. The app still runs; it just cannot
        remember the name, which is a smaller loss than a crash on boot. */
+  }
+  window.dispatchEvent(new Event('flyleaf-reader'))
+}
+
+/** Which face the reader picked — a DiceBear seed, not a picture. Empty means
+    they have not chosen, and the app greets them without one rather than
+    assigning a stranger's face to them. See components/Face.tsx. */
+export function getFace(): string {
+  try {
+    return localStorage.getItem(FACE_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+export function setFace(seed: string) {
+  try {
+    if (seed) localStorage.setItem(FACE_KEY, seed)
+    else localStorage.removeItem(FACE_KEY)
+  } catch {
+    /* See setHandle. */
   }
   window.dispatchEvent(new Event('flyleaf-reader'))
 }

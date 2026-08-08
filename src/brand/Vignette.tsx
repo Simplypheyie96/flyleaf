@@ -23,17 +23,25 @@ interface VignetteProps {
   className?: string
 }
 
-/* The same silhouette the mark is, drawn small.
+/* The mark's own gesture, drawn small and in line.
 
    The first pass gave each drawing its own leaf-ish blob, which is how a brand
-   quietly stops being one: three leaves, three shapes. This one is the mark's
-   own path — round on three corners, squared where the stem meets it — so the
-   thing that appears in an empty state is recognisably the thing on the button
-   and in the logo.
+   quietly stops being one: three leaves, three shapes. So this became a single
+   shared shape — and then the mark stopped being a leaf and became an open
+   book, and a rounded leaf with a midrib in the empty states was the brand
+   disagreeing with itself in the one place a reader has nothing else to look
+   at.
 
-   The path is authored in a 34-unit box and scaled to fit; stroke-width is
-   divided back out so a small leaf still draws at the drawing's one hairline
-   instead of thickening as it grows. */
+   It is NOT the mark's literal path. That drawing is 349 units wide with a
+   24-unit gutter; scaled to the 22–28px these vignettes use, the gutter lands
+   under two pixels and the two page outlines close up into a blob at the one
+   hairline everything here is drawn at. Same book, redrawn for line: the
+   outline is one closed shape and the gutter is a stroke down the middle,
+   which is what a book looks like when it is described rather than stamped.
+
+   Authored in a 34-unit box and scaled to fit; stroke-width is divided back
+   out so a small book still draws at the drawing's hairline instead of
+   thickening as it grows. */
 function Sprig({ x, y, size, tilt = 0 }: { x: number; y: number; size: number; tilt?: number }) {
   const s = size / 34
   return (
@@ -41,17 +49,20 @@ function Sprig({ x, y, size, tilt = 0 }: { x: number; y: number; size: number; t
       className={styles.accentLine}
       transform={`translate(${x} ${y}) rotate(${tilt}) scale(${s})`}
       strokeWidth={2 / s}
+      strokeLinejoin="round"
     >
+      {/* Both pages as one silhouette. The outer edges bow outward and the top
+          and bottom lift toward the spine — the same two moves the mark makes,
+          which is all it takes for the two to read as the same object. */}
       <path
-        d="M17 0 C 26 0 34 8 34 17 C 34 26 26 34 17 34
-           L 5 34 C 2.2 34 0 31.8 0 29 L 0 17 C 0 8 8 0 17 0 Z"
+        d="M17 4.4 C 11.4 2.2 6.2 1.9 1.8 3.2 L 1.8 20.4
+           C 6.2 19.1 11.4 19.4 17 21.6
+           C 22.6 19.4 27.8 19.1 32.2 20.4 L 32.2 3.2
+           C 27.8 1.9 22.6 2.2 17 4.4 Z"
         className={styles.accentFill}
       />
-      {/* The mark's midrib, and only the midrib — the side vein it carries at
-          logo size is four units long here and would just be a speck. It stops
-          short of the far edge for the same reason it does there: a stroke
-          that touches both sides of a rounded shape reads as a "no" sign. */}
-      <path d="M8 26.4 Q 15.7 21.6 22.8 13" strokeLinecap="round" />
+      {/* The gutter. A stroke here rather than a gap, for the reason above. */}
+      <path d="M17 4.4 L 17 21.6" strokeLinecap="round" />
     </g>
   )
 }
@@ -68,12 +79,15 @@ function Shelf() {
         </g>
         <path d="M18 76 H 142" strokeLinecap="round" />
       </g>
-      {/* The gap, and the leaf drifting down into it. The one accent on the
+      {/* The gap, and the book drifting down into it. The one accent on the
           drawing, and the one thing that is about to happen. */}
       <g className={styles.accentLine}>
         <path d="M80 72 V 52" strokeDasharray="4 5" strokeLinecap="round" />
       </g>
-      <Sprig x={66} y={18} size={28} tilt={-8} />
+      {/* Dropped 8 units from where the leaf sat: the book is wide and short
+          where the leaf was square, so hung from the same y it left a hole
+          between itself and the dashes it is meant to be falling down. */}
+      <Sprig x={66} y={26} size={28} tilt={-8} />
     </>
   )
 }
@@ -82,7 +96,7 @@ function Search() {
   return (
     <>
       {/* A kept thing, written on down to a last line that never arrives, and
-          a leaf resting where that line would be.
+          the mark resting where that line would be.
 
           Deliberately NOT a magnifying glass. A ring with a stroke across it
           is a prohibition sign in every other place a reader has seen one, and
@@ -90,7 +104,7 @@ function Search() {
           read as a red-circle-slash and had to go. What is drawn instead is
           the thing itself, one line short.
 
-          The leaf sits INSIDE the card and tilts with it. Straddling the card's
+          It sits INSIDE the card and tilts with it. Straddling the card's
           edge — where it was — made the two shapes fight for the same corner
           and read as one muddled blob. */}
       <g transform="rotate(-3 76 52)">
@@ -102,7 +116,8 @@ function Search() {
         <g className={styles.accentLine}>
           <path d="M48 58 H 72" strokeDasharray="3 6" strokeLinecap="round" />
         </g>
-        <Sprig x={84} y={48} size={22} tilt={12} />
+        {/* Same 4-unit drop as the shelf, for the same reason. */}
+        <Sprig x={84} y={52} size={22} tilt={12} />
       </g>
     </>
   )

@@ -18,8 +18,8 @@
 
 import { keptLabel } from '../lexicon'
 import { STANCE } from '../kinds'
-import { Place, waveBars } from './art'
-import { Stance, clock, useObjectUrl, usePlayback, type CardProps } from './shared'
+import { Place } from './art'
+import { Stance, clock, useObjectUrl, usePlayback, useWave, type CardProps } from './shared'
 import s from './marginalia.module.css'
 
 const foot = { footClass: s.foot, stanceClass: s.stance }
@@ -60,7 +60,7 @@ export function Note({ keep }: CardProps) {
 
 export function Voice({ keep }: CardProps) {
   const { playing, at, toggle, ready } = usePlayback(keep.media)
-  const bars = waveBars(keep.id, 56)
+  const bars = useWave(keep.media, keep.id, 56)
   const played = Math.round(at * bars.length)
 
   return (

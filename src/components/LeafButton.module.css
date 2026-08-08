@@ -2,7 +2,10 @@
    with one stem corner, plus a faint vein flourish across the face.
    Ink pill by day, moonlit pill by night (tokens invert it). */
 .button {
-  position: relative;
+  /* The pressed edge and the paper grain — see pressable.module.css. Shared
+     with the secondary pills on every sheet, so a primary and a secondary
+     action are made of the same stuff at different volumes. */
+  composes: pressable from './pressable.module.css';
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -15,7 +18,7 @@
   border-radius: var(--radius-leaf);
   background: var(--color-action);
   color: var(--color-on-action);
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-base);
   font-weight: var(--weight-strong);
   letter-spacing: 0.01em;
@@ -30,19 +33,49 @@
     transform var(--dur-base) var(--ease-out);
 }
 
-/* Vein flourish — one midrib with two side veins, barely there.
-   Drawn in currentColor via mask so it works on both pill colors. */
-.button::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.16;
-  background: currentColor;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 56' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='black' stroke-width='1'%3E%3Cpath d='M8 52 Q80 40 152 6'/%3E%3Cpath d='M52 42 Q64 28 66 14'/%3E%3Cpath d='M96 30 Q110 20 114 8'/%3E%3C/g%3E%3C/svg%3E")
-    center / 100% 100% no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 56' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='black' stroke-width='1'%3E%3Cpath d='M8 52 Q80 40 152 6'/%3E%3Cpath d='M52 42 Q64 28 66 14'/%3E%3Cpath d='M96 30 Q110 20 114 8'/%3E%3C/g%3E%3C/svg%3E")
-    center / 100% 100% no-repeat;
+/* TEXTURE, BUT AS MATERIAL — NOT AS A WATERMARK.
+
+   These buttons used to carry the mark's venation etched across the face at
+   16%, and the add button carried a second, differently-proportioned copy of
+   the same drawing. Taking that off was right: the mark a reader sees most in
+   this app is not the one on the splash, it is the one a thumb rests on all
+   day, and two versions of it made the logo look like two logos. A brand
+   stamped faintly into the furniture is a watermark.
+
+   But what went with it was the FEEL, and that was the mistake — the pills
+   came out flat, and flat is the one thing nothing in Flyleaf is. Everything
+   here is a made object on paper under a sky. So the texture comes back as
+   what a button actually is rather than as a picture of the brand: the same
+   paper grain the cards carry (identical data URI to PaperSurface — one
+   material, one recipe, change both together), and a pressed edge.
+
+   Two layers, because they are two different things and want different
+   blending. The grain is the surface. The edge is the light on it. Both are
+   composed in from pressable.module.css — this pill is not the only thing in
+   the app a thumb rests on, and it should not be the only thing that knows
+   what being pressed looks like.
+
+   AND THEN THE FLOWER CAME BACK, which is the part that was actually missing.
+
+   Grain alone made the pill a material; it did not make it OURS. The rule the
+   removal got right was "no logo behind the label"; the rule it overshot was
+   "no pattern at all". So the mark returns as a printed field rather than a
+   single enlarged stamp — three small rosettes scattered in a 30px tile, none
+   of them at a size the mark is ever used at, repeating like the endpaper
+   inside a cloth binding. See --bloom-tile in tokens.css for the plate.
+
+   It rides the EDGE pseudo-element, not the grain one, and that is deliberate
+   rather than convenient. `composes` puts both class names on one element, so
+   .button and .pressable share a single ::before and a single ::after — there
+   is no third layer to be had. The grain layer carries `opacity:
+   var(--grain-action-opacity)`, which would multiply the blossoms down into
+   nothing; the edge layer carries only a box-shadow, so the tile keeps the
+   alpha it was drawn with. Declared here rather than in pressable.module.css
+   because the plate is coloured for the FILLED pill: the secondary controls
+   that also compose `pressable` are paper-coloured, and white blossoms on
+   paper would be a blank. */
+.button::before {
+  background-image: var(--bloom-tile);
 }
 
 /* Hover is a pointer-only state — on touch it sticks after the tap, so the
@@ -69,10 +102,6 @@
   color: var(--color-on-action-disabled);
   box-shadow: none;
   cursor: not-allowed;
-}
-
-.button:disabled::after {
-  opacity: 0.08;
 }
 
 /* The "+" action: a rounder leaf, same stem corner.

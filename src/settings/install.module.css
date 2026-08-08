@@ -21,8 +21,9 @@
 .title {
   margin: 0;
   margin-inline-end: auto;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
   font-size: var(--text-lg);
   line-height: var(--leading-tight);
   color: var(--color-ink);
@@ -91,7 +92,7 @@
 }
 
 .leadTitle {
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-base);
   font-weight: var(--weight-medium);
   line-height: var(--leading-snug);
