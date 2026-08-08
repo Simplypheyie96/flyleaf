@@ -106,11 +106,13 @@ const AWAY = 3_000
    card already keep: pointer or focus on the section holds it, and reduced
    motion never starts it at all.
 
-   Two and a half times their six seconds, because this is not a promise about
-   the future — it is somebody's own sentence out of a book, with the book and
-   the day under it, and six seconds is not long enough to finish reading one
-   and feel anything about it. */
-const HOLD = 15_000
+   Was 15s — two and a half times their six seconds, on the argument that a
+   kept line deserves time to land. Standing on the screen, fifteen seconds
+   reads as the card not turning at all (owner's call, revising her own
+   earlier one). Nine keeps the half of that argument that mattered: still
+   half again longer than their six, still time to read a sentence and its
+   byline, but short enough that the section visibly lives. */
+const HOLD = 9_000
 
 /* DEV ONLY, and it exists because of a real hole: the first run only renders
    on an empty drawer, so once you have kept anything there is no way to look
