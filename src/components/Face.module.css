@@ -1,0 +1,101 @@
+/* The disc the face is drawn on. See Face.tsx for why the background is here
+   and not in the avatar itself. */
+
+.face {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  overflow: hidden;
+
+  border-radius: 50%;
+  border: 1px solid var(--card-border);
+  background: var(--face-mount, var(--color-paper));
+  box-shadow: inset 0 1px 0 var(--card-edge-light);
+}
+
+/* A PRINT, NOT A SURFACE. Every face is drawn with a heavy black outline, and
+   at night the app's paper is a dark slate — so the four faces with black hair
+   lost their silhouette into the disc behind them. Measured: outline against
+   night paper is about 1.9:1, where the same outline on day paper is 18:1.
+
+   So the disc stops following the paper at night and becomes its own mount.
+   Which is what it is: a photograph is printed on paper whatever time it is,
+   and an album at midnight does not print its portraits on slate. Held two
+   steps under white so twelve of them on a dark page read as prints on the
+   page rather than twelve lamps — the outline lands at roughly 12:1 there. */
+[data-theme='dark'] .face {
+  --face-mount: oklch(0.82 0.018 250);
+}
+
+/* Twelve faces, six to a row on a phone. `auto-fit` rather than a fixed six so
+   the row reflows on a narrow phone instead of scrolling sideways, and the
+   discs stay their drawn size rather than stretching to fill a wide sheet. */
+/* FOUR, FIXED — not auto-fit. Auto-fit at 44px fitted five across a phone
+   and left the twelfth face on a row of two, which is a ragged block with a
+   hole in it wherever the lane happens to be. Twelve over four is three full
+   rows at every width this app supports, and the columns are fractions so the
+   faces spread across the lane instead of huddling in the middle of it. */
+.picker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  justify-items: center;
+  gap: var(--space-3);
+}
+
+.pick,
+.pickOn {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  /* The ring is drawn OUTSIDE the disc, so choosing does not resize anything
+     and the twelve never shuffle as you move between them. */
+  outline-offset: 3px;
+  transition:
+    outline-color 160ms var(--ease-out),
+    scale 160ms var(--ease-out);
+}
+
+.pick {
+  outline: 2px solid transparent;
+}
+
+.pickOn {
+  outline: 2px solid var(--color-accent-text);
+  scale: 1.06;
+}
+
+.pick:hover,
+.pickOn:hover {
+  scale: 1.06;
+}
+
+.pick:focus-visible,
+.pickOn:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pick,
+  .pickOn {
+    transition: none;
+  }
+
+  .pick:hover,
+  .pickOn:hover,
+  .pickOn {
+    scale: 1;
+  }
+}
+
+.face img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  -webkit-user-select: none;
+  user-select: none;
+}

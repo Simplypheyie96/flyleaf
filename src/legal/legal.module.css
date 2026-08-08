@@ -21,9 +21,10 @@
    is reached from a row inside Settings, so a title larger than the screen it
    was opened from would put the hierarchy the wrong way round. */
 .title {
-  font-family: var(--font-serif);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
   font-size: var(--text-xl);
-  font-weight: var(--weight-serif);
+  font-weight: var(--weight-display-read);
   letter-spacing: var(--track-title);
   line-height: var(--leading-display);
 }
@@ -74,7 +75,7 @@
 }
 
 .summaryTitle {
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-2xs);
   font-weight: var(--weight-strong);
   letter-spacing: var(--track-label);
@@ -130,12 +131,13 @@
 }
 
 .heading {
-  font-family: var(--font-serif);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
   font-size: var(--text-lg);
   /* The book face's own weight, not the sans's. 500 is what a sans label is
      set at; asked of the serif it sets a hair heavy, and these headings sat
      beside serif headings elsewhere in the app that were not. */
-  font-weight: var(--weight-serif);
+  font-weight: var(--weight-display-read);
   line-height: var(--leading-tight);
   /* The heading belongs to the paragraph under it, so it sits closer to that
      than to the section above — the gap on .sheet does the separating. */
@@ -145,6 +147,7 @@
 /* Body copy for reading at length, not for scanning a settings row. */
 .section p {
   max-inline-size: none;
+  font-family: var(--font-app);
   font-size: var(--text-base);
   line-height: var(--leading-read);
   color: var(--color-ink);

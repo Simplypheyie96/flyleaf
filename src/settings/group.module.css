@@ -9,7 +9,7 @@
 .label {
   margin: 0;
   padding-inline: var(--space-3);
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-2xs);
   font-weight: var(--weight-strong);
   letter-spacing: var(--track-label);
@@ -67,7 +67,7 @@
 
 .title {
   margin-inline-end: auto;
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-base);
   font-weight: var(--weight-medium);
   line-height: var(--leading-snug);
@@ -79,4 +79,114 @@
 .control {
   flex: none;
   min-inline-size: 0;
+}
+
+/* ── A row that folds its contents away ─────────────────────────────────────
+
+   For a row whose value is one small thing and whose *choosing* is twelve of
+   them. The line itself never folds — the label and the face it answers with
+   stay where they are, because that is the setting; what folds is the tray of
+   alternatives under it, which is the only part with any height to it.
+
+   The line is the control. A separate chevron button would be a second target
+   beside a row that already looks pressable, and the row is all that is left
+   on screen once the tray is shut, so it has to be what opens it again. */
+.headFold {
+  /* The head's own flex line, with the button reset out of the way. */
+  inline-size: 100%;
+  /* Reaching 48: the head is 32 tall and the row's own 8s sit outside the
+     button, so the padding is taken here and given back as margin. */
+  padding: var(--space-2) 0;
+  margin-block: calc(var(--space-2) * -1);
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.headFold:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Drawn, not typed. Two 1.5px rules meeting at a point are the same mark at
+   any size and rotate cleanly about their own middle, where a "›" sits off the
+   line and inherits the row's tracking as a gap on its trailing side. */
+.chevron {
+  inline-size: 9px;
+  block-size: 9px;
+  border-inline-end: 1.5px solid currentcolor;
+  border-block-end: 1.5px solid currentcolor;
+  /* A square turned 45° draws its corners 9 × (√2 − 1) ÷ 2 ≈ 1.9px outside its
+     own box on every side, so an edge-aligned box is not an edge-aligned mark.
+     Pulled in by exactly that, and only at the trailing edge: the drawn point
+     lands on the same line the name field and the theme switch end on, which
+     is the one edge on this card repeated three times and so the one that
+     shows. The leading side keeps the head's own gap — the same air the label
+     already has against the face. */
+  margin-inline-end: 1.9px;
+  color: var(--color-ink-soft);
+  /* Pointing down when open: the tray hangs below it. */
+  rotate: 45deg;
+  /* The box is a square whose ink is its lower-right corner, so rotating about
+     the centre swings the point off the line. Nudged up by the amount it
+     drops. */
+  translate: 0 -2px;
+  transition: rotate var(--dur-quick) var(--ease-out);
+}
+
+.row[data-folded] .chevron {
+  /* Trailing, the way every other closed thing in the app points. */
+  rotate: -45deg;
+  translate: 0 0;
+}
+
+/* The 8 between a head and its contents belongs to the thing that collapses,
+   or a shut row keeps a phantom 8px of it. */
+.rowFold {
+  gap: 0;
+}
+
+.foldBox {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--dur-base) var(--ease-move);
+}
+
+.row[data-folded] .foldBox {
+  grid-template-rows: 0fr;
+}
+
+/* The collapsing row has to be able to reach zero, which a grid row will not do
+   for a child with content in it unless the child is told it may. */
+.foldInner {
+  min-block-size: 0;
+  overflow: clip;
+  transition: opacity var(--dur-quick) var(--ease-out);
+}
+
+/* The 8 between the head and the tray, given to the tray's contents rather
+   than the tray. `min-block-size: 0` zeroes a box's CONTENT, not its padding,
+   so 8px of padding out here survives the collapse and a shut row keeps a
+   phantom 8px band under it — measured, not guessed. Inside the clip, the
+   same 8px disappears with everything else. */
+.foldInner > * {
+  margin-block-start: var(--space-2);
+}
+
+/* Fading as well as collapsing: the last few pixels of a `0fr` row otherwise
+   crush what is inside into a legible sliver before it vanishes. */
+.row[data-folded] .foldInner {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foldBox,
+  .foldInner,
+  .chevron {
+    transition: none;
+  }
 }

@@ -77,8 +77,8 @@
   place-items: center;
   height: var(--row);
   scroll-snap-align: center;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-app);
+  font-weight: var(--weight-display);
   font-size: var(--text-md);
   color: var(--color-ink);
   white-space: nowrap;

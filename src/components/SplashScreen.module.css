@@ -1,5 +1,8 @@
-/* Launch splash — the first impression on open. Sky + leaf mark + wordmark,
-   fades away once fonts are ready. */
+/* Launch splash — the first impression on open. Weather, three drifting
+   blossoms, a sheet of paper with the name inscribed on it, and a rabbit
+   standing on its top edge. See SplashScreen.tsx for the timing, which is the
+   part that actually makes it a splash rather than a flash, and for why this
+   stopped being three things stacked down the middle of a flat panel. */
 .splash {
   position: fixed;
   inset: 0;
@@ -8,14 +11,47 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
-  background: linear-gradient(
-    to bottom,
-    var(--color-sky-high),
-    var(--color-sky-low)
-  );
+  /* Never edge to edge, even on the narrowest phone. */
+  padding-inline: var(--space-5);
+  background: linear-gradient(to bottom, var(--color-sky-high), var(--color-sky-low));
   opacity: 1;
   transition: opacity 0.4s ease;
+}
+
+/* THE SPLASH HAS TO CARRY ITS OWN WEATHER, and this is the whole reason it
+   looked dead.
+
+   The clouds and the grain are `body::before` and `body::after` at `z-index:
+   -1`. This element is `position: fixed; z-index: 100` with an opaque
+   background — so for the second and a half it is up, it hides both of them
+   and shows a plain two-stop ramp. Every other screen in the app sits under
+   weather; the first one a reader ever sees did not.
+
+   A pseudo-element at `z-index: -1` paints above its own element's background
+   and below that element's in-flow content, so these two land exactly where
+   the body's pair land on every other screen: over the gradient, under the
+   paper. The cloud list is `--sky-clouds` from index.css rather than a second
+   copy of thirteen gradients — one sky, two windows onto it.
+
+   Inset past the edges because the drift below translates them; at `inset: 0`
+   a 14px slide would walk a hard edge in from the side. */
+.splash::before,
+.splash::after {
+  content: '';
+  position: absolute;
+  inset: -24px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.splash::before {
+  background-image: var(--sky-clouds);
+  animation: skyDrift 44s var(--ease-move) infinite alternate;
+}
+
+.splash::after {
+  opacity: var(--grain-bg-opacity);
+  background-image: var(--grain-tile);
 }
 
 .leaving {
@@ -23,23 +59,303 @@
   pointer-events: none;
 }
 
-.mark {
-  width: 96px;
-  height: 96px;
-  border-radius: 22px;
-  box-shadow: var(--elevation-2);
+/* ---- the blossoms ---- */
+
+/* Weather, not marks. They sit in the corners the composition is not using, at
+   an ink alpha low enough that they read as something in the air rather than
+   three logos loose on the screen — and they are behind the paper, so the one
+   thing a reader is meant to read never has a petal under it. */
+.blossoms {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--color-ink);
 }
 
-.wordmark {
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
-  font-size: var(--text-xl);
-  letter-spacing: var(--track-title);
-  color: var(--color-ink);
+.driftA,
+.driftB,
+.driftC {
+  position: absolute;
+  animation: blossomDrift 26s var(--ease-move) infinite alternate;
+}
+
+.driftA {
+  inset-block-start: 17%;
+  inset-inline-start: 13%;
+  opacity: 0.09;
+}
+
+.driftB {
+  inset-block-start: 27%;
+  inset-inline-end: 15%;
+  opacity: 0.07;
+  animation-duration: 34s;
+  animation-delay: -8s;
+}
+
+.driftC {
+  inset-block-end: 22%;
+  inset-inline-start: 24%;
+  opacity: 0.06;
+  animation-duration: 30s;
+  animation-delay: -19s;
+}
+
+/* ---- the scene ---- */
+
+/* One column, and the two things in it overlap on purpose — see `.leaf`. */
+.scene {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  inline-size: min(272px, 100%);
+}
+
+/* Off the middle, and to the LEFT of it.
+
+   Dead centre on a symmetrical sheet is the arrangement this screen just came
+   out of; a hand puts things slightly off. Left rather than right because the
+   sheet is rotated -1.2deg, which lifts its right edge — the feet meet more
+   paper on the low side, and there is no chance of a sliver of sky opening
+   between a shoe and an edge.
+
+   `z-index` because the paper is painted after it in source order and would
+   otherwise cover the feet it is supposed to be under. */
+.rabbit {
+  position: relative;
+  z-index: 1;
+  translate: -26px 0;
+}
+
+/* THE SHEET, AND THE TUCK.
+
+   -14px is measured, not eyeballed: the wave pose's drawn ink ends at about
+   0.95 of its own square, so a 124px rabbit carries ~6px of empty box below
+   its feet. Pulling the paper up 14 spends that 6 and leaves ~8px of real
+   overlap — enough that the feet are unambiguously ON the edge, little enough
+   that the animal is not sinking into it.
+
+   `--paper-pad` at --space-6 rather than the default: this is the one piece of
+   paper on the screen and the inscription is the only thing on it, so it gets
+   the wider margin a title page has. */
+.leaf {
+  --paper-pad: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  margin-block-start: -14px;
+}
+
+/* Sans, soft ink, and subordinate to the name above it — a splash with two
+   pieces of display type on it has no hierarchy, only two headlines. The
+   measure is short enough that it breaks to two balanced lines rather than
+   running the width of the sheet. */
+.line {
+  margin: 0;
+  max-inline-size: 24ch;
+  font-family: var(--font-app);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* ---- motion ---- */
+
+/* Slow enough to be weather. 44 seconds end to end, alternating, so it never
+   snaps back to a start position — a cloud layer that loops visibly is worse
+   than one that does not move. */
+@keyframes skyDrift {
+  from {
+    translate: -14px 4px;
+  }
+
+  to {
+    translate: 14px -4px;
+  }
+}
+
+/* The blossoms turn as they drift, because a flower falling through air does.
+   Small angles: this is a petal catching the light, not a pinwheel. */
+@keyframes blossomDrift {
+  from {
+    translate: -10px 8px;
+    rotate: -9deg;
+  }
+
+  to {
+    translate: 10px -8px;
+    rotate: 9deg;
+  }
+}
+
+/* The sheet arrives first and settles as it comes: it lands from slightly
+   further over than it ends up, so the tilt looks like a hand putting it down
+   rather than a value that was always there. `to` reads the paper's own
+   variable, so the resting angle stays whatever PaperSurface was given. */
+@keyframes leafSettle {
+  from {
+    opacity: 0;
+    translate: 0 var(--travel);
+    rotate: calc(var(--paper-rotate, 0deg) - 2.4deg);
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: var(--paper-rotate, 0deg);
+  }
+}
+
+/* Up and in, in the order they are read. The rabbit is left out of this — it
+   brings its own fade, timed to the moment its art actually lands, which is
+   not a moment this stylesheet can know. */
+@keyframes splashRise {
+  from {
+    opacity: 0;
+    translate: 0 var(--travel);
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.leaf {
+  animation: leafSettle var(--dur-move) var(--ease-out) both;
+}
+
+.line {
+  animation: splashRise var(--dur-move) var(--ease-out) calc(var(--stagger) * 4) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .splash {
     transition: none;
+  }
+
+  /* Present, not arriving, and the sky holds still. The splash still sits out
+     its full dwell — the point of it is being read, and that is unaffected by
+     whether anything slid in. */
+  .splash::before,
+  .driftA,
+  .driftB,
+  .driftC,
+  .leaf,
+  .line {
+    animation: none;
+  }
+}
+
+/* ── the welcome bubble ──────────────────────────────────────────────────
+   A small paper bubble over the rabbit's head, tail pointing down at the
+   speaker. It pops in a beat after launch — scale from the tail, the way a
+   word arrives rather than the way a label is stuck on — and it is drawn in
+   the app's own materials: paper, hairline, featherweight shadow. */
+
+.bubble {
+  position: absolute;
+  z-index: 2;
+  /* Over the rabbit's head: the rabbit is translated -26px and 124 wide, so
+     its crown sits left of the scene's centre; the bubble floats up and to
+     its right, where the wave is pointing. */
+  inset-block-start: -34px;
+  inset-inline-start: 50%;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  box-shadow: 0 2px 8px color-mix(in oklab, var(--shadow-tint) 10%, transparent);
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--color-ink);
+  white-space: nowrap;
+  transform-origin: 12% 100%;
+  animation: spoken var(--dur-move) var(--ease-move) 600ms both;
+}
+/* The tail: a small paper diamond sharing the bubble's border, clipped so
+   only its lower half shows — the standard two-rotated-boxes bubble tail,
+   in the app's own paper. */
+.bubble::after {
+  content: '';
+  position: absolute;
+  inset-block-end: -5px;
+  inset-inline-start: 14px;
+  inline-size: 9px;
+  block-size: 9px;
+  background: var(--color-paper);
+  border-inline-end: 1px solid var(--card-border);
+  border-block-end: 1px solid var(--card-border);
+  transform: rotate(45deg);
+}
+
+@keyframes spoken {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(6px);
+  }
+  60% {
+    transform: scale(1.04) translateY(-1px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── the loader flowers ──────────────────────────────────────────────────
+   Three marks breathing in sequence — the beat that says "arriving". They
+   inherit the ink at a whisper and take the accent as they swell, so the
+   pulse reads in both themes without a second palette. */
+
+.loader {
+  display: flex;
+  gap: var(--space-3);
+  margin-block-start: var(--space-5);
+  color: var(--color-ink-faint);
+}
+
+.petalA,
+.petalB,
+.petalC {
+  opacity: 0.35;
+  animation: breathe-petal 1.3s var(--ease-move) infinite;
+}
+.petalB {
+  animation-delay: 0.22s;
+}
+.petalC {
+  animation-delay: 0.44s;
+}
+
+@keyframes breathe-petal {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.82);
+  }
+  35% {
+    opacity: 0.9;
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble {
+    animation: none;
+  }
+  .petalA,
+  .petalB,
+  .petalC {
+    animation: none;
+    opacity: 0.55;
   }
 }

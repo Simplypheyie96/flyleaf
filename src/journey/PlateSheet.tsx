@@ -23,7 +23,7 @@ import { CheckIcon, CloseIcon, ShareIcon } from '../components/TabIcons'
 import type { Book, Entry } from '../data/db'
 import { KIND } from './kinds'
 import { PALETTES, readyFonts, sendKeepsake } from './keepsake'
-import { CUTS, cutWorks, drawPlate, firstCut, pictureOf, plateOf } from './plate'
+import { CUTS, coverOf, cutWorks, drawPlate, firstCut, pictureOf, plateOf } from './plate'
 import type { Cast, Cut } from './plate'
 import { shareText } from './share'
 import styles from './sheet.module.css'
@@ -60,6 +60,11 @@ function PlateSheet({ open, onClose, keep, book }: Props) {
      the third the mount cut would blink into the row a frame after the sheet
      opened, on the one kind of keep that is mostly picture. */
   const [picture, setPicture] = useState<ImageBitmap | null | undefined>(undefined)
+  /* The book's jacket, for the head of the sheet. Two states rather than
+     three: unlike the keep's own picture it decides no cut and hides no
+     control, so the plate draws its board and quietly swaps the photograph in
+     when one arrives. */
+  const [cover, setCover] = useState<ImageBitmap | null>(null)
 
   const canvas = useRef<HTMLCanvasElement>(null)
   const last = useRef<Entry | null>(null)
@@ -67,8 +72,8 @@ function PlateSheet({ open, onClose, keep, book }: Props) {
   const shown = keep ?? last.current
 
   const made = useMemo(
-    () => (shown ? plateOf(shown, book, picture ?? null) : null),
-    [shown, book, picture],
+    () => (shown ? plateOf(shown, book, picture ?? null, cover) : null),
+    [shown, book, picture, cover],
   )
 
   /* Offered while the picture is still coming, so the row does not change
@@ -111,6 +116,31 @@ function PlateSheet({ open, onClose, keep, book }: Props) {
       mine?.close()
     }
   }, [shown])
+
+  /* The jacket belongs to the BOOK, not to the keep, so it is fetched once per
+     book and survives the reader moving from one keep to the next. Keyed on
+     the URLs rather than on the array, which callers rebuild on every render.
+     A miss costs nothing: the plate has already drawn its own board. */
+  const sources = book.covers?.join('\n') ?? ''
+  useEffect(() => {
+    let alive = true
+    let mine: ImageBitmap | null = null
+    setCover(null)
+    void (async () => {
+      const bitmap = await coverOf(book)
+      if (!alive) {
+        bitmap?.close()
+        return
+      }
+      mine = bitmap
+      setCover(bitmap)
+    })()
+    return () => {
+      alive = false
+      mine?.close()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sources])
 
   /* A fresh keep is a fresh question: which cut suits it, and has anything
      been sent yet. The paper is left where the reader put it — that is a

@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import BookCover from '../components/BookCover'
-import LeafButton from '../components/LeafButton'
-import Mascot from '../components/Mascot'
+import Bun from '../components/Bun'
+import Bunny from '../rabbit/Bunny'
+import Face from '../components/Face'
 import Sparkle from '../components/Sparkle'
 import PaperSurface from '../components/PaperSurface'
-import { type Book, type Entry } from '../data/db'
-import { useLibrary, useKeepCount, useRecentKeeps } from '../data/useLibrary'
-import { getHandle } from '../data/reader'
-import { KIND } from '../journey/kinds'
-import FirstPage from '../onboarding/FirstPage'
-import { directionFor } from './home/directions'
+import { type Book } from '../data/db'
+import { useLibrary, useKeepCount, useKeepTotal } from '../data/useLibrary'
+import { inWords, useReadingTime } from '../data/sittings'
+import { getFace, getHandle } from '../data/reader'
+import Draw, { PREVIEW_BARE, PREVIEW_FIRST } from './home/Draw'
+import Nook from './home/nook/Nook'
 import pageStyles from './page.module.css'
 import styles from './Home.module.css'
 
@@ -28,8 +29,6 @@ import styles from './Home.module.css'
    twice stops being a signature. A reader who skipped the name gets the
    greeting without one, which reads perfectly well. */
 
-const WAVE_HEIGHTS = [10, 18, 26, 14, 30, 22, 12, 24, 16, 28, 18, 10, 20, 14]
-
 function partOfDay() {
   const hour = new Date().getHours()
   if (hour < 5) return 'Still awake'
@@ -38,156 +37,26 @@ function partOfDay() {
   return 'Good evening'
 }
 
-function shortDay(iso: string) {
-  const at = new Date(`${iso}T00:00:00`)
-  if (Number.isNaN(at.getTime())) return iso
-  return at.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
-}
-
-function seconds(total?: number) {
-  if (!total) return ''
-  const mins = Math.floor(total / 60)
-  const rest = Math.round(total % 60)
-  return `${mins}:${String(rest).padStart(2, '0')}`
-}
-
-/** A picture, decoded from the row it is already holding. */
-function Snapshot({ media }: { media: Blob }) {
-  const [url, setUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    const made = URL.createObjectURL(media)
-    setUrl(made)
-    return () => URL.revokeObjectURL(made)
-  }, [media])
-
-  if (!url) return null
-  return <img src={url} alt="" className={styles.snapshot} />
-}
-
-/* Each kind is its own object on the thread: a quotation, a sticky note, a
-   player, a mounted photograph. The three the sample data had are kept
-   exactly as they were drawn; the four that had no sample take the note's
-   shape, which is what a card of words is. */
-function MemoryCard({ keep, book, index }: { keep: Entry; book?: Book; index: number }) {
-  const rotate = index % 2 === 0 ? 0.6 : -0.6
-  const kind = KIND[keep.type]
-  const source = book ? book.title : 'a book you removed'
-  const to = `/book/${keep.bookId}#keep-${keep.id}`
-  /* Seven kinds share three card shapes, so the notch and the corner chip take
-     their colour from the registry rather than from a class per kind — a
-     character and a place get their own hue without a new rule. */
-  const dot = { background: `var(${kind.hue})` }
-  const chip = { color: `var(${kind.hue})` }
-
-  if (keep.type === 'quote') {
-    return (
-      <div className={`${styles.timelineItem} ${styles.memoryQuote}`}>
-        <span className={styles.dot} style={dot} aria-hidden="true" />
-        <Link to={to} className={styles.memoryLink}>
-          <PaperSurface tone="quote" rotate={rotate} className={styles.quoteCard}>
-            <span className={styles.chip} style={chip} aria-hidden="true">
-              <kind.Icon size={16} />
-            </span>
-            <span className={styles.quoteMark} aria-hidden="true">
-              “
-            </span>
-            <p className={styles.quoteText}>{keep.text}</p>
-            <span className={`${styles.memoryType} ${styles.quoteMeta}`}>{source}</span>
-          </PaperSurface>
-        </Link>
-      </div>
-    )
-  }
-
-  if (keep.type === 'voice') {
-    return (
-      <div className={`${styles.timelineItem} ${styles.memoryVoice}`}>
-        <span className={styles.dot} style={dot} aria-hidden="true" />
-        <Link to={to} className={styles.memoryLink}>
-          <PaperSurface tone="voice" rotate={rotate}>
-            <span className={styles.chip} style={chip} aria-hidden="true">
-              <kind.Icon size={16} />
-            </span>
-            <div className={styles.voiceRow}>
-              {/* The mark, not a control: a recording is played in its own
-                  journey, where the orb and the scrubber live. Tapping the
-                  card is what takes you there. */}
-              <span className={styles.playButton} aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 16 16">
-                  <path fill="currentColor" d="M5 3.5 L 12.5 8 L 5 12.5 Z" />
-                </svg>
-              </span>
-              <div className={styles.waveform} aria-hidden="true">
-                {WAVE_HEIGHTS.map((h, i) => (
-                  <span key={i} className={styles.wavebar} style={{ height: `${h}px` }} />
-                ))}
-              </div>
-            </div>
-            <div className={styles.voiceMeta}>
-              <span className={styles.memoryType}>
-                Voice memo{keep.duration ? ` · ${seconds(keep.duration)}` : ''}
-              </span>
-              <span className={styles.memoryType}>{shortDay(keep.keptOn)}</span>
-            </div>
-          </PaperSurface>
-        </Link>
-      </div>
-    )
-  }
-
-  if (keep.type === 'image' && keep.media) {
-    return (
-      <div className={`${styles.timelineItem} ${styles.memoryNote}`}>
-        <span className={styles.dot} style={dot} aria-hidden="true" />
-        <Link to={to} className={styles.memoryLink}>
-          <PaperSurface tone="image" rotate={rotate} className={styles.pictureCard}>
-            <span className={styles.chip} style={chip} aria-hidden="true">
-              <kind.Icon size={16} />
-            </span>
-            <span className={styles.memoryType}>
-              {kind.one} · {source}
-            </span>
-            <span className={styles.mount}>
-              <Snapshot media={keep.media} />
-            </span>
-            {keep.text && <p className={styles.caption}>{keep.text}</p>}
-          </PaperSurface>
-        </Link>
-      </div>
-    )
-  }
-
-  return (
-    <div className={`${styles.timelineItem} ${styles.memoryNote}`}>
-      <span className={styles.dot} style={dot} aria-hidden="true" />
-      <Link to={to} className={styles.memoryLink}>
-        <PaperSurface tone={kind.tone} rotate={rotate} className={styles.noteCard}>
-          <span className={styles.chip} style={chip} aria-hidden="true">
-            <kind.Icon size={16} />
-          </span>
-          <span className={styles.memoryType}>
-            {kind.one} · {source}
-          </span>
-          {keep.name && <p className={styles.noteName}>{keep.name}</p>}
-          <p className={styles.noteText}>{keep.text}</p>
-        </PaperSurface>
-      </Link>
-    </div>
-  )
-}
-
 /** The book to put at the top: the one being read, and failing that the one
     most recently shelved. Started-and-unfinished is the real answer; a reader
-    who has not said either way still has a book they added last night. */
+    who has not said either way still has a book they added last night.
+
+    IT CAN COME BACK EMPTY, and that is a fix rather than a gap. The last
+    fallback used to be `books[0]` — any book at all — which meant a reader who
+    had finished everything on their shelf was shown a book they had closed,
+    under a heading that said they were currently reading it. Between the shelf
+    and the heading, the heading is the thing that has to stay true: no
+    unfinished book, no book here. What goes in its place is a state, not a
+    blank — see `Idle` below. */
 function inTheMiddleOf(books: Book[]): Book | undefined {
   const reading = books.filter((book) => !book.finishedOn)
   const started = reading.filter((book) => book.startedOn)
-  return started[0] ?? reading[0] ?? books[0]
+  return started[0] ?? reading[0]
 }
 
 function Hero({ book }: { book: Book }) {
   const kept = useKeepCount(book.id)
+  const readFor = useReadingTime(book.id)
   const pages = book.pages ?? 0
   const read = book.pagesRead ?? 0
   const pct = pages > 0 ? Math.min(100, Math.round((read / pages) * 100)) : null
@@ -226,12 +95,20 @@ function Hero({ book }: { book: Book }) {
                 </div>
               </div>
             )}
+            {/* One quiet line, up to two facts: what has been kept, and how
+                long this book has been sat with. The clock's minutes belong
+                on the reading, not only on the clock. */}
             <p className={styles.entryHint}>
               {kept === undefined
                 ? ' '
-                : kept === 0
-                  ? 'Nothing kept from this one yet'
-                  : `${kept} ${kept === 1 ? 'memory' : 'memories'} kept`}
+                : [
+                    kept === 0
+                      ? 'Nothing kept yet'
+                      : `${kept} ${kept === 1 ? 'memory' : 'memories'} kept`,
+                    readFor ? `${inWords(readFor)} of reading` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
             </p>
           </div>
         </div>
@@ -240,27 +117,45 @@ function Hero({ book }: { book: Book }) {
   )
 }
 
+/* BETWEEN BOOKS. A shelf with books on it and nothing open on any of them.
+
+   It is the one state on Home that is genuinely a pause rather than a lack:
+   this reader has finished things. So it does not get the language of an empty
+   screen, and it does not get a drawing of a book — it gets the rabbit sitting
+   up and looking at the heading directly above it, which is the whole reason
+   the pose is called `think`. The creature's eyeline runs UP out of the card
+   and lands on the words "Currently reading", so the picture and the heading
+   are one sentence: *nothing, yet, and we are both waiting on it.*
+
+   Paper rather than a dashed leaf. This is the same slot the hero card lives
+   in, and swapping the material as well as the contents would make the section
+   look like it had been replaced instead of emptied. */
+function Idle() {
+  return (
+    <PaperSurface rotate={-0.4} className={styles.idle}>
+      <Bunny pose="think" size={126} />
+      <p className={styles.idleLine}>Nothing open right now.</p>
+      <p className={styles.idleHint}>
+        Whatever you start next will sit here, with everything you keep from it
+        one tap behind the cover.
+      </p>
+      <Link to="/library" className={styles.idleAct}>
+        Pick the next one
+      </Link>
+    </PaperSurface>
+  )
+}
+
 function Home() {
   const books = useLibrary()
-  const recent = useRecentKeeps(6)
   const [name, setName] = useState(getHandle)
-
-  /* THE CANDIDATE SWITCH, AND IT IS TEMPORARY.
-
-     `?home=a|b|c` swaps the body of this page for one of the directions in
-     home/directions.tsx, and `&empty` forces the first-run state so both can be
-     compared without emptying the database. /lab/home iframes this page at
-     phone width to put them side by side.
-
-     With no query the page is exactly what it was — the old feed — so nothing
-     ships until a direction is chosen. Both this block and the feed under it
-     come out at that point; see home/directions.tsx. */
-  const query = new URLSearchParams(useLocation().search)
-  const candidate = directionFor(query.get('home'))
-  const forceEmpty = query.has('empty')
+  const [face, setFace] = useState(getFace)
 
   useEffect(() => {
-    const sync = () => setName(getHandle())
+    const sync = () => {
+      setName(getHandle())
+      setFace(getFace())
+    }
     window.addEventListener('flyleaf-reader', sync)
     return () => window.removeEventListener('flyleaf-reader', sync)
   }, [])
@@ -270,93 +165,182 @@ function Home() {
   const shelf = books ?? []
   const settled = books !== undefined
   const book = inTheMiddleOf(shelf)
-  const keeps = recent ?? []
+  /* The owner's question, answered: a reader in the middle of several books
+     gets the freshest one as the hero and the rest as covers underneath —
+     visible, named to a screen reader, one tap from their own journeys. */
+  const alsoOpen = shelf.filter(
+    (b) => b.startedOn && !b.finishedOn && b.id !== book?.id,
+  )
   const byId = new Map(shelf.map((b) => [b.id, b]))
+  const firstRun = PREVIEW_FIRST || (settled && shelf.length === 0)
+
+  /* What the reader has, under their name. Two counts and a middot — the
+     smallest line on the page, and the only one on Home carrying a number
+     about them rather than about a book.
+
+     It is nothing until there is something: a masthead that greets you by
+     name and then reports "0 books · 0 kept" is the app telling a first-time
+     reader they have failed at it before they have started. The first run has
+     its own card for that, with a field to do something about it.
+
+     IT ALSO WAITS ON THE KEEPS, not just on the books, and that is a fix for a
+     real contradiction rather than a preference. The card below decides it is
+     a first run from the drawer being empty; this line decided it from the
+     shelf being empty. Shelve five books without keeping anything and the two
+     disagreed on screen — a tally reporting five books directly above a card
+     asking "what are you reading right now?", which reads as the app having
+     forgotten what it just said. Nothing kept, nothing counted: one state,
+     one voice. */
+  const shelved = shelf.length
+  const total = useKeepTotal()
+  const size =
+    !firstRun && shelved > 0 && total
+      ? `${shelved} ${shelved === 1 ? 'book' : 'books'} · ${total} kept`
+      : null
 
   return (
     <main className={pageStyles.page}>
       <div className={pageStyles.column}>
+        {/* A NAME-PLATE: three lines of type, and the face across from them.
+
+            The words are stacked because the hour and the name do different
+            jobs and could not share a size on one line — 13 for the hour, 24 in
+            the serif for the name, and a third line of plain fact under it. And
+            the face sits at the far edge rather than in front of them, so the
+            block reads as a plate with a portrait mounted on it. With one line
+            of type that arrangement left a hole in the middle of the row; with
+            three there is enough weight on the leading side to hold the span.
+
+            The third line is the smallest thing here and the only number: it
+            says how much of this is theirs. A greeting is pleasant and says
+            nothing, and it was the whole masthead. */}
         <header className={styles.masthead}>
-          <p className={styles.hello}>
-            {partOfDay()}
-            {name ? (
-              <>
-                , <span className={styles.who}>{name}</span>
-              </>
-            ) : (
-              '.'
-            )}
-          </p>
-          <h1 className={styles.title}>Your Personal Archive</h1>
-          <p className={styles.subtitle}>collecting whispers and ink</p>
-          <Sparkle className={`${styles.sparkle} ${styles.sparkleMast}`} />
+          <div className={styles.greeting}>
+            <p className={styles.hello}>{name ? `${partOfDay()},` : `${partOfDay()}.`}</p>
+            {name && <p className={styles.who}>{name}</p>}
+            {size && <p className={styles.tally}>{size}</p>}
+          </div>
+          {/* Decorative: the name is right beside it, so alt text here would
+              read the reader out twice. A reader who skipped the picker gets
+              no disc rather than a placeholder one. */}
+          {face && (
+            <span className={styles.portrait}>
+              <Face seed={face} size={48} />
+              <Sparkle className={`${styles.sparkle} ${styles.sparkleMast}`} />
+            </span>
+          )}
         </header>
 
-        {!candidate && <FirstPage />}
-
-        {candidate ? (
-          /* A direction owns the whole body, including its own first-run
-             state and its own line about which book this is. That is the
-             point of comparing them: a home screen is not a section under a
-             hero, it is what the screen is. */
-          <candidate.Body empty={forceEmpty || (settled && shelf.length === 0)} />
-        ) : settled && shelf.length === 0 ? (
-          <PaperSurface taped rotate={-0.8}>
-            <div className={styles.empty}>
-              <h2 className={styles.emptyHeadline}>Your shelf is waiting.</h2>
-              <p className={styles.emptyBody}>Add the first book you want to remember.</p>
-              <LeafButton
-                onClick={() => window.dispatchEvent(new CustomEvent('flyleaf-find-book', { detail: '' }))}
-              >
-                + Add a book
-              </LeafButton>
-            </div>
-          </PaperSurface>
+        {firstRun ? (
+          /* NO "CURRENTLY READING" ON A SHELF WITH NOTHING ON IT. It was
+             rendering above the first-run card, which is the app telling a
+             reader who has never used it what they are in the middle of. A
+             first run has one thing on it: the question, and the field to
+             answer it in. (It also replaces a thin "Your shelf is waiting"
+             card that said the same thing with less to do about it.) */
+          <Draw books={byId} opening />
         ) : (
-          book && (
+          /* `settled` and not `book`: the section has to render whether or not
+             there is a book in progress, because "nothing open" is a state of
+             this section rather than a reason to delete it. What must not
+             render is the guess made while Dexie is still opening — a shelf
+             must not flash its own empty state on the way in. */
+          settled && (
             <>
               <section aria-labelledby="currently-reading">
-                <div className={styles.sectionHead}>
-                  <h2 id="currently-reading" className={styles.sectionLabel}>
+                <div className={styles.stage}>
+                  {/* The heading, first in the document and last in the paint
+                      order — it is a tab mounted on the card's top edge rather
+                      than a line of the page, so it leaves the greeting alone
+                      at the top of the screen and belongs to the object it
+                      names. It is also the thing the creature below walks
+                      into. */}
+                  <h2 id="currently-reading" className={styles.tab}>
                     Currently reading
                   </h2>
-                  {/* The lane is the gap between the end of the heading and the
-                      right edge of the card, and it is the mascot's whole world:
-                      the creature's travel is written as a share of it, so the
-                      heading is a wall it cannot pass without anything having to
-                      measure the words. The lane takes no vertical space of its
-                      own — the strip hangs out of it — so putting the creature
-                      here does not push the card down away from its label. */}
-                  <div className={styles.mascotLane}>
-                    <Mascot />
-                  </div>
+                  {book && !PREVIEW_BARE ? (
+                    /* SOMETHING IS BEHIND THE PAGE. The rabbit lives in a strip
+                       that ends exactly at the card's top edge and is clipped
+                       there, so it is genuinely hidden by the paper rather than
+                       drawn over it. It comes up at the far end of the card,
+                       walks the ledge until it blunders into the tab, and backs
+                       away — but it never leaves, because the ears stay over
+                       the edge the whole time. See `.lurk` for the timeline.
+
+                       Four wrappers, one transform each, because an SVG
+                       `transform` attribute and a CSS `transform` property are
+                       the same property: an element that is placed by the one
+                       cannot be animated by the other. So the walk is `left`,
+                       the ducking is `.lurkRise`, the gait is `.lurkStep`, the
+                       collision is `.lurkBump`, and nothing here reaches into
+                       the drawing's own frames.
+
+                       Only on this branch: `Idle` already has a rabbit sitting
+                       inside the card, and two of them on one section turns a
+                       character into a motif. */
+                    <>
+                      <span className={styles.lurk}>
+                        <span className={styles.lurkRun}>
+                          <span className={styles.lurkRise}>
+                            <span className={styles.lurkStep}>
+                              <Bun pose="peek" size={60} className={styles.lurkBump} />
+                            </span>
+                          </span>
+                        </span>
+                      </span>
+                      <Hero book={book} />
+                      {alsoOpen.length > 0 && (
+                        <div className={styles.also}>
+                          <span className={styles.alsoLabel}>Also open</span>
+                          <ul className={styles.alsoList}>
+                            {alsoOpen.map((b) => (
+                              <li key={b.id}>
+                                <Link
+                                  to={`/book/${b.id}`}
+                                  className={styles.alsoBook}
+                                  aria-label={`Open ${b.title}`}
+                                >
+                                  <BookCover
+                                    title={b.title}
+                                    author={b.author}
+                                    covers={b.covers}
+                                    size="thumb"
+                                  />
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Idle />
+                  )}
                 </div>
-                <Hero book={book} />
               </section>
 
-              {keeps.length > 0 && (
-                <section aria-labelledby="recent-memories">
-                  <div className={styles.sectionHead}>
-                    <h2 id="recent-memories" className={styles.sectionLabel}>
-                      Recent memories
-                    </h2>
-                    <Sparkle className={`${styles.sparkle} ${styles.sparkleMemories}`} />
-                  </div>
-                  <div className={styles.timeline}>
-                    {keeps.map((keep, i) => (
-                      <MemoryCard
-                        key={keep.id}
-                        keep={keep}
-                        book={byId.get(keep.bookId)}
-                        index={i}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
+              {/* What used to be "Recent memories" — a list of the last six
+                  things kept, which is a record of what you already know you
+                  did. One memory, pulled at random out of any book, is the
+                  same material and the opposite feeling. See home/Draw.tsx. */}
+              <Draw books={byId} reading={book} />
+
+              {/* Third and last. The first two sections are made of the
+                  reader's own books; this one is not about their library at
+                  all, and that is the point — Home ends somewhere to sit
+                  rather than with another thing to read. See home/nook/. */}
+              <Nook reading={book} />
             </>
           )
         )}
+
+        {/* THE TOUR IS GONE FROM HERE, and it is not moving further down the
+            page either. Onboarding happens at the door — Welcome, two panels,
+            once, before this screen is ever reached — and a nine-step tour
+            card living on Home was a second onboarding for a reader who had
+            already been onboarded. Home is the reader's own shelf, not a
+            place the app explains itself. (Owner's call; it overrides 07's
+            guided-discovery card.) */}
       </div>
     </main>
   )

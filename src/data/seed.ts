@@ -256,35 +256,111 @@ const PREVIEW_JOURNEY: Fixture[] = [
   },
 ]
 
-/** Six seconds of nothing, as a real WAV, so the voice keep has a recording to
-    draw and to play rather than a broken control. Silent on purpose: what it
-    is for is watching the orb breathe, and a synthesised tone on a page about
-    someone's reading would be worse than nothing.
+/** The preview memo's recording: a WAV of somebody talking, at the far end of
+    a room, too far off to make out a word.
 
-    8-bit PCM silence is 128, not 0 — an array of zeroes is full-scale
-    negative, which is a click. */
-function silentWav(seconds: number) {
+    THIS USED TO BE SILENCE. Deliberately — the old note here argued that a
+    synthesised tone on a page about somebody's reading would be worse than
+    nothing, and that what the keep was for was watching the orb breathe. Both
+    halves were wrong in the same way. A reader pressing play on the sample
+    memo and hearing nothing does not conclude "this is a tasteful placeholder";
+    they conclude the app cannot play their voice back, and every recording
+    they make after that is made in doubt. The one job a demo recording has is
+    to prove playback works, and silence is the only content that cannot do it.
+
+    Nor was it enough for the card, which now draws the real peaks of the real
+    file — a silent file has no peaks, so the memo rendered as a flat line
+    claiming the recording is empty. Which it was.
+
+    So: a voice, built rather than sampled, and built to be recognisably a
+    stand-in rather than to fool anyone. Speech is bursts and gaps before it is
+    anything else, so this is a syllable envelope — a run of five to eight, then
+    a breath — over a low fundamental with its first three partials and a little
+    noise for the consonants. At 8kHz it comes out muffled, which is both
+    honest about what it is and exactly what a phone memo of a thought had on
+    the walk home actually sounds like.
+
+    Deterministic from a seed, so the sample book sounds the same on every
+    device and the drawn wave under it never changes shape. */
+function memoWav(seconds: number, seed: number) {
   const rate = 8000
-  const frames = rate * seconds
-  const buf = new ArrayBuffer(44 + frames)
+  const frames = Math.round(rate * seconds)
+  const bytes = frames * 2
+  const buf = new ArrayBuffer(44 + bytes)
   const view = new DataView(buf)
   const tag = (offset: number, s: string) => {
     for (let i = 0; i < s.length; i += 1) view.setUint8(offset + i, s.charCodeAt(i))
   }
   tag(0, 'RIFF')
-  view.setUint32(4, 36 + frames, true)
+  view.setUint32(4, 36 + bytes, true)
   tag(8, 'WAVE')
   tag(12, 'fmt ')
   view.setUint32(16, 16, true)
   view.setUint16(20, 1, true) // PCM
   view.setUint16(22, 1, true) // mono
   view.setUint32(24, rate, true)
-  view.setUint32(28, rate, true)
-  view.setUint16(32, 1, true)
-  view.setUint16(34, 8, true)
+  view.setUint32(28, rate * 2, true) // bytes per second
+  view.setUint16(32, 2, true) // bytes per frame
+  view.setUint16(34, 16, true)
   tag(36, 'data')
-  view.setUint32(40, frames, true)
-  new Uint8Array(buf, 44).fill(128)
+  view.setUint32(40, bytes, true)
+
+  let n = (seed * 9301 + 49297) % 233280
+  const next = () => {
+    n = (n * 9301 + 49297) % 233280
+    return n / 233280
+  }
+
+  /* The cadence, laid out before a single sample is written: syllables of a
+     tenth to a third of a second with a hair between them, and a longer pause
+     every few — which is where a sentence ends and someone takes a breath. */
+  const said: { from: number; to: number; pitch: number; gain: number }[] = []
+  let t = 0.3
+  let since = 0
+  while (t < seconds - 0.4) {
+    const span = 0.11 + next() * 0.19
+    said.push({
+      from: t,
+      to: t + span,
+      pitch: 118 * (0.86 + next() * 0.3),
+      gain: 0.55 + next() * 0.45,
+    })
+    t += span + 0.025 + next() * 0.06
+    since += 1
+    if (since >= 5 + Math.floor(next() * 4)) {
+      t += 0.3 + next() * 0.45
+      since = 0
+    }
+  }
+
+  let phase = 0
+  let at = 0
+  for (let i = 0; i < frames; i += 1) {
+    const now = i / rate
+    while (at < said.length && now > said[at].to) at += 1
+    const syllable = said[at]
+    let v = 0
+    if (syllable && now >= syllable.from) {
+      const p = (now - syllable.from) / (syllable.to - syllable.from)
+      // Raised sine: in and out of every syllable without a click at either
+      // end, and flat enough across the middle to carry a vowel.
+      const envelope = Math.pow(Math.sin(Math.PI * p), 0.65) * syllable.gain
+      const f = syllable.pitch * (1 + 0.02 * Math.sin(now * 11))
+      phase += (2 * Math.PI * f) / rate
+      v =
+        (Math.sin(phase) * 0.5 +
+          Math.sin(phase * 2) * 0.25 +
+          Math.sin(phase * 3) * 0.14 +
+          Math.sin(phase * 4) * 0.07 +
+          (next() - 0.5) * 0.16) *
+        envelope
+    }
+    // Well under full scale: this plays the moment somebody taps a sample memo
+    // out of curiosity, and it should not be the loudest thing their phone has
+    // done all day.
+    view.setInt16(44 + i * 2, Math.round(Math.max(-1, Math.min(1, v * 0.42)) * 32767), true)
+  }
+
   return new Blob([buf], { type: 'audio/wav' })
 }
 
@@ -399,7 +475,8 @@ export async function seedLibrary() {
   let mapped = false
   const withMedia = await Promise.all(
     PREVIEW_JOURNEY.map(async (keep) => {
-      if (keep.type === 'voice') return { ...keep, media: silentWav(keep.duration ?? 6) }
+      if (keep.type === 'voice')
+        return { ...keep, media: memoWav(keep.duration ?? 6, keep.page ?? 3) }
       if (keep.type === 'image') return { ...keep, media: await previewPhoto() }
       if (keep.type === 'place' && !mapped) {
         mapped = true
@@ -438,8 +515,12 @@ export async function seedLibrary() {
   const SEED_V = 'flyleaf-seed-v'
   /* 3: the image keep carries a photograph now instead of a drawn page. The
      media is only written on a re-seed, so without this every device already
-     reviewing the app would keep the drawing for ever. */
-  const CURRENT = '3'
+     reviewing the app would keep the drawing for ever.
+     4: the voice keep carries an audible recording instead of six seconds of
+     silence. Same reasoning, and more urgent — every device seeded before this
+     has a memo on it that plays nothing, which is indistinguishable from a
+     player that does not work. */
+  const CURRENT = '4'
   await db.transaction('rw', db.books, db.entries, async () => {
     if (!(await db.books.get(JOURNEY_BOOK))) return
     const have = await db.entries.where('bookId').equals(JOURNEY_BOOK).count()

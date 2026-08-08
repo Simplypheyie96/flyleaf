@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, RefObject } from 'react'
+import { useNavigate } from 'react-router-dom'
 import BookCover from './BookCover'
 import LeafButton from './LeafButton'
 import Sheet from './Sheet'
@@ -18,6 +19,7 @@ import { useBookSearch } from '../books/useBookSearch'
 import type { BookResult } from '../books/sources'
 import { seedFrom } from '../books/seed'
 import db, { type BookFormat } from '../data/db'
+import { addKeep } from '../journey/keeps'
 import { landOnShelf } from '../motion/shelfLanding'
 import styles from './AddBookSheet.module.css'
 
@@ -27,6 +29,10 @@ interface AddBookSheetProps {
   /** Words to open with, when the reader came from the Library's search
       already knowing what they were looking for. */
   seed?: string
+  /** A line written on the first run, before there was a book to hang it on.
+      Whatever book comes out of this sheet, this becomes its first keep and
+      the reader is taken to it. Empty on every other route into the sheet. */
+  firstKeep?: string
 }
 
 /* Three stages, one sheet. Search is where nearly everyone starts and ends;
@@ -39,7 +45,7 @@ type Stage =
   | { kind: 'manual' }
   | { kind: 'confirm'; book: BookResult }
 
-function AddBookSheet({ open, onClose, seed = '' }: AddBookSheetProps) {
+function AddBookSheet({ open, onClose, seed = '', firstKeep = '' }: AddBookSheetProps) {
   const field = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
   const [stage, setStage] = useState<Stage>({ kind: 'search' })
@@ -96,6 +102,7 @@ function AddBookSheet({ open, onClose, seed = '' }: AddBookSheetProps) {
       {stage.kind === 'confirm' && (
         <ConfirmStage
           book={stage.book}
+          firstKeep={firstKeep}
           onBack={() => setStage({ kind: 'search' })}
           onDone={onClose}
         />
@@ -320,13 +327,16 @@ function ManualStage({
 
 function ConfirmStage({
   book,
+  firstKeep,
   onBack,
   onDone,
 }: {
   book: BookResult
+  firstKeep: string
   onBack: () => void
   onDone: () => void
 }) {
+  const navigate = useNavigate()
   /* A set, not a choice. Plenty of people read the paperback at home and
      listen to the same book in the car, and asking them to pick one is asking
      them which half of their reading to leave out. Physical is on to start
@@ -370,10 +380,35 @@ function ConfirmStage({
           // put, not add: the id is the book's identity, so adding a book that
           // is already on the shelf updates it rather than failing on a
           // constraint or standing it beside itself.
-          () =>
-            db.books.put({ ...book, formats, startedOn, addedAt: Date.now() }),
+          async () => {
+            await db.books.put({ ...book, formats, startedOn, addedAt: Date.now() })
+            /* AND THE LINE THEY WROTE FIRST. It was typed before this book
+               existed, on a screen that promised "the line you type is the
+               first thing kept" — and until now it was thrown away at the
+               moment they pressed the button. This is where the promise is
+               paid: the book goes on the shelf and the sentence goes on its
+               thread, in the same write, so the journey never renders a book
+               with an empty spine and then pops a keep onto it.
+
+               `keptOn` is today, not `startedOn`: the day this line was
+               written down is a fact about the line, and someone shelving a
+               book they began in March did not write this in March. */
+            if (firstKeep)
+              await addKeep({
+                bookId: book.id,
+                type: 'note',
+                text: firstKeep,
+                keptOn: todayISO(),
+              })
+          },
           onDone,
         )
+        /* Straight to the thread, and only when there was a line. They asked
+           a question by typing a sentence; landing back on Home would answer
+           it with the same empty card they just filled in. Every other way
+           into this sheet ends where it started, which is right — that reader
+           came to shelve a book, not to be taken somewhere. */
+        if (firstKeep) navigate(`/book/${book.id}`)
       }}
     >
       <header className={styles.head}>

@@ -416,7 +416,7 @@ const licences: Doc = {
   short: [
     'Flyleaf itself, and everything drawn for it, belongs to its maker.',
     'Book information and real covers come from Open Library and Google Books, and belong to them and to the publishers.',
-    'The type, the portrait set and the software underneath are open-licensed, and each is credited below.',
+    'The type, the portrait set, the rabbit, the ambience recordings and the software underneath are open-licensed, and each is credited below.',
     'Covers Flyleaf draws itself are original art, made on your device.',
   ],
   body: [
@@ -463,15 +463,89 @@ const licences: Doc = {
       ),
     },
     {
-      heading: 'Character portraits',
+      heading: 'Faces',
+      content: (
+        <>
+          <p>
+            Every face in Flyleaf is built on your device with{' '}
+            <Out href="https://www.dicebear.com/">DiceBear</Out> (MIT licence).
+            Nothing is fetched from a portrait service, and no name — yours or a
+            character's — leaves your device.
+          </p>
+          <ul>
+            <li>
+              Character portraits use the{' '}
+              <Out href="https://avataaars.com/">Avataaars</Out> set by Pablo
+              Stanley, free for personal and commercial use.
+            </li>
+            <li>
+              The face you pick for yourself uses the{' '}
+              <Out href="https://www.dicebear.com/styles/adventurer/">
+                Adventurer
+              </Out>{' '}
+              set by Lisa Wischofsky, licensed{' '}
+              <Out href="https://creativecommons.org/licenses/by/4.0/">
+                CC BY 4.0
+              </Out>
+              .
+            </li>
+          </ul>
+        </>
+      ),
+    },
+    {
+      heading: 'The rabbit, and the reader on the sofa',
       content: (
         <p>
-          Portraits are built on your device with{' '}
-          <Out href="https://www.dicebear.com/">DiceBear</Out> (MIT licence) using
-          the <Out href="https://avataaars.com/">Avataaars</Out> set by Pablo
-          Stanley, free for personal and commercial use. Nothing is fetched from
-          a portrait service and no character's name leaves your device.
+          The rabbit who sits on the empty shelves, and the reader who lies
+          along the sofa in the nook with her dog, are free animations from{' '}
+          <Out href="https://lottiefiles.com/">LottieFiles</Out>, used under the{' '}
+          <Out href="https://lottiefiles.com/page/license">
+            Lottie Simple Licence
+          </Out>
+          , which allows them here and does not require this credit. The
+          rabbit's poses — waving, thinking, dozing — and the reader's Flyleaf
+          colours are Flyleaf's own work on the artists' rigs; the drawings
+          themselves remain theirs.
         </p>
+      ),
+    },
+    {
+      heading: 'Sound',
+      content: (
+        <>
+          <p>
+            The reading nook can play rain and a fire. Both are recordings,
+            licensed for use inside an app like this one; the room tone
+            underneath them is made by Flyleaf as you listen, out of nothing
+            but filtered noise, and is not a recording of anywhere.
+          </p>
+          <ul>
+            <li>
+              The rain — from{' '}
+              <Out href="https://mixkit.co/free-sound-effects/">Mixkit</Out>,
+              under the{' '}
+              <Out href="https://mixkit.co/license/#sfxFree">
+                Mixkit Sound Effects Free Licence
+              </Out>
+              .
+            </li>
+            <li>
+              The fire — from{' '}
+              <Out href="https://pixabay.com/sound-effects/">Pixabay</Out>, under
+              the{' '}
+              <Out href="https://pixabay.com/service/license-summary/">
+                Pixabay Content Licence
+              </Out>
+              .
+            </li>
+          </ul>
+          <p>
+            Both licences allow the sounds to be built into Flyleaf and neither
+            allows them to be handed on as sound files on their own, so they are
+            here to listen to and not to take.
+          </p>
+        </>
       ),
     },
     {
@@ -484,9 +558,9 @@ const licences: Doc = {
             served from Flyleaf's own files rather than a font network:
           </p>
           <ul>
-            <li>Newsreader — titles, quotes and reading, roman and italic</li>
-            <li>Source Sans 3 — labels and body</li>
-            <li>Patrick Hand — the handwritten greeting</li>
+            <li>Quicksand — everything you read as words, and the app's own labels, buttons and rows</li>
+            <li>EB Garamond — headings: page titles, book titles, your name</li>
+            <li>Kalam — the handwriting on your own notes</li>
           </ul>
           <p>
             Packaged by <Out href="https://fontsource.org/">Fontsource</Out>.
@@ -511,6 +585,10 @@ const licences: Doc = {
             <Out href="https://vite-pwa-org.netlify.app/">vite-plugin-pwa</Out>{' '}
             with <Out href="https://developer.chrome.com/docs/workbox">Workbox</Out>{' '}
             — MIT
+          </li>
+          <li>
+            <Out href="https://github.com/airbnb/lottie-web">lottie-web</Out>,
+            which plays the rabbit — MIT
           </li>
           <li>
             Hosted on <Out href="https://vercel.com/">Vercel</Out>; tips

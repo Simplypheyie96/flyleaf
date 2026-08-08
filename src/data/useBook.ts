@@ -17,6 +17,18 @@ export function useBook(id: number | undefined): Book | null | undefined {
   )
 }
 
+/** One keep, by the id in the URL — the same three answers as `useBook`, for
+    the same reason. Changing a keep is its own route now, so a reader can
+    reload it, come back to it from the browser's history, or land on one that
+    has since been deleted from another tab; `null` is what earns the "this
+    isn't here" message, `undefined` is Dexie still reading. */
+export function useKeep(id: number | undefined): Entry | null | undefined {
+  return useLiveQuery(
+    async () => (id === undefined ? null : ((await db.entries.get(id)) ?? null)),
+    [id],
+  )
+}
+
 /** Every memory kept for one book, oldest first — the order the journey is
     read down the page, and the order the compound index already holds them
     in, so this is a range scan rather than a sort. */

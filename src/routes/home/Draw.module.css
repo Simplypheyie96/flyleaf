@@ -1,0 +1,1013 @@
+/* The draw. See Draw.tsx for why the home screen shuffles instead of listing;
+   this file only says how the object is drawn and how it arrives. */
+
+.sep {
+  padding-inline: 0.45em;
+  color: var(--color-ink-faint);
+}
+
+/* ── The stage ─────────────────────────────────────────────────────────────
+
+   Two levels on purpose. The stage is an ordinary column — kicker, then pile,
+   then actions — and only the PILE is the shared grid cell. Putting the whole
+   section in one cell auto-placed the kicker into an implicit second row, so
+   the label printed under the card it was labelling. */
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+/* The section takes a tab stop because focusing it is how a keyboard holds the
+   card still — see Draw.tsx. It is not a control and must not look like one,
+   so there is no resting affordance at all: only the ring, only when focused.
+   Same treatment as ComingLines, which pauses on focus for the same reason. */
+.stage:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 6px;
+}
+
+/* The deck and the card occupy one cell, so the sheets take their height from
+   the card rather than needing one hard-coded. */
+.pile {
+  position: relative;
+  display: grid;
+  grid-template-areas: 'card';
+}
+
+/* The moth perches on the card's top corner, half on and half off, which is
+   the only way a landed thing reads as landed — a creature drawn fully inside
+   the border is a sticker. Out of flow, so it never changes where the card
+   sits; the tape is centred, so this corner is free. */
+.moth {
+  position: absolute;
+  inset-block-start: -15px;
+  inset-inline-end: -2px;
+  z-index: 2;
+}
+
+/* IT NOTICES YOU. Touch or point at the card and the wings go from a breath to
+   a beat and the body lifts four pixels; let go and it settles back on its own
+   easing. This is one gesture on one creature, not a hover state bolted onto
+   the section — a card that lit up, moved and animated all at once would be a
+   button, and this card is a keepsake you are looking at.
+
+   The two properties are the moth's own dials (see Moth.module.css); the card
+   sets them and knows nothing about wings. Hover is gated because a phone
+   leaves `:hover` stuck on the last thing tapped, which would strand the moth
+   mid-beat; `:active` covers touch and unsticks itself. Not `:focus-within` —
+   on the first-run card that is a reader typing their first line, and a
+   fluttering insect in the corner of the box you are writing in is not a
+   delight, it is a distraction. */
+.pile:active .moth {
+  --moth-beat: 420ms;
+  --moth-lift: -4px;
+}
+
+@media (hover: hover) {
+  .pile:hover .moth {
+    --moth-beat: 420ms;
+    --moth-lift: -4px;
+  }
+}
+
+/* Heading and its one line of explanation travel together, tighter to each
+   other than the stage's own rhythm — they are one label, not two rows.
+
+   THE 8px IS THE RAIL EVERY OTHER HEADING IN THE APP STANDS ON. Text that sits
+   on the page rather than inside a card is inset one step from the column —
+   Home's greeting and "Currently reading", the Library and Settings mastheads,
+   the search page's own line. This head was flush at 24 while "Currently
+   reading" sat at 32 directly above it, which put two headings of the same
+   rank on one screen 8px out of line with each other: not enough to name at a
+   glance, exactly enough to make the page feel unsquare. Cards keep the flush
+   edge; words keep the rail. */
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-inline: var(--space-2);
+}
+
+/* THE HEADING OUTRANKS ITS OWN DESCRIPTION. It did not: this was a 12px
+   tracked-out capital over a 16px sentence, so the line explaining the section
+   was a third larger than the section's name and read as the heading, with the
+   real heading demoted to an eyebrow above it. Inverted hierarchy — the one
+   typographic mistake a reader notices without knowing why.
+
+   It is a heading now and set like one: 18, display weight, sentence case,
+   the same as "Currently reading" above it. Sentence case matters as much as
+   the size — SMALL CAPITALS ARE A FORMAT FOR LABELS, and the moment a phrase
+   with a voice ("Look what fell out") is stamped in them it stops sounding
+   like a voice and starts sounding like a field name. */
+.kicker {
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-display-read);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--track-title);
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+/* SAY WHAT THE THING IS.
+
+   "Look what fell out" has the right voice and carries no information: a
+   stranger's card out of a book you are not currently reading, under a joke,
+   is a screen you have to be told about. One plain line under the heading
+   removes that without flattening the voice — the heading keeps the character,
+   this says what you are holding. It never changes, so after a week the eye
+   stops reading it, which is exactly the right lifespan for an explanation. */
+.what {
+  margin: 0;
+  font-family: var(--font-app);
+  /* 13. Secondary copy, at the size all secondary copy in the app is set. It
+     was 16 — the reading size — which is what put it above its own heading. */
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  /* Pretty, NOT balance. `balance` evens the two lines, which reads tidily in
+     the abstract and wrong here: it holds the first line back to roughly half
+     the column and breaks after "random", so a sentence with a whole column
+     available uses two-thirds of it. Filling the first line and letting the
+     remainder fall is what a printed standfirst does. `pretty` still guards
+     the failure `balance` was originally reached for — a single orphaned word
+     on the last line — so nothing is given up by the swap. */
+  text-wrap: pretty;
+  max-inline-size: 44ch;
+}
+
+/* Two sheets under the card, fanned. They carry no content and never move:
+   their whole job is to say there are more where that came from, which is what
+   makes the card a DRAW rather than a card. */
+.deck {
+  grid-area: card;
+  position: relative;
+  align-self: stretch;
+  pointer-events: none;
+}
+
+.sheet {
+  position: absolute;
+  inset-inline: var(--space-3);
+  inset-block: 0;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--color-paper) 55%, transparent);
+}
+
+.sheet:nth-child(1) {
+  rotate: 1.6deg;
+  translate: 0 6px;
+  opacity: 0.75;
+}
+
+.sheet:nth-child(2) {
+  rotate: -2.6deg;
+  translate: 0 11px;
+  opacity: 0.5;
+}
+
+/* ── The card ──────────────────────────────────────────────────────────────
+
+   The one object on the screen, so it gets the room. Generous padding, a
+   comfortable measure, and nothing else inside competing with the words that
+   were kept. */
+
+.card {
+  grid-area: card;
+  --paper-pad: var(--space-5);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  /* Above the deck it was dealt from. */
+  z-index: 1;
+
+  /* THE DROP. Motion is the content here, not decoration — a card that is
+     simply present has been listed, and a card that arrives has been drawn.
+
+     Transform and opacity only, so it composites and never lays out. The curve
+     overshoots a little past 1 and comes back, which is what a piece of card
+     stock does when it lands: the settle is the difference between "animated"
+     and "physical". Remounted by its key on every pull, so this replays. */
+  animation: drop 460ms cubic-bezier(0.16, 0.84, 0.28, 1.04) both;
+}
+
+@keyframes drop {
+  from {
+    opacity: 0;
+    translate: 0 -18px;
+    rotate: 3.5deg;
+    scale: 1.03;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    /* Lands where PaperSurface's own rotate prop put it. */
+    rotate: -1.1deg;
+    scale: 1;
+  }
+}
+
+/* The kind, stated small and printed — a quote knows it is a quote before you
+   have read a word of it. */
+.mark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.markIcon {
+  display: grid;
+  place-items: center;
+  color: var(--color-ink-soft);
+}
+
+/* A name above the body, for the kinds that have one. */
+.name {
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-size: var(--text-md);
+  font-weight: var(--weight-display-read);
+  line-height: var(--leading-snug);
+  color: var(--color-ink);
+}
+
+/* A quote is set as a quote: a step up, with a hanging mark. This is the
+   loudest type on the screen and it should be — it is the only thing here the
+   reader came back for, and unlike a journey card there is exactly one of them
+   on the page, so the size costs nobody a line. The heading above it is the
+   same 18 at a heavier weight; weight is what separates a label from the words
+   it labels once size has stopped being available to do it. */
+/* THE BOOK'S OWN VOICE, IN THE FACE IT WAS COPIED OUT IN.
+
+   This ran in the interface sans, and it was the one kind on the card that had
+   no business being there. A reader types a quote into a field set in Garamond
+   on the caps regime (sheet.module.css, `.area[data-kind='quote']`) — they
+   watch it become set type as they copy it out — and then it fell out of the
+   deck rendered as UI prose. The same sentence in two faces on two screens
+   reads as two different things having been saved.
+
+   AND THEN IT WAS SET AS FURNITURE ANYWAY. The family was right and the regime
+   was not: --text-lg at --weight-display-read on the caps adjust is, to the
+   declaration, the exact typography of "Look what fell out" three inches above
+   it — 18px, 600, 0.4475. Four lines of somebody else's prose arrived on the
+   card in the app's own headline face and out-shouted the heading that named
+   them, which is the inverted hierarchy tokens.css warns about, landing on the
+   one block of type it was written to protect.
+
+   So the quote takes the reading regime the token sheet names for it —
+   --text-md is annotated "THE READING SIZE: kept lines, quotes, notes" — at
+   body weight, x-height-matched. The line is now the quietest thing on the
+   card and the only thing on it worth reading, which is the correct order.
+
+   The caps regime stays where it belongs, on the FIELD (sheet.module.css,
+   `.area[data-kind='quote']`): a reader copying a line out is watching it
+   become set type, and a 16px field is looked at, not read at length. */
+.quote {
+  position: relative;
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust);
+  font-size: var(--text-md);
+  font-weight: var(--weight-body);
+  line-height: var(--leading-read);
+  color: var(--color-ink);
+  /* Comfortable for two to four lines of a kept line, not a paragraph. Widened
+     with the drop in weight: 26ch was cut for a display-weight line, and roman
+     Garamond at 400 sets narrower still, so the old cap left a short measure
+     with air beside it. */
+  max-inline-size: 30ch;
+  text-wrap: pretty;
+}
+
+.quote::before {
+  content: '“';
+  position: absolute;
+  inset-inline-start: -0.42em;
+  font-size: 1.6em;
+  line-height: 1;
+  color: color-mix(in oklab, var(--color-ink) 22%, transparent);
+}
+
+/* Everything the reader wrote themselves — notes, threads, lore. Their hand,
+   not the book's voice. */
+.said {
+  font-family: var(--font-hand);
+  /* Not normalised to the sans — see --font-adjust in tokens.css. */
+  font-size-adjust: none;
+  font-size: var(--text-md);
+  line-height: 1.7;
+  color: var(--color-ink);
+  max-inline-size: 32ch;
+  text-wrap: pretty;
+}
+
+/* THE CARD GROWS AND THE WRITING ON IT DID NOT.
+
+   Both measures above are set for a phone, where the card is about 311px and a
+   30–32ch line very nearly fills it. Nothing in this file had a width query, so
+   on a wider screen the column opens to its 560px cap, the card opens with it —
+   and the text stayed where it was. Measured on an 894px viewport: the card ran
+   566px with 512px of usable width inside its padding, and the handwriting drew
+   259px of that. Forty-five percent. The rule under it and the provenance line
+   both span the full card, so the eye gets a full-width card, a full-width rule
+   and a half-width block of writing stranded against the leading edge — which
+   does not read as a short note deliberately placed, it reads as text that
+   failed to load the rest of itself.
+
+   The cap is still a cap. A kept line is two to four lines of someone's hand,
+   not an essay, and letting it run the whole 512px would be 64ch — a paragraph
+   measure, and a different kind of object. This lands near 46ch: long enough
+   that the block sits under the rule rather than beside a hole, short enough
+   that it is still a note. Stepped at 600px because that is where the type
+   scale itself steps (tokens.css) — `ch` is a function of the font size, so a
+   measure in `ch` has to move when the size under it moves or it silently
+   means something different on each side of the breakpoint. */
+@media (min-width: 600px) {
+  .quote {
+    max-inline-size: 40ch;
+  }
+
+  .said {
+    max-inline-size: 46ch;
+  }
+}
+
+/* Voice: the words on top, the recording underneath.
+   ═════════════════════════════════════════════════
+
+   The old arrangement was a row — a coloured ball, then the text beside it —
+   which forced the recording to be small and round, because a row only has
+   the height of its text to give. A voice memo is a thing with a LENGTH, and
+   length wants the long axis of the card. So the block is a column now and
+   the trace gets the full width, the way a voice message reads everywhere
+   people already recognise one. See `trace()` in Draw.tsx for what the bars
+   are and what they honestly claim. */
+.voice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.voiceText {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+
+.wave {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-3);
+}
+
+/* PLAY. The target is 44 and the disc is 34, which is the whole reason this is
+   drawn in pseudo-elements rather than as a styled button: a 34px control is
+   the right size on a paper card and the wrong size under a thumb, and growing
+   the disc to meet the tap minimum would put a chunky solid circle on a
+   keepsake. So the button IS the 44 — invisible — and the disc is painted
+   inside it. The negative inline start pulls the extra 5px of target back off
+   the card's text edge so the disc still lines up with the sentence above it
+   rather than sitting proud of the margin.
+
+   The negative margin is on BOTH sides, and that is the whole point of it. The
+   target overhangs the disc by 5px all round, so a start-only pull lines the
+   disc up with the sentence above and then leaves the extra 5 sitting between
+   the disc and the waveform — measured, the row read 16.7px there against
+   11.5px from the waveform to the clock, two gaps set from the one `gap` that
+   do not look like each other. Taking it off both edges puts the disc on the
+   text's margin AND both gaps on 11.5.
+
+   Tinted with the voice hue rather than the ink pill: this is the quietest
+   possible "there is something here to hear", on a card that is already the
+   loudest thing on Home. */
+.listen {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+  margin-inline: -5px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-voice);
+  cursor: pointer;
+}
+
+.listen::before {
+  content: '';
+  position: absolute;
+  inline-size: 34px;
+  block-size: 34px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in oklab, var(--color-voice) 38%, transparent);
+  background: color-mix(in oklab, var(--color-voice) 14%, transparent);
+  transition: background-color var(--dur-quick) var(--ease-out);
+}
+
+/* At rest, a triangle — the zero-size box with one bordered edge, the same
+   construction the cassette's reel uses, and the same reason: it inherits
+   `currentColor`, so the glyph follows the disc through every state without a
+   second declaration. */
+.listen::after {
+  content: '';
+  position: relative;
+  inline-size: 0;
+  block-size: 0;
+  border-block: 6px solid transparent;
+  border-inline-start: 10px solid currentColor;
+  /* A triangle's weight sits behind its point, so a centred box reads as
+     shifted back. Two forward and it sits in the hole. */
+  margin-inline-start: 2px;
+}
+
+/* Playing, two bars. */
+.listen[data-playing]::after {
+  inline-size: 10px;
+  block-size: 12px;
+  border: none;
+  margin-inline-start: 0;
+  background: linear-gradient(to right, currentColor 0 34%, transparent 34% 66%, currentColor 66%);
+}
+
+.listen[data-playing]::before {
+  background: color-mix(in oklab, var(--color-voice) 26%, transparent);
+}
+
+@media (hover: hover) {
+  .listen:hover::before {
+    background: color-mix(in oklab, var(--color-voice) 26%, transparent);
+  }
+}
+
+/* Nothing to play — a keep restored from a journey file written on another
+   device carries its text but not its audio. */
+.listen:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+/* WHERE YOU GOT TO, and only once there is somewhere to have got to.
+
+   At rest every bar carries the full voice hue, because the trace is a
+   portrait of the recording before it is a scrubber — dimming four fifths of
+   it permanently would quieten the card for a state that has not happened.
+   `data-heard` goes on the moment the memo is started and STAYS THROUGH A
+   PAUSE, so stopping halfway leaves the place you stopped at on the line
+   instead of throwing it away the instant the audio does.
+
+   The dim is the unplayed part rather than a highlight on the played part: it
+   keeps the loud end of the contrast on the thing that has actually happened.
+
+   18% and not the 30% this started at, because the boundary between the two is
+   the only thing on the card showing progress — the clock beside it prints the
+   memo's whole length and never moves. Measured on the rendered card by
+   compositing the stack onto a canvas and reading the pixels back, 30% put
+   played against unplayed at 2.67 in dark and 2.94 in light, both just under
+   the 3:1 a graphic needs to be read. Dimming further pushes them apart rather
+   than together: 18% measures 3.07 and 3.42. The unplayed bars go quiet
+   against the paper doing it (1.23), which is the right thing to spend — they
+   are the part that has not happened yet. */
+.trace[data-heard] > span {
+  background: color-mix(in oklab, var(--color-voice) 18%, transparent);
+}
+
+.trace[data-heard] > span[data-played] {
+  background: var(--color-voice);
+}
+
+/* Colour only — the bars are already at their drawn heights and nothing moves.
+   Short enough that the fill keeps up with the four updates a second the audio
+   element gives us, long enough that it reads as filling rather than ticking. */
+.trace > span {
+  transition: background-color var(--dur-quick) linear;
+}
+
+/* Flexible bars up to a stop, then no further. Bars that simply divide the
+   row keep the same DENSITY at every width, which is right on a phone and
+   wrong on a desktop: the card there is a thousand pixels across, and 32 bars
+   sharing it come out twelve pixels wide each — a row of fat lozenges that
+   reads as a dashed rule, not a voice. Capped, the trace keeps roughly the
+   pitch it has on a phone and the clock follows it instead of being flung to
+   the far edge, which is how a voice message looks in every app that has one.
+
+   Centred rather than sitting on a baseline, because a waveform is symmetrical
+   about its own axis — grown from the bottom it reads as a bar chart, which is
+   a picture of quantities, not of a sound. */
+.trace {
+  flex: 1 1 auto;
+  max-inline-size: 232px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  block-size: 30px;
+}
+
+/* Round caps, not square ones. At 1px radius the short bars were little
+   rectangles and the line read as a chart of columns; fully rounded, a short
+   bar is a dot and a tall one is a stroke, which is what a quiet moment and a
+   loud one actually look like next to each other. */
+.trace > span {
+  flex: 1;
+  min-inline-size: 2px;
+  border-radius: 999px;
+  background: var(--color-voice);
+}
+
+.voiceLength {
+  flex: none;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-faint);
+}
+
+/* Where it came from. The whole reason the draw is worth anything: a line with
+   no provenance is a fortune cookie. */
+.from {
+  margin-block-start: var(--space-1);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--card-border);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+  max-inline-size: none;
+}
+
+.when {
+  white-space: nowrap;
+}
+
+.fromBook {
+  color: var(--color-ink);
+}
+
+/* ── The two actions ───────────────────────────────────────────────────────
+
+   Both glass and hairline, neither filled. The card is what has presence on
+   this screen; a solid capsule under it would out-shout the thing it is
+   supposed to be serving. */
+
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-start: var(--space-1);
+}
+
+/* Sized to its label, not to the screen. It used to be one of a pair sharing
+   the width; alone, `flex: 1` would stretch it into a full-bleed bar, which is
+   the visual weight of a primary action on a section whose primary action is
+   reading the card. */
+.act {
+  flex: 0 1 auto;
+  min-inline-size: max-content;
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-5);
+
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-label);
+  color: var(--color-ink);
+
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+  cursor: pointer;
+  transition: translate 140ms ease, background-color 140ms ease;
+}
+
+.act:hover {
+  background-color: color-mix(in oklab, var(--color-paper) 30%, var(--glass-fill));
+}
+
+.act:active {
+  translate: 0 1px;
+}
+
+.act:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 3px;
+}
+
+/* ── The first run ─────────────────────────────────────────────────────────
+
+   An empty drawer cannot be shuffled, so this is the one screen that is a
+   different object. See Draw.tsx. */
+
+/* ── The inscription ───────────────────────────────────────────────────────
+
+   What the app is, said once, in the shape of the thing it is named after: a
+   sentence written on the blank page at the front of a book, with the closed
+   book beside it.
+
+   ON THE SKY, NOT ON PAPER. Everything below this is a card — a taped sheet
+   with a question on it — and putting the inscription on a second sheet would
+   have made the first run a stack of two cards, which is a feed. Text set
+   directly on the background is the app's own rank for words that belong to
+   the page rather than to an object on it: the greeting above it is set that
+   way, and so is every masthead in the app.
+
+   `flow-root` is not decoration: it establishes the block formatting context
+   that contains the board's float, so the card below starts under the whole
+   block instead of tucking up beside a 116px board. The 8px inset is the rail
+   every other line of page-level type in the app stands on — see `.head`. */
+.inscribe {
+  display: flow-root;
+  padding-inline: var(--space-2);
+}
+
+/* The closed book, resting on the question card's shoulder. It sits in the
+   pile's stacking context, lapped over the paper's top edge beside the tape —
+   trailing corner, because the raised initial owns the leading one and two
+   ornaments on the same corner is one too many. The negative block offset is
+   what makes it read as LAID ON the card rather than floated near it. */
+.perch {
+  position: absolute;
+  /* Above the paper it rests on — the card's rotate() opens a stacking
+     context of its own, so without this the book slid underneath and read as
+     hidden rather than laid down. */
+  z-index: 2;
+  /* The card's FOOT, trailing corner — the one region of the paper with no
+     words in it. Every other corner failed on contact: top-trailing already
+     holds the moth and top-leading put a board over the question's first
+     words. Down here it laps off the paper's bottom edge beside "Start with
+     a book instead", which is the one caption in the app a closed book can
+     stand next to and be the punchline of. */
+  inset-block-end: -26px;
+  inset-inline-end: 6%;
+}
+
+/* THE INSCRIPTION ITSELF, and every choice here is one word: written.
+
+   The reading face, italic, at the reading size — not the label face, not the
+   handwriting. The hand is reserved for the reader's OWN marks (see Home's
+   `.who`, where a handwritten app-rendered name was cut for quietly claiming
+   the reader had written it); this sentence is the app's, so it is set, not
+   written. Italic because an inscription is an aside to the reader rather than
+   a line of the book, and `--leading-read` because it is prose to be read
+   rather than a label to be scanned. */
+.inscribeText {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-size: var(--text-md);
+  font-style: italic;
+  font-weight: var(--weight-body);
+  line-height: var(--leading-read);
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+
+/* The raised initial. The one piece of real book typography on the screen, and
+   the reason the block reads as a page rather than as a paragraph of onboarding
+   copy.
+
+   RAISED, NOT DROPPED — it floats, so the following lines set around it, but it
+   is sized to sit ON the first line's baseline rather than to sink two lines
+   into the paragraph. A true drop cap needs a fixed number of lines to drop
+   into, and this paragraph is three lines on a phone and two on a desk; a cap
+   cut for three leaves a notch in a two-line block. Roman rather than italic,
+   because a slanted initial beside slanted text has nothing to lean against.
+
+   Same accent ink as the reader's own name at the top of the page, which is
+   the only other letterform on this screen with any size to it. */
+.inscribeText::first-letter {
+  float: inline-start;
+  margin-inline-end: 0.08em;
+  padding-block-start: 0.05em;
+  font-size: 2.45em;
+  font-style: normal;
+  line-height: 0.8;
+  color: var(--color-accent-text);
+}
+
+/* WIDE: THE FLOAT STOPS BEING A FLOAT.
+
+   A float only earns its keep while the text is tall enough to set around the
+   thing floated. On a phone the sentence is four lines against a 99px board and
+   wraps under it properly; at 768 the column opens to 552 and the same sentence
+   is TWO lines — 53px of text beside a 99px board, with the block still 99 tall
+   because it has to contain its own float. That is 46px of nothing under the
+   words, inside a band whose whole job is to be the first considered thing on
+   the screen.
+
+   So above 600 the pair become a row and meet in the middle. The board keeps
+   its size and its tilt; the sentence keeps its measure and stops short of the
+   board rather than running to the edge and back. Nothing about the phone
+   layout changes — this is the wide case getting its own answer instead of
+   inheriting one built for a narrow one.
+
+   `align-items: center` is the whole fix: two objects of different heights
+   sharing a line have to agree on something, and their centres is the only
+   axis that reads as deliberate. Order stays board-last in the DOM and
+   board-last visually, so the raised initial still opens the block. */
+@media (min-width: 600px) {
+  .inscribe {
+    display: flex;
+    align-items: center;
+    /* Apart, not tucked together: the board held the trailing edge under the
+       float and it keeps it here, so the band spans the column the same way
+       every block below it does. A row that stopped short would leave the one
+       piece of page-level type on the screen looking like it had been indented
+       out of an empty margin. */
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .board {
+    float: none;
+    order: 1;
+    flex: none;
+    margin-inline-start: 0;
+    margin-block-end: 0;
+  }
+
+  .inscribeText {
+    /* 46ch, so a wider column buys longer lines up to a reading measure and
+       then stops. Without it the sentence would set to whatever the screen
+       allowed and arrive at the desk as one 90-character line. */
+    max-inline-size: 46ch;
+  }
+}
+
+/* The drawing, centred over a card whose text is ranged left. Deliberately:
+   an illustration ranged left with a heading under it reads as a logo, and a
+   card that opens with a centred object and then settles into reading is the
+   shape of a title page. */
+/* Left, on the same edge as the question and the field under it. It was
+   centred, which put the one centred thing on a card where everything else
+   ranges left — and a centred illustration over left-ranged text reads as
+   clip art dropped in, rather than as the top of a column somebody set. */
+/* The cover board at the head of the card. It is a real BookCover, so it
+   brings its own board, hinge and shadow; all this owns is where it stands.
+   Centred rather than ranged left with the question under it: it is an
+   ornament, and an ornament pinned to one corner of a card reads as a
+   thumbnail of something you are meant to tap. */
+.plate {
+  align-self: center;
+  margin-block-end: var(--space-4);
+}
+
+/* A QUESTION, NOT A MASTHEAD — but still the loudest thing on the screen.
+   This was 24px rising to 28 on a wide screen: the biggest type in the app, on
+   a card, under a greeting, announced rather than asked. Pulling it to the
+   16px reading size fixed that and then overshot, and the overshoot is
+   measurable rather than a matter of taste — the rotating teaser further down
+   the same screen is ALSO 16px, so the hero question of the entire first run
+   was set level with a supporting example two sections below it, and lost,
+   because the teaser is centred in open sky with room around it while the
+   question sits ranged left in the corner of a card. Equal size plus unequal
+   placement is not equal weight; the teaser won.
+
+   20px, so the screen has a scale you can read off it:
+
+     20  this question           the one thing being asked
+     16  the rotating teaser     what the app will hold
+     14  supporting copy         how it works
+     11  tracked micro-labels    what section you are in
+
+   Four steps, each a real one. 20 is still four under what it started at, so
+   it is asking, not announcing. */
+.ask {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-display-read);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--track-title);
+  color: var(--color-ink);
+  /* 20ch at 20px breaks this into two lines of near-equal length; `balance`
+     then picks the break rather than filling the first line and orphaning. */
+  max-inline-size: 20ch;
+  text-wrap: balance;
+}
+
+.askWhy {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+.answer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+.field {
+  /* 16px floor: anything smaller and iOS Safari zooms the page on focus. */
+  font-family: var(--font-hand);
+  /* Not normalised to the sans — see --font-adjust in tokens.css. */
+  font-size-adjust: none;
+  font-size: var(--text-md);
+  line-height: 1.7;
+  color: var(--color-ink);
+
+  padding: var(--space-3);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-md);
+  background: var(--control-fill-paper);
+  resize: none;
+}
+
+.field::placeholder {
+  color: var(--color-ink-faint);
+}
+
+.field:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 1px;
+}
+
+/* The one .act that sits ON paper rather than on the sky, and it cannot stay
+   glass. Glass is a translucent white film: over the dark sky it reads as a
+   pale capsule, but over a cream card in dark mode it stacks white-on-cream
+   into a khaki slab — the heaviest, muddiest object on the screen, under a
+   hairline field it is supposed to match. On paper it takes the paper's own
+   controls, so the field and the button that submits it are the same material.
+   Also blur inside blur, which Chromium renders wrong (see .solid). */
+.answer .act {
+  flex: none;
+  /* The form is a flex column, so without this the button stretches the full
+     width of the card — a pale slab twice the weight of the question above
+     it, on a screen whose whole job is the question. */
+  align-self: start;
+  margin-block-start: var(--space-2);
+
+  background: var(--control-fill-paper);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-color: var(--control-border);
+  box-shadow: none;
+}
+
+.answer .act:hover {
+  background-color: color-mix(in oklab, var(--color-ink) 7%, var(--control-fill-paper));
+}
+
+/* What happens after the button, said quietly. It is an aside, so it takes the
+   soft ink and the small step — the same rank as `.askWhy` above the field, on
+   purpose: the two of them are the question's footnotes, one on each side of
+   it, and giving them different weights would make one of them look like an
+   error message. `space-2` off the button rather than the form's own gap,
+   because it belongs to the button and not to the stack. */
+.next {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+/* ── Then, as you read ─────────────────────────────────────────────────────
+
+   What this slot becomes once there is something in the drawer, written in the
+   voice of the draws themselves rather than as a feature list. Off the paper
+   and unpressable on purpose: it is a promise, not an interface, and anything
+   that looks tappable here would be a second call to action arguing with the
+   one on the card above it. One line at a time rather than a list, for the
+   same reason: three bullets are a feature table, and a sentence that changes
+   is a thing being said. It all lives in components/ComingLines.module.css. */
+
+.after {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  /* 24, down from 48. The thread now spans this gap, so the distance is a
+     drawn connection rather than the empty run it used to be — and an empty
+     run needs to be longer than a joined one to read as deliberate. Plus the
+     stage's own 24 row-gap, the card and the heading sit 48 apart. */
+  margin-block-start: var(--space-4);
+}
+
+/* THE THREAD, and it is the app's own, met here for the first time.
+
+   Every book's journey in Flyleaf hangs off a vertical dashed spine with a
+   knot at each notch (see BookJourney.module.css). This is 34 pixels of that
+   spine, descending out of the card into the one other thing the first run has
+   to say. It is doing two jobs at once: it stops "Then, as you read" floating
+   unattached in open sky — the reason it read as tiny even before its type was
+   fixed — and it teaches the idiom on the one screen where there is nothing
+   else to look at, so the first real journey is already familiar.
+
+   Both pseudo-elements are absolutely positioned, which takes them out of
+   flow: a ::before on a flex container would otherwise become a flex item and
+   push the heading down. Faint on purpose — a full-strength rule between two
+   blocks is a divider, and a divider says these are separate. */
+.after::before {
+  content: '';
+  position: absolute;
+  /* Bottom edge 10px above the heading, top edge 36px above it, inside the 48
+     the margin opens. Clear air at both ends, so it reads as a thread hanging
+     rather than as a line touching two things. */
+  inset-block-end: calc(100% + 10px);
+  inset-inline-start: 50%;
+  block-size: 26px;
+  border-inline-start: 1px dashed color-mix(in oklab, var(--color-ink) 30%, transparent);
+}
+
+/* The knot at the foot of it, which is what makes the dashes a thread and not
+   a dotted border. Same vocabulary as a notch on a real journey, at the size
+   of a stitch. */
+.after::after {
+  content: '';
+  position: absolute;
+  inset-block-end: calc(100% + 3px);
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--color-ink) 38%, transparent);
+}
+
+/* The rabbit's own block, and the gap above it is doing real work: it has to
+   say the list has ended and something else is standing there, or the creature
+   reads as a fourth thing that is coming.
+
+   --space-7 did that and was too far — 64px once the stage's own row-gap is
+   added, enough that the rabbit looked stranded rather than separate (owner's
+   call, on the screen). --space-6 landed at 48.
+
+   IT IS 24 NOW, AND THAT IS A CLEARANCE FIX RATHER THAN A CHANGE OF MIND. The
+   rabbit is the last thing on the tallest screen in the app, and the floating
+   tab bar is a CAPSULE with sky either side of it — so a creature that runs
+   past the bar's top edge does not tuck politely behind it, it shows above it,
+   through the gap beside it, and again below it. Cut across the middle by a
+   pill of glass. (See BookJourney for what a deliberate tuck looks like: the
+   `.lurk` rabbit is clipped by paper it is genuinely behind.)
+
+   Nothing about the composition wanted to be tighter, so the height came out
+   of the three places that could spare it without losing air — this gap, the
+   rabbit's own size, and the board up in the inscription — rather than out of
+   any one of them. 48 to 24 here still leaves 48 above the creature once the
+   stage's own row-gap is added, which is three times the 16 that separates
+   every other block on this screen. The break still reads. */
+.hello {
+  display: flex;
+  justify-content: center;
+  margin-block-start: var(--space-4);
+}
+
+
+
+/* A hairline tick where a bullet would be — the drawn card's edge, at the size
+   of a mark rather than a dot, so the three read as things waiting in a
+   drawer instead of as a list of features. */
+
+
+/* ── Reduced motion ────────────────────────────────────────────────────────
+
+   The drop still has to MEAN something with the movement taken away, because
+   what it says is "this replaced that". A crossfade says the same sentence
+   without moving anything, so the card still reads as drawn rather than as
+   having always been there. */
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: appear 180ms ease both;
+  }
+
+  .act {
+    transition: none;
+  }
+
+  .act:active {
+    translate: none;
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

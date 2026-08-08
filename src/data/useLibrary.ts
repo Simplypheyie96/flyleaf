@@ -65,6 +65,32 @@ export function useRecentKeeps(count = 6): Entry[] | undefined {
   )
 }
 
+/** Every keep's id — the pool Home's draw pulls one out of.
+
+    A shuffle whose pool is the last six entries is a feed with extra steps:
+    the whole point is that the line you kept in March, out of a book you
+    finished, can surface. So the pool is the WHOLE table.
+
+    Affordable because it never touches a row: `primaryKeys()` walks the id
+    index and returns numbers. A reader with two thousand memories — recordings
+    and all — costs about sixteen kilobytes of integers here, and not one blob
+    is read until a card is actually drawn. */
+export function useKeepIds(): number[] | undefined {
+  return useLiveQuery(() => db.entries.orderBy('id').primaryKeys() as Promise<number[]>, [])
+}
+
+/** The one keep a draw landed on. Keyed by id, so a re-render that did not
+    change the draw does not re-read the row. */
+export function useKeep(id: number | undefined): Entry | undefined {
+  return useLiveQuery(() => (id === undefined ? undefined : db.entries.get(id)), [id])
+}
+
+/** How many memories the whole shelf is carrying. A count on the table, so no
+    row — and no voice-memo blob — is read to produce it. */
+export function useKeepTotal(): number | undefined {
+  return useLiveQuery(() => db.entries.count(), [])
+}
+
 /** How many memories a single book is carrying. Counted on the compound
     index, so nothing is read to produce the number. */
 export function useKeepCount(bookId: number | undefined): number | undefined {
@@ -72,4 +98,31 @@ export function useKeepCount(bookId: number | undefined): number | undefined {
     () => (bookId === undefined ? 0 : db.entries.where('bookId').equals(bookId).count()),
     [bookId],
   )
+}
+
+/** How much has been kept from each of the given books, by book id.
+
+    The same one-index trick as `useLatestKeeps`, with `.count()` instead of
+    `.last()` — Dexie counts inside the index without materialising a single
+    row, so no recording or picture is ever loaded to find out that a book has
+    nine memories. Powers the shelf's "most memories" sort and its
+    "has memories" filter. */
+export function useKeepCounts(bookIds: number[]): Record<number, number> | undefined {
+  const key = bookIds.join(',')
+
+  return useLiveQuery(async () => {
+    const pairs = await Promise.all(
+      bookIds.map(
+        async (id) =>
+          [
+            id,
+            await db.entries
+              .where('[bookId+createdAt]')
+              .between([id, Dexie.minKey], [id, Dexie.maxKey])
+              .count(),
+          ] as const,
+      ),
+    )
+    return Object.fromEntries(pairs)
+  }, [key])
 }

@@ -106,8 +106,12 @@ export async function finish(bookId: number, on: string | null) {
 /** The book and everything kept from it. No undo on this one, which is why
     the sheet that calls it says out loud how many keeps are going. */
 export async function removeBook(bookId: number) {
-  await db.transaction('rw', db.books, db.entries, async () => {
+  await db.transaction('rw', db.books, db.entries, db.sittings, async () => {
     await db.entries.where('bookId').equals(bookId).delete()
+    // The hours go with it. A sitting has no meaning without the book it was
+    // spent on — orphan rows here would quietly inflate any future "time
+    // read" total with minutes belonging to nothing on the shelf.
+    await db.sittings.where('bookId').equals(bookId).delete()
     await db.books.delete(bookId)
   })
 }

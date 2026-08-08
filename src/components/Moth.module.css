@@ -1,0 +1,156 @@
+/* The landing, and then the living.
+
+   THREE BEATS NOW, not two. It used to arrive, fold its wings once, and stop
+   dead — which is a landing, not a creature. A thing that moves only at the
+   moment it appears and never again is indistinguishable from a static drawing
+   two seconds later, and two seconds is all anyone looks at a card for.
+
+   So the arrival stays exactly as it was, and two loops start underneath it:
+
+     1  DRIFT — the whole moth, 7.4s, two or three pixels and a couple of
+        degrees. Small enough that you cannot catch it moving if you stare;
+        large enough that you know it is alive out of the corner of your eye.
+        This is the difference between an insect resting on paper and a sticker
+        of one.
+     2  BREATH — the wings, ~3.2s, opening and closing a tenth. Off the drift's
+        clock and off each other's, because two loops that share a period sync
+        up into a mechanism.
+
+   AND IT ANSWERS. Touch or hover the card it is sitting on and the wings go to
+   a real beat and the body lifts a few pixels, as though it had noticed you —
+   then settles when you let go. The moth is the only thing on this screen that
+   reacts to being looked at, which is worth more than making three things do
+   it. Everything is driven by two inherited custom properties so the section
+   that owns the card can trigger it without reaching into these internals.
+
+   See Moth.tsx for why it is a moth and not a second rabbit. */
+
+.moth {
+  display: block;
+  /* Placed by whatever holds it; it takes no part in that container's flow. */
+  pointer-events: none;
+
+  /* The two dials the card's own hover writes to. Defaults are the resting
+     state, so the moth is complete with nobody touching anything. */
+  --moth-beat: 3200ms;
+  --moth-lift: 0px;
+
+  /* Arrival, then the drift takes the same two properties over. The drift has
+     no backwards fill and starts after the landing has finished, so there is
+     no moment where the two are both trying to place the moth. */
+  animation:
+    land 620ms var(--ease-out, cubic-bezier(0.2, 0.7, 0.3, 1)) both,
+    drift 7400ms ease-in-out 1200ms infinite;
+}
+
+/* In from above and slightly off to the side, the way something that flew
+   arrives — never straight down, which is how a dropped object falls. */
+@keyframes land {
+  from {
+    opacity: 0;
+    translate: 7px -13px;
+    rotate: -14deg;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+  }
+}
+
+/* Not a circle and not a there-and-back: four stops at uneven distances, so
+   the path never repeats a shape you could learn. Peak displacement is 4px on
+   a 46px creature — under a tenth of itself. */
+@keyframes drift {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  25% {
+    translate: -2px -3px;
+    rotate: -2.5deg;
+  }
+  52% {
+    translate: 1px -1px;
+    rotate: 1.2deg;
+  }
+  76% {
+    translate: 2px -4px;
+    rotate: 2.5deg;
+  }
+}
+
+/* The lift lives on the inner svg because the drift owns the wrapper's
+   `translate`, and two rules writing one property is how a hover ends up
+   fighting a loop. Split across the two elements, they compose instead. */
+.art {
+  display: block;
+  translate: 0 var(--moth-lift);
+  transition: translate 420ms var(--ease-out, cubic-bezier(0.2, 0.7, 0.3, 1));
+}
+
+/* The wings close as it settles, then open once — the beat a moth takes after
+   it has landed, before it decides to stay. Scale on X only, hinged at the
+   body: a wing folding is a wing seen edge-on, not a wing shrinking.
+
+   Then `breath` from 1.7s on, forever. The full shorthand is written out on
+   each wing rather than sharing a rule and overriding the delay, because a
+   lone `animation-delay` applies to every animation in the list and would
+   shove the loop as well as the settle. */
+.wingL {
+  animation:
+    settle 1100ms var(--ease-out, cubic-bezier(0.2, 0.7, 0.3, 1)) 520ms both,
+    breath var(--moth-beat) ease-in-out 1700ms infinite;
+}
+
+/* The far wing lags by a breath. Two wings on the identical clock is a
+   mechanism; a few milliseconds apart is a creature. */
+.wingR {
+  animation:
+    settle 1100ms var(--ease-out, cubic-bezier(0.2, 0.7, 0.3, 1)) 560ms both,
+    breath var(--moth-beat) ease-in-out 1860ms infinite;
+}
+
+@keyframes settle {
+  0% {
+    scale: 1 1;
+  }
+  34% {
+    scale: 0.62 1;
+  }
+  70% {
+    scale: 1.04 1;
+  }
+  100% {
+    scale: 1 1;
+  }
+}
+
+/* A tenth at rest. When `--moth-beat` drops to a few hundred milliseconds the
+   same keyframes become a wingbeat without a second set of them existing —
+   speed is the whole difference between breathing and flying. */
+@keyframes breath {
+  0%,
+  100% {
+    scale: 1 1;
+  }
+  50% {
+    scale: 0.9 1;
+  }
+}
+
+/* It landed, and it is sitting there. Both statements survive without motion:
+   reduced motion gets the pose at rest, with the hover lift kept because a
+   4px translate on a deliberate touch is a response, not an animation. */
+@media (prefers-reduced-motion: reduce) {
+  .moth,
+  .wingL,
+  .wingR {
+    animation: none;
+  }
+
+  .art {
+    transition-duration: 1ms;
+  }
+}

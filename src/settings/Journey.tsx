@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Row } from './Group'
 import db from '../data/db'
 import { download, exportJourney, importJourney, lastExport, markExported } from '../data/backup'
-import { getHandle, setHandle } from '../data/reader'
+import Face, { FacePicker } from '../components/Face'
+import { getFace, getHandle, setFace, setHandle } from '../data/reader'
 import styles from './settings.module.css'
 
 /* What the reader is called, and where their journey actually is.
@@ -74,6 +76,65 @@ function NameCard() {
         />
       }
     />
+  )
+}
+
+/* The same twelve as the welcome, in the same order, so a reader changing
+   their mind is looking at the row they already saw rather than a new set. The
+   chosen one rides on the row's own line as its value; the choosing sits under
+   it, because twelve discs are not a value and cannot pretend to be one.
+
+   And the twelve fold away. Everything else on this page is one line high, and
+   this one thing is four rows of faces — so a settled reader scrolls past a
+   picker they will use once to reach the rows they came for. Folding the whole
+   "You" group would have taken the name and the theme down with it, which cost
+   nothing to leave out; the discs are the only part with any height.
+
+   Shut by default once a face is chosen, open while it is not: a reader who
+   has never picked one should meet the choice, not a closed drawer. After
+   that, the row opens the way it was last left. */
+const FACE_OPEN = 'flyleaf:face-picker-open'
+
+function openAtFirst(face: string) {
+  /* Private browsing throws on read as well as write, and a reader who cannot
+     be remembered should still get a working row. */
+  try {
+    const kept = localStorage.getItem(FACE_OPEN)
+    if (kept) return kept === '1'
+  } catch {
+    /* Fall through to the sensible default. */
+  }
+  return !face
+}
+
+function FaceCard() {
+  const [face, setPicked] = useState(getFace)
+  const [open, setOpen] = useState(() => openAtFirst(getFace()))
+
+  function pick(seed: string) {
+    setPicked(seed)
+    setFace(seed)
+  }
+
+  function fold() {
+    const next = !open
+    setOpen(next)
+    try {
+      localStorage.setItem(FACE_OPEN, next ? '1' : '0')
+    } catch {
+      /* Nothing to do. The fold still works for this visit. */
+    }
+  }
+
+  return (
+    <Row
+      title="Your face"
+      control={face ? <Face seed={face} size={28} /> : <span className={styles.none}>None</span>}
+      open={open}
+      onFold={fold}
+    >
+      <FacePicker value={face} onPick={pick} label="Pick a face" />
+    </Row>
   )
 }
 
@@ -177,6 +238,18 @@ function BackupCard() {
         </span>
       </button>
 
+      {/* Beside "Save a copy", because the two are the same sentence said to
+          two different audiences: one file for a machine to read back, one
+          document for the reader to hold. A row that goes somewhere rather
+          than one that does something — the journal is a page you land on, so
+          it takes the chevron the small-print rows take and not the tray. */}
+      <Link to="/journal" className={styles.link}>
+        Make a printed journal
+        <span className={styles.linkHint} aria-hidden="true">
+          ›
+        </span>
+      </Link>
+
       <button
         type="button"
         className={styles.action}
@@ -216,4 +289,4 @@ function BackupCard() {
    the switch they come back for. They are still the same subject — what
    Flyleaf knows about a reader, and what that costs them — which is why the
    two live in one file. */
-export { NameCard, BackupCard }
+export { NameCard, FaceCard, BackupCard }

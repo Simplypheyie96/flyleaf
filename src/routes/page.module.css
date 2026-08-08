@@ -1,7 +1,16 @@
 /* Shared page scaffold: sky-backed column with room for the floating bar. */
+/* 32 at the top, not 48. Every page in the app opens with a band of empty sky
+   before its first line, and at 48 that band was deep enough to read as a
+   loading state on a 375x812 phone — the greeting started a tenth of the way
+   down the screen. 32 still gives the masthead air and matches the gap between
+   sections below it, so the top of the page is on the same rhythm as the rest
+   of it rather than a step outside it.
+
+   The sides and the bottom are unchanged: the bottom is not spacing, it is
+   clearance for the floating bar. */
 .page {
   min-height: 100svh;
-  padding: var(--space-7) var(--space-5)
+  padding: var(--space-6) var(--space-5)
     calc(var(--space-8) + var(--space-7) + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;

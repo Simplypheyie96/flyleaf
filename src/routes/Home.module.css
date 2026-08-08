@@ -1,50 +1,106 @@
-/* ---- Masthead: big serif + thin handwriting subtitle (per refs) ---- */
+/* ---- Masthead: a face and a greeting. That is the whole of it ----
+
+   "Your Personal Archive" used to sit under the greeting in display serif, and
+   it was the largest thing on Home while saying the least: the reader knows
+   whose app this is, they opened it. What is left is the one line that is
+   actually about them, with their own face beside it — a name-plate rather
+   than a masthead. */
+/* THE WORDS, THEN THE FACE ACROSS FROM THEM. The disc led the row for a while,
+   and the reason it was moved there was sound: with a single line of type
+   beside it, pushing the portrait to the far edge left a 150px hole in the
+   middle of the first thing anybody sees.
+
+   Three lines of type is a different row. Hour, name, and the two counts under
+   it carry enough weight on the leading side to hold a span open, and a
+   portrait mounted across from a stack of type is a name-plate — which is what
+   this is. In front of the words it was a bullet point.
+
+   The bottom margin is negative on purpose. The column sets one gap for
+   everything in it, and 32 is right between two sections of content but too
+   much between a plate and the first section under it — the top of the screen
+   read as an unfinished load. This pulls that one junction to 24, which is
+   still more than the 16 under "Currently reading", so the heading stays
+   closer to the card it names than to the plate above it. */
 .masthead {
   position: relative;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
   padding-inline: var(--space-2);
+  margin-block-end: calc(var(--space-5) - var(--space-6));
 }
 
-/* The greeting, and the one handwritten thing above the fold.
-   The name is written; the time of day is not — a whole handwritten sentence
-   reads as a font choice, whereas a name in the reader's own hand reads as a
-   signature on the flyleaf, which is the point of the app. */
+/* Two lines, one group. min-inline-size:0 so a long name shrinks the words
+   rather than shoving the portrait off the trailing edge. */
+.greeting {
+  min-inline-size: 0;
+}
+
+/* The hour. A caption, and now sized like one — 13, which is where every other
+   piece of secondary copy in the app sits. It was 14 and carrying the line on
+   its own; it is not the line any more, so it stops trying to be. */
 .hello {
-  font-family: var(--font-sans);
+  margin: 0;
+  font-family: var(--font-app);
+  font-weight: var(--weight-medium);
   font-size: var(--text-sm);
+  line-height: 1.25;
   color: var(--color-ink-soft);
 }
 
+/* The reader's name, and the largest thing on the screen — so it is set in the
+   serif, like every other heading in the app.
+
+   It was in the hand, on a signature argument: a name written rather than
+   typed reads as an inscription on a flyleaf. Good argument, wrong place. The
+   hand is the reader's OWN marks — what they wrote in a note — and putting the
+   app's rendering of their handle in the same face quietly claims the handle
+   was written too. Kalam is also a wide, bouncing script: at 24 it ran nearly
+   to the portrait, and every long handle broke to two lines. Garamond at 24
+   says the same thing more quietly and belongs to the same family as the two
+   headings below it, so the top of the page finally reads as one page.
+
+   Cap-matched like the other headings, so 24 here is the same optical size as
+   24 anywhere else. */
 .who {
-  font-family: var(--font-hand);
-  /* Hand faces run small at a shared size; a step up puts its x-height on the
-     sans beside it instead of below it. */
-  font-size: var(--text-lg);
-  line-height: 1;
+  display: block;
+  margin: 1px 0 0;
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
+  font-size: var(--text-2xl);
+  line-height: 1.15;
   color: var(--color-accent-text);
+  /* A handle can be one long unbroken word. Better a broken name than a name
+     that pushes the portrait off the screen. */
+  overflow-wrap: anywhere;
 }
 
-/* The one display serif on the screen. Everything structural below it is a
-   label, so this doesn't have to shout to be read as the title. */
-.title {
-  font-size: var(--text-xl);
-  /* A masthead sets its own leading. The 1.15 every other heading inherits is
-     sized for a heading that sits in a column of text; at 28px with a subtitle
-     directly beneath, it opens a gap that reads as a missing line. */
-  line-height: var(--leading-display);
-  letter-spacing: var(--track-title);
-}
+/* What the shelf actually holds, and the smallest line on the page.
 
-/* Handwriting is rationed to note cards now, so this is an italic standfirst
-   under the masthead rather than a second handwritten thing above the fold. */
-.subtitle {
-  font-family: var(--font-italic);
-  font-weight: var(--weight-italic);
-  font-style: italic;
-  font-size: var(--text-md);
+   Deliberately plain: sans, 12, the same soft ink as the hour above the name,
+   so the three lines read small–LARGE–small with the name alone in the serif.
+   Tabular figures because these two numbers change while a reader is looking
+   at the screen, and proportional digits make the line twitch as they do. */
+.tally {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-app);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
   color: var(--color-ink-soft);
+}
+
+/* The disc, and the sparkle that belongs to it. The sparkle used to be pinned
+   to the header's own trailing edge; parented to the portrait instead, it
+   rides its shoulder and travels with it. */
+.portrait {
+  position: relative;
+  flex: none;
+  display: block;
+  line-height: 0;
 }
 
 .sparkle {
@@ -53,9 +109,13 @@
   opacity: 0.55;
 }
 
+/* Leading shoulder, not trailing. The disc is back at the far edge of the row,
+   and -7px on the trailing side hangs the sparkle outside the column rail.
+   Inboard, it sits in the gap between the name and the face, which is the one
+   place on this row with air to spare. */
 .sparkleMast {
-  right: var(--space-4);
-  bottom: var(--space-2);
+  inset-inline-start: -7px;
+  inset-block-start: -7px;
 }
 
 .sparkleMemories {
@@ -63,44 +123,489 @@
   top: calc(-1 * var(--space-2));
 }
 
-/* ---- Section heads: italic serif ---- */
-.sectionHead {
-  position: relative;
+/* ---- The section's name, mounted on the card it names ----
+
+   This was an <h2> in the page flow, set in the display serif at 18/700 and
+   standing 24px under a 24px serif name. Four stacked lines of type met the
+   reader at the top of Home and the fourth one read as part of the greeting —
+   the problem was rank, not spacing. "Currently reading" is not a peer of the
+   reader's own name; it is the label on the object underneath it.
+
+   So it is now literally that: a paper tab astride the card's top edge, small
+   and lettered instead of set in the serif. The greeting block is left alone
+   at the top of the page, the card arrives already named, and the tab doubles
+   as the one solid thing on the ledge for the creature below to walk into.
+
+   Solid paper, not glass. The tab straddles the boundary between the sky and
+   the card, and a translucent tab would pick up two different backgrounds
+   along its own length — one sheet of paper, torn from the card and pinned
+   over its edge, is both simpler to look at and the right material. */
+.tab {
+  position: absolute;
+  /* Over the ledge strip: the creature stops against this, never behind it. */
+  z-index: 2;
+  inset-inline-start: var(--space-4);
+  /* Eleven pixels of it above the lip and the rest over the paper. Half-on is
+     what makes it read as attached rather than floating. */
+  bottom: calc(100% - 11px);
+  /* Fixed rather than max-content, and this is load-bearing: the run below
+     stops against this tab's trailing edge, and a stop derived from a width
+     that the string could change is a collision that misses. One number
+     governs the tab and the creature that hits it. */
+  inline-size: var(--tab-w);
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding-block: 5px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  box-shadow: inset 0 1px 0 var(--card-edge-light);
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-strong);
+  line-height: 1.2;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-ink-soft);
+}
+
+/* ---- Between books: the same slot, emptied ----
+
+   This card stands exactly where the hero card stands and is made of the same
+   paper at the same tilt, because the section has not gone away — the book
+   has. What changes is the arrangement: the hero runs cover-beside-text, and a
+   centred column is the shape that says "nothing here" without a hole in it.
+
+   The rabbit is the first child and gets the most air under it, since the
+   thing the reader is meant to read is the creature's expression before it is
+   any of the words. */
+.idle {
+  --paper-pad: var(--space-6);
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding-inline: var(--space-2);
-  margin-bottom: var(--space-4);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
 }
 
-/* The mascot's world: everything from the end of the section's heading to the
-   right edge of the row. Because the lane is a flex child that takes the
-   remainder, its start edge IS the end of the words — so the creature bumping
-   into "reading" is geometry rather than a measured number that would go stale
-   the moment the heading changed.
+/* Measured, and the earlier note here was wrong in the direction that matters:
+   `think` had no headroom above the ears, it had 13 units of OVERFLOW — the
+   drawing stood outside the top of its own box. Pulling it up another step on
+   the strength of that left 11px of air over the ears against 34px under the
+   button, in a card whose padding says 32 on all four sides.
 
-   It has no height of its own and its content is absolutely positioned, so
-   adding the creature to this row costs the layout nothing: the card stays
-   where it was, right under its label. The strip hangs below the row by the
-   row's own bottom margin, which lands its cropped edge exactly on the card. */
-.mascotLane {
-  position: relative;
-  flex: 1;
-  align-self: stretch;
-  /* Cancels the flex gap: the lane starts where the words stop, not a step
-     after, so the creature can make contact with them. */
-  margin-inline-start: calc(-1 * var(--space-3));
-  --mascot-drop: var(--space-4);
+   The frame owns that now (see POSES in Bun.tsx), so the padding is simply
+   true and there is nothing to correct for. What is left is the one real
+   optical fact: the gap under a drawing wants to be larger than the flex gap
+   between two lines of type, or the illustration reads as the heading's first
+   line rather than as the thing the heading sits beneath. */
+.idle > svg {
+  margin-block-end: var(--space-3);
 }
 
-/* Italic serif, a clear step below the masthead so the two don't compete. */
-.sectionLabel {
-  font-family: var(--font-italic);
-  font-weight: var(--weight-italic);
-  font-style: italic;
+/* 16/700 under an 18/700 heading. One step down and the same weight: the same
+   voice saying something smaller, rather than a second heading arguing with
+   the first about which one runs this section. */
+.idleLine {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
   font-size: var(--text-md);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--track-title);
   color: var(--color-ink);
+}
+
+.idleHint {
+  margin: 0;
+  max-inline-size: 32ch;
+  font-size: var(--text-sm);
+  line-height: var(--leading-read);
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+/* The way out, and it is a link because it goes somewhere.
+
+   IT WAS FILLED IN `--color-chip-active` AND THEREFORE WAS NOT FILLED AT ALL.
+   Measured on the card it sits on: the pill came out rgb(234,246,255) over a
+   card of rgb(233,246,253) — a contrast ratio of 1.00, with no border and no
+   shadow. In light mode there was no capsule on this screen; there was a line
+   of bolder text with 24px of dead air either side of it, and the only reader
+   who would know it could be tapped is one who tried. Dark fared better at
+   1.36 purely because that token is darker there — the same bug, hidden.
+
+   The token was the mistake. `--color-chip-active` is the SELECTED state of a
+   chip in a group: it is meant to be read against its unselected siblings, and
+   it has a border token (`--color-chip-active-border`) that every other use in
+   the app pairs it with — App, Library, ThemeToggle, the journey sheet. Alone
+   on a sheet of paper, with the border dropped, it has nothing to be lighter
+   than.
+
+   This is not a chip. It is the one action on the card, so it is now built the
+   way this app builds actions everywhere else — the ink pill by day and the
+   moonlit pill by night, the leaf silhouette, the featherweight lift, hover on
+   pointers only because on touch it sticks after the tap. The same language as
+   LeafButton and the journey's keep button; it cannot BE LeafButton, which is
+   a <button>, and this navigates. */
+.idleAct {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-min);
+  margin-block-start: var(--space-3);
+  padding-inline: var(--space-6);
+  border-radius: var(--radius-leaf);
+  background: var(--color-action);
+  box-shadow: var(--elevation-1);
+  font-family: var(--font-app);
+  font-weight: var(--weight-strong);
+  font-size: var(--text-base);
+  letter-spacing: 0.01em;
+  color: var(--color-on-action);
+  text-decoration: none;
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .idleAct:hover {
+    background: var(--color-action-hover);
+    box-shadow: var(--elevation-2);
+    transform: translateY(calc(-1 * var(--lift) / 2));
+  }
+}
+
+.idleAct:active {
+  background: var(--color-action-press);
+  box-shadow: none;
+  transform: translateY(var(--press));
+  transition-duration: var(--dur-press);
+}
+
+/* Outside the pill, on the paper — so it is drawn in the card's own ink and
+   stays visible against a fill that inverts between the themes. */
+.idleAct:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
+/* ---- The one behind the page ----
+
+   A reader asked for a rabbit that hides behind the currently-reading card,
+   comes up at the end of it, walks into the words, looks at them and goes
+   away again. The trick that makes it read as *behind* rather than *on top
+   of* is that it is never composited with the card at all: `.lurk` is a window
+   whose bottom edge is the card's top edge and which clips everything below
+   it. So the paper does not have to be opaque — which is just as well, since
+   it is 55% and blurred, and a creature showing through the page as a smudge
+   under the book's own title would have been a much worse idea than it sounds.
+
+   The window's height is the whole drawing above its ledge: the peek pose is
+   drawn to stop dead at y=79 in a box that opens at −15, so 94 of its 118 width
+   units stand above the edge — 48px at the 60px width used here. Nothing is
+   cropped; the ears clear the top of the window with the same margin they clear
+   their own viewBox.
+
+   The window clips sideways too, which is the whole hiding mechanism: ducked
+   below the ledge, the creature is behind the paper rather than faded out.
+   There is no opacity anywhere in this, because a rabbit that dissolves is a
+   ghost.
+
+   IT NEVER GOES ALL THE WAY DOWN, and that is the correction this whole
+   section is built around. Hiding used to mean `translateY(112%)` — 56px on a
+   50px drawing in a 54px window, so "ducked" was two pixels past gone and a
+   third of the loop had no rabbit in it at all. Watched rather than read, that
+   is not a shy animal; it is an empty card that occasionally produces one.
+
+   So the floor is 62% — 31px, which leaves the ear tips 11.8px above the
+   card's edge and cuts the drawing off at viewBox y 18, well above the head at
+   32. Ears and nothing else. The animal is on screen for every frame of the
+   loop, and the loop is about how much of it you can see. */
+.stage {
+  position: relative;
+  /* The tab stands 11px proud of the card, into the gap the column already
+     sets. Left alone, that gap is spent before the eye gets to the tally line
+     above it and the two crowd. Bought back here rather than on the masthead's
+     own margin, because first run has no tab and no need to pay for one. */
+  margin-block-start: var(--space-3);
+  /* The tab's width, and therefore where the walk has to stop. Declared here
+     because two rules need the same number and neither of them owns it. */
+  --tab-w: 148px;
+  --tab-x: var(--space-4);
+
+  /* WHERE THE WALK STOPS, measured rather than guessed — the previous −20px was
+     a guess and it was the bug a reader kept reporting as "the rabbit passes
+     through Currently reading".
+
+     The creature is a 60px box, but it is not 60px of creature: the peek pose
+     draws its leading paw at x=24 of a 118-unit viewBox, so 12.2px of that box
+     is empty air in front of the animal. Stopping the BOX 20px short of the
+     tab's trailing edge therefore stopped the ANIMAL 7.8px past it — and since
+     the tab carries z-index 2 against this creature's 1, those 7.8px were not
+     an overlap the eye could read as contact. The paw simply went missing
+     behind the words.
+
+     12px puts the drawn paw on the tab's trailing edge with two tenths of a
+     pixel to spare. Everything after that is the collision's own doing: it is
+     `.lurkBump` that pushes 4px further in, which is exactly the overlap that
+     should exist, for the three frames an impact lasts. */
+  --lurk-stop: calc(var(--tab-x) + var(--tab-w) - 12px);
+  /* Where the loop rests, and a cap on how far it is from the tab. Named
+     because three keyframes and the reduced-motion fallback have to agree on
+     it; capped because the walk is timed in SECONDS and this end of it was
+     measured in PERCENT, which is not a speed.
+
+     One clock crossing the whole card means the creature's pace is a function
+     of the viewport: 113px of phone in 8.7s is 13px a second, and the same
+     8.7s across a 560px card is 40. Three times the speed on the screen with
+     the most room to look unhurried, from a stylesheet that never mentions
+     speed anywhere.
+
+     So past about 380px of card the far corner stops being the start and 170px
+     is, which holds the pace at roughly 20px a second and still begins well
+     clear of the words. `min()` rather than a breakpoint because the crossover
+     is a distance, not a device — and because a rabbit that changed where it
+     lived at 760px would be a second thing to keep true. */
+  --lurk-home: min(calc(100% - 62px), calc(var(--lurk-stop) + 170px));
+}
+
+.lurk {
+  position: absolute;
+  z-index: 1;
+  inset-inline: 0;
+  /* Two pixels INTO the card rather than exactly on its lip. The paper carries
+     a −0.4deg tilt, so its top edge is about a pixel higher at one end than the
+     other, and a clip on the nominal edge would leave the paws hanging over a
+     hairline of sky at whichever end is lower. */
+  bottom: calc(100% - 2px);
+  /* 48px is the drawing's own height above the ledge and was the window's
+     height too, which left it nothing: the moment the body stretched on impact
+     the ear tips were shaved off by the frame. Six more pixels was the headroom
+     that stretch needs — and four more again for the gait, which lifts the
+     whole animal 3px at the top of each lollop. Stacked worst case (impact
+     stretch on the up-beat of a step) the ear tips reach 4.6px inside the
+     frame at 58, against 0.6px at 54. Both clear; only one of them clears by
+     enough to still be true if the drawing is ever renudged. */
+  block-size: 58px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* THE WALK. `left` and not a transform, deliberately: the distance is the
+   card's own width, which only the percentage is in a position to know, and a
+   `translateX(%)` resolves against the moving element instead. It is a 60px box
+   on a compositor that has nothing else to do — the cost is theoretical.
+
+   One 30-second clock runs three of the four tracks, so they can be read as one
+   story by lining up their percentages:
+
+     0–14   at the far end, only the ears above the edge
+     14–21  the head comes up, with a little overshoot
+     21–50  the walk along the ledge — 8.7s, 13px a second
+     50–53  it walks into the tab without having seen it
+     53–57  startled: straight back down to ears
+     57–64  hidden, nerve being gathered
+     64–71  one careful look, eyes just over the edge
+     71–74  down again
+     74–95  the walk back, ears only, 6.3s
+     95–100 settled
+
+   THE STORY IS "BY MISTAKE", and every number above serves that. The old
+   version walked over in 3s, stopped dead, then held a −10deg lean for 14% of
+   the loop — an animal that crosses a card at speed and then spends three
+   seconds reading the words has plainly gone there on purpose, which is the
+   opposite of what it is meant to look like.
+
+   Three changes make it an accident. It is SLOW, so the arrival is not an
+   event it is heading for. The walk is `linear`, so it does not decelerate
+   into the tab — an ease-out is a creature seeing what is in front of it, and
+   this one does not. And the beat after impact is a startle rather than a
+   look: it drops, waits, and takes ONE cautious peek before backing off. The
+   lean that used to read as "reading" is gone entirely.
+
+   It is also never off screen. 30s with a rabbit somewhere in every frame,
+   rather than 22s with an empty card for seven of them. */
+.lurkRun {
+  position: absolute;
+  /* The svg's own bottom sits a shade below the ledge — the pose ends 3 units
+     past the rail — so it hangs two pixels under the window to put the rail on
+     the card's edge. */
+  bottom: -2px;
+  left: var(--lurk-home);
+  /* Linear, and the one track here that is: see above — an eased approach
+     telegraphs the collision the whole story depends on not being seen. */
+  animation: lurkWalk 30s linear infinite;
+}
+
+@keyframes lurkWalk {
+  0%,
+  21% {
+    left: var(--lurk-home);
+  }
+  50%,
+  74% {
+    left: var(--lurk-stop);
+  }
+  95%,
+  100% {
+    left: var(--lurk-home);
+  }
+}
+
+/* UP AND DOWN — three heights, all of them measured on the drawing rather than
+   picked, because this pose keeps its face very low in its own box and the eye
+   notices the difference between "eyes over the edge" and "eyes under it" at a
+   resolution of about four pixels.
+
+     62%  ears. 31px down; tips 11.8px proud of the card, cut off at viewBox 18
+          against a head that starts at 32. This is the floor — see `.lurk`.
+      20% eyes. 10px down; the pupils run 49–54 against an edge at 54, so the
+          eye is all there and the muzzle is not. A face deciding whether to
+          come back.
+       0% up. The whole animal above the edge, 42.8px of it.
+
+   The −5% on the way up is the overshoot that makes it a creature popping up
+   instead of a panel sliding. There is no overshoot on the way DOWN at 53–57:
+   that one is a fright, and a fright does not bounce. */
+.lurkRise {
+  display: block;
+  animation: lurkRise 30s ease-in-out infinite;
+}
+
+@keyframes lurkRise {
+  0%,
+  14% {
+    transform: translateY(62%);
+  }
+  18% {
+    transform: translateY(-5%);
+  }
+  21%,
+  53% {
+    transform: translateY(0);
+  }
+  57%,
+  64% {
+    transform: translateY(62%);
+  }
+  68%,
+  71% {
+    transform: translateY(20%);
+  }
+  74%,
+  100% {
+    transform: translateY(62%);
+  }
+}
+
+/* THE GAIT, on its own clock. A creature that changes position without
+   changing shape is being dragged, and the walk was the one part of this the
+   eye read as a slide however slow it got.
+
+   Deliberately NOT on the 30s clock. A lollop that lined up with the story
+   would be the story's own rhythm rather than the animal's, and 2.5s divides
+   30 exactly, so the two stay in phase across every loop without being written
+   as one. The pause is the point: up in the first fifth, down by not-quite
+   half, then a beat of nothing — a rabbit's gait is hop, land, wait.
+
+   It runs during the hidden stretches too, where all it does is bob the ears
+   3px. That reads as an animal breathing behind a card, which is the correct
+   thing for it to be doing. */
+.lurkStep {
+  display: block;
+  animation: lurkStep 2.5s ease-in-out infinite;
+}
+
+@keyframes lurkStep {
+  0%,
+  46%,
+  100% {
+    transform: translateY(0);
+  }
+  20% {
+    transform: translateY(-3px);
+  }
+}
+
+/* THE COLLISION. Squashed across and stretched up at the instant of arrival,
+   then knocked BACK off the tab rather than leaning into it. Anchored at the
+   bottom so the paws stay planted on the edge and only the body gives.
+
+   The rebound is the whole difference between a mistake and an errand. The
+   previous version squashed and then tipped ten degrees TOWARDS the words and
+   held it — which is an animal that has arrived somewhere and is now reading.
+   Rocking away from them, tilted the other way, is an animal that has walked
+   into something.
+
+   `ease-out` and not the shared ease-in-out: an impact has no wind-up. */
+.lurkBump {
+  display: block;
+  transform-origin: 50% 100%;
+  animation: lurkBump 30s ease-out infinite;
+}
+
+@keyframes lurkBump {
+  0%,
+  50% {
+    transform: none;
+  }
+  53% {
+    /* Seven to travel four. --lurk-stop parks the drawn paw exactly ON the
+       tab's trailing edge, so these are the only frames in the loop where
+       anything overlaps, and the overlap is what sells the contact.
+
+       But the squash fights the shove, and by more than it looks: scaleX about
+       a 50% origin pulls the leading ink back by (1 − 0.84) × half the distance
+       from the box's centre to that ink, which is 2.85px here. Written as the
+       −4 it wants to read as, the animal arrived 0.8px into the tab — a frame
+       of contact so slight that on screen it stopped short instead. −7 lands
+       the 4. Measure the ink, not the box. */
+    transform: translateX(-7px) scaleX(0.84) scaleY(1.1);
+  }
+  56% {
+    transform: translateX(6px) scaleX(1.05) scaleY(0.95) rotate(5deg);
+  }
+  59% {
+    transform: translateX(2px) rotate(2deg);
+  }
+  62%,
+  100% {
+    transform: none;
+  }
+}
+
+/* Still there, still peeking — just not pacing. Parked up at the far end of the
+   card, which is where the loop starts and ends, and well clear of the tab: a
+   creature stopped dead against the words it was meant to be walking into looks
+   stuck rather than still.
+
+   Head up rather than at the 62% floor. Ears alone are a state that only makes
+   sense once you have watched the animal duck; presented cold, with no motion
+   to explain them, they are two shapes on a card edge. */
+@media (prefers-reduced-motion: reduce) {
+  .lurkRun {
+    left: var(--lurk-home);
+    animation: none;
+  }
+
+  .lurkRise {
+    transform: none;
+    animation: none;
+  }
+
+  .lurkStep {
+    transform: none;
+    animation: none;
+  }
+
+  .lurkBump {
+    animation: none;
+  }
 }
 
 /* ---- Currently reading hero — the book gets room to breathe ---- */
@@ -141,8 +646,16 @@
 }
 
 /* Sized to sit inside the card next to the cover, not to fight it: a long
-   title should wrap to two comfortable lines, never overflow. */
+   title should wrap to two comfortable lines, never overflow.
+
+   The serif, because this is the one string on the card that is not ours: it
+   is what is printed on the object the reader is holding. Set beside an
+   uppercase sans author line, the two lines stop being title/subtitle at
+   different sizes and become the book speaking and the app labelling it. */
 .heroTitle {
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
   font-size: var(--text-md);
   line-height: var(--leading-tight);
   text-wrap: balance;
@@ -150,7 +663,7 @@
 }
 
 .heroAuthor {
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-xs);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
@@ -182,7 +695,10 @@
   display: flex;
   justify-content: space-between;
   gap: var(--space-3);
-  font-family: var(--font-sans);
+  /* Mono, like every other counted thing in the app. A page count is the
+     clearest case for it there is: two numbers and a percentage, read at a
+     glance, never read as a sentence. */
+  font-family: var(--font-app);
   font-size: var(--text-2xs);
   letter-spacing: var(--track-caps);
   /* the page count and percentage both climb as you read; proportional digits
@@ -210,12 +726,18 @@
 /* Sans, not mono: "3 memories kept" is a sentence, and mono is rationed to
    short uppercase labels. In mono it also sat at the same texture as the page
    count directly above it, so the two read as one block of machine output. */
+/* The line has to wrap. It was held on one line to keep "6 memories kept" from
+   breaking, and the count never does break — but "Nothing kept from this one
+   yet" is six words in a 149px column beside the cover, and `nowrap` did not
+   make it fit, it made it run 20px out through the card's own padding. A card
+   whose text crosses its edge is a broken card; a card with a two-line caption
+   is a card. */
 .entryHint {
   font-size: var(--text-xs);
   /* soft, not faint: translucent cards cost ~2 points of contrast, and this
      is small text that still has to clear AA */
   color: var(--color-ink-soft);
-  white-space: nowrap;
+  text-wrap: pretty;
 }
 
 /* ---- Recent memories: timeline rail with typed dots ---- */
@@ -293,7 +815,7 @@
 /* Typewriter meta */
 .memoryType {
   display: block;
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-2xs);
   letter-spacing: var(--track-caps);
   text-transform: uppercase;
@@ -305,22 +827,31 @@
   padding: var(--space-6) var(--space-6) var(--space-5);
 }
 
+/* A geometric sans draws a quote mark as two tapered commas of even width,
+   which at 48px is a pair of grey blobs. An old-style serif draws it the way
+   it is drawn in a book — modelled, with a thin and a thick — and that is the
+   entire reason this glyph is on the card. */
 .quoteMark {
   display: block;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
   font-size: 3rem;
   line-height: 0.6;
   color: var(--color-quote);
   opacity: 0.85;
 }
 
+/* THE SENTENCE SOMEBODY STOPPED READING TO WRITE DOWN. It gets the book's
+   face and nothing else on this card does — a passage from a novel set in the
+   same type as the tab bar under it is the exact failure the pairing exists
+   to fix. 400, not 500: Garamond's text weight is where its modelling is, and
+   the extra step only thickens the stems. */
 .quoteText {
-  font-family: var(--font-italic);
-  font-weight: var(--weight-italic);
-  font-style: italic;
+  font-family: var(--font-app);
+  font-weight: var(--weight-body);
   font-size: var(--text-md);
-  line-height: var(--leading-body);
+  line-height: var(--leading-read);
   margin-top: var(--space-3);
 }
 
@@ -357,6 +888,8 @@
    which is glass. This paragraph is not, so it can carry its own background.) */
 .noteText {
   font-family: var(--font-hand);
+  /* Not normalised to the sans — see --font-adjust in tokens.css. */
+  font-size-adjust: none;
   font-size: var(--text-md);
   line-height: 28px;
   margin-top: var(--space-2);
@@ -449,9 +982,8 @@
 
 .caption {
   margin-top: var(--space-3);
-  font-family: var(--font-italic);
-  font-weight: var(--weight-italic);
-  font-style: italic;
+  font-family: var(--font-app);
+  font-weight: var(--weight-medium);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
@@ -461,8 +993,9 @@
 /* A thread and a highlight both carry a title above the writing. */
 .noteName {
   margin-top: var(--space-2);
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
   font-size: var(--text-md);
   line-height: var(--leading-snug);
   color: var(--color-ink);
@@ -494,9 +1027,54 @@
 }
 
 .emptyHeadline {
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
   font-size: var(--text-lg);
 }
 
 .emptyBody {
   color: var(--color-ink-soft);
+}
+
+/* ── Also open — the other books mid-read ─────────────────────────────────
+   A reader in three books at once gets the freshest as the hero and the rest
+   here: covers, not another card, because a second full card under the first
+   would argue with it. The label does the explaining once, for the row. */
+.also {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+  padding-inline: var(--space-2);
+}
+
+.alsoLabel {
+  flex: none;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.alsoList {
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.alsoBook {
+  display: block;
+  border-radius: var(--radius-sm);
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.alsoBook:active {
+  transform: translateY(var(--press));
+}
+.alsoBook:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 3px;
 }

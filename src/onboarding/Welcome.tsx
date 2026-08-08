@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import Guide from './Guide'
 import LeafButton from '../components/LeafButton'
 import PaperSurface from '../components/PaperSurface'
 import Wordmark from '../brand/Wordmark'
-import { getHandle, hasMet, markMet, setHandle } from '../data/reader'
+import { FacePicker } from '../components/Face'
+import { getFace, getHandle, hasMet, markMet, setFace, setHandle } from '../data/reader'
 import styles from './onboarding.module.css'
 
 /* The first thirty seconds.
@@ -24,8 +26,9 @@ import styles from './onboarding.module.css'
 
 function Welcome() {
   const [open, setOpen] = useState(() => !hasMet())
-  const [panel, setPanel] = useState<0 | 1>(0)
+  const [panel, setPanel] = useState<0 | 1 | 2>(0)
   const [name, setName] = useState(getHandle)
+  const [face, setPickedFace] = useState(getFace)
   const field = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -34,8 +37,25 @@ function Welcome() {
 
   if (!open) return null
 
+  /* Begin does not leave any more — it saves the name and face, then walks
+     into the tour (see Guide.tsx), so the guide runs BEFORE the reader ever
+     sees Home. Skip still leaves directly: someone declining to give a name
+     is someone declining the ceremony, and holding them through four more
+     cards would be the opposite of a welcome. */
+  function begin(withName: string) {
+    if (withName.trim()) setHandle(withName)
+    setFace(face)
+    setPanel(2)
+  }
+
+  function finish() {
+    markMet()
+    setOpen(false)
+  }
+
   function leave(withName: string) {
     if (withName.trim()) setHandle(withName)
+    setFace(face)
     markMet()
     setOpen(false)
   }
@@ -49,24 +69,31 @@ function Welcome() {
             app writes its own name on a screen. */}
         <Wordmark size={40} className={styles.mark} title="Flyleaf" />
 
-        {panel === 0 ? (
+        {panel === 2 ? (
+          <Guide onDone={finish} />
+        ) : panel === 0 ? (
           <PaperSurface taped rotate={-0.6} className={styles.panel}>
-            <h1 className={styles.big}>A flyleaf is the blank page at the front of a book.</h1>
+            {/* Plain words, owner's orders. The first cut of this panel opened
+                with the history of the word "flyleaf", and her review was
+                blunt: who will make sense of that? Say what the app is and
+                what it does — the poetry can live inside the app, not on the
+                door. */}
+            <h1 className={styles.big}>A private journal for the books you read.</h1>
             <p className={styles.lede}>
-              People used to write their name there, and the date, and what they
-              thought of it. This is that page — for every book you read, and
-              everything you want to keep from it.
+              Save what each book leaves you with — the lines you loved, your
+              notes, voice memos and pictures. Flyleaf keeps them as one
+              journey per book, just for you.
             </p>
             <div className={styles.acts}>
-              <LeafButton onClick={() => setPanel(1)}>Start my page</LeafButton>
+              <LeafButton onClick={() => setPanel(1)}>Start my journal</LeafButton>
             </div>
           </PaperSurface>
         ) : (
           <PaperSurface taped rotate={0.4} className={styles.panel}>
             <h1 className={styles.big}>What should we call you?</h1>
             <p className={styles.lede}>
-              Only so the app can greet you by name, and so an exported journey
-              knows whose it is.
+              A name and a face for the top of your own page. Both are optional,
+              and both are changeable later in Settings.
             </p>
             <input
               ref={field}
@@ -79,14 +106,23 @@ function Welcome() {
               autoComplete="off"
               spellCheck={false}
               onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && leave(name)}
+              onKeyDown={(e) => e.key === 'Enter' && begin(name)}
             />
+
+            {/* Picked here rather than offered later, because a face chosen in
+                Settings is a setting and a face chosen while you are writing
+                your name is yours. Nothing is preselected: assigning a stranger
+                a face and asking them to correct it is worse than asking. */}
+            <div className={styles.faces}>
+              <FacePicker value={face} onPick={setPickedFace} label="Pick a face" />
+            </div>
+
             <p className={styles.fine}>
               No account, no password, nothing sent anywhere. Your memories stay
               on this device unless you save a copy of them yourself.
             </p>
             <div className={styles.acts}>
-              <LeafButton onClick={() => leave(name)}>Begin</LeafButton>
+              <LeafButton onClick={() => begin(name)}>Begin</LeafButton>
               <button type="button" className={styles.skip} onClick={() => leave('')}>
                 Skip
               </button>

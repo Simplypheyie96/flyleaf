@@ -23,7 +23,7 @@
      not move the pill or its neighbours by a pixel. */
   border: 1px solid transparent;
   background: var(--field-fill);
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-sm);
   font-weight: var(--weight-strong);
   letter-spacing: var(--track-caps);

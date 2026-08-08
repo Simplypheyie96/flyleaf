@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import Guide from '../onboarding/Guide'
+import Sheet from '../components/Sheet'
 import Sparkle from '../components/Sparkle'
 import ThemeToggle from '../components/ThemeToggle'
 import Group, { Row } from '../settings/Group'
 import InstallHow from '../settings/InstallHow'
-import { BackupCard, NameCard } from '../settings/Journey'
+import { BackupCard, FaceCard, NameCard } from '../settings/Journey'
 import Tip, { TIP_JAR } from '../settings/Tip'
 import { DOCS } from '../legal/documents'
 import card from '../settings/settings.module.css'
@@ -30,6 +33,8 @@ import styles from './Settings.module.css'
    switches buried in it. */
 
 function Settings() {
+  const [touring, setTouring] = useState(false)
+
   return (
     <main className={pageStyles.page}>
       <div className={pageStyles.column}>
@@ -41,18 +46,34 @@ function Settings() {
         </header>
 
         <div className={styles.list}>
-          {/* The reader first: their name, then the theme they read in. Both
-              are one line each, so they share a card. */}
+          {/* The reader first: their name, then the face, then the theme they
+              read in. Three rows on one card, one line each — the face row
+              folds its own twelve discs away, which is the only thing on this
+              page that was ever taller than a line. */}
           <Group label="You" note="Auto follows your device from day into night.">
             <NameCard />
+            <FaceCard />
             <Row title="Theme" control={<ThemeToggle />} />
           </Group>
 
           <Group
             label="Your journey"
-            note="Held on this device only, never on our servers. A saved copy is one file with everything in it — open it anywhere to bring your journey back."
+            note="Held on this device only, never on our servers. A saved copy is one file with everything in it — open it anywhere to bring your journey back. A printed journal is the other kind of copy: the same reading, laid out to keep or hand to someone."
           >
             <BackupCard />
+          </Group>
+
+          {/* The tour, findable ever after. The owner asked for a first-run
+              guide and, rightly, for a way to see it that does not require
+              wiping the app — this is that way. Same four cards Guide.tsx
+              shows a brand-new reader. */}
+          <Group label="How Flyleaf works">
+            <button type="button" className={card.link} onClick={() => setTouring(true)}>
+              See the tour again
+              <span className={card.linkHint} aria-hidden="true">
+                ›
+              </span>
+            </button>
           </Group>
 
           {/* One row per device rather than one guess. See InstallHow. Named
@@ -90,6 +111,10 @@ function Settings() {
           </Group>
         </div>
       </div>
+
+      <Sheet open={touring} onClose={() => setTouring(false)} label="How Flyleaf works" name="tour">
+        {touring && <Guide plain doneLabel="Done" onDone={() => setTouring(false)} />}
+      </Sheet>
     </main>
   )
 }

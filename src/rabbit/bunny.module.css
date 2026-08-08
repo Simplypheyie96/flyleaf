@@ -1,0 +1,33 @@
+/* The rabbit's box. The drawing itself is the Lottie — nothing here paints.
+
+   The square is held before the art lands. The player and the JSON arrive on
+   their own schedule, and every rabbit in this app sits directly above a line
+   of copy; a box that grows from nothing to 132px when the fetch returns would
+   shove that line down the screen while the reader is already looking at it.
+   So the space is committed at mount and only the ink fades in. */
+
+.bunny {
+  inline-size: var(--bunny-size, 132px);
+  block-size: var(--bunny-size, 132px);
+  /* Never squeezed by a flex parent — a compressed rabbit is a different,
+     worse-drawn rabbit. */
+  flex: none;
+  opacity: 0;
+  transition: opacity 420ms ease-out;
+}
+
+.bunny[data-drawn] {
+  opacity: 1;
+}
+
+/* Lottie injects the svg as a block-level child; without this the line-height
+   of the host adds a few stubborn pixels under the drawing. */
+.bunny svg {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bunny {
+    transition: none;
+  }
+}

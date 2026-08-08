@@ -9,16 +9,28 @@
 }
 
 .title {
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  /* Stated, so it does not inherit the 700 the global h1 rule sets for the
+     sans. See --weight-display-read in tokens.css: Garamond's heavy weights
+     are a different voice, not a louder one. */
+  font-weight: var(--weight-display-read);
   font-size: var(--text-xl);
   line-height: var(--leading-display);
   letter-spacing: var(--track-title);
 }
 
+/* 13, NOT 16, and this is the "some fonts are big while some are small" bug in
+   its clearest form: at 16/500 the line explaining the page was LARGER and
+   HEAVIER than every row label under it, so the standfirst outranked the
+   settings it was introducing. Secondary copy is 13 everywhere else in the app
+   — Home's line under "Look what fell out" is 13 — and this is secondary copy.
+   The page title carries the top of the screen on its own. */
 .subtitle {
-  font-family: var(--font-italic);
-  font-weight: var(--weight-italic);
-  font-style: italic;
-  font-size: var(--text-md);
+  font-family: var(--font-app);
+  font-weight: var(--weight-body);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
   color: var(--color-ink-soft);
 }
 

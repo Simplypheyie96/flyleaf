@@ -134,9 +134,36 @@ export interface Entry {
   face?: number
 }
 
+/** One stretch of time spent reading one book.
+
+    A sitting is not a keep and does not live in `entries`. Everything in that
+    table is something the reader wrote down on purpose; a sitting is something
+    that merely happened, measured by a clock while they were doing something
+    else. Mixing them would put "you read for 40 minutes" on the same thread as
+    a line they chose to copy out by hand, which is not the same kind of thing
+    and would not deserve the same card.
+
+    Nothing is derived from `startedAt + seconds`: an interval throttled by a
+    backgrounded tab under-counts, so the elapsed time is always read off the
+    wall clock and only the total is written here. */
+export interface Sitting {
+  id: number
+  /** The book being read — `Book.id`, the cover seed. */
+  bookId: number
+  /** Epoch ms the clock was started. The sort key, and the only ordering that
+      makes sense for something with no name. */
+  startedAt: number
+  /** Whole seconds. Sittings shorter than a minute are never written. */
+  seconds: number
+  /** ISO yyyy-mm-dd of the day it STARTED, so a sitting that runs past
+      midnight belongs to the evening the reader thinks it belongs to. */
+  keptOn: string
+}
+
 const db = new Dexie('flyleaf') as Dexie & {
   books: EntityTable<Book, 'id'>
   entries: EntityTable<Entry, 'id'>
+  sittings: EntityTable<Sitting, 'id'>
 }
 
 // Only the fields we actually query on: newest-first on the shelf, and title
@@ -253,6 +280,20 @@ db.version(5)
 db.version(6).stores({
   books: 'id, addedAt, title',
   entries: '++id, bookId, type, [bookId+createdAt]',
+})
+
+/* A new table, and nothing else touched — the most additive version there is.
+   A device that never starts the clock never writes a row, and a device
+   upgrading from 6 gets an empty table it can ignore.
+
+   `[bookId+startedAt]` because the book page asks one question: this book's
+   sittings, newest first. `startedAt` on its own is the same question without
+   the book, which is how "how much have I read lately" would be asked if it
+   is ever asked. */
+db.version(7).stores({
+  books: 'id, addedAt, title',
+  entries: '++id, bookId, type, [bookId+createdAt]',
+  sittings: '++id, bookId, startedAt, [bookId+startedAt]',
 })
 
 export default db

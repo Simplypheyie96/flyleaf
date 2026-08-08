@@ -44,6 +44,13 @@
   --color-ink: var(--tint-ink);
   --color-ink-soft: var(--tint-ink-soft);
   --color-ink-faint: var(--tint-ink-faint);
+  /* The fourth ink, and the one that was missing. Accent-coloured type — a
+     link, a quiet verb like Dictate or Another face — was the only text on a
+     tinted card still asking the ROOM for its colour while everything beside
+     it asked the card. By day the two lamps agree and nothing shows; after
+     dark the room's accent is a moonlit blue for a dark sky, and it was being
+     printed on a pale sheet at 1.07:1. */
+  --color-accent-text: var(--tint-accent);
   --color-bg: var(--tint-reverse);
   /* Paper is the other half of ink, so it flips with it. Anything on a toned
      surface that reverses out of a dark fill reaches for --color-paper, and
@@ -128,7 +135,7 @@
   border-radius: inherit;
   pointer-events: none;
   opacity: var(--grain-opacity);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-image: var(--grain-tile);
 }
 
 /* Taped variant: a translucent strip over the top edge. */

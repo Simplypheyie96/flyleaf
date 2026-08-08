@@ -17,8 +17,9 @@
 
 .title {
   margin-inline-end: auto;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
   font-size: var(--text-lg);
   line-height: var(--leading-tight);
   color: var(--color-ink);
@@ -96,7 +97,7 @@
   border: none;
   border-radius: var(--radius-md);
   background: none;
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-base);
   text-align: start;
   color: var(--color-ink);
@@ -206,7 +207,21 @@
   min-width: 10ch;
 }
 
-.reallyDelete {
+/* Two pills sharing 275px, and .capture's standing padding is sized for a pill
+   standing on its own. Here it left 83px of room for a 90px label, so "Keep the
+   book" — the safe one — broke onto two lines while "Delete it all" sat on one,
+   which reads as the destructive answer being the composed, obvious one. */
+.warnRow .capture {
+  padding-inline: var(--space-4);
+}
+
+/* Stated after .capture so it actually lands.
+   It used to sit above .capture in this file, and since both are single class
+   names they carry the same specificity — so .capture's field fill won on
+   source order and the confirm button came out identical to the cancel button
+   beside it. Two matching pale pills, on the one dialog in the app that throws
+   away a whole book and every keep in it. */
+.capture.reallyDelete {
   border-color: transparent;
   background: var(--color-danger);
   /* The danger red is dark by day and light by night, so the word on it has to
@@ -220,7 +235,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-2xs);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
@@ -238,7 +253,7 @@
    is a field called Page optional. The parentheses are drawn here rather than
    typed into the JSX so no string in the app carries its own punctuation. */
 .optional {
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-xs);
   font-weight: var(--weight-body);
   letter-spacing: 0;
@@ -262,8 +277,8 @@
   border: 1px solid var(--field-border);
   background: var(--field-fill);
   color: var(--color-ink);
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-app);
+  font-weight: var(--weight-display);
   /* 16px flat: anything smaller and iOS zooms the whole sheet on focus. */
   font-size: var(--text-field);
   line-height: var(--leading-body);
@@ -277,6 +292,73 @@
 .area {
   min-height: 7.5rem;
   resize: vertical;
+}
+
+/* ── The two fields that are not fields ─────────────────────────────────────
+
+   Five of the seven kinds are notes *about* a book and take the plain box. Two
+   are acts with a hand of their own, and the box was flattening both of them
+   into the same grey rectangle: a QUOTE is somebody else's sentence being
+   copied out, and a NOTE is the reader's own aside. Setting each in the face
+   it will be read back in makes the act legible before a word is typed — and
+   it is the same face the card uses, so the reader is not shown one thing and
+   given another. */
+.penned {
+  position: relative;
+  display: block;
+}
+
+/* The open quote, hung in a gutter of its own the way a pull-quote hangs it.
+   Not typed by the reader and not stored — the mark belongs to the form, and a
+   reader who copies out their own opening quotation mark should get theirs on
+   top of this one without either looking wrong. */
+.penned[data-kind='quote']::before {
+  content: '“';
+  position: absolute;
+  /* Measured, not eyeballed. The field sets 16px Garamond held to the caps
+     regime, so it renders near 17.7 on a 26.4 line with 12 of padding above
+     it — which puts the first line's cap band at roughly 20→32 from the top
+     of the box. The mark's own ink sits about 13 below the top of a
+     line-height:1 box at this size, so 0.8rem lands its middle on the middle
+     of the band it is hanging beside. Anything simpler than this put the
+     glyph outside the field, floating over the label. */
+  inset-block-start: 0.8rem;
+  inset-inline-start: 0.625rem;
+  font-family: var(--font-read);
+  font-size: 2.6rem;
+  line-height: 1;
+  color: color-mix(in oklch, var(--color-quote), transparent 38%);
+  pointer-events: none;
+}
+
+.area[data-kind='quote'] {
+  font-family: var(--font-read);
+  /* Held to the caps regime, not the x-height one: a copied-out line is read
+     as a piece of set type rather than as running interface prose, and the
+     x-match blows old-style capitals 20% over. */
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
+  /* The mark takes the leading gutter; the first line starts after it. */
+  padding-inline-start: var(--space-7);
+  line-height: var(--leading-read);
+}
+
+/* The reader's own hand. tokens.css reserves Kalam for notes and nothing else,
+   and this — the box a note is actually written in — was the one place it was
+   missing.
+   20px with the optical correction OFF: Kalam is deliberately small-on-the-body
+   (that is why a handwritten line can sit beside a heading and still read as an
+   aside), so normalising it here would make a note shout. 20 of Kalam lands at
+   roughly the x-height of 16 of Quicksand — the same apparent size as every
+   other field on the sheet — while staying clear of the 16px floor that makes
+   iOS zoom the whole sheet on focus. */
+.area[data-kind='note'] {
+  font-family: var(--font-hand);
+  font-size-adjust: none;
+  font-size: 1.25rem;
+  font-weight: var(--weight-hand-strong);
+  line-height: 1.6;
+  letter-spacing: 0.005em;
 }
 
 /* A piece of writing rather than a field — the fair copy, and the plain-text
@@ -353,7 +435,7 @@
      not move the pill or its neighbours by a pixel. */
   border: 1px solid transparent;
   background: var(--field-fill);
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-sm);
   font-weight: var(--weight-strong);
   letter-spacing: var(--track-caps);
@@ -411,7 +493,7 @@
   border: none;
   border-radius: var(--radius-pill);
   background: none;
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-2xs);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
@@ -444,9 +526,15 @@
   background: var(--field-fill);
 }
 
+/* The hint keeps the button company or it drops below it — it never gets the
+   sliver that is left over. At 12ch the map hint cleared the wrap threshold by
+   a few pixels and stayed on the line, where "Optional — without one you get a
+   drawn field." broke into four ragged lines beside a one-line button. A floor
+   wide enough to hold a real phrase means the wrap decision is made on whether
+   the sentence fits, not on whether three words of it do. */
 .recorder .rowHint {
   flex: 1;
-  min-width: 12ch;
+  min-width: 22ch;
 }
 
 /* The recorder is itself a field, so its buttons cannot be the field fill they
@@ -467,6 +555,14 @@
    down by day, up by night. Borrowing a card token for a control was what put
    this one the wrong side of the paper. */
 .capture {
+  /* The pressed edge and the grain, same recipe as the primary pill. A
+     secondary action is quieter, not flatter — see pressable.module.css.
+
+     The grain is dialled back from the shared step because that step was tuned
+     against the ink pill, where a dark ground swallows most of it. On this pale
+     fill the same opacity reads as speckle rather than surface. */
+  composes: pressable from '../components/pressable.module.css';
+  --grain-action-opacity: 0.055;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -475,7 +571,7 @@
   border-radius: var(--radius-pill);
   border: 1px solid var(--field-border);
   background: var(--field-fill);
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-sm);
   font-weight: var(--weight-strong);
   color: var(--color-ink);
@@ -493,41 +589,416 @@
   cursor: not-allowed;
 }
 
-/* Recording. A single slow pulse rather than a level meter: a meter that
-   moves with the room is a toy, and it is the only thing on the screen a
-   reader would then watch instead of thinking about what they are saying. */
-.recorder[data-live='true'] {
-  border-color: color-mix(in oklch, var(--color-voice), transparent 50%);
+/* ── The mounted print ──────────────────────────────────────────────────────
+
+   The picture chooser used to answer a chosen photograph with the words "Ready
+   to keep." — the one thing on the sheet a reader can only judge by looking,
+   reported back to them as a sentence. So the print goes on the board, under
+   four corners, a degree off square: the same mount the card gives it, so what
+   is approved here is what arrives.
+
+   Once there is a print the panel stops being a row and becomes a column, and
+   the chooser demotes itself from the lead action to the way back — the loud
+   button should never be the one that discards what you just chose. */
+.recorder[data-mounted] {
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-5);
 }
 
-.pulse {
+.mount {
+  position: relative;
+  display: block;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--card-fallback);
+  border: 1px solid var(--card-border);
+  /* Paper in this app is flat — a hairline and a lit top edge, never a drop
+     shadow. The board follows PaperSurface rather than inventing a lift of its
+     own, or the one mounted print on the sheet would be the only object in the
+     app casting a shadow. */
+  box-shadow: inset 0 1px 0 var(--card-edge-light);
+  rotate: -0.8deg;
+}
+
+.print {
+  display: block;
+  /* Tall pictures are the common case from a phone camera, and a portrait
+     photograph allowed its natural height would push the caption field and the
+     Keep button off the sheet. Capped by height, contained rather than cropped
+     — this is a proof, and a proof that crops is lying about the file. */
+  max-inline-size: 100%;
+  max-block-size: 190px;
+  inline-size: auto;
+  border-radius: 2px;
+}
+
+.corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: color-mix(in oklch, var(--color-ink), transparent 76%);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.corner[data-at='tl'] {
+  inset-block-start: 0;
+  inset-inline-start: 0;
+}
+
+.corner[data-at='tr'] {
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  rotate: 90deg;
+}
+
+.corner[data-at='br'] {
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  rotate: 180deg;
+}
+
+.corner[data-at='bl'] {
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  rotate: 270deg;
+}
+
+/* ── The recording booth ────────────────────────────────────────────────────
+
+   A voice memo does not get a field. It gets a dark room with the orb standing
+   lit in the middle of it, and the reader taps the orb.
+
+   THE PANEL IS THE STAGE, and that is the fix. This was a pale field-fill box
+   containing a pale recessed disc containing the orb: three surfaces of nearly
+   the same lightness stacked inside a card, with the actual object drawn as
+   dark specks on the palest one. On a light theme `thinking-orbs` paints dark
+   ink for a light background, which is correct of it and wrong here — the
+   package's own gallery is light dots on near-black, and the difference is not
+   a preference, it is whether the thing reads as lit at all. A grey disc with
+   dark flecks on it is not the orb; it is a texture.
+
+   So the two inner boxes are gone. There is one surface — dark in both themes,
+   see --orb-stage — the orb stands on it, and the orb is always the light-on-
+   dark one the package ships. The brief asks for exactly one futuristic object
+   in a scrapbook of paper and tape; an object is only futuristic against
+   something, and this slab is the something.
+
+   It is stacked and centred rather than a row, and that is the point: every
+   other kind of keep is a form you fill in from the top-left, and this one is
+   a thing you stand in front of. */
+.booth {
+  /* The stage does not turn, so neither can the type on it. Overriding the two
+     ink tokens here rather than colouring four rules means everything that
+     lands inside — the clock, the hint, the playback orb's own elapsed figure —
+     is correct by inheritance instead of by being remembered. */
+  --color-ink: var(--orb-stage-ink);
+  --color-ink-soft: var(--orb-stage-ink-soft);
+  /* The trace is the position in a recording, not decoration, so it has to
+     clear the slab it is drawn on rather than the card the slab is sitting in. */
+  --orb-wave: oklch(0.82 0.07 272);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  /* The sheet's body is a scrolling column, and a flex item's automatic
+     minimum size — the thing that normally stops one being squashed below its
+     own contents — is switched off by the `overflow: hidden` further down.
+     Without this the whole booth collapses to its padding on any sheet too
+     tall to fit: the orb clips to a sliver and the trace loses its height
+     entirely. It has to keep its size and let the body scroll. */
   flex: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--color-voice);
-  animation: breathe 1.8s var(--ease-move) infinite;
+  /* Even top and bottom, which does not look even written down. The orb's
+     canvas carries 6.5px of its own empty margin above and below the outermost
+     dot, so 24 of padding reads as 30.5 over the object and 24 under the last
+     line — measured, and about as close to matched as a round object over a
+     line of type gets. The old 32/24 read 56.5 over and 25 under, because it
+     was paying for that margin twice and for a 96px box around a 64px canvas
+     on top of it. */
+  padding: var(--space-5) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--orb-stage-edge);
+  /* Not flat, but the room's light is only half of it: the bloom that matters
+     belongs to the orb and travels with it, on .well below. This is the
+     spill — enough that the top of the slab is not the same black as the
+     bottom, and no more. */
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--orb-stage-lit), transparent 74%) 0%,
+      transparent 62%
+    ),
+    var(--orb-stage);
+  color: var(--color-ink);
+  text-align: center;
+  overflow: hidden;
+  transition: box-shadow var(--dur-base) var(--ease-out);
 }
 
-@keyframes breathe {
-  0%,
-  100% {
-    opacity: 1;
+/* Live, the room brightens. One property, no pulse: the orb is already moving
+   and a breathing panel behind a breathing object is two clocks in one frame. */
+.booth[data-live] {
+  border-color: color-mix(in oklch, var(--color-voice), transparent 40%);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-voice), transparent 86%);
+}
+
+/* WHERE THE ORB STANDS.
+
+   No disc. There WAS one: first a sphere drawn out of two radial gradients,
+   then a pressed-in well, and both were the same mistake in different
+   materials — a picture of an orb wrapped around the real one, two objects
+   fighting over the same 96 pixels. What is here instead is light.
+
+   And the box is the canvas now, 64 rather than 96. The package ships 20 and
+   64 as two separate designs rather than one scale, so the canvas never grows;
+   a 96px wrapper around it was 16px of dead air on every side, which a column
+   with a 12px gap under it turns into a 28px gap that reads as a mistake. The
+   reach that box was buying is bought by ::after instead, which costs no
+   layout at all. */
+.well {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: scale var(--dur-quick) var(--ease-out);
+}
+
+/* THE LIGHT IT CASTS, and it is on the orb rather than on the panel for one
+   reason: a bloom painted into the slab's own background is a bright patch the
+   orb happens to be standing in, and it stays exactly where it is if anything
+   about this column ever moves. Here it belongs to the object.
+
+   Under the canvas in paint order without being told to be — a ::before paints
+   before its element's children, and nothing here claims a z-index. */
+.well::before {
+  content: '';
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, var(--orb-stage-lit) 0%, transparent 66%);
+  opacity: 0.8;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+
+/* Live, the light comes up. Opacity only, and no pulse: the orb is already
+   moving, and a breathing glow behind a breathing object is two clocks in one
+   frame. */
+.booth[data-live] .well::before {
+  opacity: 1;
+}
+
+/* THE ORB AT REST IS STILL THE ORB. It used to be a microphone glyph, on the
+   argument that a moving orb before the microphone is open would be claiming
+   to listen when it is not. The argument was sound and the conclusion was
+   wrong: it meant the one object the brief names was invisible until after the
+   reader had already committed to using it, so most readers never saw it.
+
+   `paused` is the package's own answer — it freezes the current frame while
+   keeping the visual status, which is the difference between a still orb and a
+   lying one. So the object is continuous: it is here, it is quiet, you press
+   it and it comes alive. Only the motion is a claim. */
+.recOrb {
+  composes: well;
+  cursor: pointer;
+}
+
+/* The reach, drawn nowhere. 64 of canvas plus 16 all round is a 96px target on
+   a 64px object — well past the 44 floor, and taken out of the bloom's own air
+   rather than out of the column's height. */
+.recOrb::after {
+  content: '';
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+}
+
+/* Dimmed rather than removed, the way a lamp on standby is still a lamp. A
+   paused orb at full strength reads as running-and-stuck. */
+.recOrb canvas {
+  opacity: 0.62;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+
+.recOrb:hover canvas,
+.recOrb:focus-visible canvas {
+  opacity: 0.85;
+}
+
+.recOrb:active {
+  scale: 0.96;
+}
+
+/* Live, the same 96px stops being a control and becomes the thing you watch.
+   The stop moved out from under it to its own pill below: stamped in the
+   centre it put a small dark square in the densest part of a field of dots,
+   where it read as a dead pixel rather than as a button. The animation is the
+   status; the way out of it is a control of its own with a word on it. */
+.recStage {
+  composes: well;
+}
+
+.recStop {
+  composes: pressable from '../components/pressable.module.css';
+  /* The shared 0.1 was tuned against the dark ink pill. This pill is a pale
+     film on a dark slab, and grain on a translucent surface reads as noise in
+     the surface behind it. */
+  --grain-action-opacity: 0.04;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding-inline: var(--space-5);
+  border: 1px solid color-mix(in oklch, var(--orb-stage-ink), transparent 74%);
+  border-radius: var(--radius-pill);
+  /* Frosted, like every other floating control in the app — but sitting
+     straight on the slab rather than nested in another backdrop-filter, which
+     is the one thing that material must never do. */
+  background: color-mix(in oklch, var(--orb-stage-ink), transparent 86%);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--orb-stage-ink);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-strong);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    scale var(--dur-quick) var(--ease-out),
+    background-color var(--dur-quick) var(--ease-out);
+}
+
+.recStop:hover {
+  background: color-mix(in oklch, var(--orb-stage-ink), transparent 80%);
+}
+
+.recStop:active {
+  scale: 0.97;
+}
+
+/* THE LINE THAT PROVES IT.
+
+   The orb is reassuring and it is not evidence: it turns at the same rate on a
+   microphone that is picking up nothing at all, which is exactly the doubt a
+   reader has when they press record on a phone and cannot tell whether it took.
+   This is the live level off the open stream, forty samples wide at a sample
+   every 55ms — a two-second window, long enough to watch a whole phrase land
+   and short enough that the right-hand edge is unmistakably now.
+
+   Flat at rest, and reserved at full height before it runs, so starting a
+   recording never shoves the orb up the panel. */
+.meter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+  inline-size: min(100%, 260px);
+  block-size: 34px;
+}
+
+/* Scale rather than height: forty elements re-laid-out eighteen times a second
+   is a layout pass a phone can feel, and a transform is a compositor job. The
+   transition covers the gap between samples so the line reads as one moving
+   thing instead of forty things stepping. */
+.meterBar {
+  flex: 1 1 0;
+  block-size: 100%;
+  min-inline-size: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--orb-wave);
+  transform: scaleY(var(--l, 0.05));
+  transform-origin: center;
+  transition: transform 70ms linear;
+}
+
+/* Dim until there is something to hear, so the flat line at rest reads as
+   waiting rather than as a level of zero. */
+.booth:not([data-live]) .meterBar {
+  opacity: 0.35;
+}
+
+/* Reserved before it runs, so starting a recording does not shove the orb up
+   the panel — and tabular, so the seconds do not shuffle the line as they
+   tick. */
+.boothClock {
+  font-family: var(--font-app);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-soft);
+  transition: color var(--dur-base) var(--ease-out);
+}
+
+.booth[data-live] .boothClock {
+  color: var(--color-ink);
+}
+
+.boothHint {
+  max-inline-size: 34ch;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+/* Kept. The room stays; the object in it changes from the microphone to the
+   recording, which is the same trick the panel plays at every other step and
+   the reason it is one surface rather than three. The playback orb takes the
+   full width it needs for its trace, and the way back to the start sits under
+   it — quiet, because re-recording throws away what is already there and the
+   loud control on a panel should never be the destructive one. */
+.booth[data-kept] {
+  padding: var(--space-4);
+  gap: var(--space-4);
+}
+
+.boothPlay {
+  display: block;
+  inline-size: 100%;
+}
+
+/* The `capture` pill is a pale button designed for a pale panel; on the slab
+   it has to be the same frosted film the stop pill is, or it is a white brick
+   in a dark room. */
+.booth .capture {
+  border-color: color-mix(in oklch, var(--orb-stage-ink), transparent 78%);
+  background: color-mix(in oklch, var(--orb-stage-ink), transparent 88%);
+  color: var(--orb-stage-ink-soft);
+}
+
+.booth .capture:hover {
+  color: var(--orb-stage-ink);
+}
+
+/* The orb paints its own static frame under reduced motion, so there is
+   nothing to switch off here but the press — and the glide on the meter, which
+   only smooths the gaps between samples.
+
+   THE METER ITSELF STAYS. The preference is about motion that decorates, and
+   this is the one thing on the panel that is not decoration: it is the only
+   proof the microphone is hearing anything. Removing it would leave a reader
+   who asked for less motion with no way at all to tell a working recording
+   from a broken one. Without the transition it steps rather than glides, which
+   is less motion and the same information. */
+@media (prefers-reduced-motion: reduce) {
+  .recOrb:active,
+  .recStop:active {
     scale: 1;
   }
-  50% {
-    opacity: 0.45;
-    scale: 0.78;
+  .meterBar {
+    transition: none;
   }
-}
-
-/* Tabular, so a running clock does not shuffle the buttons beside it. */
-.elapsed {
-  flex: 1;
-  font-family: var(--font-sans);
-  font-size: var(--text-md);
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink);
 }
 
 /* ── The character's face ───────────────────────────────────────────────────
@@ -568,6 +1039,82 @@
   color: color-mix(in oklab, var(--tint-character), var(--tint-ink) 32%);
 }
 
+/* The pool, once the reader has asked to see it.
+
+   `auto-fill` at 48px lands on six across a 390px phone and more as the sheet
+   widens, so the twelve sit as two full rows on a phone and one on a tablet —
+   never a ragged last row of one, which is what a fixed six-column grid gives
+   at every other width.
+
+   The row is inset by the plate's own width so it hangs under the field rather
+   than under the field *and* the picture: the chosen face is still standing at
+   the trailing edge above, and running the pool beneath it would put two
+   copies of the same face in one column. */
+.faceRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  /* 16, not 8: the chosen face carries a halo 6px outside its own ring, and at
+     an 8px gap the halo of one pick lands on the rim of the next. */
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+  margin-inline-end: calc(var(--tap-min) + var(--space-3));
+}
+
+/* Each one is the plate again, quieter: same circle, same crop, but the ring
+   is only spent on the one that is chosen. Twelve rings would be twelve
+   selections. */
+.facePick {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  inline-size: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--tint-reverse);
+  box-shadow: 0 0 0 1px var(--control-border);
+  color: color-mix(in oklab, var(--tint-character), var(--tint-ink) 32%);
+  cursor: pointer;
+  transition:
+    box-shadow var(--dur-quick) var(--ease-out),
+    scale var(--dur-press) var(--ease-out);
+}
+
+.facePick:hover {
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-character) 40%, transparent);
+}
+
+.facePick:active {
+  scale: 0.94;
+}
+
+/* The chosen one, and unmistakably so. A ring one pixel heavier than the other
+   eleven is not a selection — it is a rendering difference, and at this size,
+   against twelve competing faces, it disappears. So the chosen face takes the
+   character's own colour at full strength and a soft halo outside it: the ring
+   says which, the halo says that a choice has been made at all. */
+.facePick[aria-pressed='true'] {
+  box-shadow:
+    0 0 0 2px var(--color-character),
+    0 0 0 6px color-mix(in oklab, var(--color-character) 22%, transparent);
+}
+
+.facePick:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .facePick {
+    transition: none;
+  }
+
+  .facePick:active {
+    scale: 1;
+  }
+}
+
 /* Dictate's button, said again, on the label line Dictate uses — no fill and no
    border, because nothing here is waiting on the reader and a filled control
    would say it was. What it does carry is Dictate's mark, at Dictate's size and
@@ -586,7 +1133,7 @@
   border: none;
   border-radius: var(--radius-pill);
   background: none;
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-2xs);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
@@ -628,8 +1175,8 @@
   flex: 1;
   min-width: 0;
   color: var(--color-ink);
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-app);
+  font-weight: var(--weight-display);
   font-size: var(--text-field);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -723,9 +1270,8 @@
    you the answer instead of describing it. */
 .caption {
   flex: none;
-  font-family: var(--font-italic);
-  font-weight: var(--weight-italic);
-  font-style: italic;
+  font-family: var(--font-app);
+  font-weight: var(--weight-medium);
   font-size: var(--text-sm);
   line-height: var(--leading-snug);
   text-align: center;
@@ -766,7 +1312,7 @@
    uppercase is already working hard enough to be read. */
 .railLabel {
   flex: none;
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-2xs);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
@@ -882,9 +1428,8 @@
 }
 
 .quiet {
-  font-family: var(--font-italic);
-  font-weight: var(--weight-italic);
-  font-style: italic;
+  font-family: var(--font-app);
+  font-weight: var(--weight-medium);
   font-size: var(--text-md);
   line-height: var(--leading-body);
   text-wrap: pretty;

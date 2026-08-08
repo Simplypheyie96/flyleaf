@@ -19,8 +19,9 @@
    arrangement it wants without either stage restating the header. */
 .title {
   margin-inline-end: auto;
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
   font-size: var(--text-lg);
   line-height: var(--leading-tight);
   color: var(--color-ink);
@@ -74,7 +75,7 @@
   border: none;
   background: transparent;
   color: var(--color-ink);
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-field); /* keeps iOS from zooming the sheet on focus */
 }
 
@@ -157,15 +158,15 @@
 }
 
 .resultTitle {
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-app);
+  font-weight: var(--weight-display);
   font-size: var(--text-md);
   line-height: var(--leading-tight);
   color: var(--color-ink);
 }
 
 .resultMeta {
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-xs);
   color: var(--color-ink-soft);
 }
@@ -173,9 +174,8 @@
 /* The three empty answers — nothing typed, still looking, nothing found —
    all read as the same calm voice rather than as an error. */
 .quiet {
-  font-family: var(--font-italic);
-  font-weight: var(--weight-italic);
-  font-style: italic;
+  font-family: var(--font-app);
+  font-weight: var(--weight-medium);
   font-size: var(--text-md);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
@@ -203,7 +203,7 @@
   border: 1.5px dashed color-mix(in oklch, var(--color-accent-text), transparent 62%);
   border-radius: var(--radius-pill);
   background: var(--field-fill);
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-sm);
   color: var(--color-accent-text);
   cursor: pointer;
@@ -255,7 +255,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-2xs);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
@@ -269,7 +269,7 @@
 }
 
 .optional {
-  font-family: var(--font-sans);
+  font-family: var(--font-app);
   font-size: var(--text-xs);
   letter-spacing: 0;
   text-transform: none;
@@ -289,8 +289,8 @@
   color: var(--color-ink);
   /* Serif: what the reader types here is the book's own title and author, and
      it is typeset in this face on the cover a moment later. */
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-app);
+  font-weight: var(--weight-display);
   font-size: var(--text-field);
 }
 
@@ -332,8 +332,8 @@
   flex: 1;
   min-width: 0;
   color: var(--color-ink);
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-app);
+  font-weight: var(--weight-display);
   font-size: var(--text-field);
   /* A long weekday in a long locale — "Wednesday, 30 September 2026" — is the
      one string here that can outgrow the row. */
@@ -417,8 +417,9 @@
 }
 
 .chosenTitle {
-  font-family: var(--font-serif);
-  font-weight: var(--weight-serif);
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
   font-size: var(--text-lg);
   line-height: var(--leading-tight);
   color: var(--color-ink);
