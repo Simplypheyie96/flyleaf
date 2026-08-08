@@ -1706,8 +1706,7 @@
   transition:
     background-color var(--dur-quick) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out),
-    transform var(--dur-base) var(--ease-move),
-    opacity var(--dur-quick) var(--ease-out);
+    transform var(--dur-base) var(--ease-move);
 }
 
 /* Hover is pointer-only here for the same reason it is on every other button
@@ -1726,25 +1725,6 @@
   box-shadow: none;
   transform: translateY(calc(-1 * var(--keep-step) + var(--press))) scale(0.96);
   transition-duration: var(--dur-press);
-}
-
-/* Away, not gone: it slides off its own corner rather than blinking out, so a
-   reader who was about to reach for it can see where it went. It stays in the
-   accessibility tree and stays tabbable — a keyboard or screen-reader user
-   never scrolls it out of reach, because they were never the ones it was
-   covering — and reaching it by tab brings it straight back. */
-.keepIt[data-away] {
-  transform: translate(20%, 130%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Tabbing to it brings it back from away — to where it actually stands, which
-   is its step, not the bare corner. */
-.keepIt[data-away]:focus-visible {
-  transform: translateY(calc(-1 * var(--keep-step)));
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .undo {
@@ -1854,14 +1834,13 @@
     transform: none;
   }
 
-  /* Tier 1: the slide off the corner is the vestibular part. It still leaves
-     and returns — that is the whole point of it — but by fading. */
+  /* Tier 1: the step is the vestibular part. It still moves clear of whatever
+     verb row it was standing on — that is a collision, not decoration — but it
+     arrives rather than travels. */
   .keepIt {
-    transition: opacity var(--dur-quick) var(--ease-out);
-  }
-
-  .keepIt[data-away] {
-    transform: none;
+    transition:
+      background-color var(--dur-quick) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out);
   }
 }
 

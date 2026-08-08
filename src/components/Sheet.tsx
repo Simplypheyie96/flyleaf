@@ -55,6 +55,7 @@ function Sheet({ open, onClose, label, name, fill = false, children }: SheetProp
   }, [open])
 
   useKeyboardFit(dialog, open)
+  useFieldInView(dialog, open)
 
   return (
     <dialog
@@ -150,6 +151,90 @@ function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open: boole
       view.removeEventListener('resize', fit)
       view.removeEventListener('scroll', fit)
       clear()
+    }
+  }, [dialog, open])
+}
+
+/* KEEPING THE FIELD YOU ARE TYPING IN ON THE SCREEN.
+   ═════════════════════════════════════════════════
+   The hook above wins back the strip of screen the keyboard left, which is
+   half the job. The other half is that the field being typed into has to be
+   inside that strip, and nothing arranges for it: the owner's report was that
+   the add-book sheet is hard to type in because you cannot see what you are
+   typing.
+
+   Two ways it goes wrong, and they are different failures.
+
+   The browser scrolls a focused field into view on its own, but it does that
+   against the layout it can see AT THE MOMENT OF FOCUS — which is the sheet at
+   full height, before visualViewport has reported anything and before the
+   panel has been resized. By the time the sheet is the short strip it should
+   be, the browser's scroll is answering a question nobody asked any more, and
+   the field it carefully revealed is under the keyboard.
+
+   And moving between fields with the keyboard ALREADY up fires no viewport
+   event at all — same keyboard, same height, nothing resized — so the fit hook
+   never runs and the third field of a form stays below the fold with the caret
+   blinking in it.
+
+   Hence both triggers: after every fit, and on every focus change inside the
+   sheet. The scroll is local to whichever region inside the sheet actually
+   scrolls; nothing walks out to the page, which is the failure mode
+   `scrollIntoView` has here and the reason it is not used. */
+
+/* Air left above and below the field, so it clears the edge of its scroller
+   rather than sitting flush against it — a caret hard against a boundary reads
+   as cut off whether or not it is. */
+const FIELD_AIR = 16
+
+function scrollerFor(node: Element, within: Element) {
+  let el: Element | null = node.parentElement
+  while (el && el !== within) {
+    const flow = getComputedStyle(el).overflowY
+    if ((flow === 'auto' || flow === 'scroll') && el.scrollHeight > el.clientHeight + 1) return el
+    el = el.parentElement
+  }
+  return null
+}
+
+function useFieldInView(dialog: RefObject<HTMLDialogElement | null>, open: boolean) {
+  useEffect(() => {
+    const el = dialog.current
+    if (!open || !el) return
+
+    let frame = 0
+    const reveal = () => {
+      cancelAnimationFrame(frame)
+      /* A frame late on purpose. Focus, the keyboard's arrival and the panel's
+         resize all land in the same tick, and a measurement taken inside it is
+         a measurement of the layout being replaced. */
+      frame = requestAnimationFrame(() => {
+        const field = document.activeElement
+        if (!(field instanceof HTMLElement) || !el.contains(field)) return
+        if (!field.matches('input, textarea, select, [contenteditable]')) return
+        const box = scrollerFor(field, el)
+        if (!box) return
+        const target = field.getBoundingClientRect()
+        const frame_ = box.getBoundingClientRect()
+        const below = target.bottom + FIELD_AIR - frame_.bottom
+        const above = frame_.top + FIELD_AIR - target.top
+        /* Whichever edge it is past, and never both — a field taller than its
+           scroller would otherwise be tugged at from both ends. Below wins
+           because that is the keyboard's side. */
+        if (below > 0) box.scrollTop += below
+        else if (above > 0) box.scrollTop -= above
+      })
+    }
+
+    const view = window.visualViewport
+    el.addEventListener('focusin', reveal)
+    view?.addEventListener('resize', reveal)
+    view?.addEventListener('scroll', reveal)
+    return () => {
+      cancelAnimationFrame(frame)
+      el.removeEventListener('focusin', reveal)
+      view?.removeEventListener('resize', reveal)
+      view?.removeEventListener('scroll', reveal)
     }
   }, [dialog, open])
 }

@@ -249,6 +249,13 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Air for whichever field is being typed into, so the browser's own
+     scroll-on-focus leaves it clear of both edges instead of flush against
+     one. Sheet.tsx corrects the case this cannot reach — a scroll aimed at a
+     layout the keyboard is about to replace — but the cheap half of the job
+     belongs here, where it also covers a tab between fields with no keyboard
+     on screen at all. */
+  scroll-padding-block: var(--space-4);
 }
 
 .label {

@@ -200,6 +200,23 @@
   cursor: grabbing;
 }
 
+/* Not while a keyboard is up.
+
+   The handle needs `touch-action: none` to exist at all — without it the
+   browser claims the vertical gesture before the first pointermove arrives.
+   The cost is that a downward drag starting anywhere along the top 28px of the
+   sheet is a dismissal and never a scroll, and with a keyboard up that is a
+   much worse bargain than it looks: the sheet is a third of its usual height,
+   so the handle is a far larger share of what is on screen, and the thing a
+   stray drag throws away is a search the reader is halfway through typing.
+
+   So while they are typing it is inert. The Close button and Escape are still
+   there, and they were always the routes that worked for everybody else. */
+.dialog[data-keyboard] .grab {
+  touch-action: auto;
+  pointer-events: none;
+}
+
 .grabber {
   width: 40px;
   height: 4px;
