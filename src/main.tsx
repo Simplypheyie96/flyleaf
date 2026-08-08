@@ -65,11 +65,15 @@ applyTheme(getPref())
    land rather than holding the first paint for a database write. Reported
    though — a seed that fails silently looks exactly like a seed that decided
    not to run, and the difference is worth a line in the console. */
-if (import.meta.env.DEV) {
-  seedLibrary().catch((error) => {
-    console.error('The preview shelf could not be laid down.', error)
-  })
-}
+/* TEMPORARY: seeding in production too, at the owner's call — she is testing
+   the live link on her phone and wants the demo shelf there to look at. The
+   seed only writes into empty tables, so it cannot double up. RE-GATE THIS to
+   `import.meta.env.DEV` before the app is shared beyond her: a stranger's
+   first shelf must be their own, and clearing the demo rows from live devices
+   is already on the launch list. */
+seedLibrary().catch((error) => {
+  console.error('The preview shelf could not be laid down.', error)
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
