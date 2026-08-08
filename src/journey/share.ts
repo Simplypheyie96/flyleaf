@@ -1,9 +1,10 @@
 /* What leaves the app when a reader shares one keep AS WORDS: their own words,
-   the book they came from, and nothing else. No link, no app name trailing it,
-   no invitation for whoever receives it to install anything. The picture — the
-   thing the share button actually opens now — is drawn in `plate.ts`; this is
-   what "Copy the words" hands over underneath it, for the places a picture
-   cannot go.
+   the book they came from, and the press underneath. No link and no invitation
+   to install anything — the last line is a colophon, not a call to action, and
+   it is set off by a blank one so it reads as a signature under the
+   attribution rather than as a third line of it. The picture — the thing the
+   share button actually opens now — is drawn in `plate.ts`; this is what "Copy
+   the words" hands over underneath it, for the places a picture cannot go.
 
    The shape follows the kind, because the kinds are not interchangeable. A
    quote is set in quotation marks and attributed; a character or a place leads
@@ -11,6 +12,7 @@
    it a hunch reads as a claim. */
 
 import type { Book, Entry } from '../data/db'
+import { IMPRINT } from '../brand/imprint'
 import { STANCE } from './kinds'
 
 export function shareText(keep: Entry, book: Book) {
@@ -37,7 +39,7 @@ export function shareText(keep: Entry, book: Book) {
   }
 
   const from = `— ${book.title}, ${book.author}${where ? ` (${where})` : ''}`
-  return `${body}\n${from}`
+  return `${body}\n${from}\n\n${IMPRINT}`
 }
 
 /** Words, a name, or a photograph. A voice memo with nothing typed on it is

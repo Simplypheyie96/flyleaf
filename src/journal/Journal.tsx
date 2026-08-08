@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import BookCover from '../components/BookCover'
 import { Mark } from '../brand/Wordmark'
+import { IMPRINT } from '../brand/imprint'
 import { longDate, shortDate, spanPair, todayISO } from '../components/date/dates'
 import db, { formatsOf, type Book, type Entry } from '../data/db'
 import { getHandle } from '../data/reader'
@@ -364,6 +365,12 @@ function Journal() {
           {/* todayISO, not toISOString — that one is UTC, and a journal printed
               at nine in the evening in Lagos would be dated tomorrow. */}
           <p className={styles.printed}>Printed {longDate(todayISO())}</p>
+          {/* On the bookplate rather than in a running footer, because a
+              browser's print dialog owns headers and footers and a reader who
+              turns them off would print a whole journal with nothing on it
+              saying where it came from. Page one always prints — including
+              the empty case, where the plate is very nearly the only page. */}
+          <p className={styles.imprint}>{IMPRINT}</p>
         </section>
 
         {empty ? (
