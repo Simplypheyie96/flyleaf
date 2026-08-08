@@ -58,8 +58,18 @@ import { applyTheme, getPref } from './theme'
    not a demo, it is somebody else's shelf in their house. */
 import { seedLibrary } from './data/seed'
 import App from './App.tsx'
+import Boundary from './components/Boundary'
 
 applyTheme(getPref())
+
+/* ASK THE BROWSER NOT TO THROW THE JOURNEY AWAY.
+   Everything a reader writes lives in IndexedDB on their own device, and a
+   browser is free to evict that under storage pressure — Safari also clears
+   unpersisted storage after seven idle days. This asks for the durable kind.
+   Best-effort by design: some browsers grant it silently, some grant it once
+   the app is installed to the home screen, some refuse, and none of that is
+   worth a word to the reader. Export in Settings is still the real backup. */
+void navigator.storage?.persist?.().catch(() => {})
 
 /* Not awaited: the shelf is a live query, so the books appear the moment they
    land rather than holding the first paint for a database write. Reported
@@ -77,6 +87,8 @@ seedLibrary().catch((error) => {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Boundary>
+      <App />
+    </Boundary>
   </StrictMode>,
 )

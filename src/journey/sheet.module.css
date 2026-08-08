@@ -1436,3 +1436,20 @@
   color: var(--color-ink-soft);
   padding-block: var(--space-4);
 }
+
+/* When something would not save. Above the button rather than replacing it,
+   because the words are still in the sheet and the next thing to do is press
+   it again. Clay is the app's own colour for a thing gone wrong; at body size
+   over the sheet's near-white it clears AA with room to spare. */
+.snag {
+  align-self: stretch;
+  margin: 0;
+  color: oklch(0.45 0.11 32);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+[data-theme='dark'] .snag {
+  color: oklch(0.82 0.08 32);
+}

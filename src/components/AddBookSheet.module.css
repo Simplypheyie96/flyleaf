@@ -472,3 +472,17 @@ dialog[data-keyboard] .manualButton {
 .submit {
   align-self: stretch;
 }
+
+/* When the shelf itself refused the book. Above the button, in the app's clay,
+   so the reader knows nothing was lost and the form is still theirs. */
+.snag {
+  margin: 0;
+  color: oklch(0.45 0.11 32);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+[data-theme='dark'] .snag {
+  color: oklch(0.82 0.08 32);
+}

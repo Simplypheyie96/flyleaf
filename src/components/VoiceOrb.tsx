@@ -108,6 +108,9 @@ function VoiceOrb({ media, duration, seed, label }: VoiceOrbProps) {
      the way out, and re-made whenever the blob changes, or a scrolled-through
      journey would leak one per memo it passed. */
   const [src, setSrc] = useState<string>()
+  /* Said out loud when playback refuses, rather than a button that does
+     nothing when pressed. */
+  const [snag, setSnag] = useState<string>()
   useEffect(() => {
     if (!media) return
     const url = URL.createObjectURL(media)
@@ -125,7 +128,13 @@ function VoiceOrb({ media, duration, seed, label }: VoiceOrbProps) {
   function toggle() {
     const audio = audioRef.current
     if (!audio) return
-    if (audio.paused) void audio.play()
+    /* A rejected play is not a no-op: the browser blocked it, or this device
+       cannot decode what was recorded on another one. Either way the button
+       looked broken, so it says so instead. */
+    if (audio.paused)
+      audio.play().catch(() => {
+        setSnag('This memo will not play on this device.')
+      })
     else audio.pause()
   }
 
@@ -218,6 +227,12 @@ function VoiceOrb({ media, duration, seed, label }: VoiceOrbProps) {
           </p>
         )}
       </div>
+
+      {snag && (
+        <p className={styles.snag} role="alert">
+          {snag}
+        </p>
+      )}
 
       {src && (
         <audio

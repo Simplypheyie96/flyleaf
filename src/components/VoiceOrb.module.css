@@ -260,3 +260,18 @@
     scale: 1;
   }
 }
+
+/* When the memo will not play. Under the transport, where the reader's eye
+   already is after pressing the orb. */
+.snag {
+  margin: 0;
+  color: oklch(0.45 0.11 32);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: pretty;
+}
+
+[data-theme='dark'] .snag {
+  color: oklch(0.82 0.08 32);
+}
