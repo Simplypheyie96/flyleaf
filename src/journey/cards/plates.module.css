@@ -119,14 +119,50 @@
   user-select: none;
 }
 
+/* THE BOOK'S OWN VOICE, IN THE BOOK'S OWN FACE.
+
+   tokens.css reserves --font-read for headings, and a quote is not a heading,
+   so this was set in the sans like every other run of words in a card. That
+   rule is right about interface prose and wrong about this one thing: a quote
+   is the only text in Flyleaf the reader did not write. It was set by somebody
+   else, in a book, and it is being copied out — which is the definition of the
+   reading face rather than the labelling one.
+
+   The app had already half-decided this and not finished. The capture field a
+   quote is TYPED into is Garamond (see `.area[data-kind='quote']` in
+   sheet.module.css), hung mark and all — so a reader wrote their line in the
+   serif, saved it, and watched it come back in Quicksand. This is not a new
+   exception; it is the second half of one that was already made.
+
+   So the four declarations below are the field's, exactly: same family, same
+   caps regime, same weight, same reading leading. What you type is what the
+   card gives back.
+
+   NOT italic, though the opening line this was measured against is. That line
+   is the app talking about the book in an aside, and an aside leans; a quote
+   is the book talking, at whatever length the reader copied out, and several
+   lines of italic old-style at reading size is a slower read for no gain. */
 .said {
   position: relative;
   margin: 0;
-  font-family: var(--font-app);
-  font-weight: var(--weight-medium);
+  font-family: var(--font-read);
+  /* Caps, not x-height — the same call sheet.module.css documents on the field:
+     a copied-out line is read as set type, and the x-match throws old-style
+     capitals about 20% over. */
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
   font-size: var(--text-md);
-  line-height: var(--leading-body);
+  /* --leading-read is written into tokens.css as "long-form — the legal pages,
+     a long quote". This is that. */
+  line-height: var(--leading-read);
   color: var(--color-ink);
+  /* No `text-wrap: pretty` on this one, though the cards around it have it.
+     It was here and it never once applied: `.hang blockquote` in
+     BookJourney.module.css sets plain `wrap` and outranks a bare class, so the
+     greedy pass documented over there is what wraps this card. Measured on the
+     seeded journey at 402 — three lines in a 269 column, trailing gaps of 29
+     and 29, nothing stopping early. A declaration saying the opposite of what
+     the page does is worse than none: the next reader would believe it. */
   /* The line stops at the card's trailing padding, not before it.
 
      --measure is a 60ch reading cap, and on this route it was never the thing
@@ -141,7 +177,6 @@
      past 60ch the reading cap takes over again, and until then the text meets
      the same 24 on both sides. */
   max-inline-size: max(var(--measure), 100%);
-  text-wrap: pretty;
 }
 
 /* ── 2. Note — a ruled index card ─────────────────────────────────────────
