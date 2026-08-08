@@ -35,19 +35,55 @@ const ON = import.meta.env.VITE_TIP_JAR === '1'
    rather than printing an empty box under a heading nobody can act on. */
 export const TIP_JAR = ON
 
-/* Naira. Three amounts that read as "a coffee, a good coffee, and more than a
-   coffee" without being labelled with those words — a tier called "generous"
-   quietly tells everyone who picked the first one what they are. */
-const PRESETS = [1000, 2500, 5000]
+/* What the jar offers: three amounts that read as "a coffee, a good coffee,
+   and more than a coffee" without being labelled with those words — a tier
+   called "generous" quietly tells everyone who picked the first one what they
+   are.
 
-const naira = (n: number) => `₦${n.toLocaleString('en-NG')}`
+   WHICH currency those amounts are in is the server's call, not this file's:
+   api/tip reads the reader's country off the request and answers with the
+   currency it can actually charge them in, so the number on the button is
+   always the number that moves. Naira is only the opening position — shown
+   until the server answers, kept if it never does (offline, or a dev server
+   with no api/), and always a currency the account takes. */
+interface Offer {
+  currency: string
+  presets: number[]
+  floor: number
+  ceiling: number
+}
 
-/** Everything api/tip ever answers with, across both of its two calls. */
+const NAIRA: Offer = { currency: 'NGN', presets: [1000, 2500, 5000], floor: 200, ceiling: 500_000 }
+
+/* The reader's own locale decides where the symbol goes and how thousands
+   read — ₦1,000 here is $2 or GH₵15 somewhere else. `narrowSymbol` because
+   the default spells out "NGN 1,000" for anyone whose locale does not treat
+   naira as local money, and a button that says NGN is an invoice where one
+   that says ₦ is a coffee. The fallback is for a browser that knows neither
+   the code nor the option, which must not crash a payment sheet. */
+const money = (n: number, code: string) => {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: code,
+      currencyDisplay: 'narrowSymbol',
+      maximumFractionDigits: 0,
+    }).format(n)
+  } catch {
+    return `${n.toLocaleString()} ${code}`
+  }
+}
+
+/** Everything api/tip ever answers with, across its three calls. */
 interface Answer {
   url?: string
   error?: string
   paid?: boolean
   amount?: number
+  currency?: string
+  presets?: number[]
+  floor?: number
+  ceiling?: number
 }
 
 /** What the server said, or why it could not be read. */
@@ -86,15 +122,40 @@ type Stage =
   | { at: 'asking' }
   | { at: 'opening' }
   | { at: 'checking' }
-  | { at: 'thanks'; amount: number }
+  | { at: 'thanks'; amount: number; currency: string }
   | { at: 'stuck'; why: string }
 
 function Tip() {
   const [open, setOpen] = useState(false)
   const [stage, setStage] = useState<Stage>({ at: 'asking' })
-  const [amount, setAmount] = useState(PRESETS[1])
+  const [offer, setOffer] = useState<Offer>(NAIRA)
+  const [amount, setAmount] = useState(NAIRA.presets[1])
   const [custom, setCustom] = useState('')
   const [email, setEmail] = useState('')
+
+  /* Asked once, the first time the sheet opens — not on mount, because the
+     settings page has no business telling the server about readers who never
+     touch the jar. Any answer that is not a well-formed offer leaves the
+     naira defaults standing, which the server always accepts. */
+  const [asked, setAsked] = useState(false)
+  useEffect(() => {
+    if (!open || asked) return
+    setAsked(true)
+    void askServer('/api/tip').then((said) => {
+      if (said.got !== 'reply' || !said.ok) return
+      const b = said.body
+      if (
+        typeof b.currency === 'string' &&
+        Array.isArray(b.presets) &&
+        b.presets.length > 0 &&
+        typeof b.floor === 'number' &&
+        typeof b.ceiling === 'number'
+      ) {
+        setOffer({ currency: b.currency, presets: b.presets, floor: b.floor, ceiling: b.ceiling })
+        setAmount(b.presets[1] ?? b.presets[0])
+      }
+    })
+  }, [open, asked])
 
   /* Coming back from checkout. Paystack returns the supporter to /settings
      with its reference on the query string; the reference is worth nothing on
@@ -126,7 +187,7 @@ function Tip() {
       }
       setStage(
         said.body.paid
-          ? { at: 'thanks', amount: said.body.amount ?? 0 }
+          ? { at: 'thanks', amount: said.body.amount ?? 0, currency: said.body.currency ?? 'NGN' }
           : { at: 'stuck', why: 'That payment did not go through. Nothing was taken.' },
       )
     })
@@ -151,16 +212,22 @@ function Tip() {
       setStage({ at: 'stuck', why: 'Paystack needs an email to send the receipt to.' })
       return
     }
-    if (!Number.isInteger(chosen) || chosen < 200 || chosen > 500000) {
-      setStage({ at: 'stuck', why: 'Pick an amount between ₦200 and ₦500,000.' })
+    if (!Number.isInteger(chosen) || chosen < offer.floor || chosen > offer.ceiling) {
+      setStage({
+        at: 'stuck',
+        why: `Pick an amount between ${money(offer.floor, offer.currency)} and ${money(offer.ceiling, offer.currency)}.`,
+      })
       return
     }
 
     setStage({ at: 'opening' })
+    /* The currency rides with the amount: what was on the button is what gets
+       charged, and the server refuses any currency the account cannot take
+       rather than quietly substituting one. */
     const said = await askServer('/api/tip', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ amount: chosen, email: email.trim() }),
+      body: JSON.stringify({ amount: chosen, email: email.trim(), currency: offer.currency }),
     })
 
     /* Nothing has been taken in any of these — the checkout has not opened
@@ -191,7 +258,11 @@ function Tip() {
     return (
       <Row
         title="Thank you"
-        control={stage.amount ? <span className={card.value}>{naira(stage.amount)}</span> : undefined}
+        control={
+          stage.amount ? (
+            <span className={card.value}>{money(stage.amount, stage.currency)}</span>
+          ) : undefined
+        }
       >
         <span className={styles.thanks}>
           <Sparkle size={18} className={styles.spark} />
@@ -249,7 +320,7 @@ function Tip() {
           </header>
 
           <div className={styles.amounts} role="group" aria-labelledby="tip-jar">
-            {PRESETS.map((each) => (
+            {offer.presets.map((each) => (
               <button
                 key={each}
                 type="button"
@@ -260,7 +331,7 @@ function Tip() {
                   setAmount(each)
                 }}
               >
-                {naira(each)}
+                {money(each, offer.currency)}
               </button>
             ))}
             <input
@@ -268,10 +339,10 @@ function Tip() {
               inputMode="numeric"
               className={styles.other}
               value={custom}
-              min={200}
-              max={500000}
+              min={offer.floor}
+              max={offer.ceiling}
               placeholder="Another amount"
-              aria-label="Another amount, in naira"
+              aria-label={`Another amount, in ${offer.currency}`}
               onChange={(e) => setCustom(e.target.value)}
             />
           </div>
@@ -295,7 +366,7 @@ function Tip() {
                 : stage.at === 'opening'
                   ? 'Opening Paystack…'
                   : chosen > 0
-                    ? `Send ${naira(chosen)}`
+                    ? `Send ${money(chosen, offer.currency)}`
                     : 'Send a tip'}
             </LeafButton>
           </div>
