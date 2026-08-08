@@ -154,59 +154,102 @@ export function formatPhrase(book: Book) {
    own id, which means the same book keeps the same opening for ever instead of
    reshuffling itself every render.
 
-   Every clause is about the reader's own act of opening a book. None of them
-   is about the story, and none of them can be, because Flyleaf has not read
-   it and would only be guessing in a confident voice. */
+   TWO RULES, and the first draft of these pools broke both.
+
+   ONE: never state a fact about a book Flyleaf has not seen. The old set said
+   there was a pencil mark in the margin, that the edges were deckled, that the
+   screen read four hours, that the first chapter belonged to a street you were
+   walking down. Each of those is a small confident lie roughly three-quarters
+   of the time, and being told something untrue about your own morning is worse
+   than being told nothing — it is the moment a reader stops believing the rest
+   of the page. What is left is only what is true of every copy of that format:
+   paper weighs something, a screen does not, a recording plays while your hands
+   are busy. Feeling is allowed. Detail is not.
+
+   TWO: vary the register, not just the words. The old set was wry the whole way
+   through, so a reader with ten books got the same joke ten times in ten
+   costumes. These run plain, warm, quiet and dry in roughly equal measure, and
+   only one line per pool is allowed to be funny.
+
+   Six per pool, and the number matters: `pick` separates the opening from the
+   closing by exactly 14, so a pool of 7 or 14 would hand both ends the same
+   index. Six never does. */
 
 const OPENED_ON: Record<string, string[]> = {
   physical: [
     'Cracked the spine on',
     'Opened the paper copy on',
     'Turned the first page on',
-    'Broke it open on',
+    'Started it in print on',
+    'First opened it on',
+    'Began the paper copy on',
   ],
   digital: [
     'Opened it on the screen on',
     'Loaded it up on',
     'Woke the screen for it on',
     'Started it, backlit, on',
+    'Opened the file on',
+    'Started the ebook on',
   ],
   audio: [
     'Pressed play on',
     'Put it in your ears on',
     'Started listening on',
     'Let the narrator begin on',
+    'Queued it up on',
+    'Started the recording on',
   ],
-  none: ['Began on', 'Started this one on', 'Opened it on', 'Set out on'],
+  none: [
+    'Began on',
+    'Started this one on',
+    'Opened it on',
+    'Set out on',
+    'Picked this one up on',
+    'Started reading on',
+  ],
 }
 
 const THE_MOMENT: Record<string, string[]> = {
   physical: [
     'The paper smells like somebody else’s house.',
-    'It refuses to lie flat, and that is half the pleasure.',
-    'Somebody has been here before you — there is a pencil mark in the margin.',
-    'Deckled edges. Absolutely unnecessary. Absolutely correct.',
+    'A weight in the hand, which is most of the argument for paper.',
+    'You can tell how much is left just by holding it.',
+    'Nothing to charge, nothing to update, nothing in the way.',
+    'Somewhere in here is a line you will want to copy out.',
+    'A bookmark to find, eventually. For now, page one.',
   ],
   digital: [
-    'Brightness down to one bar, like a proper night reader.',
-    'The screen says four hours left. The screen is an optimist.',
+    'Weightless, which still feels like cheating.',
     'No dust, no bookmark, no excuse.',
-    'Weightless, which feels like cheating.',
+    'The whole thing in one hand, weighing nothing at all.',
+    'It will keep your place. Keeping the good parts is yours.',
+    'Set the size, set the brightness, begin.',
+    'Backlit, so the hour hardly matters.',
   ],
   audio: [
     'Headphones in, world out.',
-    'The narrator has a voice you could fall asleep in. That is the risk.',
-    'Started it walking, so the first chapter belongs to a particular street.',
-    'Playing at a speed you will not admit to.',
+    'Someone else’s voice, and your own hours.',
+    'It goes where you go, which is the point of it.',
+    'A book you can start with your hands full.',
+    'The narrator sets the pace now. Mostly.',
+    'Listening is reading. This is not up for debate.',
   ],
   both: [
-    'Paper at home, voice on the way there — the same book, twice over.',
+    'Paper at home, a voice on the way there — the same book, twice over.',
     'Two ways in at once, which is greedy and entirely allowed.',
+    'Print when you can sit down, a voice when you cannot.',
+    'Whichever hand is free, the book carries on.',
+    'Read it, hear it, lose no time either way.',
+    'One book, two doors.',
   ],
   none: [
     'No ceremony. Just the first sentence.',
     'A clean first page and no idea what is coming.',
     'Nothing marked yet. Everything still possible.',
+    'This is the blank flyleaf. The rest is yours.',
+    'Day one, and nothing written down yet.',
+    'You will know by page fifty. You always do.',
   ],
 }
 
@@ -272,55 +315,86 @@ export function epigraph(book: Book, keeps: Entry[]): Epigraph {
    a later date too" — and it is the whole difference between an ending and a
    deadline. */
 
+/* Revised alongside the opening pools, under the same two rules. The old
+   closings guessed as freely as the old openings did — a crease at one corner
+   you will remember, a fortnight it took, a street it ended on — and a book
+   Flyleaf never opened cannot have creases. Six per pool here too. */
+
 const CLOSED_ON: Record<string, string[]> = {
   physical: [
     'Shut it for the last time on',
     'Closed the back board on',
     'Turned the final page on',
     'Set it back on the shelf on',
+    'Read the last page on',
+    'Finished the paper copy on',
   ],
   digital: [
     'Reached the last screen on',
     'Watched the bar run out on',
     'Closed the file for good on',
     'Swiped the final page away on',
+    'Reached the end of the file on',
+    'Finished the ebook on',
   ],
   audio: [
     'Heard the narrator sign off on',
     'Let the last track run out on',
     'Took the headphones out on',
     'Reached the end of the recording on',
+    'Heard the last of it on',
+    'Finished listening on',
   ],
-  none: ['Finished it on', 'Came to the end on', 'Closed this one on', 'Ended it on'],
+  none: [
+    'Finished it on',
+    'Came to the end on',
+    'Closed this one on',
+    'Ended it on',
+    'Read the last of it on',
+    'Got to the end on',
+  ],
 }
 
 const THE_END: Record<string, string[]> = {
   physical: [
     'The spine is broken in now, in the good way.',
-    'It will never sit flat again. Correct.',
-    'There is a crease at one corner you will remember.',
+    'It goes back on the shelf heavier than it came off.',
     'It smells of wherever you read it.',
+    'Paper and ink, and it got where it was going.',
+    'Somebody will find it on that shelf one day and wonder.',
+    'Read once, and kept here for good.',
   ],
   digital: [
-    'No spine to crack, and it still took a fortnight.',
+    'No spine to crack, and it still took as long as it took.',
     'The device has already forgotten. You have not.',
     'Nothing to shelve, so it is shelved here.',
     'The screen went dark and stayed dark.',
+    'It leaves no crease. That is what this page is for.',
+    'Closed, and nothing to put away.',
   ],
   audio: [
     'The room is very quiet now.',
     'You will hear that voice for a few days yet.',
-    'It ended somewhere, and you were walking.',
-    'Headphones out. The street sounds strange.',
+    'Someone read you the whole of it, and now they have stopped.',
+    'Headphones out. Everything sounds a little different.',
+    'The last of it played out, and that was that.',
+    'Nothing left in the queue.',
   ],
   both: [
     'Paper and voice, both run out, one book.',
     'Two ways through it, and both of them ended.',
+    'Heard the half of it and read the rest. It counts.',
+    'Whichever way you came at it, you got to the end.',
+    'Print and voice, finished together.',
+    'Two doors, one ending.',
   ],
   none: [
     'That is the whole of it.',
     'Finished — and still yours to write in.',
     'The end of the reading, not the end of the page.',
+    'Done, and nothing here is closed to you.',
+    'That is the last of it. The margins stay open.',
+    'Read. What you make of it is still being written.',
   ],
 }
 
@@ -439,14 +513,40 @@ export function colophonTail(book: Book, keeps: Entry[]): ColophonLine[] {
 
 /* ── The fair copy ────────────────────────────────────────────────────────
 
-   A clean draft of a review, assembled out of what the reader already wrote.
+   A REVIEW, not a transcript.
 
-   This is a collation, not a generation. Every sentence of substance below is
-   the reader's own text, copied verbatim; the only words Flyleaf contributes
-   are the joins, and they come from the fixed set in this file. Nothing is
-   sent anywhere and nothing is inferred — which is what makes it free, what
-   makes it work on a plane, and what makes it honest to hand to a reader as
-   "your words, gathered" rather than as a review somebody else wrote. */
+   This used to be a collation: the notes in the order they were written, then
+   every quote under a heading, then the people under another, then the places,
+   then the threads. That is a printout of the journey the reader has just
+   scrolled past, and it is not what the button says. The owner's words for
+   what a review actually is: "solid paragraphs that explain how the user felt
+   while reading a book" — so this infers, and writes paragraphs.
+
+   FOUR THINGS CAN HONESTLY BE INFERRED from a journey, and nothing else can:
+
+     THE SHAPE    How long it took, and how often the reader stopped to write
+                  something down. Thirty keeps in eight days and two keeps in
+                  three months are different readings, and the difference is
+                  arithmetic rather than opinion.
+     THE PULL     Which KIND of keep dominates. A journey that is mostly
+                  characters was a book read for its people; mostly quotes, for
+                  its language; mostly threads, for what was coming next.
+     THE FEELING  A shallow count of plainly evaluative words in the reader's
+                  OWN writing. See FELT below, including what was cut from it.
+     THE ARC      A plot thread that hardened from hunch to certain is a real
+                  story about a reading, and it is already in the data.
+
+   All four come from dates, counts, types and stances. Not one of them is a
+   claim about what happens in the book, because Flyleaf still has not read it.
+
+   The substance is still the reader's own sentences, verbatim, never re-cased
+   and never paraphrased. What changed is that they now sit INSIDE paragraphs
+   that say what they are doing there, instead of under a heading that leaves
+   the reader to do the writing they pressed a button to avoid.
+
+   And what has not changed is the reason the feature can exist at all: no
+   model runs, nothing leaves the device, and the same journey drafts the same
+   review on a plane as it does at a desk. */
 
 export interface FairCopy {
   text: string
@@ -460,30 +560,147 @@ export interface FairCopy {
 const QUOTE_OPEN = '“'
 const QUOTE_CLOSE = '”'
 
-function place(e: Entry) {
-  if (e.page && e.chapter) return ` (${e.chapter}, p. ${e.page})`
-  if (e.page) return ` (p. ${e.page})`
-  if (e.chapter) return ` (${e.chapter})`
-  return ''
+/* FELT — words a reader uses about a book, never words a book uses about
+   itself.
+
+   The whole of the feeling inference, and it is deliberately shallow. It reads
+   only the reader's own writing; the quotes are somebody else's sentences and
+   would wreck the count the first time a novel had a miserable narrator.
+
+   EVERY AMBIGUOUS WORD WAS CUT, and always for the same reason: `wept`, `cried`
+   and `laughed` nearly always describe a character, `flat`, `thin` and `dark`
+   nearly always describe a plot, and `hated` is usually one person in the story
+   hating another. Telling a reader they loved a book they did not is a worse
+   failure than saying nothing about feeling at all — so what is left is only
+   words that appear when somebody is grading. */
+const FELT = {
+  warm: [
+    'love', 'loved', 'loving', 'adored', 'beautiful', 'beautifully', 'brilliant',
+    'wonderful', 'gorgeous', 'stunning', 'favourite', 'favorite', 'perfect',
+    'exquisite', 'superb', 'incredible', 'glorious', 'delightful', 'masterful',
+    'gripping', 'gripped', 'hooked', 'obsessed', 'unputdownable', 'devastating',
+    'heartbreaking', 'moving', 'luminous', 'astonishing', 'magnificent',
+  ],
+  cool: [
+    'boring', 'bored', 'dull', 'slog', 'tedious', 'tiresome', 'dragged',
+    'disappointing', 'disappointed', 'annoying', 'irritating', 'frustrating',
+    'contrived', 'clumsy', 'clunky', 'predictable', 'overwrought', 'overwritten',
+    'unconvincing', 'implausible', 'skimmed', 'meh', 'pointless', 'repetitive',
+    'laboured', 'labored', 'exhausting', 'forgettable',
+  ],
 }
 
-/** A keep's own words, with its title in front where it has one. */
-function said(e: Entry) {
-  const body = e.text?.trim() ?? ''
-  if (e.name && body) return `${e.name.trim()} — ${body}`
-  return e.name?.trim() || body
+/* "not boring" is not a complaint. A one-word lookbehind catches the common
+   English negations and is the right depth for something this shallow —
+   anything cleverer would be a parser, and a parser would be a promise this
+   feature cannot keep. */
+const NOT = new Set([
+  'not', 'never', 'no', 'nor', 'hardly', 'barely', 'without', 'nothing',
+  'isnt', 'wasnt', 'arent', 'werent', 'didnt', 'dont', 'doesnt', 'wouldnt',
+  'couldnt', 'shouldnt', 'cant', 'wont', 'hadnt', 'hasnt', 'havent',
+])
+
+function feeling(texts: string[]) {
+  let warm = 0
+  let cool = 0
+  for (const text of texts) {
+    const words = text.toLowerCase().replace(/['’]/g, '').split(/[^a-z]+/).filter(Boolean)
+    for (let i = 0; i < words.length; i += 1) {
+      if (i > 0 && NOT.has(words[i - 1])) continue
+      if (FELT.warm.includes(words[i])) warm += 1
+      else if (FELT.cool.includes(words[i])) cool += 1
+    }
+  }
+  return { warm, cool }
+}
+
+/** Where the reader's attention went, said as a person would say it. Keyed by
+    the kind that dominates their journey. */
+const PULL: Record<EntryType, string> = {
+  quote: 'What I kept most of was the language — I was copying it out as I went.',
+  note: 'Most of what is here is my own thinking, put down while I still had it.',
+  voice: 'Most of what I kept, I said out loud rather than wrote.',
+  image: 'Most of what I kept were pictures rather than words.',
+  character: 'Most of what I wrote down was about the people in it.',
+  place: 'Most of what I wrote down was about where it happens.',
+  thread: 'Most of what I wrote down was me working out where it was going.',
+}
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
+/** The reader's words as a sentence: trimmed, whitespace collapsed, closed
+    with a full stop if they did not close it themselves. Never re-cased and
+    never re-worded — a line goes in exactly as it was typed, which is why
+    their sentences always START one here rather than being spliced into the
+    middle of ours where the grammar would have to be guessed at. */
+function asSentence(text: string) {
+  const t = text.trim().replace(/\s+/g, ' ')
+  if (!t) return ''
+  return /[.!?…”"')\]]$/.test(t) ? t : `${t}.`
+}
+
+/** "a", "a and b", "a, b and c", and past three "a, b and two others".
+
+    The remainder eats the third name rather than following it. Four characters
+    used to come out as "Marguerite, Oren and the harbourmaster and one other",
+    which puts two ands in one clause and reads like a sentence that changed its
+    mind halfway. Two names then the count is the ordinary English of it. */
+function listOf(all: string[]) {
+  const full = all.length <= 3
+  const shown = all.slice(0, full ? 3 : 2)
+  const rest = all.length - shown.length
+  let phrase = shown[0] ?? ''
+  if (shown.length === 2) phrase = `${shown[0]} and ${shown[1]}`
+  if (shown.length === 3) phrase = `${shown[0]}, ${shown[1]} and ${shown[2]}`
+  if (rest > 0) phrase = `${shown[0]}, ${shown[1]} and ${count(rest, { one: 'other', many: 'others' })}`
+  return phrase
 }
 
 export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
-  const parts: string[] = []
-  const byTime = (a: Entry, b: Entry) => a.createdAt - b.createdAt
+  const omitted = keeps.filter(
+    (e) => e.type === 'voice' || (e.type === 'image' && !e.text?.trim()),
+  ).length
 
-  /* Opening: only the facts on the shelf. */
+  /* Only keeps with words in them. A journey of eight recordings has nothing
+     to draft from, and the sheet's own empty state says so better than four
+     paragraphs of dates would. */
+  const written = keeps
+    .filter((e) => e.text?.trim() || e.name?.trim())
+    .sort((a, b) => a.createdAt - b.createdAt)
+  if (!written.length) return { text: '', words: 0, omitted }
+
+  const of = (type: EntryType) => written.filter((e) => e.type === type)
+  const spent = new Set<number>()
+  /* A keep may carry the draft once. Nothing reads better in a review than a
+     reader's own sentence and nothing reads worse than the same sentence
+     twice, so every paragraph takes from what is left. */
+  const spend = (e: Entry | undefined) => {
+    if (!e) return ''
+    spent.add(e.id)
+    return asSentence(e.text?.trim() ?? '')
+  }
+  /* A thin journey has no long sentences to be choosy about. Three keeps or
+     fewer and anything the reader wrote is worth having; past that, hold out
+     for something with a thought in it. */
+  const enough = written.length <= 3 ? 1 : 40
+  const richest = (rows: Entry[]) =>
+    rows
+      .filter((e) => !spent.has(e.id) && (e.text?.trim().length ?? 0) >= enough)
+      .sort((a, b) => (b.text?.length ?? 0) - (a.text?.length ?? 0))[0]
+
+  const paragraphs: string[] = []
+  const say = (...lines: string[]) => {
+    const kept = lines.filter(Boolean)
+    if (kept.length) paragraphs.push(kept.join(' '))
+  }
+
+  /* ── One: the reading itself ──────────────────────────────────────────── */
   const formats = formatsOf(book)
   const verb = formats.length === 1 && formats[0] === 'audio' ? 'listened to' : 'read'
-  let opening = `I ${verb} ${book.title} by ${book.author}`
+  let opening = `I ${verb} ${book.title}${book.author ? ` by ${book.author}` : ''}`
+  let days = 0
   if (book.startedOn && book.finishedOn) {
-    const days = Math.max(1, daysBetween(book.startedOn, book.finishedOn))
+    days = Math.max(1, daysBetween(book.startedOn, book.finishedOn))
     opening += days === 1 ? ' in a single day' : ` over ${days} days`
     opening += `, finishing on ${dayPhrase(book.finishedOn)}`
   } else if (book.finishedOn) {
@@ -491,44 +708,149 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
   } else if (book.startedOn) {
     opening += `, starting on ${dayPhrase(book.startedOn)}`
   }
-  parts.push(`${opening}.`)
 
-  /* The reader's own prose, in the order it was written. Notes are already
-     sentences, so they go in untouched. */
-  const prose = keeps
-    .filter((e) => e.type === 'note' && e.text?.trim())
-    .sort(byTime)
-    .map((e) => e.text!.trim())
-  if (prose.length) parts.push(prose.join('\n\n'))
+  /* How often a reader stopped is the one measure of a book's grip that does
+     not require having read it. */
+  const marks = written.length
+  const pace =
+    days > 1 && marks / days >= 1.5
+      ? 'That is not a book I was getting through. That is one I was living in.'
+      : days >= 14 && marks / days <= 0.15
+        ? 'Spread thinly across all those weeks, which says something about the pace I read it at.'
+        : ''
+  /* "Twice", never "two times" — English has a word for it and a review that
+     does not use it sounds machine-made, which is the one thing this paragraph
+     cannot afford to sound.
 
-  /* Then what they marked in the book, in book order where a page says so. */
-  const lifted = keeps
-    .filter((e) => e.type === 'quote' && e.text?.trim())
-    .sort((a, b) => (a.page ?? 1e9) - (b.page ?? 1e9) || a.createdAt - b.createdAt)
-  if (lifted.length) {
-    parts.push(lifted.length === 1 ? 'A line I kept:' : 'Some lines I kept:')
-    parts.push(
-      lifted.map((e) => `${QUOTE_OPEN}${e.text!.trim()}${QUOTE_CLOSE}${place(e)}`).join('\n\n'),
+     And past twelve, `spell` gives up and hands back a numeral, so the count
+     moves to the end of the sentence rather than opening it. "13 times I
+     stopped" starts a sentence on a digit and sits badly beside the "Ten times"
+     a shorter journey gets. */
+  say(
+    `${opening}.`,
+    marks === 1
+      ? 'One thing in it was worth stopping for, and I wrote it down.'
+      : marks === 2
+        ? 'Twice I stopped to write something down.'
+        : marks < WORDS.length
+          ? `${cap(count(marks, { one: 'time', many: 'times' }))} I stopped to write something down.`
+          : `I stopped to write something down ${marks} times.`,
+    pace,
+  )
+
+  /* ── Two: how it felt ─────────────────────────────────────────────────── */
+  const mood = feeling(
+    written.filter((e) => e.type !== 'quote').map((e) => `${e.name ?? ''} ${e.text ?? ''}`),
+  )
+  const verdict =
+    mood.warm >= 2 && mood.warm > mood.cool * 2
+      ? 'Reading my own notes back, they are warm nearly the whole way through.'
+      : mood.cool >= 2 && mood.cool > mood.warm * 2
+        ? 'Reading my own notes back, there are more complaints in them than compliments, and that is its own kind of verdict.'
+        : mood.warm >= 1 && mood.cool >= 1
+          ? 'My notes run hot and cold in about equal measure, which is usually the mark of a book worth arguing with.'
+          : ''
+  /* The LAST substantial note, not the longest: a thought written near the end
+     of a reading is the closest thing in the journey to a verdict. */
+  const last = [...of('note')]
+    .reverse()
+    .find((e) => !spent.has(e.id) && (e.text?.trim().length ?? 0) >= enough)
+  say(verdict, spend(last))
+
+  /* ── Three: what held me ──────────────────────────────────────────────── */
+  const counted = KINDS.map((type) => ({ type, n: of(type).length })).sort((a, b) => b.n - a.n)
+  const top = counted[0]
+  /* A lead, not merely a maximum. Four quotes out of eleven keeps is a spread,
+     not a preoccupation, and calling it one would be the app inventing a
+     reader. */
+  const lead = top && top.n >= 2 && top.n >= written.length * 0.4 ? top.type : undefined
+  if (lead) {
+    const named = [...new Set(of(lead).map((e) => e.name?.trim()).filter(Boolean))] as string[]
+    const who =
+      lead === 'character' && named.length
+        ? `I kept coming back to ${listOf(named)}.`
+        : lead === 'place' && named.length
+          ? `${named.length === 1 ? 'The place that stayed with me was' : 'The places that stayed with me were'} ${listOf(named)}.`
+          : lead === 'thread' && named.length
+            ? `What I could not leave alone: ${listOf(named)}.`
+            : ''
+    /* The reader's own sentence comes next, and it usually opens on a pronoun
+       — "She is the only one in this house…" — which English hands to the last
+       name it heard. After a list of three that is the wrong one. So when the
+       sentence belongs to a named keep and there were other names before it,
+       a short line points at whose it is and the pronoun lands right. */
+    const chosen = lead === 'quote' ? undefined : richest(of(lead))
+    const subject = chosen?.name?.trim()
+    /* Capitalised because it opens a sentence, not because the name was typed
+       that way — "the drowned village" and "the second brother" are how readers
+       actually name a place or a loose end, and they must not start a sentence
+       in lower case. The name is unchanged everywhere else it appears. */
+    const point =
+      subject && named.length > 1
+        ? lead === 'place'
+          ? `${cap(subject)}, more than anywhere.`
+          : lead === 'thread'
+            ? `${cap(subject)}, mostly.`
+            : `${cap(subject)}, more than any of them.`
+        : ''
+    /* The line itself gets its own paragraph below, so a quote-led journey
+       says what it is and then lets that paragraph do the quoting. */
+    say(PULL[lead], who, point, spend(chosen))
+  }
+
+  /* ── Four: the line ───────────────────────────────────────────────────── */
+  const lines = of('quote').filter((e) => !spent.has(e.id) && e.text?.trim())
+  if (lines.length) {
+    /* The best line to put in a review is a substantial one that still fits in
+       a breath. Longest under about three lines of type; failing that, the
+       shortest, because a wall of somebody else's prose is not a review. */
+    const sized = [...lines].sort((a, b) => (a.text?.length ?? 0) - (b.text?.length ?? 0))
+    const best = [...sized].reverse().find((e) => (e.text?.trim().length ?? 0) <= 220) ?? sized[0]
+    spent.add(best.id)
+    const body = best.text!.trim().replace(/^[“"']+/, '').replace(/[”"']+$/, '')
+    const where = best.page ? ` (page ${best.page})` : best.chapter ? ` (${best.chapter})` : ''
+    say(
+      lines.length === 1
+        ? `There is one line I copied out word for word${where}:`
+        : `${cap(count(lines.length, { one: 'line', many: 'lines' }))} went down word for word. This is the one I would read out to somebody${where}:`,
+      `${QUOTE_OPEN}${body}${QUOTE_CLOSE}`,
     )
   }
 
-  /* The people, the places and the suspicions — the shape of the reader's
-     attention, again in their words and never in ours. A heading only when
-     there is something under it. */
-  const section = (type: EntryType, heading: string) => {
-    const rows = keeps.filter((e) => e.type === type && (e.name || e.text?.trim()))
-    if (!rows.length) return
-    parts.push(heading)
-    parts.push(rows.sort(byTime).map(said).join('\n\n'))
-  }
-  section('character', 'The people I stayed with:')
-  section('place', 'Where it took me:')
-  section('thread', 'What I kept turning over:')
+  /* ── Five: how it ended, for me ───────────────────────────────────────── */
+  const threads = of('thread')
+  const settled = threads.filter((e) => e.stance === 'certain').length
+  say(
+    settled
+      ? 'Some of what I only suspected early on I was sure of by the end.'
+      : threads.length >= 2
+        ? 'I never did settle most of what I kept circling.'
+        : '',
+    book.finishedOn
+      ? ''
+      : book.pagesRead
+        ? `I am not finished with it — ${book.pagesRead} pages in as I write this, so take this as a report from partway through.`
+        : 'I am not finished with it yet, so take this as a report from partway through.',
+  )
 
-  const omitted = keeps.filter(
-    (e) => e.type === 'voice' || (e.type === 'image' && !e.text?.trim()),
-  ).length
-  const text = parts.join('\n\n')
+  /* Nothing of the reader's own made it in: every keep was a bare name, or too
+     short to clear the bar, or a quote that lost the coin toss. Their words are
+     the point of the draft, so the richest one goes in regardless — and failing
+     even that, the names do. A journey holding a character and a place used to
+     draft two sentences of dates that never mentioned either of them, which is
+     a review of nothing. */
+  if (!spent.size) {
+    const anything = [...written].sort((a, b) => (b.text?.length ?? 0) - (a.text?.length ?? 0))[0]
+    const words = asSentence(anything.text?.trim() ?? '')
+    const names = [...new Set(written.map((e) => e.name?.trim()).filter(Boolean))] as string[]
+    /* Second paragraph, not last. The closing paragraph is the one that says
+       the reading is unfinished, and anything after that reads like it was
+       remembered on the way out the door. */
+    const late = words || (names.length ? `What I did not want to forget: ${listOf(names)}.` : '')
+    if (late) paragraphs.splice(1, 0, late)
+  }
+
+  const text = paragraphs.join('\n\n')
   return { text, words: countWords(text), omitted }
 }
 
