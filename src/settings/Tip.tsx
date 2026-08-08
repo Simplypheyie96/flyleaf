@@ -55,7 +55,7 @@ interface Offer {
   floor: number
 }
 
-const NAIRA: Offer = { currency: 'NGN', presets: [1000, 2500, 5000], floor: 200 }
+const NAIRA: Offer = { currency: 'NGN', presets: [2000, 5000, 10_000], floor: 200 }
 
 /* The reader's own locale decides where the symbol goes and how thousands
    read — ₦1,000 here is $2 or GH₵15 somewhere else. `narrowSymbol` because

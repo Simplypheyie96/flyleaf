@@ -40,7 +40,8 @@ const PAYSTACK = 'https://api.paystack.co'
    holds for all of them. A currency that does not (XOF has no minor unit)
    must NOT be added to this table without changing that line. */
 const CURRENCIES = {
-  NGN: { presets: [1000, 2500, 5000], floor: 200 },
+  // Owner's repricing: ₦1,000 had slid under a dollar, which is not a coffee.
+  NGN: { presets: [2000, 5000, 10_000], floor: 200 },
   USD: { presets: [2, 5, 10], floor: 1 },
   GHS: { presets: [15, 40, 75], floor: 5 },
   ZAR: { presets: [20, 50, 100], floor: 10 },
