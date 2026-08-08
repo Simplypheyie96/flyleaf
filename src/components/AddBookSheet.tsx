@@ -362,6 +362,7 @@ function ConfirmStage({
      it is the exception, not the step. */
   const [picking, setPicking] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [snag, setSnag] = useState<string>()
 
   const scroller = useRef<HTMLDivElement>(null)
   const picker = useRef<HTMLDivElement>(null)
@@ -387,7 +388,9 @@ function ConfirmStage({
       className={styles.form}
       onSubmit={async (event) => {
         event.preventDefault()
+        setSnag(undefined)
         setSaving(true)
+        try {
         await landOnShelf(
           book.id,
           // put, not add: the id is the book's identity, so adding a book that
@@ -422,6 +425,14 @@ function ConfirmStage({
            into this sheet ends where it started, which is right — that reader
            came to shelve a book, not to be taken somewhere. */
         if (firstKeep) navigate(`/book/${book.id}`)
+        } catch {
+          /* The shelf is on the device, so this is a device saying no — out of
+             room, or a private window that keeps nothing. The form stays as it
+             was, with the button live again, because everything typed into it
+             is still true. */
+          setSnag('That would not save to your shelf. Your device may be out of room — try again.')
+          setSaving(false)
+        }
       }}
     >
       <header className={styles.head}>
@@ -513,6 +524,11 @@ function ConfirmStage({
         </div>
       </div>
 
+      {snag && (
+        <p className={styles.snag} role="alert">
+          {snag}
+        </p>
+      )}
       <LeafButton type="submit" disabled={saving} className={styles.submit}>
         {saving ? 'Adding…' : 'Add to library'}
       </LeafButton>

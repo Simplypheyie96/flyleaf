@@ -27,6 +27,7 @@ import type { Book, Entry, EntryType, Stance } from '../data/db'
 import { KIND, KINDS, STANCE, STANCES } from './kinds'
 import { useDictation } from './dictation'
 import { addKeep, editKeep } from './keeps'
+import { shrink, tooBig } from './shrink'
 import styles from './sheet.module.css'
 
 /* The faces offered when a reader goes looking for a different one.
@@ -65,6 +66,8 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
   const [media, setMedia] = useState<Blob>()
   const [duration, setDuration] = useState<number>()
   const [busy, setBusy] = useState(false)
+  /* The one thing that went wrong, said in the sheet rather than swallowed. */
+  const [snag, setSnag] = useState<string>()
   const photo = useRef<HTMLInputElement>(null)
 
   /* Two fields on this sheet carry a button on their label line — the face
@@ -140,6 +143,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
   async function submit() {
     if (!ready || busy) return
     speech.stop()
+    setSnag(undefined)
     setBusy(true)
     try {
       /* Every field is stated, including the ones this kind does not use.
@@ -164,6 +168,12 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       if (editing) await editKeep(editing.id, shared)
       else await addKeep({ bookId: book.id, ...shared })
       onClose()
+    } catch {
+      /* A write can fail — the device is out of room, or the browser is in a
+         private window that will not keep anything. The sheet stays open with
+         every word still in it, because the one thing worse than not saving is
+         not saving quietly. */
+      setSnag('That would not save. Your device may be out of room — the words are still here, so try again.')
     } finally {
       setBusy(false)
     }
@@ -324,9 +334,15 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
               type="file"
               accept="image/*"
               className={styles.hidden}
-              onChange={(e) => {
+              onChange={async (e) => {
                 const file = e.target.files?.[0]
-                if (file) setMedia(file)
+                if (!file) return
+                setSnag(undefined)
+                if (tooBig(file)) {
+                  setSnag('That picture is very large. Try a photo rather than a scan or a raw file.')
+                  return
+                }
+                setMedia(await shrink(file))
               }}
             />
             <button
@@ -442,6 +458,11 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       </div>
 
       <footer className={styles.foot}>
+        {snag && (
+          <p className={styles.snag} role="alert">
+            {snag}
+          </p>
+        )}
         <LeafButton className={styles.submit} onClick={submit} disabled={!ready || busy}>
           {editing ? 'Save' : 'Keep it'}
         </LeafButton>
