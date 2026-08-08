@@ -130,7 +130,17 @@ function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open: boole
     }
 
     const fit = () => {
-      const covered = window.innerHeight - view.height - view.offsetTop
+      /* The keyboard is the difference between the layout viewport's height
+         and the visual viewport's — and NOTHING ELSE. The first version of
+         this also subtracted `offsetTop`, which looked like rigour and was
+         the owner's bug: `offsetTop` is how far Safari has scrolled the
+         visual viewport down, it scrolls it exactly when a field is focused,
+         and at full scroll the subtraction cancelled the keyboard out. The
+         test read "no keyboard", cleared every property, and handed back a
+         full-height sheet pinned to a viewport that was scrolled away — the
+         reported "the modal disappears when I want to type". Where the
+         viewport IS cannot change how tall the keyboard is. */
+      const covered = window.innerHeight - view.height
       if (covered < KEYBOARD_AT) {
         clear()
         return
