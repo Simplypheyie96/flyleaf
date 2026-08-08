@@ -141,7 +141,21 @@ function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open: boole
          reported "the modal disappears when I want to type". Where the
          viewport IS cannot change how tall the keyboard is. */
       const covered = window.innerHeight - view.height
-      if (covered < KEYBOARD_AT) {
+
+      /* And a keyboard cannot exist without a caret. iOS only raises one for
+         a focused editable, so whatever the viewport numbers momentarily
+         claim, no focused field inside this sheet means no keyboard in front
+         of it. This is what kept the owner's tip jar honest: it opened
+         strip-sized and floating off the bottom with nothing focused at all,
+         on viewport numbers left over from somewhere the sheet had never
+         been. */
+      const field = document.activeElement
+      const typing =
+        field instanceof HTMLElement &&
+        el.contains(field) &&
+        field.matches('input, textarea, select, [contenteditable]')
+
+      if (covered < KEYBOARD_AT || !typing) {
         clear()
         return
       }
@@ -157,7 +171,23 @@ function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open: boole
        the bug had it, one field later. */
     view.addEventListener('resize', fit)
     view.addEventListener('scroll', fit)
+
+    /* AND THE STATE PROVES ITSELF, twice a second, for as long as it claims a
+       keyboard is up. The owner's screenshot is why: keyboard gone, sheet
+       still strip-sized and hanging in the middle of the screen. iOS is not
+       obliged to close the loop — the last resize of the keyboard's closing
+       slide can arrive mid-animation with a short height, or dismissal can
+       end with no event at all — and a state that only listens is a state
+       that can be lied to once and believe it forever. The interval does
+       nothing at all while no keyboard is claimed; while one is, it re-reads
+       the real viewport and the real focus, and the stuck case dies within
+       half a second of the keyboard leaving. */
+    const proof = window.setInterval(() => {
+      if (el.dataset.keyboard) fit()
+    }, 400)
+
     return () => {
+      window.clearInterval(proof)
       view.removeEventListener('resize', fit)
       view.removeEventListener('scroll', fit)
       clear()
