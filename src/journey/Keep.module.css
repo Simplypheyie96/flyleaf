@@ -70,9 +70,9 @@
    which measures what the action is standing on once the thread comes to rest
    and lifts it clear. At rest is the whole trick: testing for contact while
    the thread is moving is what was rejected before, and rightly, because it
-   fires once per card and flickers the button the length of the thread. Moving
-   is already handled by `keepShown`; standing still was the case nothing
-   handled, and standing still is the case that matters.
+   fires once per card and flickers the button the length of the thread. Where
+   the thread stops is the case that matters — that is where the reader is
+   looking, and that is where a collision would sit under their eyes.
 
    The targets overhang the drawing by (--tap-min - --act-size) / 2 all round,
    so the delete target reaches 5px past the card's trailing edge. That is

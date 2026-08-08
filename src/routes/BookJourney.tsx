@@ -223,12 +223,10 @@ function BookJourney() {
      block actually is, and all it changes is what the bar says and what the
      rail is made of. */
   const [parked, setParked] = useState(false)
-  const [keepShown, setKeepShown] = useState(true)
   const [keepStep, setKeepStep] = useState(0)
   const scroller = useRef<HTMLDivElement>(null)
   const head = useRef<HTMLDivElement>(null)
   const keepIt = useRef<HTMLButtonElement>(null)
-  const lastTop = useRef(0)
   const settle = useRef<number | undefined>(undefined)
 
   /* The action steps over the verbs it would otherwise be standing on.
@@ -242,8 +240,8 @@ function BookJourney() {
 
      Only at rest, and that is the whole reason this is workable. Testing for
      contact while the thread moves fires once per card and flickers the button
-     the length of the thread — moving is `keepShown`'s job and it already does
-     it. This runs once, SETTLE_MS after the last scroll event.
+     the length of the thread. This runs once, SETTLE_MS after the last scroll
+     event — so what moves is the step, taken after the thread has stopped.
 
      The resting box is read from the computed insets rather than from
      getBoundingClientRect, because the step is a transform: a rect would
@@ -288,24 +286,22 @@ function BookJourney() {
     settle.current = window.setTimeout(step, SETTLE_MS)
   }, [step])
 
-  const onScroll = useCallback(
-    (e: React.UIEvent<HTMLDivElement>) => {
-      const el = e.currentTarget
-      bump()
+  /* THE BUTTON DOES NOT GO ANYWHERE.
 
-      /* And the way to keep more gets out of the way of what is already kept.
-         Fixed in the trailing corner, it sits on top of whatever card happens
-         to be passing under it — on a phone that is a paragraph with a hole in
-         it. Moving down the thread is reading, so it leaves; the moment the
-         reader stops or comes back up it is under the thumb again. The 6px
-         deadband is so a fingertip's worth of drift doesn't flicker it. */
-      const from = lastTop.current
-      lastTop.current = el.scrollTop
-      if (Math.abs(el.scrollTop - from) < 6) return
-      setKeepShown(el.scrollTop < from || el.scrollTop < 16)
-    },
-    [bump],
-  )
+     It used to slide off its corner whenever the thread moved downward, on the
+     argument that scrolling down is reading and the way to keep more should get
+     out of the way of what is already kept. The owner reported the cost, and it
+     is the larger number: on a journey with one keep in it you scroll a little,
+     the only action on the screen is gone, and there is nothing to say it went
+     rather than broke — you find it again by scrolling back up, if you think to
+     try. A control that hides from the reader who is looking for it has failed
+     at the only thing it does.
+
+     What it was hiding from is real and is handled elsewhere and better: the
+     step above lifts it clear of any verb row it would have been standing on,
+     measured once the thread is still. That was always the honest fix for
+     collision. Disappearing was never a fix for anything, it was an apology. */
+  const onScroll = useCallback(() => bump(), [bump])
 
   const keeps = useMemo(() => entries ?? [], [entries])
   const rows: Row[] = useMemo(() => arrange(keeps, sift), [keeps, sift])
@@ -994,7 +990,6 @@ function BookJourney() {
         type="button"
         className={styles.keepIt}
         style={keepStep ? ({ '--keep-step': `${keepStep}px` } as CSSProperties) : undefined}
-        data-away={!keepShown || undefined}
         onClick={() => setAdding('quote')}
         aria-label="Keep something from this book"
         title="Keep something"
