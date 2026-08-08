@@ -4,7 +4,16 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/leaf-icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- `interactive-widget=resizes-content` asks the browser to shrink the
+         page itself when the keyboard opens, which is what Chrome and Android
+         WebView do with it and is by far the cleanest fix for a sheet being
+         shoved off screen. Safari ignores it, so Sheet.tsx measures the visual
+         viewport by hand for iOS; this line means Android never needs that
+         path. No `maximum-scale` — capping zoom fails WCAG. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"
+    />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#c2e4f8" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c2338" />
     <title>Flyleaf</title>

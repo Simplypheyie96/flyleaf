@@ -93,7 +93,23 @@
   font-size: var(--text-md);
   line-height: var(--leading-body);
   color: var(--color-ink);
-  text-wrap: pretty;
+  /* Greedy, and hyphenated, and it took both.
+
+     Once the tick and its gap are off, these items are in a 280px column at the
+     page's largest body size — about 35 characters, well under a comfortable
+     line, so any word of nine or ten letters that will not fit leaves a visibly
+     empty strip. Dropping `text-wrap: pretty` was the first half and only half:
+     it took the terms summary from 26% of the column unused to 15%, and left
+     the privacy summary at 22%, because greedy wrapping cannot help when the
+     next word is "analytics" and there is nowhere to put it.
+
+     Hyphenation is what closes the rest, by giving the greedy pass many more
+     places it is allowed to break. Same fix, same reason, as the entry cards on
+     BookJourney — see the note on `hyphens` in BookJourney.module.css, which
+     measured the identical problem in an identical column. */
+  text-wrap: wrap;
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }
 
 /* A leaf-blue tick rather than a bullet: four things that are true, not four

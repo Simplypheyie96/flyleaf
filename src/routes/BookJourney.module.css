@@ -1131,8 +1131,7 @@
      there so much space in the cards" complaint: not padding, just ragged
      wrap.
 
-     This does more than insert a hyphen. Body copy already carries
-     `text-wrap: pretty` from index.css, and pretty chooses break points from
+     This does more than insert a hyphen. Wrapping chooses break points from
      whatever the text offers; hyphenation offers it many more, so the whole
      paragraph re-flows tighter. Measured on the seeded journey: the note card
      goes 4 lines to 3 and its trailing gap 46px to 44 at 390 (64 to 27 at
@@ -1149,10 +1148,13 @@
 
 /* Fill the line before starting the next one.
 
-   index.css sets `text-wrap: pretty` on every p, which is the right default for
-   an article and the wrong one here. pretty is a paragraph-level optimiser: it
-   is allowed to end a line early if doing so improves the rag or saves the last
-   line from being a single word. In a 296px column that trade is a bad one —
+   Still needed after index.css stopped setting `text-wrap: pretty` on every p:
+   several card modules set pretty on their own classes, and `.hang p` outranks
+   a bare class, so this is what actually decides the question for entry copy.
+
+   pretty is a paragraph-level optimiser: it is allowed to end a line early if
+   doing so improves the rag or saves the last line from being a single word.
+   In a 296px column that trade is a bad one —
    the reader sees a line that visibly stopped short of the edge with a word
    sitting below it that would have fitted. Greedy wrapping, which is what plain
    `wrap` means, takes every word that fits and only then breaks.
@@ -1488,7 +1490,10 @@
   font-size: var(--text-sm);
   line-height: var(--leading-read);
   color: var(--color-ink-soft);
-  text-wrap: pretty;
+  /* 26ch is the narrowest measure in the app, so it is the last place that can
+     afford a line ending early — pretty was leaving 12% of a 216px column
+     empty. Same call as the entry cards above it. */
+  text-wrap: wrap;
 }
 
 .clear {

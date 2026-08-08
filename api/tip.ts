@@ -140,7 +140,14 @@ export default async function handler(request: Request) {
   // not switched on for this deployment.
   if (!key) return json({ error: 'The tip jar is not set up here.' }, 503)
 
-  const url = new URL(request.url)
+  /* `request.url` arrives here as a PATH, not a URL — Vercel's Node runtime
+     hands the handler `/api/tip`, and `new URL()` on a relative string throws
+     ERR_INVALID_URL before a single Paystack call is made. The host header is
+     the only place the origin actually lives, so it becomes the base. The
+     fallback is only there so a malformed request cannot take the endpoint
+     down; `home()` still prefers the configured origin over this one. */
+  const host = request.headers.get('host') ?? 'flyleaf-app.vercel.app'
+  const url = new URL(request.url, `https://${host}`)
 
   if (request.method === 'POST') return start(request, url.origin, key)
   if (request.method === 'GET') {

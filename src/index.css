@@ -158,10 +158,33 @@ h3 {
   margin: 0;
 }
 
+/* No `text-wrap: pretty` here any more, and that is a deliberate removal rather
+   than a tidy-up.
+
+   pretty is a paragraph-level optimiser, and the two engines disagree about how
+   much of the paragraph it may optimise. Chrome applies a last-lines heuristic,
+   so the cost is a line or two at the end. WebKit — which is every iPhone,
+   including this app installed to a home screen — evens out the whole rag, and
+   is therefore allowed to end ANY line early if the paragraph as a whole reads
+   better for it. In a wide column nobody notices. In the 300-odd-pixel columns
+   this app is mostly made of, it produces a dead strip down the right-hand side
+   of the text, the same width on every line, that reads as a padding bug.
+
+   Measured on the reported case — the Settings note, iPhone at 402pt in real
+   WebKit — every line stopped between 66 and 90px short of a 354px box: 23% of
+   the column left empty by the wrapping mode alone. The same paragraph in
+   Chrome left 14px. That gap between engines is why this survived so long: it
+   is invisible in the browser it was built in.
+
+   This is the second time the same rule has been caught. BookJourney already
+   turns it off for entry cards (see `.hang p` there, which measured it line by
+   line and came to the same conclusion); a default that every narrow column in
+   the app has to opt out of is not a default. pretty stays where it belongs —
+   opted into, on short one- and two-line descriptions where the only risk is an
+   orphan and there is no rag long enough to even out. */
 p {
   margin: 0;
   max-width: var(--measure);
-  text-wrap: pretty;
 }
 
 /* Emphasis at the app's own strong weight. Left alone, the browser asks for
