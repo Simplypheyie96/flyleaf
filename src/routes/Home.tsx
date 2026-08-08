@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import BookCover from '../components/BookCover'
-import Bun from '../components/Bun'
 import Bunny from '../rabbit/Bunny'
 import Face from '../components/Face'
 import Sparkle from '../components/Sparkle'
@@ -267,13 +266,20 @@ function Home() {
                        away — but it never leaves, because the ears stay over
                        the edge the whole time. See `.lurk` for the timeline.
 
-                       Four wrappers, one transform each, because an SVG
-                       `transform` attribute and a CSS `transform` property are
-                       the same property: an element that is placed by the one
-                       cannot be animated by the other. So the walk is `left`,
-                       the ducking is `.lurkRise`, the gait is `.lurkStep`, the
-                       collision is `.lurkBump`, and nothing here reaches into
+                       Four wrappers, one transform each, because four tracks
+                       run at once and an element has one `transform`: the walk
+                       is `left` on `.lurkRun`, the ducking is `.lurkRise`, the
+                       gait is `.lurkStep`, and the collision squash rides the
+                       rabbit itself as `.lurkBump`. Nothing here reaches into
                        the drawing's own frames.
+
+                       This is the same drawn rabbit as everywhere else in the
+                       app — it used to be a second, hand-drawn one, and two
+                       drawings of one character is a thing readers notice
+                       (owner's call). 72 is the smallest rabbit in the app,
+                       sized so the head above the ledge matches the old
+                       drawing's 48px. Every number in `.lurk` is measured
+                       against this pose at this size; change one, remeasure.
 
                        Only on this branch: `Idle` already has a rabbit sitting
                        inside the card, and two of them on one section turns a
@@ -283,7 +289,7 @@ function Home() {
                         <span className={styles.lurkRun}>
                           <span className={styles.lurkRise}>
                             <span className={styles.lurkStep}>
-                              <Bun pose="peek" size={60} className={styles.lurkBump} />
+                              <Bunny pose="peek" size={72} className={styles.lurkBump} />
                             </span>
                           </span>
                         </span>
