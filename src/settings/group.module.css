@@ -45,7 +45,11 @@
   font-size: var(--text-xs);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
-  text-wrap: pretty;
+  /* Greedy, not pretty. This note is the longest prose in Settings — three or
+     four lines on a phone — which is exactly the length where WebKit's rag
+     optimiser has enough to work with and leaves the column visibly unfilled.
+     See the note on `p` in index.css for the measurements. */
+  text-wrap: wrap;
 }
 
 /* A row is one line high. 48px is a comfortable tap and a tight list at the

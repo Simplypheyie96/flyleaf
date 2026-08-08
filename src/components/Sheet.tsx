@@ -6,7 +6,7 @@
    the print. */
 
 import { useEffect, useRef } from 'react'
-import type { CSSProperties, PointerEvent, ReactNode } from 'react'
+import type { CSSProperties, PointerEvent, ReactNode, RefObject } from 'react'
 import GlassSurface from './GlassSurface'
 import styles from './Sheet.module.css'
 
@@ -54,6 +54,8 @@ function Sheet({ open, onClose, label, name, fill = false, children }: SheetProp
     if (!open && el.open) el.close()
   }, [open])
 
+  useKeyboardFit(dialog, open)
+
   return (
     <dialog
       ref={dialog}
@@ -86,6 +88,70 @@ function Sheet({ open, onClose, label, name, fill = false, children }: SheetProp
       </GlassSurface>
     </dialog>
   )
+}
+
+/* KEEPING THE SHEET ABOVE THE KEYBOARD.
+   ═══════════════════════════════════════
+   On a phone this is the difference between a sheet you can type into and one
+   the owner reported: open Add a book, tap the field, and the whole panel is
+   thrown off the top of the screen — the search box and every result with it.
+
+   The cause is that iOS does not shrink the page when the keyboard arrives. It
+   shrinks the VISUAL viewport and scrolls it down inside a layout viewport that
+   is still full height. A modal dialog lives in the top layer, fixed to that
+   unchanged layout viewport, so it keeps its full height — the bottom half now
+   behind the keyboard — and the scroll carries it up and out of sight. Nothing
+   in CSS sees this: `svh`, `dvh` and `100%` all still describe the tall
+   viewport, because as far as layout is concerned nothing happened.
+
+   visualViewport is the only thing that reports it, so the two numbers it gives
+   are written onto the dialog as custom properties and the stylesheet does the
+   rest: the sheet becomes exactly as tall as the space left above the keyboard,
+   and moves down by however far the page was scrolled to compensate.
+
+   Only while a keyboard is actually up. `covered` is also non-zero for a
+   collapsing URL bar, which is a ~60px change that must not be mistaken for
+   one — hence the floor. Below it every property is removed rather than set to
+   zero, so a sheet with no keyboard in front of it renders through exactly the
+   rules it always did. */
+const KEYBOARD_AT = 120
+
+function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open: boolean) {
+  useEffect(() => {
+    const el = dialog.current
+    const view = window.visualViewport
+    if (!open || !el || !view) return
+
+    const clear = () => {
+      el.style.removeProperty('--sheet-room')
+      el.style.removeProperty('--sheet-shift')
+      delete el.dataset.keyboard
+    }
+
+    const fit = () => {
+      const covered = window.innerHeight - view.height - view.offsetTop
+      if (covered < KEYBOARD_AT) {
+        clear()
+        return
+      }
+      el.style.setProperty('--sheet-room', `${view.height}px`)
+      el.style.setProperty('--sheet-shift', `${view.offsetTop}px`)
+      el.dataset.keyboard = 'up'
+    }
+
+    fit()
+    /* Both events: `resize` is the keyboard arriving and leaving, `scroll` is
+       Safari sliding the visual viewport around underneath it while the reader
+       moves between fields. Missing the second one puts the sheet back where
+       the bug had it, one field later. */
+    view.addEventListener('resize', fit)
+    view.addEventListener('scroll', fit)
+    return () => {
+      view.removeEventListener('resize', fit)
+      view.removeEventListener('scroll', fit)
+      clear()
+    }
+  }, [dialog, open])
 }
 
 /* Dragging the sheet down to put it away.

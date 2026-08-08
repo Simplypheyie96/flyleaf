@@ -24,15 +24,25 @@
   --tape-edge: oklch(0.7 0.02 245 / 0.3);
 
   /* ---- Ink ---- */
+  /* THE QUIET END OF THE RAMP, DARKENED — soft and faint together.
+
+     This token has now been raised three times (0.54, then 0.51, now 0.47) and
+     the repetition is the lesson: each pass moved it just far enough to clear
+     4.5 and called that done. AA is the floor for whether text is legible at
+     all, not a target, and this is the ink carrying the text most likely to be
+     read in bad conditions — a date glanced at, a count in a card's corner, a
+     caption on a phone at arm's length in daylight. Clearing the floor by a
+     tenth is a near miss recorded as a pass, which is why the owner still read
+     it on her own phone and said it was barely readable.
+
+     BOTH steps move, and that is the part the earlier passes got wrong. Faint
+     alone would have landed on 0.47 with soft at 0.44 — a three-hundredth gap
+     between two inks whose whole job is to be told apart. Moving the pair keeps
+     the ramp's shape (0.25 / 0.40 / 0.47) and takes soft to ~8.9 and faint to
+     ~6.5 against the day paper. Three separate voices, all of them readable. */
   --color-ink: oklch(0.25 0.015 255);
-  --color-ink-soft: oklch(0.44 0.02 250);
-  /* 0.51, not the 0.54 it was. The "large/decorative only" caveat below was
-     written as a licence and then used as one — the journey's dates and the
-     colophon's terms are both 13px and both faint, and both measured 4.1–4.4
-     against what they actually sit on, which is under AA for text that size.
-     Three hundredths of lightness is the whole fix: it holds the ramp's shape
-     (soft 0.44, faint 0.51) and still reads as the quietest ink on the page. */
-  --color-ink-faint: oklch(0.51 0.02 245);
+  --color-ink-soft: oklch(0.4 0.02 250);
+  --color-ink-faint: oklch(0.47 0.02 245);
 
   /* ---- The rabbit ----
 
@@ -674,10 +684,26 @@
      Nothing above 24 exists on a phone. The top three steps grow once there
      is room for them (600px+: 20 / 23 / 28); the hierarchy is identical
      either way, only the volume moves. */
-  --text-2xs: 0.6875rem; /* 11 — capitalised micro-labels, tracked out */
-  --text-xs: 0.75rem; /* 12 — captions, dates, counts */
-  --text-sm: 0.8125rem; /* 13 — descriptions, secondary copy */
-  --text-base: 0.875rem; /* 14 — UI body, buttons, rows, card titles */
+  /* THE SMALL END MOVED UP ONE PIXEL, all four steps together.
+
+     The owner read the app on a phone and said the light text was tiny and
+     barely readable, and she was right on both counts — but they were two
+     different faults wearing one symptom. Contrast was the smaller half and is
+     handled at the ink tokens. Size was the larger: these four steps ran
+     11/12/13/14, which put Flyleaf's ordinary UI body at 14 where iOS sets its
+     own at 17, and its captions at 12 with micro-labels below that. A caption
+     is meant to be quiet, not squinted at, and at arm's length in daylight 11px
+     of soft grey is not quiet, it is gone.
+
+     Moved as a set, so the scale is the only thing that changed: every step is
+     still exactly one pixel from its neighbours and every relationship the app
+     was designed around holds. Nothing at 16 or above moves at all — the
+     reading size is already the reading size, and the owner has twice asked for
+     SMALLER titles on a phone, so the top of the scale is not mine to raise. */
+  --text-2xs: 0.75rem; /* 12 — capitalised micro-labels, tracked out */
+  --text-xs: 0.8125rem; /* 13 — captions, dates, counts */
+  --text-sm: 0.875rem; /* 14 — descriptions, secondary copy */
+  --text-base: 0.9375rem; /* 15 — UI body, buttons, rows, card titles */
   --text-md: 1rem; /* 16 — THE READING SIZE: kept lines, quotes, notes */
   --text-lg: 1.125rem; /* 18 — section headings */
   --text-xl: 1.25rem; /* 20 — page titles */
@@ -1022,15 +1048,21 @@
   --tape-fill: oklch(0.6 0.02 260 / 0.3);
   --tape-edge: oklch(0.8 0.02 255 / 0.22);
 
+  /* The same two steps that moved in the day block, moved here for the same
+     reason and by the same argument — see the long note above them.
+
+     The history here is worth keeping because it is the identical mistake
+     twice. Faint was 0.62 and measured 3.97, under AA outright. It went to
+     0.67, which measured 4.83, and that read as fixed. It was not fixed; it
+     was over the line by three tenths, on the ink carrying dates and captions,
+     at night, on a phone. Now 0.73 alongside soft at 0.79, which brings the
+     night ramp back level with the day's rather than a step behind it.
+
+     Lightening is what raises contrast here, where the day block darkens —
+     the paper underneath is a night slate, not a near-white. */
   --color-ink: oklch(0.92 0.012 250);
-  --color-ink-soft: oklch(0.74 0.018 255);
-  /* 0.67, not 0.62. Measured on the night paper this actually sits on — a
-     date under a keep, a term in the colophon — 0.62 came out at 3.97:1,
-     which is under AA and always was; the light block's faint ink clears 5.5
-     on its own paper, so the two themes were not holding the same floor. At
-     0.67 it measures 4.83 and the ramp is intact: ink 11.4, soft 6.3, faint
-     4.8, still three clearly separate voices. */
-  --color-ink-faint: oklch(0.67 0.02 258);
+  --color-ink-soft: oklch(0.79 0.018 255);
+  --color-ink-faint: oklch(0.73 0.02 258);
 
   /* ---- The rabbit, after dark ----
 

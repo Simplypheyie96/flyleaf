@@ -26,6 +26,19 @@
   /* Rising from the bottom edge on a phone, the way a sheet does. */
   display: flex;
 
+  /* The keyboard, when there is one. Both properties are absent until
+     Sheet.tsx measures a keyboard actually covering the screen, so their
+     fallbacks — full height, no offset — are the ordinary case and this reads
+     as the rule it has always been. See useKeyboardFit for why CSS cannot
+     work this out on its own.
+
+     `inset-block-end: auto` matters: the UA pins a modal dialog top AND
+     bottom, and a box told to be 0-to-0 and also 400px tall is
+     over-constrained — the height would be the declaration that got dropped. */
+  block-size: var(--sheet-room, 100%);
+  inset-block-start: var(--sheet-shift, 0px);
+  inset-block-end: auto;
+
   /* A view transition ignores the top layer, so without a name of its own the
      sheet is simply absent from the snapshot and cuts to nothing the instant
      it closes — while whatever it was holding takes 420ms to arrive. Naming it
@@ -125,6 +138,24 @@
      would otherwise quietly hold this back to the number it is replacing. */
   height: min(92svh, 780px);
   max-height: min(92svh, 780px);
+}
+
+/* With a keyboard up, the panel takes everything that is left.
+
+   Every ceiling above exists to leave the page showing over the top of the
+   sheet, because a sheet you can still see around is a sheet you know how to
+   get out of. That argument dies the moment a keyboard is on screen: the
+   remaining strip IS the sheet's world, and holding back 14% of it to reveal a
+   page nobody can reach costs the reader a whole row of results while they are
+   typing. The dialog is already exactly the visible strip, so 100% here means
+   the sheet sits on the keyboard with the field above it.
+
+   A height as well as a ceiling, and both outrank the short-screen block below
+   on specificity rather than on source order. */
+.dialog[data-keyboard] .panel,
+.dialog[data-keyboard] .fill {
+  block-size: 100%;
+  max-block-size: 100%;
 }
 
 /* A short screen does not have smaller chrome. The handle, the header, the
