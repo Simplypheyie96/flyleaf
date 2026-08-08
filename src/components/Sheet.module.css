@@ -158,6 +158,14 @@
   max-block-size: 100%;
 }
 
+/* And the strip stops paying for lounge spacing. Twenty pixels between rows
+   is right for a sheet with a screen to itself; over a keyboard the same gaps
+   cost most of a result row. The short-screen block below makes the identical
+   trade for the identical reason. */
+.dialog[data-keyboard] .inner {
+  gap: var(--space-3);
+}
+
 /* A short screen does not have smaller chrome. The handle, the header, the
    buttons and the padding cost the same 200-odd pixels on a 667px phone as on
    an 844px one, so the same 86% ceiling hands the content far less and the

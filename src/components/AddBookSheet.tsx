@@ -79,7 +79,20 @@ function AddBookSheet({ open, onClose, seed = '', firstKeep = '' }: AddBookSheet
   }, [open, stage.kind])
 
   return (
-    <Sheet open={open} onClose={onClose} label="Add a book" name="add-sheet">
+    /* `fill` on the search stage only. A results list inside a content-sized
+       sheet was the owner's "one book per scroll": the sheet grew from the
+       rows it happened to have, so the list got whatever was left rather
+       than the room it deserved. Filling pins the sheet at its full allowed
+       height whenever the reader is searching — four to six rows at a glance
+       — while the manual and confirm stages stay exactly as tall as their
+       own rows, the way every other sheet in the app is. */
+    <Sheet
+      open={open}
+      onClose={onClose}
+      label="Add a book"
+      name="add-sheet"
+      fill={stage.kind === 'search'}
+    >
       {stage.kind === 'search' && (
         <SearchStage
           field={field}

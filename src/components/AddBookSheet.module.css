@@ -220,6 +220,16 @@
   }
 }
 
+/* Folded away while the keyboard is up. The strip above a phone keyboard is
+   barely two results tall, and this button was a whole row of it — a control
+   for the reader who has given up on the search, shown at the exact moment
+   they are still typing it. It is back the instant the keyboard drops.
+   The dialog's own stylesheet owns `data-keyboard`; only the attribute is
+   readable from here, and that is all this needs. */
+dialog[data-keyboard] .manualButton {
+  display: none;
+}
+
 .manualButton:active {
   transform: scale(0.98);
   transition-duration: var(--dur-press);
