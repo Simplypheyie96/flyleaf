@@ -49,11 +49,13 @@ export const TIP_JAR = ON
 interface Offer {
   currency: string
   presets: number[]
+  /* The least Paystack will charge — the only bound. Above it, the typed
+     amount is the reader's own to write (owner's call): a jar that argues
+     with generosity is not a jar. */
   floor: number
-  ceiling: number
 }
 
-const NAIRA: Offer = { currency: 'NGN', presets: [1000, 2500, 5000], floor: 200, ceiling: 500_000 }
+const NAIRA: Offer = { currency: 'NGN', presets: [1000, 2500, 5000], floor: 200 }
 
 /* The reader's own locale decides where the symbol goes and how thousands
    read — ₦1,000 here is $2 or GH₵15 somewhere else. `narrowSymbol` because
@@ -148,10 +150,9 @@ function Tip() {
         typeof b.currency === 'string' &&
         Array.isArray(b.presets) &&
         b.presets.length > 0 &&
-        typeof b.floor === 'number' &&
-        typeof b.ceiling === 'number'
+        typeof b.floor === 'number'
       ) {
-        setOffer({ currency: b.currency, presets: b.presets, floor: b.floor, ceiling: b.ceiling })
+        setOffer({ currency: b.currency, presets: b.presets, floor: b.floor })
         setAmount(b.presets[1] ?? b.presets[0])
       }
     })
@@ -212,10 +213,10 @@ function Tip() {
       setStage({ at: 'stuck', why: 'Paystack needs an email to send the receipt to.' })
       return
     }
-    if (!Number.isInteger(chosen) || chosen < offer.floor || chosen > offer.ceiling) {
+    if (!Number.isInteger(chosen) || chosen < offer.floor) {
       setStage({
         at: 'stuck',
-        why: `Pick an amount between ${money(offer.floor, offer.currency)} and ${money(offer.ceiling, offer.currency)}.`,
+        why: `Tips start from ${money(offer.floor, offer.currency)} — any whole amount above that.`,
       })
       return
     }
@@ -340,7 +341,6 @@ function Tip() {
               className={styles.other}
               value={custom}
               min={offer.floor}
-              max={offer.ceiling}
               placeholder="Another amount"
               aria-label={`Another amount, in ${offer.currency}`}
               onChange={(e) => setCustom(e.target.value)}
