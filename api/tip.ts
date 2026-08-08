@@ -27,20 +27,24 @@
 const PAYSTACK = 'https://api.paystack.co'
 
 /* What a tip can be, per currency: the three amounts the page offers, and the
-   range anything typed by hand has to fall inside. The ceiling is not a limit
-   on generosity; it is the difference between a mistyped amount and a caught
-   one. Presets aim at "a coffee, a good coffee, more than a coffee" priced
-   for each place, not at exchange-rate equality — a tidy $2 beats $1.37.
+   least a typed one can be. Presets aim at "a coffee, a good coffee, more
+   than a coffee" priced for each place, not at exchange-rate equality — a
+   tidy $2 beats $1.37.
+
+   There is NO ceiling, on the owner's word: past the floor, the amount is
+   the reader's own to write. The floor is not a product opinion either — it
+   is Paystack's, which refuses charges below a minimum, and a refusal from
+   inside the checkout reads worse than one sentence before it opens.
 
    Every currency here uses two-decimal minor units, so the ×100 in `start`
    holds for all of them. A currency that does not (XOF has no minor unit)
    must NOT be added to this table without changing that line. */
 const CURRENCIES = {
-  NGN: { presets: [1000, 2500, 5000], floor: 200, ceiling: 500_000 },
-  USD: { presets: [2, 5, 10], floor: 1, ceiling: 500 },
-  GHS: { presets: [15, 40, 75], floor: 5, ceiling: 5_000 },
-  ZAR: { presets: [20, 50, 100], floor: 10, ceiling: 10_000 },
-  KES: { presets: [150, 400, 800], floor: 50, ceiling: 50_000 },
+  NGN: { presets: [1000, 2500, 5000], floor: 200 },
+  USD: { presets: [2, 5, 10], floor: 1 },
+  GHS: { presets: [15, 40, 75], floor: 5 },
+  ZAR: { presets: [20, 50, 100], floor: 10 },
+  KES: { presets: [150, 400, 800], floor: 50 },
 } as const
 
 type Currency = keyof typeof CURRENCIES
@@ -142,14 +146,15 @@ async function start(request: Request, origin: string, key: string) {
   if (!(code in CURRENCIES) || !allowed().includes(code)) {
     return json({ error: 'That currency is not one this jar can take.' }, 400)
   }
-  const { floor, ceiling } = CURRENCIES[code]
+  const { floor } = CURRENCIES[code]
 
+  /* A floor and nothing above it — any whole amount the reader writes is
+     theirs to give (owner's call). The safe-integer bound is not a ceiling;
+     it is where ×100 would stop being exact arithmetic. */
   const amount = Number(body.amount)
-  if (!Number.isInteger(amount) || amount < floor || amount > ceiling) {
+  if (!Number.isInteger(amount) || amount < floor || amount * 100 > Number.MAX_SAFE_INTEGER) {
     return json(
-      {
-        error: `Choose an amount between ${floor.toLocaleString()} and ${ceiling.toLocaleString()} ${code}.`,
-      },
+      { error: `Tips start from ${floor.toLocaleString()} ${code} — any whole amount above that.` },
       400,
     )
   }
@@ -209,27 +214,42 @@ async function verify(reference: string, key: string) {
   })
 }
 
-export default async function handler(request: Request) {
+/* NAMED METHOD EXPORTS, NOT A DEFAULT — this is the line that decides whether
+   any of the above ever runs. Vercel's Node runtime hands a default export
+   the old Node (req, res) pair, and this file is written against the web
+   Request — so the deployed default-export version threw
+   `request.headers.get is not a function` on its first line and had never
+   once answered in production (runtime logs, 2026-08-08). Exporting GET and
+   POST by name is what makes the runtime pass the web Request these
+   signatures declare. Methods with no export here get the platform's own
+   405, which is one hand-rolled branch fewer to keep true. */
+
+function withKey(answer: (key: string) => Response | Promise<Response>) {
   const key = process.env.PAYSTACK_SECRET_KEY
-  // No key configured is not an error worth explaining — the tip jar is simply
-  // not switched on for this deployment.
+  // No key configured is not an error worth explaining — the tip jar is
+  // simply not switched on for this deployment.
   if (!key) return json({ error: 'The tip jar is not set up here.' }, 503)
+  return answer(key)
+}
 
-  /* `request.url` arrives here as a PATH, not a URL — Vercel's Node runtime
-     hands the handler `/api/tip`, and `new URL()` on a relative string throws
-     ERR_INVALID_URL before a single Paystack call is made. The host header is
-     the only place the origin actually lives, so it becomes the base. The
-     fallback is only there so a malformed request cannot take the endpoint
-     down; `home()` still prefers the configured origin over this one. */
+/* Web handlers get a full URL in `request.url`; the host-header base is a
+   belt for anything (an older `vercel dev`, a proxy) that still hands a bare
+   path — `new URL` ignores the base whenever the first argument is already
+   absolute. `home()` still prefers the configured origin over either. */
+function urlOf(request: Request) {
   const host = request.headers.get('host') ?? 'flyleaf-app.vercel.app'
-  const url = new URL(request.url, `https://${host}`)
+  return new URL(request.url, `https://${host}`)
+}
 
-  if (request.method === 'POST') return start(request, url.origin, key)
-  if (request.method === 'GET') {
+export function GET(request: Request) {
+  return withKey((key) => {
     // With a reference it is a payment being checked; without one it is the
     // page asking what to offer this reader.
-    const reference = url.searchParams.get('reference')
+    const reference = urlOf(request).searchParams.get('reference')
     return reference ? verify(reference, key) : offer(request)
-  }
-  return json({ error: 'Not a thing this does.' }, 405)
+  })
+}
+
+export function POST(request: Request) {
+  return withKey((key) => start(request, urlOf(request).origin, key))
 }
