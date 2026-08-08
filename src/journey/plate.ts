@@ -30,9 +30,12 @@
    palettes, same helpers. What changed is that the paper is now an object on
    the plate instead of the plate itself.
 
-   Nothing here says "Flyleaf" either. The head names the reader's book and the
-   foot dates the reader's keep; there is no room left on it for us, which is
-   the point. */
+   And the mat is where the press signs. The sheet itself is the reader's — the
+   head names their book, the foot dates their keep, and there is no room on it
+   for anybody else. The mat is ours: it is the mount, not the print. So the
+   imprint is centred in the deep margin below the sheet, where a framer's
+   label goes, in the same stamped capitals `keepsake.ts` signs the whole
+   reading with. See `brand/imprint.ts` for the words. */
 
 import type { Book, Entry } from '../data/db'
 import { groundHue } from '../books/CoverArt'
@@ -40,14 +43,16 @@ import { seedFrom } from '../books/seed'
 import { KIND, STANCE } from './kinds'
 import { dayPhrase } from './lexicon'
 import {
-  FACE,
   FACE_READ,
   H,
   W,
+  elide,
+  imprint,
   onField,
   read,
   speckle,
   stamp,
+  stampWidth,
   wrap,
 } from './keepsake'
 import type { Palette } from './keepsake'
@@ -169,6 +174,15 @@ const IN_X = CARD_X + INSET
 const IN_W = CARD_W - INSET * 2
 const IN_TOP = CARD_TOP + INSET
 const IN_BOT = CARD_BOT - INSET
+
+/* The imprint's baseline, centred in the mat's foot rather than hung a fixed
+   distance under the sheet. The band is the 168 between the sheet's bottom
+   edge and the plate's, and the line is centred on its CAPITALS: a stamp has
+   no descenders and barely any lowercase, so centring the baseline itself
+   would leave the words sitting visibly low in their own margin. Cap height is
+   about 15 at the stamp's 22px, which is why it is added before the halving —
+   77 above the words, 76 below them. */
+const IMPRINT_Y = CARD_BOT + Math.round((H - CARD_BOT + 15) / 2)
 
 function frame(ctx: CanvasRenderingContext2D) {
   ctx.beginPath()
@@ -333,27 +347,11 @@ function clamp(lines: string[], most: number, tail = '…') {
   return kept
 }
 
-/** How wide a stamped line actually is. `stamp` draws with tracking on it and
-    puts the tracking back afterwards, so measuring in its wake measures the
-    wrong string — 2.6px per character narrower than what was printed. */
-function stampWidth(ctx: CanvasRenderingContext2D, text: string) {
-  const was = ctx.letterSpacing
-  ctx.font = `600 22px ${FACE}`
-  ctx.letterSpacing = '2.6px'
-  const w = ctx.measureText(text).width
-  ctx.letterSpacing = was
-  return w
-}
-
-/** A stamped line cut to the room it was given. Only names reach this — a
-    fourteen-word pen name is rare and a stamp that runs out through the
-    sheet's margin is not. */
-function cut(ctx: CanvasRenderingContext2D, text: string, room: number) {
-  if (stampWidth(ctx, text) <= room) return text
-  let s = text
-  while (s.length > 1 && stampWidth(ctx, `${s}…`) > room) s = s.slice(0, -1)
-  return `${s.replace(/[\s,;:.·]+$/, '')}…`
-}
+/* `stampWidth` and `elide` used to be defined here, one copy each, alongside
+   the identical pair in keepsake.ts. Two presses measuring the same tracked
+   capitals with two copies of the same eight lines is exactly the drift this
+   file's opening paragraph promises not to have, so they moved there with
+   everything else that is shared. */
 
 /* The head is the same on all three cuts, and that is deliberate: three
    pictures that share a masthead are a set, and three that each invent their
@@ -394,7 +392,7 @@ function head(ctx: CanvasRenderingContext2D, p: Plate, palette: Palette) {
 
   const author = y - STEP + AUTHOR_GAP
   ctx.fillStyle = palette.soft
-  stamp(ctx, cut(ctx, p.author.toUpperCase(), room), x, author)
+  stamp(ctx, elide(ctx, p.author.toUpperCase(), room), x, author)
 
   /* Under whichever of the two ran longer. A one-line title clears the board
      by 30px and a two-line one overruns it, and a rule at a fixed height would
@@ -753,6 +751,14 @@ export function drawPlate(canvas: HTMLCanvasElement, p: Plate, cast: Cast) {
   if (cast.cut === 'mount' && p.picture) drawMount(ctx, p, cast.palette)
   else if (cast.cut === 'card') drawCard(ctx, p, cast.palette)
   else drawSaid(ctx, p, cast.palette)
+
+  /* On the mat, in whichever of the palette's two inks the field can actually
+     carry — `onField` measures that rather than trusting a fifth colour, so a
+     palette retuned later cannot quietly print this unreadably. Centred,
+     because the sheet above it is centred between two equal side margins and a
+     label hung off one corner of a symmetrical mount reads as having slipped
+     rather than as having been placed. */
+  imprint(ctx, onField(cast.palette), W / 2, IMPRINT_Y, 'center')
 }
 
 /* ── The book's own cover ──────────────────────────────────────────────── */

@@ -17,11 +17,14 @@
    absence of another (plain), and only the speckle did any work. The speckle
    is not a choice now, it is what paper is — every palette carries it.
 
-   Nothing in here says "Flyleaf". A keepsake with an app's name across the
-   foot is an advertisement wearing the reader's reading as a costume, and
-   share.ts already made that promise for the plain-text side. */
+   The press signs it. One stamped line at the foot, opposite the author, in
+   the same tracked capitals this plate already sets a term and a page number
+   in — see `imprint` below, and `brand/imprint.ts` for the words and why they
+   are those words. It shares the foot with the book rather than floating over
+   the reading, which is the difference between a colophon and a watermark. */
 
 import type { Book, Entry } from '../data/db'
+import { IMPRINT } from '../brand/imprint'
 import { KIND, KINDS } from './kinds'
 import { colophon } from './lexicon'
 
@@ -221,6 +224,28 @@ export function stamp(ctx: CanvasRenderingContext2D, text: string, x: number, y:
   ctx.letterSpacing = was
 }
 
+/** How wide a stamped line actually is. `stamp` draws with tracking on it and
+    puts the tracking back afterwards, so measuring in its wake measures the
+    wrong string — 2.6px per character narrower than what was printed. */
+export function stampWidth(ctx: CanvasRenderingContext2D, text: string) {
+  const was = ctx.letterSpacing
+  ctx.font = `600 22px ${FACE}`
+  ctx.letterSpacing = '2.6px'
+  const w = ctx.measureText(text).width
+  ctx.letterSpacing = was
+  return w
+}
+
+/** A stamped line cut to the room it was given. Only names reach this — a
+    fourteen-word pen name is rare and a stamp that runs out through the
+    sheet's margin is not. */
+export function elide(ctx: CanvasRenderingContext2D, text: string, room: number) {
+  if (stampWidth(ctx, text) <= room) return text
+  let s = text
+  while (s.length > 1 && stampWidth(ctx, `${s}…`) > room) s = s.slice(0, -1)
+  return `${s.replace(/[\s,;:.·]+$/, '')}…`
+}
+
 export function wrap(ctx: CanvasRenderingContext2D, text: string, max: number) {
   const out: string[] = []
   for (const para of text.split('\n')) {
@@ -293,26 +318,76 @@ export function ground(ctx: CanvasRenderingContext2D, palette: Palette) {
   ctx.globalAlpha = 1
 }
 
-/* The lowest baseline anything but the imprint may use. */
+/* The lowest baseline anything but the foot may use. */
 export const FLOOR = H - PAD - 130
 
-/** The book, at the foot of every shape. Attribution is not decoration.
-    Takes the two strings rather than the whole reading, because the plate a
-    single keep is printed on carries the same imprint and is not a reading. */
+/* The foot's own line. The book signs one end of it and the press the other,
+   which is where a title page's verso puts them both — so neither assumes the
+   width, and both are measured against it. */
+const FOOT_Y = H - PAD - 8
+
+/* What the press holds open beside the author. Two stamped lines meeting in
+   the middle read as one run-on line; 48 is the same air the single-keep plate
+   already keeps between its kind and its provenance. */
+const IMPRINT_GAP = 48
+
+/** The press, stamped wherever a picture leaves the app.
+
+    Small caps in the app's labelling face — the same treatment a term, an
+    author and a page number already get here — because a colophon is set at
+    the size of the smallest fact on the page and never at the size of a title.
+    The two pictures put it in different places for the reason a printer would:
+    the whole reading is a printed page, so this signs the foot of it; one keep
+    is a print laid on a mat, and the label under a mounted print goes on the
+    mat. Same words, same face, same size, so they read as one press.
+
+    The colour is the caller's, because the two surfaces are not the same
+    surface — the reading's own paper under one, the mount's field under the
+    other — and each has its own ink that clears 4.5:1 on it. */
+export function imprint(
+  ctx: CanvasRenderingContext2D,
+  colour: string,
+  x: number,
+  y: number,
+  align: CanvasTextAlign = 'left',
+) {
+  const was = ctx.textAlign
+  ctx.textAlign = align
+  ctx.fillStyle = colour
+  stamp(ctx, IMPRINT.toUpperCase(), x, y)
+  ctx.textAlign = was
+}
+
+/** The author, stamped at the foot and kept out of the press's way.
+
+    Ours is a fixed fifteen characters and theirs is not, so theirs is the one
+    that gets measured. At 1080 wide that still leaves the author about 590px —
+    thirty-odd tracked capitals, more than any name on any shelf. When one does
+    run past it, an elided name beside a legible press beats a name running out
+    through the plate's own margin, which is what an unmeasured author did
+    before there was anything at the far end of this line to stop it. */
+function byline(ctx: CanvasRenderingContext2D, author: string, palette: Palette) {
+  const room = W - PAD * 2 - stampWidth(ctx, IMPRINT.toUpperCase()) - IMPRINT_GAP
+  ctx.textAlign = 'left'
+  ctx.fillStyle = palette.soft
+  stamp(ctx, elide(ctx, author.toUpperCase(), room), PAD, FOOT_Y)
+}
+
+/** The book, at the foot of every shape. Attribution is not decoration. Takes
+    the two strings rather than the whole reading, because a title and a name
+    are what every shape has — the facts and the counts are not. */
 export function foot(
   ctx: CanvasRenderingContext2D,
   of: { title: string; author: string },
   palette: Palette,
 ) {
-  const y = H - PAD - 8
   ctx.textAlign = 'left'
   ctx.fillStyle = palette.ink
   ctx.font = `600 ${read(40)}px ${FACE_READ}`
   const title = wrap(ctx, of.title, W - PAD * 2)[0]
-  ctx.fillText(title, PAD, y - 34)
+  ctx.fillText(title, PAD, FOOT_Y - 34)
 
-  ctx.fillStyle = palette.soft
-  stamp(ctx, of.author.toUpperCase(), PAD, y)
+  byline(ctx, of.author, palette)
 }
 
 /* The colophon's own floor. It ends in a single stamped author line rather
@@ -479,8 +554,7 @@ function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
     y += FACT_GAP
   }
 
-  ctx.fillStyle = look.palette.soft
-  stamp(ctx, k.author.toUpperCase(), PAD, H - PAD - 8)
+  byline(ctx, k.author, look.palette)
 }
 
 function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
@@ -488,8 +562,14 @@ function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
 
   /* Set as large as it can be and still fit the plate. A fixed size would
      either strand a six-word line in the middle of an empty card or push a
-     long one off the bottom. */
-  const room = H - PAD * 2 - 260
+     long one off the bottom.
+
+     The provenance stamp is subtracted from the room BEFORE the fitting rather
+     than added under it afterwards. Fitted against the whole room, a quote that
+     happened to fill it exactly left no space at all for the line naming the
+     chapter, which then printed straight through the book's own title — which
+     is exactly what a six-line quote at 108px did here. */
+  const room = H - PAD * 2 - 260 - (k.line.where ? 60 : 0)
   let size = 112
   let lines: string[] = []
   for (; size >= 52; size -= 4) {
@@ -510,7 +590,12 @@ function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   }
 
   if (k.line.where) {
-    y += 24
+    /* `y` is a whole line-height past the last baseline by the time the loop
+       lets go of it, so the 24 is added to a gap that is already generous.
+       FLOOR is the belt: it is the constant that says how low anything above
+       the foot may sit, and this line is the one thing on the shape that could
+       be pushed past it by the reader's own words. */
+    y = Math.min(y + 24, FLOOR)
     ctx.fillStyle = look.palette.accent
     stamp(ctx, k.line.where.toUpperCase(), PAD, y)
   }
@@ -571,6 +656,12 @@ export function drawKeepsake(canvas: HTMLCanvasElement, k: Keepsake, look: Look)
   if (look.shape === 'line') drawLine(ctx, k, look)
   else if (look.shape === 'tally') drawTally(ctx, k, look)
   else drawColophon(ctx, k, look)
+
+  /* Last, and here rather than in each shape, because all three end on the
+     same line and a press that signs some of its own pictures is not a press.
+     `soft` is the palette's quiet ink — the one the author beside it is
+     already set in — so the two ends of the line weigh the same. */
+  imprint(ctx, look.palette.soft, W - PAD, FOOT_Y, 'right')
 }
 
 /* ── Getting it off the device ─────────────────────────────────────────── */

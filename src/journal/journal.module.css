@@ -148,8 +148,10 @@
 /* ---- the bookplate ---- */
 
 /* The front page, and it is a BOOKPLATE rather than a cover: the mark, whose
-   journal it is, what it covers, and what is in it. No app name on it — see
-   the rule in the brief. What a reader holds should be theirs. */
+   journal it is, what it covers, and what is in it. The press signs at the
+   foot, under the date, in the tracked capitals every other stamped label in
+   this app is set in — see `.imprint`. What a reader holds is theirs; the line
+   at the bottom only says where they kept it. */
 .plate {
   display: flex;
   flex-direction: column;
@@ -194,6 +196,24 @@
   margin-block-start: var(--space-3);
   color: var(--color-ink-faint);
   font-size: var(--text-xs);
+}
+
+/* The colophon. It sits a step DARKER than the date above it, which looks
+   backwards for the last line on a page until you see it set: uppercase at
+   0.1em reads far lighter than its measured weight, and at `ink-faint` it
+   dissolved into the paper on the printed sheet where there is no backlight to
+   rescue it. Tracked wider than the `.kind` labels inline in the text, because
+   this one stands alone on a centred line with air on both sides, where the
+   tighter fit reads as cramped rather than as set. */
+.imprint {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-strong);
+  line-height: var(--leading-snug);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
 }
 
 /* The list of what is in the journal. No page numbers: nothing in a browser

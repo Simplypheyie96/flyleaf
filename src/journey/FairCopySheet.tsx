@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react'
 import Sheet from '../components/Sheet'
 import LeafButton from '../components/LeafButton'
 import { CheckIcon, CloseIcon, ShareIcon } from '../components/TabIcons'
+import { IMPRINT } from '../brand/imprint'
 import type { Book, Entry } from '../data/db'
 import { countWords, fairCopy } from './lexicon'
 import styles from './sheet.module.css'
@@ -36,10 +37,21 @@ function FairCopySheet({ open, onClose, book, keeps }: Props) {
   /* Regathered every time it opens, never held between openings. A stale
      draft that silently ignores the six things kept since last week is worse
      than no draft at all. */
+  /* The imprint is part of the draft rather than something appended on the way
+     out, and that is the honest arrangement: what the reader reads in the box
+     is exactly what leaves. Appending it silently at the share would put a
+     line into somebody's review that they never saw and cannot take out; here
+     it is one line at the end of an editable field, and a reader who does not
+     want it deletes it like any other sentence.
+
+     Only onto a draft that exists. Bolted onto an empty one it would fill the
+     field with the app's own name and make the sheet believe there was
+     something to send — see the `draft.trim()` branch below, which is the
+     empty state's only test. */
   useEffect(() => {
     if (!open) return
     const made = fairCopy(book, keeps)
-    setDraft(made.text)
+    setDraft(made.text.trim() ? `${made.text}\n\n${IMPRINT}` : made.text)
     setOmitted(made.omitted)
     setCopied(false)
   }, [open, book, keeps])
