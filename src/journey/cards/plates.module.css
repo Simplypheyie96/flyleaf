@@ -134,18 +134,22 @@
    serif, saved it, and watched it come back in Quicksand. This is not a new
    exception; it is the second half of one that was already made.
 
-   So the four declarations below are the field's, exactly: same family, same
+   So the declarations below are the field's, exactly: same family, same
    caps regime, same weight, same reading leading. What you type is what the
    card gives back.
 
-   NOT italic, though the opening line this was measured against is. That line
-   is the app talking about the book in an aside, and an aside leans; a quote
-   is the book talking, at whatever length the reader copied out, and several
-   lines of italic old-style at reading size is a slower read for no gain. */
+   And italic, to match the opening line of the journey (`.openLine` in
+   BookJourney.module.css). Owner's call, asked for twice. The case against was
+   that several lines of italic old-style at reading size read slower than
+   roman — true in a book, and beside the point here: a quote card holds a few
+   lines, not a chapter, and the lean is what marks the words as lifted from
+   somewhere else rather than typed by the reader. The two places Flyleaf
+   speaks in the book's voice now lean the same way. */
 .said {
   position: relative;
   margin: 0;
   font-family: var(--font-read);
+  font-style: italic;
   /* Caps, not x-height — the same call sheet.module.css documents on the field:
      a copied-out line is read as set type, and the x-match throws old-style
      capitals about 20% over. */

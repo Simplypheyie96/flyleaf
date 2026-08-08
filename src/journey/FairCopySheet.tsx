@@ -1,11 +1,13 @@
-/* The fair copy — a clean draft, gathered from what you already wrote.
+/* The fair copy — a drafted review, written out of what you already kept.
 
-   Every word of substance in the box below came out of this reader's own
-   keeps. Flyleaf supplies the joins and nothing else: no model runs, nothing
-   leaves the device, and the draft is identical on a plane and on a train. It
-   costs nothing to produce and there is no key behind it, which is the only
-   version of this feature worth shipping in an app that promises to stay
-   free and private.
+   Every sentence of substance in the box below is this reader's own, verbatim.
+   What Flyleaf writes is the prose around them: how long the reading took, how
+   often they stopped for it, which kind of thing they kept most of, and what
+   their own words sound like read back. All of that is arithmetic over dates,
+   counts and types — no model runs, nothing leaves the device, and the draft
+   is identical on a plane and on a train. It costs nothing to produce and
+   there is no key behind it, which is the only version of this feature worth
+   shipping in an app that promises to stay free and private.
 
    It opens editable on purpose. A gathered draft is a starting point, and a
    reader who cannot change a word of it before posting it somewhere is being
@@ -98,7 +100,7 @@ function FairCopySheet({ open, onClose, book, keeps }: Props) {
           </div>
 
           <p className={styles.caption}>
-            Your own words, in the order you wrote them, and yours to change.
+            Drafted from what you kept, in your own words — and yours to rewrite.
           </p>
 
           <p className={styles.tally}>
@@ -119,8 +121,13 @@ function FairCopySheet({ open, onClose, book, keeps }: Props) {
            paragraph that says there is nothing there. */
         <div className={styles.body}>
           <p className={styles.quiet}>
-            There is nothing written down to gather yet. Keep a note or a line from
-            the book and this fills itself in.
+            {omitted > 0
+              ? /* Not "nothing yet" — they kept things, and being told
+                   otherwise reads as the app losing them. What it cannot do is
+                   read a recording back or describe a picture, so it says
+                   which of the two is true. */
+                'Everything kept here so far is a recording or a picture, and neither can be written out. Add a note or a line from the book and this fills itself in.'
+              : 'There is nothing written down to gather yet. Keep a note or a line from the book and this fills itself in.'}
           </p>
         </div>
       )}
