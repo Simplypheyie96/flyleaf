@@ -700,6 +700,14 @@
   text-wrap: pretty;
 }
 
+/* Each fact holds together; the line breaks BETWEEN them. Left to wrap
+   freely it broke mid-fact — "288 pages · 1" and then "memory kept" — and a
+   stray 1 hanging off a page count reads as a number that means something,
+   which it does not. */
+.entryFact {
+  white-space: nowrap;
+}
+
 /* ---- Recent memories: timeline rail with typed dots ---- */
 .timeline {
   position: relative;
