@@ -178,6 +178,61 @@
   text-wrap: pretty;
 }
 
+/* ---- The erase row ----
+
+   The one destructive thing in Flyleaf, so it is the one place --color-danger
+   appears. Everything here is about making the row slower to use than the rows
+   around it, not louder: the same paper, the same type, no red panel, no
+   shouting. A reader who opened it on purpose is not helped by alarm; a reader
+   who opened it by accident is stopped by the typed word, not by the colour.
+
+   The open tray brings its own padding because the fold runs its contents to
+   the card's edges — see Group.tsx. Stacked, not the wrapping button row the
+   backup card uses: these run in a strict order (read what goes, save a copy,
+   type the word, erase) and two of them side by side would break it. */
+.eraseBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4) var(--space-4);
+}
+
+/* The buttons inside the tray have the card's own padding around them already,
+   so they drop the horizontal inset the full-width rows carry. */
+.eraseBox .action {
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-2);
+  background: color-mix(in oklab, transparent, var(--color-ink) 4%);
+}
+
+.eraseAsk {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+}
+
+.eraseAsk b {
+  font-weight: var(--weight-medium);
+  color: var(--color-ink);
+}
+
+/* Red on the label, never as a fill. A solid red button is the loudest object
+   in the app and would pull the eye to the delete the moment Settings opens —
+   the exact opposite of a row that should be found only by someone looking for
+   it. Disabled until the word matches, which is most of the time it is seen. */
+.danger:not(:disabled) {
+  color: var(--color-danger);
+}
+
+.danger:not(:disabled):hover {
+  background: color-mix(in oklab, transparent, var(--color-danger) 10%);
+}
+
+.danger:focus-visible {
+  outline-color: var(--color-danger);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .action,
   .link,
