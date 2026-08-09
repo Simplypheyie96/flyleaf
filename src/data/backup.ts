@@ -28,7 +28,7 @@ import { IMPRINT } from '../brand/imprint'
 import db, { type Book, type Entry, type Grave, type Sitting } from './db'
 import { buried, bookGrave, fingerprint, keepGrave, sittingGrave } from './graves'
 import { adopt } from './adopt'
-import { packLock, unpackLock } from './lock'
+import { lockOff, packLock, unpackLock } from './lock'
 import { getFace, setFace } from './reader'
 
 /** Bumped only when a reader's older file would otherwise be misread.
@@ -76,7 +76,14 @@ interface Journey {
       back into the reader's code. Absent when the journal has no lock, and
       taken on the way in only by a device that has none of its own. See
       data/lock.ts for why arriving is one-way. */
-  lock?: { salt: string; hash: string; hint?: string }
+  lock?: { salt: string; hash: string; hint?: string; setAt?: number }
+  /** When this device last took its lock OFF, if it ever did. Carried for one
+      reason: without it a code lives forever. The reader removes it here, the
+      Drive copy still holds the hash somebody's other device wrote last week,
+      and the next sync hands it straight back — "i removed the code, but it
+      just keeps showing up, both on mac and iphone". A removal is a fact about
+      the journal exactly as a deletion is, so it travels like one. */
+  lockOff?: number
 }
 
 /* Blob ↔ base64, in chunks.
@@ -145,6 +152,7 @@ export async function exportJourney(handle: string): Promise<{ blob: Blob; name:
     handle: handle || undefined,
     face: getFace() || undefined,
     lock: packLock(),
+    lockOff: lockOff() || undefined,
     books,
     entries: packed,
     // Ids dropped here for the same reason they are dropped on the way back
@@ -183,6 +191,14 @@ export function lastExport(): number | null {
 }
 
 export interface Restored {
+  /** Books actually written to the shelf — not how many the file held.
+
+      Those two were the same number for as long as an import could not be
+      refused, and then headstones arrived and they came apart, silently: the
+      note said four books came across while the shelf stayed empty, because
+      the count was read off the FILE and the rows had been dropped one line
+      earlier. A number a reader can check against their own shelf has to be
+      counted where the writing happens. */
   books: number
   keeps: number
   /** Already on this device, so nothing was written for them. */
@@ -195,8 +211,30 @@ export interface Restored {
   adopted?: 'first' | 'foreign'
 }
 
+export interface Restoring {
+  /** Does this file outrank the headstones?
+
+      A sync says no, and must: a sync is the two devices comparing notes, and
+      a deletion is one of the notes. If the arriving copy could raise its own
+      dead then nothing could ever be deleted — every book would come straight
+      back on the next round trip.
+
+      A reader choosing a file off their own disk says yes. They have gone
+      looking for that file, found it, and pressed Restore; refusing them
+      their own books because they deleted them here last month is the app
+      overruling somebody about their own reading. Worse, it does it in
+      silence, and worse again it is permanent — book ids are a hash of the
+      title and author, so the same book re-exported next year is refused by
+      the same headstone.
+
+      So a hand-picked file exhumes what it carries. Only what it carries, and
+      never anything the file ITSELF buries: a file saying "this book is gone"
+      is still believed. */
+  exhume?: boolean
+}
+
 /** Read a journey file back onto this device, merging rather than replacing. */
-export async function importJourney(file: File): Promise<Restored> {
+export async function importJourney(file: File, how: Restoring = {}): Promise<Restored> {
   const text = await file.text()
 
   let journey: Journey
@@ -242,6 +280,24 @@ export async function importJourney(file: File): Promise<Restored> {
   const graves = await buried()
   const arriving = (journey.graves ?? []).filter((grave) => !graves.has(grave.key))
   for (const grave of arriving) graves.add(grave.key)
+
+  /* AND THEN, FOR A HAND-PICKED FILE, THE OTHER DIRECTION. See `Restoring`.
+     The stones come down before anything below consults them, so the ordinary
+     merge underneath needs no idea this happened. */
+  const raised: string[] = []
+  if (how.exhume) {
+    const itsOwn = new Set((journey.graves ?? []).map((grave) => grave.key))
+    const carried = [
+      ...journey.books.map((book) => bookGrave(book.id)),
+      ...journey.entries.map((entry) => `e:${identify(entry as Entry)}`),
+      ...(journey.sittings ?? []).map((sit) => sittingGrave(sit)),
+    ]
+    for (const key of carried) {
+      if (itsOwn.has(key) || !graves.has(key)) continue
+      graves.delete(key)
+      raised.push(key)
+    }
+  }
 
   const existing = await db.entries.toArray()
   /* Indexed by identity rather than counted, because an incoming keep now has
@@ -335,6 +391,12 @@ export async function importJourney(file: File): Promise<Restored> {
     }
     if (sittings.length) await db.sittings.bulkAdd(sittings as Sitting[])
     if (arriving.length) await db.graves.bulkPut(arriving)
+    /* The raised stones leave for good, not just for this import — a headstone
+       still standing would take the books back off the shelf on the very next
+       sync, which is the same silence in a slower form. `raised` and
+       `arriving` cannot overlap: a key is only raised if the file does not
+       bury it. */
+    if (raised.length) await db.graves.bulkDelete(raised)
 
     /* AND THEN THE DIGGING, last, over rows that were already here.
 
@@ -358,7 +420,7 @@ export async function importJourney(file: File): Promise<Restored> {
 
   /* After the rows, not before: a device that took the lock and then failed to
      write the reading would be a door in front of an empty room. */
-  unpackLock(journey.lock)
+  unpackLock(journey.lock, journey.lockOff ?? 0)
 
   /* Only when this device has none. A reader who deliberately picked a
      different face on the phone keeps it; a fresh device gets the one they
@@ -366,7 +428,7 @@ export async function importJourney(file: File): Promise<Restored> {
   if (journey.face && !getFace()) setFace(journey.face)
 
   return {
-    books: journey.books.length,
+    books: books.length,
     keeps: incoming.length,
     skipped,
     handle: journey.handle,

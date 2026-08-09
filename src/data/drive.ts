@@ -147,6 +147,23 @@ export async function writeJourney(
   return unpack((await response.json()) as DriveFile & { appProperties?: Record<string, string> })
 }
 
+/** Take the journey back out of Drive.
+
+    This exists because the reader could not do it herself. `appDataFolder` is
+    hidden — that is the point of it, and it is why Flyleaf can sync without
+    leaving files loose among somebody's documents — but hidden also means
+    Drive's own interface offers no row to delete, and the buried settings page
+    that used to offer one does not look the way any set of written steps
+    describes. An app that can put a copy of somebody's diary somewhere is an
+    app that has to be able to take it away again, from inside itself, in one
+    press.
+
+    The journal on the device is untouched. This deletes the copy, not the
+    reading. */
+export async function dropJourney(token: string, id: string): Promise<void> {
+  await ask(token, `${FILES}/${id}`, { method: 'DELETE' })
+}
+
 /** Which Google account this is, for the settings row to name. Best-effort:
     the scope we hold does not include the reader's profile, and Drive's own
     `about` endpoint is allowed to decline it. A row that says "Signed in" is a

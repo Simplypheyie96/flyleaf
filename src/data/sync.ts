@@ -23,7 +23,7 @@
 import { exportJourney, importJourney } from './backup'
 import db from './db'
 import { deviceName } from './device'
-import { findJourney, readJourney, writeJourney } from './drive'
+import { dropJourney, findJourney, readJourney, writeJourney } from './drive'
 import { optedIn, silentToken } from './google'
 import { getHandle, setHandle } from './reader'
 import { unseed } from './seed'
@@ -188,6 +188,31 @@ export async function otherJourney(): Promise<{ device: string; at: number } | n
   const file = await findJourney(await silentToken())
   if (!file) return null
   return { device: file.device ?? '', at: Date.parse(file.modifiedTime) || 0 }
+}
+
+/** Take the journey out of Drive, and stop this device putting it back.
+
+    Both halves, or it is theatre: deleting the file while this device is still
+    signed in and syncing means the next write recreates it within seconds, and
+    the reader would have pressed a button that did nothing they could see. So
+    syncing pauses first, the copy goes, and the caller signs out.
+
+    Nothing on the device is touched. Every book, every keep, every recording
+    stays exactly where it is — this removes the copy, not the reading. */
+export async function forgetDrive(): Promise<void> {
+  pauseAutoSync()
+  try {
+    const token = await silentToken()
+    const remote = await findJourney(token)
+    if (remote) await dropJourney(token, remote.id)
+    /* The mark described a file that no longer exists. Left behind, a later
+       sign-in could match it and skip the round trip that would have written
+       the journey up again. */
+    write(MARK_KEY, '')
+    write(SYNCED_AT_KEY, '')
+  } finally {
+    resumeAutoSync()
+  }
 }
 
 let paused = false
