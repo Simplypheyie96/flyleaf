@@ -315,11 +315,21 @@
    anything the writing does not need trails off the bottom of the column,
    which is what a cover standing beside a short caption has always looked
    like. 110 × 1.5 = 165; the record's tallest case is 162.85. */
-.headTop .cover {
+/* The cover's mount carries the column geometry that used to sit on the
+   cover itself, so the swap tab has something positioned to hang off without
+   the jacket having to stop being a plain image. Same numbers, one level
+   out. */
+.headTop .coverMount {
+  position: relative;
+  display: flex;
   flex: none;
   align-self: stretch;
   inline-size: var(--board);
   min-block-size: calc(var(--board) * 1.5);
+}
+
+.headTop .cover {
+  inline-size: 100%;
   block-size: auto;
   aspect-ratio: auto;
   border-radius: var(--radius-sm);
@@ -1882,5 +1892,45 @@
 @media (max-width: 374px) {
   .headSpark {
     display: none;
+  }
+}
+
+/* The pin, while it is holding. Filled ink rather than a colour of its own:
+   three books held at the front is a quiet fact about the shelf, not a
+   status worth a badge. */
+.chromeAction[data-on] {
+  color: var(--color-ink);
+}
+
+/* The one thing the pin ever says, and it fades itself out. `role="status"`
+   announces it once; the animation ending is what clears the state, so there
+   is no timer to leak and no message that outlives the screen. */
+.pinNote {
+  margin: var(--space-2) 0 0;
+  padding-inline: var(--space-1);
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: pretty;
+  animation: pinSaid 4.2s var(--ease-out) forwards;
+}
+
+@keyframes pinSaid {
+  0% { opacity: 0; }
+  8%, 78% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Reduced motion still needs the message to clear itself, and clearing is
+   driven by the animation ending — so it runs, at the same length, without
+   the fade doing any moving. */
+@media (prefers-reduced-motion: reduce) {
+  .pinNote {
+    animation: pinHeld 4.2s linear forwards;
+  }
+
+  @keyframes pinHeld {
+    0%, 100% { opacity: 1; }
   }
 }

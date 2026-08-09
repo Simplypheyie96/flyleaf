@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import BookCover from '../components/BookCover'
+import { coversOf } from '../books/covers'
+import { floatPins, isPinned } from '../data/pins'
 import { floss, palette } from '../books/CoverArt'
 import SpineArt from '../books/SpineArt'
 import SpineMark from '../books/SpineMark'
@@ -23,6 +25,7 @@ import {
   GridIcon,
   SearchIcon,
   ShelfIcon,
+  PinIcon,
   SortIcon,
 } from '../components/TabIcons'
 import { formatsOf, type Book, type Entry } from '../data/db'
@@ -469,7 +472,7 @@ function FeedRow({
         <BookCover
           title={book.title}
           author={book.author}
-          covers={book.covers}
+          covers={coversOf(book)}
           size="thumb"
         />
       </div>
@@ -529,7 +532,13 @@ function Library() {
      order-of-operations matters only for work, not results, and sorting the
      survivors is less work. */
   const shown = useMemo(
-    () => arrange(sift(libraryBooks, sieve, counts ?? {}), sort, counts ?? {}),
+    /* Pins float last, on top of whatever the reader asked for. A pin is not
+       a seventh sort — it says "these two or three stay where I can see
+       them", and that has to hold true whether the shelf is by title, by
+       date, or by how much is kept in it. A pinned book that a sieve has
+       ruled out stays ruled out: the reader asked to see only finished books
+       and a pin is not an exemption from the question. */
+    () => floatPins(arrange(sift(libraryBooks, sieve, counts ?? {}), sort, counts ?? {})),
     [libraryBooks, sieve, sort, counts],
   )
 
@@ -943,9 +952,19 @@ function Library() {
                   <BookCover
                     title={book.title}
                     author={book.author}
-                    covers={book.covers}
+                    covers={coversOf(book)}
                     size="small"
                   />
+                  {/* Why this one is at the front. Without it a pinned shelf
+                      just looks like a shelf sorted wrong — the reader can
+                      see the order but not the reason for it. Small, on the
+                      jacket's corner, and silent to screen readers because
+                      the row's own label already says it. */}
+                  {isPinned(book) && (
+                    <span className={styles.pinned} aria-hidden="true">
+                      <PinIcon size={12} filled />
+                    </span>
+                  )}
                   <OpenJourney book={book} />
                 </div>
               ))}

@@ -14,6 +14,8 @@ import {
   SearchIcon,
 } from './TabIcons'
 import CalendarPicker from './date/CalendarPicker'
+import CoverStrip, { SwapCoverTab } from './CoverChoice'
+import { coversOf } from '../books/covers'
 import { longDate, todayISO } from './date/dates'
 import { useBookSearch } from '../books/useBookSearch'
 import type { BookResult } from '../books/sources'
@@ -363,6 +365,11 @@ function ConfirmStage({
   const [picking, setPicking] = useState(false)
   const [saving, setSaving] = useState(false)
   const [snag, setSnag] = useState<string>()
+  /* Which jacket, and whether the reader has asked to see the others. Local
+     rather than saved-as-you-go, because the book does not exist on the shelf
+     until this form is submitted — the pick rides along in the same write. */
+  const [coverPick, setCoverPick] = useState(0)
+  const [swapping, setSwapping] = useState(false)
 
   const scroller = useRef<HTMLDivElement>(null)
   const picker = useRef<HTMLDivElement>(null)
@@ -397,7 +404,13 @@ function ConfirmStage({
           // is already on the shelf updates it rather than failing on a
           // constraint or standing it beside itself.
           async () => {
-            await db.books.put({ ...book, formats, startedOn, addedAt: Date.now() })
+            await db.books.put({
+              ...book,
+              coverPick,
+              formats,
+              startedOn,
+              addedAt: Date.now(),
+            })
             /* AND THE LINE THEY WROTE FIRST. It was typed before this book
                existed, on a screen that promised "the line you type is the
                first thing kept" — and until now it was thrown away at the
@@ -462,7 +475,12 @@ function ConfirmStage({
               width={92}
               title={book.title}
               author={book.author}
+              covers={coversOf({ covers: book.covers, coverPick })}
+            />
+            <SwapCoverTab
               covers={book.covers}
+              open={swapping}
+              onToggle={() => setSwapping((on) => !on)}
             />
           </span>
           <div className={styles.chosenText}>
@@ -470,6 +488,21 @@ function ConfirmStage({
             <p className={styles.resultMeta}>{book.author}</p>
           </div>
         </div>
+
+        {/* Unfolded under the book it belongs to, exactly as the calendar
+            below unfolds under its own row. Here rather than on the book's
+            page because the owner's point is that a reader is already
+            stopped on this screen answering questions about the book — if
+            the jacket is wrong, this is the cheapest moment to say so. */}
+        {swapping && (
+          <CoverStrip
+            title={book.title}
+            author={book.author}
+            covers={book.covers}
+            pick={coverPick}
+            onPick={setCoverPick}
+          />
+        )}
 
         <fieldset className={styles.group}>
           <legend className={styles.label}>How are you reading it?</legend>

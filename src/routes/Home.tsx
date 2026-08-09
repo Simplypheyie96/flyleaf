@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import BookCover from '../components/BookCover'
+import { coversOf } from '../books/covers'
 import Bunny from '../rabbit/Bunny'
 import Face from '../components/Face'
 import Sparkle from '../components/Sparkle'
@@ -67,7 +68,7 @@ function Hero({ book }: { book: Book }) {
           <BookCover
             title={book.title}
             author={book.author}
-            covers={book.covers}
+            covers={coversOf(book)}
             width={104}
             rotate={-2}
           />
@@ -309,7 +310,7 @@ function Home() {
                                   <BookCover
                                     title={b.title}
                                     author={b.author}
-                                    covers={b.covers}
+                                    covers={coversOf(b)}
                                     size="thumb"
                                   />
                                 </Link>

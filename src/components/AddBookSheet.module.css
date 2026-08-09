@@ -424,6 +424,9 @@ dialog[data-keyboard] .manualButton {
 .chosenCover {
   display: flex;
   flex-shrink: 0;
+  /* The anchor for the cover-swap tab, which hangs on the jacket's own
+     corner rather than taking a row in the form. */
+  position: relative;
 }
 
 .chosenText {
