@@ -475,16 +475,47 @@ function previewMap() {
     phone — and because the merge is by content, deleting them on one device
     does not stop the other device putting them back.
 
-    So this runs before every sync, and it deletes only rows this file wrote:
-    the fixed ids above, and the keeps hanging off them. A reader's own book
-    never carries one of these ids. In production the whole thing is compiled
-    away with the seed itself. */
+    So this runs before every sync. IT DELETES ONLY A ROW THAT IS STILL THE
+    PROP, and the id is not enough to decide that — which was a real bug, not a
+    theoretical one, and the reason the owner watched books she had genuinely
+    added vanish off the preview link.
+
+    Two of the five props ARE real books, deliberately, and they carry the id
+    `seedFrom(title, author)` computes so that adding "Quiet" through search on
+    a seeded shelf edits the row already there instead of shelving it twice.
+    That is the same mechanism read the other way: after such an add the row is
+    the reader's book, at the prop's id, and deleting by id alone throws away a
+    book they shelved themselves along with everything they kept in it.
+
+    So identity is the whole row, not the key: title, author, and the literal
+    `addedAt` written above. A book added through search carries the moment it
+    was added, which is never one of these five constants — so it survives, and
+    the untouched prop beside it does not. The keeps go the same way: only
+    those hanging off a book actually being removed. In production the whole
+    thing is compiled away with the seed itself. */
 export async function unseed() {
   if (!__PREVIEW_SEED__) return
-  const ids = PREVIEW_SHELF.map((book) => book.id).filter(
-    (id): id is number => typeof id === 'number',
+
+  const props = new Map(
+    PREVIEW_SHELF.filter((book) => typeof book.id === 'number').map((book) => [book.id!, book]),
   )
+
   await db.transaction('rw', db.books, db.entries, async () => {
+    const here = await db.books.bulkGet([...props.keys()])
+    const stale = here.filter((book): book is Book => {
+      if (!book || typeof book.id !== 'number') return false
+      const prop = props.get(book.id)
+      if (!prop) return false
+      /* All three, because any one alone can coincide. `addedAt` is the load
+         bearing one — it is a constant here and a clock reading everywhere
+         else — and the title and author guard against a prop whose id was
+         reused by an import from another device. */
+      return (
+        book.title === prop.title && book.author === prop.author && book.addedAt === prop.addedAt
+      )
+    })
+    if (!stale.length) return
+    const ids = stale.map((book) => book.id!)
     await db.entries.where('bookId').anyOf(ids).delete()
     await db.books.bulkDelete(ids)
   })
