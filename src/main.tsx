@@ -57,11 +57,11 @@ import { applyTheme, getPref } from './theme'
    books arriving in a real reader's library on the day they install the app is
    not a demo, it is somebody else's shelf in their house. */
 import { seedLibrary } from './data/seed'
-/* TEMPORARY the other way round: this takes the demo shelf back off devices
-   that were seeded while the live build was still seeding. Unlike the seed it
-   is not compiled out of production — production is the only place it has any
-   work to do. See src/data/unseed.ts for when it can go. */
-import { clearDemoData } from './data/unseed'
+/* TEMPORARY the other way round, and destructive: this clears the live app
+   once, so the first test users open it the way a stranger will. Unlike the
+   seed it is not compiled out of production — production is the only place it
+   has any work to do. See src/data/reset.ts for when it must be deleted. */
+import { clearEverything } from './data/reset'
 import App from './App.tsx'
 import Boundary from './components/Boundary'
 
@@ -86,12 +86,12 @@ seedLibrary().catch((error) => {
   console.error('The preview shelf could not be laid down.', error)
 })
 
-/* And the other direction, in production only: devices seeded while the live
-   build was still seeding are still carrying those five books, and turning
-   the seed off does not reach them. Not awaited, for the same reason the seed
-   is not — the shelf is a live query and will drop them the moment they go. */
-clearDemoData().catch((error) => {
-  console.error('The demo shelf could not be cleared.', error)
+/* And the other direction, in production only and exactly once: whatever a
+   device is carrying from the demo shelf or from testing goes, so the first
+   readers start on their own empty page. Not awaited, for the same reason the
+   seed is not — the shelf is a live query and drops the rows as they go. */
+clearEverything().catch((error) => {
+  console.error('The slate could not be cleared.', error)
 })
 
 createRoot(document.getElementById('root')!).render(

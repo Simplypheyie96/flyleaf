@@ -17,7 +17,7 @@ export default defineConfig({
      Vercel sets VERCEL_ENV on every build it runs, so this is false only in
      the production build and true in dev and preview deployments. Turning the
      seed off does nothing for devices that already have the demo rows;
-     src/data/unseed.ts is what takes those back off. */
+     src/data/reset.ts is what takes those back off. */
   define: {
     __PREVIEW_SEED__: JSON.stringify(process.env.VERCEL_ENV !== 'production'),
   },
