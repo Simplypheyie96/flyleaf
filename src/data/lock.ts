@@ -129,6 +129,38 @@ export function isLockSet(): boolean {
   return read<Stored>(CODE_KEY) !== null
 }
 
+/* ── Carrying the lock between a reader's own devices ───────────────────────
+
+   THE CODE ITSELF NEVER TRAVELS, and cannot: what is stored is a salt and a
+   PBKDF2 hash, and a hash is not reversible into four digits. So a journey
+   file — and therefore a sync — carries the door, never the key.
+
+   It carries at all because the owner found the hole by using it: she put a
+   code on her journal, opened the same journal on a laptop, and it let her
+   straight in. A lock that guards one device and not the copy of the same
+   reading on the next one is a lock in name only.
+
+   ARRIVING IS ONE-WAY, and this is the line that keeps it safe. A lock coming
+   down from Drive is only ever taken by a device that has no lock of its own.
+   It cannot replace a code already set here, because that would let an old
+   file — or a device the reader had already changed the code on — quietly
+   restore a code they had moved on from and lock them out of their own
+   journal. Taking a lock OFF is likewise a local act: it is done on a device,
+   and the next sync does not push the removal, so the other devices keep
+   asking until they are told to stop in the same deliberate way. */
+
+/** The lock as it travels: exactly what is stored, or nothing when there is
+    no lock to carry. */
+export function packLock(): Stored | undefined {
+  return read<Stored>(CODE_KEY) ?? undefined
+}
+
+/** Take a lock arriving from another device, and only when this one is open. */
+export function unpackLock(lock: Stored | undefined) {
+  if (!lock?.salt || !lock.hash || isLockSet()) return
+  write(CODE_KEY, lock)
+}
+
 export function getHint(): string {
   return read<Stored>(CODE_KEY)?.hint ?? ''
 }

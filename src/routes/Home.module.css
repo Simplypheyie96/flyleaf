@@ -1076,6 +1076,13 @@
 
 .alsoBook {
   display: block;
+  /* A BOARD IS 2:3 AND NOTHING ELSE — BookCover sets an aspect ratio and
+     leaves the width to whoever placed it, so in a flex row with no basis it
+     came out exactly nothing wide. The row rendered its label over a line of
+     invisible books, and only showed up at all once the "also open" test
+     stopped demanding a start date. Small on purpose: these are the books that
+     are NOT the one being read, so they are a glance, not a second hero. */
+  inline-size: 32px;
   border-radius: var(--radius-sm);
   transition: transform var(--dur-press) var(--ease-out);
 }

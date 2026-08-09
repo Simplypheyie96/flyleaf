@@ -142,17 +142,41 @@ export function syncNow(): Promise<SyncResult> {
   return running
 }
 
-/* ── Keeping up, without being asked twice ──────────────────────────────────
+/* ── Keeping up, without being asked ────────────────────────────────────────
 
-   A reader who has turned sync on should not have to remember to press
-   anything. But a sync on every keystroke would upload a whole journey a dozen
-   times an afternoon, so this runs at the two moments that actually matter:
-   when the app opens, and when it comes back to the front after being away —
-   which is precisely when the other device may have written something. Never
-   more than once a minute, and never for anyone who has not opted in. */
+   NOBODY SHOULD EVER PRESS "SYNC NOW". The owner's test of the first version
+   was the whole verdict: it worked, and she had to open Settings on both
+   devices to make it work. That is not syncing, it is a manual export with a
+   nicer name. Signing in once is the only thing a reader should have to do.
 
-const QUIET = 60_000
+   Three triggers, because two devices staying level needs both halves:
+
+   PUSH, after a write. Every table gets a Dexie hook, so writing a quote,
+   editing a book or finishing a sitting schedules a sync — debounced by
+   SETTLE, so a reader typing an entry uploads once when they stop rather than
+   once per keystroke.
+
+   PULL, on a timer, while the app is in front. This is the half that was
+   missing entirely: the other device writing something is not an event this
+   device can hear, so it has to go and look. Every BEAT, and only while
+   visible — a backgrounded tab costs the reader battery and Drive nothing.
+
+   AND ON ARRIVAL: at launch and whenever the app comes back to the front,
+   which is the moment the other device is most likely to have moved.
+
+   Each of those is cheap when nothing has changed. `run` compares the Drive
+   copy's modifiedTime against a stored mark and returns without moving bytes,
+   so a poll on an idle pair is one metadata call. */
+
+/** How long a writing hand must be still before its work is sent up. */
+const SETTLE = 4_000
+/** How often an app in the foreground goes to look for the other device. */
+const BEAT = 90_000
+/** A floor under everything, so no combination of triggers can loop. */
+const QUIET = 10_000
+
 let lastRun = 0
+let settling: ReturnType<typeof setTimeout> | null = null
 
 function attempt() {
   if (!optedIn() || Date.now() - lastRun < QUIET) return
@@ -165,12 +189,37 @@ function attempt() {
   })
 }
 
+/* A write happened. Wait for the hand to stop, then send.
+
+   `running` is checked at the far end rather than here because the writes a
+   sync makes are themselves merges arriving from Drive — they would otherwise
+   schedule a sync of the thing that was just synced, forever. */
+function touched() {
+  if (!optedIn()) return
+  if (settling) clearTimeout(settling)
+  settling = setTimeout(() => {
+    settling = null
+    if (!running) attempt()
+  }, SETTLE)
+}
+
 export function startAutoSync() {
-  /* The listener goes on unconditionally, and `attempt` is the thing that
+  /* Every listener goes on unconditionally, and `attempt` is the thing that
      checks. A reader who turns sync on halfway through a session would
      otherwise get no automatic sync until they next reloaded the app. */
+  for (const table of [db.books, db.entries, db.sittings]) {
+    table.hook('creating', touched)
+    table.hook('updating', touched)
+    table.hook('deleting', touched)
+  }
+
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') attempt()
   })
+
+  setInterval(() => {
+    if (document.visibilityState === 'visible') attempt()
+  }, BEAT)
+
   attempt()
 }

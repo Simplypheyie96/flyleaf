@@ -198,20 +198,23 @@ async function requestToken(interactive: boolean): Promise<string> {
       },
       interactive ? PATIENCE.interactive : PATIENCE.silent,
     )
-    /* Not `prompt: 'consent'`.
+    /* THE PROMPT IS THE WHOLE DIFFERENCE BETWEEN THE TWO PATHS, and getting it
+       wrong is what made this app ask a signed-in reader to sign in over and
+       over. `''` means "show whatever Google thinks is needed", and Google
+       thinks a window is needed every time, because a browser app holds no
+       refresh token. So the supposedly silent refresh — the one that runs on
+       launch, after every write, and behind "Sync now" — put a Google window on
+       screen on each attempt, including over the lock. `'none'` is the actual
+       silent flow: no window ever, a token if the reader's Google session can
+       still grant one, and a plain failure if it cannot.
 
-       Forcing the consent screen is for apps collecting a refresh token, which
-       needs the reader to re-approve to be reissued. This app has no backend
-       and no refresh token — it holds an access token in memory for an hour and
-       asks again after that. So `consent` bought nothing and cost two things:
-       a reader who already said yes was made to say it again on every single
-       sign-in, and each of those replays hit Google's consent machinery against
-       a grant that already existed, which is where the 500s were appearing.
-
-       Empty means "ask for whatever this needs and no more": a first-time
-       reader still gets the full consent screen, because they must, and
-       everyone after that goes straight through. */
-    tokenClient.requestAccessToken({ prompt: '' })
+       Interactive keeps `''` and NOT `'consent'`. Forcing consent is for apps
+       collecting a refresh token; here it only made a reader who had already
+       said yes say it again, and replayed against an existing grant, which is
+       where Google's 500s were appearing. Empty gives a first-time reader the
+       full consent screen, because they must have it, and sends everyone after
+       that straight through. */
+    tokenClient.requestAccessToken({ prompt: interactive ? '' : 'none' })
   })
 }
 

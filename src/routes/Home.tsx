@@ -167,10 +167,15 @@ function Home() {
   const book = inTheMiddleOf(shelf)
   /* The owner's question, answered: a reader in the middle of several books
      gets the freshest one as the hero and the rest as covers underneath —
-     visible, named to a screen reader, one tap from their own journeys. */
-  const alsoOpen = shelf.filter(
-    (b) => b.startedOn && !b.finishedOn && b.id !== book?.id,
-  )
+     visible, named to a screen reader, one tap from their own journeys.
+
+     UNFINISHED IS THE TEST, NOT STARTED, and the two must match `inTheMiddleOf`
+     exactly or books fall down the gap between them. This line used to demand
+     `startedOn` while the hero above happily falls back to a book that has
+     none — so a reader with two books going, one of them shelved without a
+     start date, was shown one and told nothing about the other. Whatever the
+     hero would have accepted, this row has to accept too. */
+  const alsoOpen = shelf.filter((b) => !b.finishedOn && b.id !== book?.id)
   const byId = new Map(shelf.map((b) => [b.id, b]))
   const firstRun = PREVIEW_FIRST || (settled && shelf.length === 0)
 
