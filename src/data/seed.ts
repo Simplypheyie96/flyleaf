@@ -9,7 +9,7 @@
    reader's own Drive. Deleting this file would strand them there. */
 
 import db, { type Book } from './db'
-import { bury, bookGrave, keepGrave } from './graves'
+import { bookGrave } from './graves'
 
 const PREVIEW_SHELF: Book[] = [
   {
@@ -109,10 +109,40 @@ const PREVIEW_SHELF: Book[] = [
    was added, which is never one of these five constants — so it survives, and
    the untouched prop beside it does not.
 
-   AND IT LEAVES HEADSTONES. Without them the sweep is undone by the next pull:
-   the props are already in the reader's Drive from before this existed, and a
-   merge can only add. See data/graves.ts. */
+   AND IT LEAVES NO HEADSTONES ANY MORE. It used to, and that was the worse
+   half of the same bug the paragraph above describes.
+
+   A headstone for a book is `b:<id>` and NOTHING ELSE — it has to be, because
+   the row it is meant to delete is by then already gone and there is nothing
+   left to compare a title against. So the careful three-field guard above
+   protected the row on the device doing the sweeping, and then wrote a note
+   that travelled to every OTHER device saying "delete 366657726" — which on a
+   device holding the reader's own copy of The Salt Path, at exactly that id
+   because that is how `seedFrom` is designed, deletes her book. Every sync.
+   Forever. That is the owner's report from both ends: books coming back and
+   going away again, a shelf count flipping between two numbers, and "that
+   book isn't on your shelf" appearing over a book she had open.
+
+   Without the headstone, the props can come back down from a Drive copy
+   written before any of this existed — which is what the headstone was for. So
+   the sweep runs again AFTER the merge instead, on the way up. See sync.ts:
+   nothing that arrives survives to be exported, and nothing has to be said
+   about ids that were never only ours to speak for.
+
+   `forgetSeedGraves` takes down the ones already written. It is not a
+   migration and does not need a stamp: five keyed deletes, idempotent, and
+   the keys are ours by construction. */
+const SEED_GRAVES = PREVIEW_SHELF.filter((book) => typeof book.id === 'number').map((book) =>
+  bookGrave(book.id!),
+)
+
+export async function forgetSeedGraves() {
+  await db.graves.bulkDelete(SEED_GRAVES)
+}
+
 export async function unseed() {
+  await forgetSeedGraves()
+
   const props = new Map(
     PREVIEW_SHELF.filter((book) => typeof book.id === 'number').map((book) => [book.id!, book]),
   )
@@ -133,10 +163,8 @@ export async function unseed() {
     })
     if (!stale.length) return
     const ids = stale.map((book) => book.id!)
-    const keeps = await db.entries.where('bookId').anyOf(ids).toArray()
     await db.entries.where('bookId').anyOf(ids).delete()
     await db.books.bulkDelete(ids)
-    await bury([...ids.map(bookGrave), ...keeps.map(keepGrave)])
   })
 }
 

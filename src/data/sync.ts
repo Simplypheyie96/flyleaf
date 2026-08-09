@@ -22,6 +22,7 @@
 
 import { exportJourney, importJourney } from './backup'
 import db from './db'
+import { deviceName } from './device'
 import { findJourney, readJourney, writeJourney } from './drive'
 import { optedIn, silentToken } from './google'
 import { getHandle, setHandle } from './reader'
@@ -31,6 +32,12 @@ const SYNCED_AT_KEY = 'flyleaf-synced-at'
 /** What this device looked like the last time a sync finished, so an unchanged
     device on an unchanged Drive can skip the whole round trip. */
 const MARK_KEY = 'flyleaf-sync-mark'
+
+/** 'merge' takes the union of both sides, which is what every automatic sync
+    does and the only thing that cannot lose anything. 'keep' sends this
+    device's journey up without reading the other one first — the reader's
+    answer to the meeting question, never a default. */
+export type Mode = 'merge' | 'keep'
 
 export interface SyncResult {
   /** Keeps that came down from another device. */
@@ -94,7 +101,7 @@ async function signature(): Promise<string> {
 /** One full sync: pull, merge, push. Throws with a sentence fit to show a
     reader. The caller supplies the token so an expired one can be renewed and
     the whole thing retried without this function knowing about auth at all. */
-async function run(token: string): Promise<SyncResult> {
+async function run(token: string, mode: Mode = 'merge'): Promise<SyncResult> {
   /* First, before anything is measured or sent: a preview build's demo shelf
      is not the reader's journey and must not travel. See seed.ts/unseed —
      in production this is compiled away to nothing. */
@@ -104,13 +111,18 @@ async function run(token: string): Promise<SyncResult> {
   const here = await signature()
   const mark = `${remote?.modifiedTime ?? ''} ${here}`
 
-  if (remote && read(MARK_KEY) === mark) {
+  if (remote && mode === 'merge' && read(MARK_KEY) === mark) {
     write(SYNCED_AT_KEY, String(Date.now()))
     return { gained: 0, unchanged: true }
   }
 
   let gained = 0
-  if (remote) {
+  /* 'keep' skips the pull and nothing else. What is on this device goes up and
+     replaces the Drive copy — which is only ever reached from the reader
+     answering the meeting question with "keep what is on this device", and is
+     the one path in this file that can lose something. It is theirs to choose,
+     said in those words, and it is never automatic. */
+  if (remote && mode === 'merge') {
     const text = await readJourney(token, remote.id)
     /* Through the same door a hand-carried file uses. One reader of the format
        means a journey that restores from a USB stick and a journey that
@@ -120,13 +132,25 @@ async function run(token: string): Promise<SyncResult> {
     )
     gained = back.keeps
     if (back.handle && !getHandle()) setHandle(back.handle)
+
+    /* AND AGAIN, on the way up. The sweep above the pull cleans this device;
+       this one cleans what the pull just brought in. Old Drive copies still
+       hold the demo props, and a merge can only add — so without this they
+       land on the shelf and are exported straight back, and the sweep chases
+       them round in a circle one sync behind.
+
+       This is what replaced the headstones the sweep used to leave. Those
+       worked, and they also travelled as "delete book 366657726" to devices
+       holding the reader's OWN Salt Path at that id, and deleted it. Sweeping
+       twice says nothing about anyone else's rows. See seed.ts. */
+    await unseed()
   }
 
   /* Exported AFTER the merge, so what goes up is the union rather than this
      device's side of it. This is the line that makes overwriting the Drive
      copy safe. */
   const { blob } = await exportJourney(getHandle())
-  const saved = await writeJourney(token, blob, remote?.id)
+  const saved = await writeJourney(token, blob, deviceName(), remote?.id)
 
   write(SYNCED_AT_KEY, String(Date.now()))
   write(MARK_KEY, `${saved.modifiedTime} ${await signature()}`)
@@ -152,9 +176,22 @@ export async function hasLocalJourney(): Promise<boolean> {
   return books + keeps > 0
 }
 
+/** Is there already a journey in this Google account's Drive — and if so, when
+    and where was it last written?
+
+    The owner's words: it "should remember where the last change was made". A
+    question about "your Drive" is a question about a place the reader has
+    never been; a question about "your iPhone, three hours ago" is one they can
+    actually answer, because they either remember writing that or they don't. */
+export async function otherJourney(): Promise<{ device: string; at: number } | null> {
+  const file = await findJourney(await silentToken())
+  if (!file) return null
+  return { device: file.device ?? '', at: Date.parse(file.modifiedTime) || 0 }
+}
+
 /** Is there already a journey in this Google account's Drive? */
 export async function driveHasJourney(): Promise<boolean> {
-  return (await findJourney(await silentToken())) !== null
+  return (await otherJourney()) !== null
 }
 
 let paused = false
@@ -180,19 +217,19 @@ let running: Promise<SyncResult> | null = null
 
 /** Sync now. Safe to call from anywhere — overlapping calls share one run,
     because two syncs at once would each merge the other's half-written state. */
-export function syncNow(): Promise<SyncResult> {
+export function syncNow(mode: Mode = 'merge'): Promise<SyncResult> {
   if (running) return running
 
   running = (async () => {
     let token = await silentToken()
     try {
-      return await run(token)
+      return await run(token, mode)
     } catch (error) {
       /* One retry, and only for the hour being up. Everything else is a real
          failure and says so. */
       if (!(error instanceof Error) || error.message !== 'expired') throw error
       token = await silentToken()
-      return run(token)
+      return run(token, mode)
     }
   })().finally(() => {
     running = null
