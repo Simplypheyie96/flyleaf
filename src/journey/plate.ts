@@ -43,13 +43,13 @@ import { seedFrom } from '../books/seed'
 import { KIND, STANCE } from './kinds'
 import { dayPhrase } from './lexicon'
 import {
+  FACE,
   FACE_READ,
   blindStamp,
   signature,
   H,
   W,
   elide,
-  onField,
   read,
   speckle,
   stamp,
@@ -157,79 +157,42 @@ export function firstCut(p: Plate): Cut {
   return p.picture ? 'mount' : 'said'
 }
 
-/* ── The mount ─────────────────────────────────────────────────────────── */
+/* ── The page ──────────────────────────────────────────────────────────── */
 
-/* The mat, and the sheet on it. Every number below is a margin on a mounted
-   print, which is why they are not all the same: 76 at the sides, 108 at the
-   head, and 168 at the foot. A frame with equal margins reads as slightly
-   bottom-light to the eye, and the extra at the foot is the correction every
-   framer makes for it. */
-const MAT = 76
-const CARD_X = MAT
-const CARD_W = W - MAT * 2
-const CARD_TOP = 108
-const CARD_BOT = H - 168
-const CARD_H = CARD_BOT - CARD_TOP
-const CARD_R = 34
+/* ONE SURFACE. This was a mat with a sheet lying on it — a shadowed, rounded
+   card floated inside a coloured border — and the owner's ruling was plain:
+   "no double background, just one background that you can change the colors."
 
-/* The sheet's own margin, inside the mount's. Wide, because a printed page's
-   margin is wide and because what is inside it is one sentence. */
-const INSET = 68
-const IN_X = CARD_X + INSET
-const IN_W = CARD_W - INSET * 2
-const IN_TOP = CARD_TOP + INSET
-const IN_BOT = CARD_BOT - INSET
+   She is right, and the reason is not only taste. Two surfaces meant two
+   margins, and two margins meant the words had 68 of sheet margin inside 76 of
+   mat inside a 1080 picture, so a quotation was set 144px in from each edge on
+   a canvas most people see three inches wide. The picture spent a fifth of
+   itself framing itself. It is one page now, and the words got the frame back.
 
-/* The imprint's baseline, centred in the mat's foot rather than hung a fixed
-   distance under the sheet. The band is the 168 between the sheet's bottom
-   edge and the plate's, and the line is centred on its CAPITALS: a stamp has
-   no descenders and barely any lowercase, so centring the baseline itself
-   would leave the words sitting visibly low in their own margin. Cap height is
-   about 15 at the stamp's 22px, which is why it is added before the halving —
-   77 above the words, 76 below them. */
-const IMPRINT_Y = CARD_BOT + Math.round((H - CARD_BOT + 15) / 2)
+   The palette still changes what colour that page is — that is the part she
+   asked to keep — and `field` and `accent` go on doing their work inside it,
+   on the devices below, rather than as a second rectangle underneath. */
+const PAD_X = 96
+const PAD_TOP = 108
+const PAD_BOT = 108
 
-function frame(ctx: CanvasRenderingContext2D) {
-  ctx.beginPath()
-  ctx.roundRect(CARD_X, CARD_TOP, CARD_W, CARD_H, CARD_R)
-}
+const IN_X = PAD_X
+const IN_W = W - PAD_X * 2
+const IN_TOP = PAD_TOP
+const IN_BOT = H - PAD_BOT
 
-/** The field, and the sheet laid on it. */
+/** The page, and its grain. */
 function mount(ctx: CanvasRenderingContext2D, palette: Palette) {
-  ctx.fillStyle = palette.field
-  ctx.fillRect(0, 0, W, H)
-  /* The mat has tooth too, in whichever ink the field can carry. A sheet with
-     grain on a flat mat looks like a sheet pasted onto a screenshot. */
-  speckle(ctx, onField(palette), 0.05, 0, 0, W, H, 4400, 5147)
-
-  /* The only real shadow anywhere in this app, and it is allowed here for the
-     one reason the interface's paper is not: on screen the cards ARE the
-     surface, and a surface does not cast onto itself. This sheet is an object
-     lying on something else, and an object with no shadow is a rectangle of a
-     different colour. Still soft — 26% at a 46px blur, dropped 18 — because
-     the sheet is resting on the mat, not hovering over it. */
-  ctx.save()
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.26)'
-  ctx.shadowBlur = 46
-  ctx.shadowOffsetY = 18
   ctx.fillStyle = palette.paper
-  frame(ctx)
-  ctx.fill()
-  ctx.restore()
+  ctx.fillRect(0, 0, W, H)
+  speckle(ctx, palette.ink, 0.045, 0, 0, W, H, 4200, 9973)
 
-  ctx.save()
-  frame(ctx)
-  ctx.clip()
-  speckle(ctx, palette.ink, 0.045, CARD_X, CARD_TOP, CARD_W, CARD_H, 3600, 9973)
-
-  /* The rosette, pressed into the sheet rather than printed on it — the mark a
-     bindery leaves in the board, which is where the idea comes from and why it
+  /* The rosette, pressed into the page rather than printed on it — the mark a
+     bindery leaves in a board, which is where the idea comes from and why it
      is at four and a half percent. It has to be findable and it must not
      compete with a single word set over it; anything darker and the reader is
-     looking at a watermarked stock photo. Clipped to the sheet, low and to the
-     right, where a keep's words have run out by. */
-  blindStamp(ctx, palette.accent, CARD_X + CARD_W - 130, CARD_BOT - 140, 440)
-  ctx.restore()
+     looking at a watermarked stock photo. */
+  blindStamp(ctx, palette.accent, W - 210, H - 250, 480)
 }
 
 /* ── The book, at the head ─────────────────────────────────────────────── */
@@ -663,6 +626,183 @@ function body(p: Plate) {
    is reading matter, and reading matter is what the serif is here for. Every
    other surface in this app already keeps that split. The picture was the one
    place that had forgotten it. */
+/* ── The kind, drawn the way the kind is drawn ─────────────────────────── */
+
+/* A QUOTE SHOULD LOOK LIKE A QUOTE. The owner again, and this is the second
+   half of the same instruction as the single background: "can't the graphics
+   look like the entries, a quote looks like a quote, a note has that styling
+   that it always has."
+
+   Every one of the seven kinds already has a drawing in this app — the ghost
+   quotation mark behind a quote, the ruled paper and margin rule of a note,
+   the dashed open-case outline of a plot thread, the cameo beside a character,
+   the pin beside a place. They live in `cards/` as CSS and JSX, which a canvas
+   cannot render, so the pictures were quietly inventing a plainer language of
+   their own and the reader was being shown two Flyleafs.
+
+   These are those same devices, redrawn in the one medium a share picture has.
+   Not copies down to the pixel — a 1080-wide picture is not a phone card and
+   an index card's blue rules at card scale would be hairlines here — but the
+   same idea each time, so a picture of a note is recognisably the thing that
+   was on the screen a second before the reader tapped share.
+
+   Drawn UNDER the words in every case. A device that has to be read over is a
+   background, and the last thing this picture needs is another one. */
+interface Setting {
+  /** The top of the whole block: heading, if any, and words. */
+  from: number
+  /** How far into the block the words themselves begin. */
+  nameBlock: number
+  /** The words as set — null when the keep is a heading and nothing else. */
+  set: { size: number; step: number; lines: string[] } | null
+}
+
+function device(ctx: CanvasRenderingContext2D, p: Plate, palette: Palette, at: Setting) {
+  const { from, nameBlock, set } = at
+  const under = from + nameBlock
+  const tall = set ? set.lines.length * set.step : 0
+
+  if (p.type === 'quote') {
+    /* The ghost. The plates card hangs an 11rem quotation mark at 22% off the
+       top leading corner of the panel and lets the panel clip its top — the
+       one device in this app people recognise at a glance. Hung the same way
+       here: off the leading edge, its own shoulder level with the first line,
+       big enough to read as a shape rather than as punctuation somebody forgot
+       to delete. */
+    ctx.save()
+    ctx.globalAlpha = 0.2
+    ctx.fillStyle = palette.accent
+    ctx.font = `700 300px ${FACE}`
+    ctx.textAlign = 'left'
+    ctx.fillText('\u201C', IN_X - 26, from + 168)
+    ctx.restore()
+    return
+  }
+
+  if (p.type === 'note' && set) {
+    /* Ruled paper. A rule under every line the writing actually occupies —
+       never a ruled field the words sit on top of, which is a notepad
+       background and not a note — and the margin rule down the leading edge
+       in the accent, the one red line on an index card.
+
+       Under the baseline by a fifth of the size: that is about where a ruled
+       sheet puts its line relative to the writing on it, close enough to
+       belong to the words and clear of every descender they have. */
+    ctx.save()
+    ctx.strokeStyle = palette.soft
+    ctx.globalAlpha = 0.3
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    for (let i = 0; i < set.lines.length; i++) {
+      const y = Math.round(under + set.size * 1.34 + i * set.step) + 0.5
+      ctx.moveTo(IN_X - 30, y)
+      ctx.lineTo(IN_X + IN_W, y)
+    }
+    ctx.stroke()
+
+    ctx.globalAlpha = 0.55
+    ctx.strokeStyle = palette.accent
+    ctx.beginPath()
+    ctx.moveTo(IN_X - 30.5, from - 16)
+    ctx.lineTo(IN_X - 30.5, under + tall + 16)
+    ctx.stroke()
+    ctx.restore()
+    return
+  }
+
+  if (p.type === 'thread') {
+    /* The open case. A dashed outline, because every other keep in the journey
+       is a closed rectangle and a thread is the one that is still running —
+       an edge that is not continuous is legible as a different kind of object
+       from across the room, and it happens to be exactly what the type means.
+       The stance rides the head with the kind, where the card's tab carries
+       it. */
+    ctx.save()
+    ctx.strokeStyle = palette.accent
+    ctx.globalAlpha = 0.5
+    ctx.lineWidth = 3
+    ctx.setLineDash([14, 12])
+    ctx.beginPath()
+    ctx.roundRect(IN_X - 40, from - 54, IN_W + 80, tall + nameBlock + 88, 20)
+    ctx.stroke()
+    ctx.restore()
+    return
+  }
+
+  if (p.type === 'character' && p.name) {
+    /* The cameo. On screen this is the reader's own drawn avatar, which is a
+       React component and a seeded face; a canvas gets the ring and the
+       initial, which is the same gesture — somebody's likeness, framed,
+       standing before their name. */
+    const R = 44
+    const cx = IN_X + R
+    const cy = from - 46
+    disc(ctx, palette, cx, cy, R)
+    ctx.save()
+    ctx.globalAlpha = 0.85
+    ctx.fillStyle = palette.accent
+    ctx.font = `600 42px ${FACE_READ}`
+    ctx.textAlign = 'center'
+    ctx.fillText(p.name.trim().charAt(0).toUpperCase(), cx, cy + 15)
+    ctx.textAlign = 'left'
+    ctx.restore()
+    return
+  }
+
+  if (p.type === 'place' && p.name) {
+    /* The pin, in the same disc the character's cameo gets. On screen the
+       mapped card sets a pin beside its heading at heading size; a bare 32px
+       glyph at 1080 wide is a speck, and a device nobody can see is not a
+       device. The disc gives it the weight the cameo has, and the two kinds
+       end up looking like siblings, which they are — both of them are a keep
+       about a somewhere or a someone rather than about a sentence. */
+    disc(ctx, palette, IN_X + 44, from - 46, 44)
+    glyph(ctx, 'place', palette.accent, IN_X + 44 - GLYPH / 2, from - 46)
+    return
+  }
+
+  if (p.type === 'voice' && set) {
+    /* The waveform. The voice card is the one keep that is reversed out of the
+       page with a real waveform across it; a share picture cannot carry the
+       recording, so it carries the trace — a hand-tall row of bars above the
+       transcription, which is what the reader was looking at while the words
+       were being said.
+
+       The heights are a hash of the position rather than random, so the same
+       keep draws the same trace every time it is shared. A picture that comes
+       out different twice is a picture the reader stops trusting. */
+    const BARS = 46
+    const step = IN_W / BARS
+    const mid = from - 54
+    ctx.save()
+    ctx.strokeStyle = palette.accent
+    ctx.globalAlpha = 0.55
+    ctx.lineWidth = Math.max(3, step * 0.42)
+    ctx.lineCap = 'round'
+    ctx.beginPath()
+    for (let i = 0; i < BARS; i++) {
+      const wave = Math.sin(i * 1.7) * Math.sin(i * 0.41 + 1.2)
+      const tall = 8 + Math.abs(wave) * 30
+      const x = IN_X + step * (i + 0.5)
+      ctx.moveTo(x, mid - tall)
+      ctx.lineTo(x, mid + tall)
+    }
+    ctx.stroke()
+    ctx.restore()
+  }
+}
+
+/** The pale disc a cameo and a pin both stand in. */
+function disc(ctx: CanvasRenderingContext2D, palette: Palette, cx: number, cy: number, r: number) {
+  ctx.save()
+  ctx.fillStyle = palette.accent
+  ctx.globalAlpha = 0.14
+  ctx.beginPath()
+  ctx.arc(cx, cy, r, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+}
+
 function words(ctx: CanvasRenderingContext2D, p: Plate, palette: Palette, ladder: number[], leading: number, weight: number, top: number, room: number) {
   const name = p.name ? heading(ctx, p.name, [86, 76, 68, 60]) : null
   const nameBlock = name ? name.lines.length * name.step + 44 : 0
@@ -679,6 +819,8 @@ function words(ctx: CanvasRenderingContext2D, p: Plate, palette: Palette, ladder
   const block = nameBlock + (set ? set.lines.length * set.step : 0)
   const from = top + Math.max(0, (room - block) / 2)
 
+  device(ctx, p, palette, { from, nameBlock, set })
+
   ctx.textAlign = 'left'
   ctx.fillStyle = palette.ink
   if (name) {
@@ -689,7 +831,11 @@ function words(ctx: CanvasRenderingContext2D, p: Plate, palette: Palette, ladder
   }
   if (set) {
     const under = from + nameBlock
-    ctx.font = `${weight} ${set.size}px ${FACE_READ}`
+    /* Italic for the one kind the reader did not write. The plates card sets
+       a quote in the reading face, italic, for exactly that reason, and the
+       picture had it upright. */
+    const slope = p.type === 'quote' ? 'italic ' : ''
+    ctx.font = `${slope}${weight} ${set.size}px ${FACE_READ}`
     set.lines.forEach((line, i) => {
       ctx.fillText(line, IN_X, under + set.size + i * set.step)
     })
@@ -904,13 +1050,12 @@ export function drawPlate(canvas: HTMLCanvasElement, p: Plate, cast: Cast) {
   else if (cast.cut === 'card') drawCard(ctx, p, cast.palette)
   else drawSaid(ctx, p, cast.palette)
 
-  /* On the mat, in whichever of the palette's two inks the field can actually
-     carry — `onField` measures that rather than trusting a fifth colour, so a
-     palette retuned later cannot quietly print this unreadably. Centred,
-     because the sheet above it is centred between two equal side margins and a
-     label hung off one corner of a symmetrical mount reads as having slipped
-     rather than as having been placed. */
-  signature(ctx, onField(cast.palette), W / 2, IMPRINT_Y, 'center')
+  /* At the foot, on the trailing side, sharing its baseline with the
+     provenance on the leading side. It used to be centred in a mat's bottom
+     margin; there is no mat now, and a mark floating alone under the page's
+     own foot line would just be the second background coming back as a band of
+     empty paper. Two ends of one line is where a book puts its colophon. */
+  signature(ctx, cast.palette.soft, W - PAD_X, IN_BOT, 'right')
 }
 
 /* ── The book's own cover ──────────────────────────────────────────────── */
