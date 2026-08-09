@@ -79,40 +79,61 @@
   box-shadow: 0 0 0 2px var(--color-paper);
 }
 
-/* The mark that opens all this: a corner tab on the cover the reader is
-   already looking at. Small, and it does not announce itself — the owner's
-   note was that this is a by-the-way, not a feature to advertise. */
+/* The mark that opens all this: a small edit disc straddling the bottom edge
+   of the cover the reader is already looking at. Small, and it does not
+   announce itself — the owner's note was that this is a by-the-way, not a
+   feature to advertise.
+
+   On the edge rather than inside the corner. A disc sitting within the artwork
+   covered a real piece of it, and a book cover is a picture someone made; half
+   on and half off means it eats about twelve pixels of the bottom margin,
+   where covers carry a publisher's name at most. */
 .swap {
   position: absolute;
-  inset-block-end: var(--space-2);
-  inset-inline-end: var(--space-2);
+  /* Centred on the bottom edge: half the height below it, so the jacket keeps
+     its corners and the disc reads as attached to the book rather than
+     stamped on top of it. */
+  inset-block-end: -12px;
+  inset-inline-start: 50%;
   display: grid;
   place-items: center;
-  /* 28px of ink inside a 44px target: the tap area extends past the visible
-     tab with a transparent border, so a thumb hits it without a control that
-     size sitting on top of the artwork. */
-  inline-size: 28px;
-  block-size: 28px;
+  inline-size: 24px;
+  block-size: 24px;
   padding: 0;
-  border: 8px solid transparent;
-  box-sizing: content-box;
-  margin: -8px;
+  border: none;
   border-radius: var(--radius-pill);
-  background: oklch(0.99 0.003 240 / 0.86) padding-box;
+  background: oklch(0.99 0.003 240 / 0.92);
   color: var(--color-ink);
   backdrop-filter: blur(8px);
-  box-shadow: 0 1px 4px oklch(0.4 0.03 250 / 0.22);
+  /* A hairline ring as well as the drop: the disc lands on artwork above and
+     page below, and only one of those can be relied on for contrast. */
+  box-shadow:
+    0 0 0 1px oklch(0.5 0.02 250 / 0.16),
+    0 1px 4px oklch(0.4 0.03 250 / 0.24);
   cursor: pointer;
+  transform: translateX(-50%);
   transition: transform 180ms var(--ease-out);
 }
 
+/* 24px of disc, 44px of target. A pseudo-element rather than the transparent
+   border trick the disc used to carry — that one needed a negative margin,
+   which fights the translate doing the centring. */
+.swap::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+
 .swap:hover {
-  transform: scale(1.06);
+  transform: translateX(-50%) scale(1.08);
 }
 
 [data-theme='dark'] .swap {
-  background: oklch(0.32 0.022 262 / 0.86) padding-box;
+  background: oklch(0.32 0.022 262 / 0.9);
   color: var(--color-ink);
+  box-shadow:
+    0 0 0 1px oklch(0.75 0.02 255 / 0.2),
+    0 1px 4px oklch(0.12 0.03 260 / 0.5);
 }
 
 [data-theme='dark'] .tileCover {
