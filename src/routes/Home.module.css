@@ -629,9 +629,12 @@
   text-decoration: none;
 }
 
+/* Drawn inside its own edge, not outside it: when more than one book is open
+   this link sits in a clipped scroller, and a ring offset outwards would be
+   shaved off on the two sides that matter. */
 .heroLink:focus-visible {
   outline: 2px solid var(--color-ink);
-  outline-offset: 3px;
+  outline-offset: -2px;
 }
 
 .heroCard {
@@ -1061,9 +1064,19 @@
 .deck {
   display: flex;
   overflow-x: auto;
+  /* Explicit, because `overflow-x: auto` alone silently makes the other axis
+     `auto` too, and a stray vertical scrollbar inside a paper card is not a
+     thing anyone would design on purpose. */
+  overflow-y: hidden;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+  /* The clip has to fall OUTSIDE the cover's tilt and its shadow, or the
+     scroller shaves the corners off the one object on this card that is
+     supposed to look like a physical thing. The padding buys that room inside
+     the scroller and the negative margin gives it straight back to the card,
+     so the card is not a pixel taller for it. */
+  margin-block: -6px;
 }
 .deck::-webkit-scrollbar {
   display: none;
@@ -1072,75 +1085,105 @@
 .page {
   flex: 0 0 100%;
   min-inline-size: 0;
-  scroll-snap-align: center;
+  scroll-snap-align: start;
   scroll-snap-stop: always;
-  /* Room for the card's tilt and its shadow, on all four sides. */
-  padding: 3px 4px 4px;
+  padding-block: 6px;
 }
 
-/* The indicator, inside the card and under a hairline — part of the sheet of
-   paper rather than a control floating beneath it. */
+/* THE PAGER IS ONE SMALL OBJECT, FLUSH RIGHT.
+
+   What it replaced was a full-width row with `justify-content: space-between`
+   under a hairline rule: a caption pinned to one edge, two dots pinned to the
+   other, and a hand's width of dead paper in between. It made the card taller
+   to say almost nothing, which is exactly what the owner objected to.
+
+   This is a capsule, sized to its contents and pushed to the trailing edge by
+   `margin-inline-start: auto`. It costs the card 12px of margin and 30px of
+   control instead of a bordered band, and it borrows the heading tab's
+   language — hairline, pill, ink-soft caps on paper — so it reads as part of
+   the same object rather than a widget dropped on it. */
 .pager {
+  inline-size: max-content;
+  margin-block-start: var(--space-4);
+  margin-inline-start: auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin-block-start: var(--space-4);
-  padding-block-start: var(--space-3);
-  border-block-start: 1px solid color-mix(in oklch, var(--color-ink), transparent 88%);
+  gap: var(--space-1);
+  padding-inline: 2px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 1px 0 var(--card-edge-light);
 }
 
 .pagerCount {
+  padding-inline: var(--space-1);
   font-family: var(--font-app);
   font-size: var(--text-2xs);
-  letter-spacing: var(--track-caps);
-  text-transform: uppercase;
+  font-weight: var(--weight-strong);
+  letter-spacing: 0.07em;
   /* The count changes as you swipe; proportional digits would shift the line. */
   font-variant-numeric: tabular-nums;
   color: var(--color-ink-soft);
   white-space: nowrap;
 }
 
-.pagerDots {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+/* The book you are on is the ink; the total is the context. Same line, two
+   weights of attention, so the pair reads at a glance without a second label. */
+.pagerAt {
+  color: var(--color-ink);
 }
 
-/* 7px of ink inside a 24px target. The dot is the drawing; the button is the
-   thing a thumb actually has to hit, and the two are not the same size. */
-.pagerDot {
-  inline-size: 24px;
-  block-size: 24px;
+/* Announced, never drawn: the digits alone say "2/6" to the eye, which needs
+   no more, and "2 of 6 books open" to a screen reader, which needs the noun. */
+.away {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 30px of control, 16px of chevron. Borderless inside the capsule — the
+   capsule is already the frame, and framing each arrow again would make three
+   boxes out of one object. */
+.pagerStep {
+  inline-size: 30px;
+  block-size: 30px;
   padding: 0;
   border: 0;
+  border-radius: var(--radius-pill);
   background: none;
   cursor: pointer;
   display: grid;
   place-items: center;
-}
-.pagerDot::after {
-  content: '';
-  inline-size: 7px;
-  block-size: 7px;
-  border-radius: var(--radius-pill);
-  background: color-mix(in oklch, var(--color-ink), transparent 72%);
+  color: var(--color-ink-soft);
   transition:
-    background-color var(--dur-press) var(--ease-out),
-    scale var(--dur-press) var(--ease-out);
+    color var(--dur-press) var(--ease-out),
+    background-color var(--dur-press) var(--ease-out);
 }
-.pagerDot[aria-current='true']::after {
-  background: var(--color-ink);
-  scale: 1.15;
+
+@media (hover: hover) {
+  .pagerStep:hover {
+    color: var(--color-ink);
+    background: color-mix(in oklch, var(--color-ink), transparent 94%);
+  }
 }
-.pagerDot:focus-visible {
+
+.pagerStep:active {
+  color: var(--color-ink);
+}
+
+.pagerStep:focus-visible {
   outline: 2px solid var(--color-accent-text);
-  outline-offset: 1px;
-  border-radius: var(--radius-pill);
+  outline-offset: -2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pagerDot::after {
+  .pagerStep {
     transition: none;
   }
 }

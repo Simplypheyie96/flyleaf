@@ -1,19 +1,19 @@
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import BookCover from '../components/BookCover'
-import { coversOf } from '../books/covers'
-import Bunny from '../rabbit/Bunny'
-import Face from '../components/Face'
-import Sparkle from '../components/Sparkle'
-import PaperSurface from '../components/PaperSurface'
-import { type Book } from '../data/db'
-import { useLibrary, useKeepCount, useKeepTotal } from '../data/useLibrary'
-import { inWords, useReadingTime } from '../data/sittings'
-import { getFace, getHandle } from '../data/reader'
-import Draw, { PREVIEW_BARE, PREVIEW_FIRST } from './home/Draw'
-import Nook from './home/nook/Nook'
-import pageStyles from './page.module.css'
-import styles from './Home.module.css'
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import BookCover from "../components/BookCover";
+import { coversOf } from "../books/covers";
+import Bunny from "../rabbit/Bunny";
+import Face from "../components/Face";
+import Sparkle from "../components/Sparkle";
+import PaperSurface from "../components/PaperSurface";
+import { type Book } from "../data/db";
+import { useLibrary, useKeepCount, useKeepTotal } from "../data/useLibrary";
+import { inWords, useReadingTime } from "../data/sittings";
+import { getFace, getHandle } from "../data/reader";
+import Draw, { PREVIEW_BARE, PREVIEW_FIRST } from "./home/Draw";
+import Nook from "./home/nook/Nook";
+import pageStyles from "./page.module.css";
+import styles from "./Home.module.css";
 
 /* Home, on the reader's own shelf.
 
@@ -30,11 +30,11 @@ import styles from './Home.module.css'
    greeting without one, which reads perfectly well. */
 
 function partOfDay() {
-  const hour = new Date().getHours()
-  if (hour < 5) return 'Still awake'
-  if (hour < 12) return 'Good morning'
-  if (hour < 18) return 'Good afternoon'
-  return 'Good evening'
+  const hour = new Date().getHours();
+  if (hour < 5) return "Still awake";
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
 }
 
 /** The book to put at the top: the one being read, and failing that the one
@@ -49,80 +49,97 @@ function partOfDay() {
     unfinished book, no book here. What goes in its place is a state, not a
     blank — see `Idle` below. */
 function inTheMiddleOf(books: Book[]): Book | undefined {
-  const reading = books.filter((book) => !book.finishedOn)
-  const started = reading.filter((book) => book.startedOn)
-  return started[0] ?? reading[0]
+  const reading = books.filter((book) => !book.finishedOn);
+  const started = reading.filter((book) => book.startedOn);
+  return started[0] ?? reading[0];
 }
 
-function Hero({ book, pager }: { book: Book; pager?: ReactNode }) {
-  const kept = useKeepCount(book.id)
-  const readFor = useReadingTime(book.id)
-  const pages = book.pages ?? 0
-  const read = book.pagesRead ?? 0
-  const pct = pages > 0 ? Math.min(100, Math.round((read / pages) * 100)) : null
+function Hero({ book }: { book: Book }) {
+  const kept = useKeepCount(book.id);
+  const readFor = useReadingTime(book.id);
+  const pages = book.pages ?? 0;
+  const read = book.pagesRead ?? 0;
+  const pct =
+    pages > 0 ? Math.min(100, Math.round((read / pages) * 100)) : null;
 
   return (
-    /* THE PAPER IS THE OUTSIDE NOW, NOT THE INSIDE. It used to be the link that
-       wrapped the card; the pager underneath has to be pressable, and a button
-       inside an anchor is neither valid nor operable. So the card holds two
-       things — a link over the whole book, and, when there is more than one
-       book open, a row of pages under it. Both inside the same sheet of paper,
-       which is what the owner asked for: the other books reachable from within
-       Currently reading rather than stacked below it. */
-    <PaperSurface rotate={-0.4} className={styles.heroCard}>
-      <Link to={`/book/${book.id}`} className={styles.heroLink}>
-        <div className={styles.hero}>
-          <BookCover
-            title={book.title}
-            author={book.author}
-            covers={coversOf(book)}
-            width={104}
-            rotate={-2}
-          />
-          <div className={styles.heroInfo}>
-            <h3 className={styles.heroTitle}>{book.title}</h3>
-            <p className={styles.heroAuthor}>{book.author}</p>
-            {pct !== null && (
-              <div className={styles.gauge}>
-                <div className={styles.gaugeHead}>
-                  <span>
-                    {read} / {pages}
-                  </span>
-                  <span>{pct}%</span>
-                </div>
-                <div
-                  className={styles.gaugeTrack}
-                  role="progressbar"
-                  aria-label="Reading progress"
-                  aria-valuenow={read}
-                  aria-valuemin={0}
-                  aria-valuemax={pages}
-                >
-                  <div className={styles.gaugeFill} style={{ width: `${pct}%` }} />
-                </div>
+    /* NO PAPER OF ITS OWN. The card is above this, and there is exactly one of
+       it: `Reading` owns the sheet, and every open book is a page that slides
+       across inside it. A `PaperSurface` here was what made two books look like
+       two cards — the owner's words, and she was right. */
+    <Link to={`/book/${book.id}`} className={styles.heroLink}>
+      <div className={styles.hero}>
+        <BookCover
+          title={book.title}
+          author={book.author}
+          covers={coversOf(book)}
+          width={104}
+          rotate={-2}
+        />
+        <div className={styles.heroInfo}>
+          <h3 className={styles.heroTitle}>{book.title}</h3>
+          <p className={styles.heroAuthor}>{book.author}</p>
+          {pct !== null && (
+            <div className={styles.gauge}>
+              <div className={styles.gaugeHead}>
+                <span>
+                  {read} / {pages}
+                </span>
+                <span>{pct}%</span>
               </div>
-            )}
-            {/* One quiet line, up to two facts: what has been kept, and how
+              <div
+                className={styles.gaugeTrack}
+                role="progressbar"
+                aria-label="Reading progress"
+                aria-valuenow={read}
+                aria-valuemin={0}
+                aria-valuemax={pages}
+              >
+                <div
+                  className={styles.gaugeFill}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          )}
+          {/* One quiet line, up to two facts: what has been kept, and how
                 long this book has been sat with. The clock's minutes belong
                 on the reading, not only on the clock. */}
-            <p className={styles.entryHint}>
-              {kept === undefined
-                ? ' '
-                : [
-                    kept === 0
-                      ? 'Nothing kept yet'
-                      : `${kept} ${kept === 1 ? 'memory' : 'memories'} kept`,
-                    readFor ? `${inWords(readFor)} of reading` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-            </p>
-          </div>
+          <p className={styles.entryHint}>
+            {kept === undefined
+              ? " "
+              : [
+                  kept === 0
+                    ? "Nothing kept yet"
+                    : `${kept} ${kept === 1 ? "memory" : "memories"} kept`,
+                  readFor ? `${inWords(readFor)} of reading` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+          </p>
         </div>
-      </Link>
-      {pager}
-    </PaperSurface>
-  )
+      </div>
+    </Link>
+  );
+}
+
+function Chevron({ back }: { back?: boolean }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={back ? "M15 5 8 12l7 7" : "M9 5l7 7-7 7"} />
+    </svg>
+  );
 }
 
 /* EVERY OPEN BOOK, IN ONE CARD.
@@ -134,77 +151,115 @@ function Hero({ book, pager }: { book: Book; pager?: ReactNode }) {
    through the card, they are the same thing — you are simply not looking at
    that one right now.
 
+   ONE CARD, NOT A ROW OF THEM. The first attempt gave every book its own sheet
+   of paper and scrolled the sheets past — which is two cards, however narrow
+   the window on them, and the owner said so. The paper is now the frame and
+   stays put; the books slide inside it.
+
    A SCROLLER, NOT A CAROUSEL. Each book is a full-width page in a horizontally
    snapping strip, so the gesture is the platform's own: momentum, rubber-band
    at the ends, and a real scrollbar for a mouse. Nothing here re-implements
    dragging, which is the part of a hand-built carousel that always feels wrong.
-   The dots are buttons for anyone not swiping — a pointer, a keyboard, a
-   screen reader — and they say which book they go to.
+   The arrows are for anyone not swiping — a pointer, a keyboard, a screen
+   reader — and the position between them is read from the scroll rather than
+   tracked, so every way of moving agrees.
 
    Order is the shelf's order and never re-sorts as you swipe; a card that
    rearranges itself under a thumb is unusable. */
 function Reading({ books }: { books: Book[] }) {
-  const strip = useRef<HTMLDivElement>(null)
-  const [at, setAt] = useState(0)
+  const strip = useRef<HTMLDivElement>(null);
+  const [at, setAt] = useState(0);
 
   /* Read the page from the scroll position rather than tracking it, so a swipe,
      a dot, a trackpad and a scrollbar all agree without any of them telling the
      others what they did. */
   const follow = useCallback(() => {
-    const box = strip.current
-    if (!box) return
-    const page = Math.round(box.scrollLeft / Math.max(1, box.clientWidth))
-    setAt(Math.min(books.length - 1, Math.max(0, page)))
-  }, [books.length])
+    const box = strip.current;
+    if (!box) return;
+    const page = Math.round(box.scrollLeft / Math.max(1, box.clientWidth));
+    setAt(Math.min(books.length - 1, Math.max(0, page)));
+  }, [books.length]);
 
-  if (books.length === 1) return <Hero book={books[0]} />
-
-  function goTo(index: number) {
-    const box = strip.current
-    if (!box) return
-    box.scrollTo({
-      left: index * box.clientWidth,
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-    })
+  if (books.length === 1) {
+    return (
+      <PaperSurface rotate={-0.4} className={styles.heroCard}>
+        <Hero book={books[0]} />
+      </PaperSurface>
+    );
   }
 
-  const pager = (
-    <div className={styles.pager}>
-      {/* Said in words as well as dots. Dots alone are a puzzle at a glance —
-          "how many more?" is the question the card is here to answer. */}
-      <span className={styles.pagerCount}>
-        {at + 1} of {books.length} open
-      </span>
-      <div className={styles.pagerDots}>
-        {books.map((book, index) => (
-          <button
-            key={book.id}
-            type="button"
-            className={styles.pagerDot}
-            aria-current={index === at}
-            aria-label={`Show ${book.title}`}
-            onClick={() => goTo(index)}
-          />
-        ))}
-      </div>
-    </div>
-  )
+  /* Wraps rather than stopping, so neither arrow is ever dead — with two books
+     open, a disabled control would be half the pager greyed out at all times.
+     The wrap itself is instant: smooth-scrolling from the last book back to the
+     first drags the whole strip past every book in between, which reads as a
+     malfunction rather than a step. */
+  function step(by: number) {
+    const box = strip.current;
+    if (!box) return;
+    const next = (at + by + books.length) % books.length;
+    const wrapped = Math.abs(next - at) > 1;
+    box.scrollTo({
+      left: next * box.clientWidth,
+      behavior:
+        wrapped || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+    });
+  }
 
   return (
-    <div
-      ref={strip}
-      className={styles.deck}
-      onScroll={follow}
-      aria-roledescription="carousel"
-      aria-label="Books you have open"
-    >
-      {books.map((book) => (
-        <div key={book.id} className={styles.page}>
-          <Hero book={book} pager={pager} />
-        </div>
-      ))}
-    </div>
-  )
+    /* ONE SHEET OF PAPER. The books are inside it, and the scroller is clipped
+       to the card's inner edge, so what the reader sees is one card whose
+       contents slide — not a row of cards passing by. */
+    <PaperSurface rotate={-0.4} className={styles.heroCard}>
+      <div
+        ref={strip}
+        className={styles.deck}
+        onScroll={follow}
+        aria-roledescription="carousel"
+        aria-label="Books you have open"
+      >
+        {books.map((book) => (
+          <div key={book.id} className={styles.page}>
+            <Hero book={book} />
+          </div>
+        ))}
+      </div>
+
+      {/* ONE SMALL OBJECT, FLUSH RIGHT — not a full-width strip with its two
+          halves pushed to opposite edges, which is what the owner saw and
+          rightly called a card extended for nothing. The capsule borrows the
+          heading tab's language: a hairline, a pill, ink-soft type on paper.
+
+          The count sits between the arrows because that is what it counts. It
+          also carries the announcement, so a screen reader is told which book
+          it landed on rather than being left to infer it from a scroll. */}
+      <div className={styles.pager}>
+        <button
+          type="button"
+          className={styles.pagerStep}
+          onClick={() => step(-1)}
+          aria-label="Previous book"
+        >
+          <Chevron back />
+        </button>
+        <span className={styles.pagerCount} aria-live="polite">
+          <span className={styles.pagerAt}>{at + 1}</span>
+          <span aria-hidden="true">/</span>
+          <span>{books.length}</span>
+          <span className={styles.away}> books open</span>
+        </span>
+        <button
+          type="button"
+          className={styles.pagerStep}
+          onClick={() => step(1)}
+          aria-label="Next book"
+        >
+          <Chevron />
+        </button>
+      </div>
+    </PaperSurface>
+  );
 }
 
 /* BETWEEN BOOKS. A shelf with books on it and nothing open on any of them.
@@ -233,28 +288,28 @@ function Idle() {
         Pick the next one
       </Link>
     </PaperSurface>
-  )
+  );
 }
 
 function Home() {
-  const books = useLibrary()
-  const [name, setName] = useState(getHandle)
-  const [face, setFace] = useState(getFace)
+  const books = useLibrary();
+  const [name, setName] = useState(getHandle);
+  const [face, setFace] = useState(getFace);
 
   useEffect(() => {
     const sync = () => {
-      setName(getHandle())
-      setFace(getFace())
-    }
-    window.addEventListener('flyleaf-reader', sync)
-    return () => window.removeEventListener('flyleaf-reader', sync)
-  }, [])
+      setName(getHandle());
+      setFace(getFace());
+    };
+    window.addEventListener("flyleaf-reader", sync);
+    return () => window.removeEventListener("flyleaf-reader", sync);
+  }, []);
 
   /* `undefined` is Dexie still opening. A shelf must not flash its own empty
      state on the way in — the same rule the Library keeps. */
-  const shelf = books ?? []
-  const settled = books !== undefined
-  const book = inTheMiddleOf(shelf)
+  const shelf = books ?? [];
+  const settled = books !== undefined;
+  const book = inTheMiddleOf(shelf);
   /* Every book still open, the freshest first — the deck's pages, in the order
      `inTheMiddleOf` would have picked them.
 
@@ -262,9 +317,11 @@ function Home() {
      exactly or books fall down the gap between them: a reader with two books
      going, one shelved without a start date, was once shown one and told
      nothing about the other. */
-  const open = book ? [book, ...shelf.filter((b) => !b.finishedOn && b.id !== book.id)] : []
-  const byId = new Map(shelf.map((b) => [b.id, b]))
-  const firstRun = PREVIEW_FIRST || (settled && shelf.length === 0)
+  const open = book
+    ? [book, ...shelf.filter((b) => !b.finishedOn && b.id !== book.id)]
+    : [];
+  const byId = new Map(shelf.map((b) => [b.id, b]));
+  const firstRun = PREVIEW_FIRST || (settled && shelf.length === 0);
 
   /* What the reader has, under their name. Two counts and a middot — the
      smallest line on the page, and the only one on Home carrying a number
@@ -283,12 +340,12 @@ function Home() {
      asking "what are you reading right now?", which reads as the app having
      forgotten what it just said. Nothing kept, nothing counted: one state,
      one voice. */
-  const shelved = shelf.length
-  const total = useKeepTotal()
+  const shelved = shelf.length;
+  const total = useKeepTotal();
   const size =
     !firstRun && shelved > 0 && total
-      ? `${shelved} ${shelved === 1 ? 'book' : 'books'} · ${total} kept`
-      : null
+      ? `${shelved} ${shelved === 1 ? "book" : "books"} · ${total} kept`
+      : null;
 
   return (
     <main className={pageStyles.page}>
@@ -308,7 +365,9 @@ function Home() {
             nothing, and it was the whole masthead. */}
         <header className={styles.masthead}>
           <div className={styles.greeting}>
-            <p className={styles.hello}>{name ? `${partOfDay()},` : `${partOfDay()}.`}</p>
+            <p className={styles.hello}>
+              {name ? `${partOfDay()},` : `${partOfDay()}.`}
+            </p>
             {name && <p className={styles.who}>{name}</p>}
             {size && <p className={styles.tally}>{size}</p>}
           </div>
@@ -382,7 +441,11 @@ function Home() {
                         <span className={styles.lurkRun}>
                           <span className={styles.lurkRise}>
                             <span className={styles.lurkStep}>
-                              <Bunny pose="peek" size={72} className={styles.lurkBump} />
+                              <Bunny
+                                pose="peek"
+                                size={72}
+                                className={styles.lurkBump}
+                              />
                             </span>
                           </span>
                         </span>
@@ -419,7 +482,7 @@ function Home() {
             guided-discovery card.) */}
       </div>
     </main>
-  )
+  );
 }
 
-export default Home
+export default Home;
