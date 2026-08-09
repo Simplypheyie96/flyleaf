@@ -6,6 +6,7 @@ import Sparkle from '../components/Sparkle'
 import ThemeToggle from '../components/ThemeToggle'
 import Group, { Row } from '../settings/Group'
 import Erase from '../settings/Erase'
+import SyncCard from '../settings/Sync'
 import InstallHow from '../settings/InstallHow'
 import { BackupCard, FaceCard, NameCard } from '../settings/Journey'
 import Tip, { TIP_JAR } from '../settings/Tip'
@@ -65,9 +66,14 @@ function Settings() {
               make leaving feel like breaking something. */}
           <Group
             label="Your journey"
-            note="Held on this device only, never on our servers. A saved copy is one file with everything in it — open it anywhere to bring your journey back. A printed journal is the other kind of copy: the same reading, laid out to keep or hand to someone."
+            note="Held on this device, never on our servers. A saved copy is one file with everything in it — open it anywhere to bring your journey back. Syncing puts that same file in your own Google Drive, in a hidden folder only Flyleaf can open, so a new phone or browser finds your reading waiting. A printed journal is the other kind of copy: the same reading, laid out to keep or hand to someone."
           >
             <BackupCard />
+            {/* Above Erase, below the file rows it is the automatic version of.
+                A reader reads down this card and meets, in order: where the
+                journey is, how to carry it by hand, how to stop carrying it by
+                hand, and — last — how to end it. */}
+            <SyncCard />
             <Erase />
           </Group>
 

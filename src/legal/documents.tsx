@@ -90,10 +90,11 @@ const privacy: Doc = {
   title: 'Privacy',
   lede: 'What Flyleaf knows about you, which is nothing.',
   short: [
-    'There is no account, no server holding your reading, and no analytics of any kind.',
+    'There is no Flyleaf account, no server of ours holding your reading, and no analytics of any kind.',
     'Everything you write, record and keep stays in this browser, on this device.',
-    'Flyleaf reaches the internet for three things only: to load itself, to look up a book you searched for, and to take a tip if you offer one.',
-    'Because nothing is held anywhere else, clearing this browser clears your journey. Saving a copy is how you keep it.',
+    'If you turn on syncing, your journey is copied into your OWN Google Drive, into a hidden folder no other app can open. We never receive a copy and we cannot read it.',
+    'Flyleaf reaches the internet for four things only: to load itself, to look up a book you searched for, to sync if you asked it to, and to take a tip if you offer one.',
+    'Because nothing is held on our side, clearing this browser clears your journey. Saving a copy — or syncing — is how you keep it.',
   ],
   body: [
     {
@@ -104,6 +105,13 @@ const privacy: Doc = {
             Nothing. There is no sign-up, no password, no profile, and no server
             with your name on it. We could not tell you what is in your library
             if you asked us, because we have never had it.
+          </p>
+          <p>
+            That stays true if you turn on syncing. Signing in with Google does
+            not create a Flyleaf account: it gives this app permission to write
+            into your own Google Drive and nothing else. We are not told your
+            name, we do not keep your email address, and no record of you exists
+            on our side afterwards — there is no side for it to exist on.
           </p>
           <p>
             The name you pick when you first open Flyleaf is stored in your own
@@ -122,12 +130,28 @@ const privacy: Doc = {
             In your browser's own database (IndexedDB), on the device you are
             using. Your books, notes, quotes, highlights, images and voice memos
             are written there and nowhere else. Voice recordings and pictures are
-            held as files in that same store; they are never uploaded.
+            held as files in that same store.
           </p>
           <p>
-            This means Flyleaf works with the plane doors closed, and it means
-            your journey does not follow you to another device on its own. That
-            is the trade, and it is deliberate.
+            This means Flyleaf works with the plane doors closed, and — unless
+            you turn on syncing — it means your journey does not follow you to
+            another device on its own. That is the trade, and it is deliberate.
+          </p>
+          <p>
+            <strong>If you turn on syncing.</strong> Your whole journey, voice
+            recordings and pictures included, is written as one file into your
+            own Google Drive, in the hidden folder Google reserves for apps
+            (called <em>appDataFolder</em>). It does not appear among your
+            documents, no other app can open it, and the space it uses is yours.
+            It never passes through a server of ours, because we do not have
+            one. We are given permission to that one folder and to nothing else
+            in your Drive.
+          </p>
+          <p>
+            When two devices sync, they merge — neither one overwrites the
+            other, so nothing you wrote on either can be lost by syncing them.
+            Turning syncing off on a device leaves the copy in your Drive alone;
+            deleting that copy is yours to do, in Drive, whenever you like.
           </p>
         </>
       ),
@@ -136,7 +160,7 @@ const privacy: Doc = {
       heading: 'When Flyleaf talks to the internet',
       content: (
         <>
-          <p>Three times, and you can see each one coming.</p>
+          <p>Four times, and you can see each one coming.</p>
           <p>
             <strong>Loading the app.</strong> Flyleaf is served by Vercel. Like
             every web host, its servers record ordinary request information —
@@ -156,6 +180,14 @@ const privacy: Doc = {
             there is no us in the middle to pass through. Their terms:{' '}
             <Out href="https://archive.org/about/terms.php">Internet Archive</Out>{' '}
             and <Out href="https://policies.google.com/privacy">Google</Out>.
+          </p>
+          <p>
+            <strong>Syncing.</strong> Only if you turn it on. Your browser talks
+            to Google directly — first to sign you in, then to read and write
+            that one hidden folder in your Drive. Google sees those requests as
+            it sees any use of your Drive, under{' '}
+            <Out href="https://policies.google.com/privacy">their privacy policy</Out>.
+            Flyleaf is not in the middle of it and never holds the file.
           </p>
           <p>
             <strong>Leaving a tip.</strong> Only if you choose to. See below.
