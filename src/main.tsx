@@ -57,6 +57,11 @@ import { applyTheme, getPref } from './theme'
    books arriving in a real reader's library on the day they install the app is
    not a demo, it is somebody else's shelf in their house. */
 import { seedLibrary } from './data/seed'
+/* TEMPORARY the other way round: this takes the demo shelf back off devices
+   that were seeded while the live build was still seeding. Unlike the seed it
+   is not compiled out of production — production is the only place it has any
+   work to do. See src/data/unseed.ts for when it can go. */
+import { clearDemoData } from './data/unseed'
 import App from './App.tsx'
 import Boundary from './components/Boundary'
 
@@ -75,14 +80,18 @@ void navigator.storage?.persist?.().catch(() => {})
    land rather than holding the first paint for a database write. Reported
    though — a seed that fails silently looks exactly like a seed that decided
    not to run, and the difference is worth a line in the console. */
-/* TEMPORARY: seeding in production too, at the owner's call — she is testing
-   the live link on her phone and wants the demo shelf there to look at. The
-   seed only writes into empty tables, so it cannot double up. RE-GATE THIS to
-   `import.meta.env.DEV` before the app is shared beyond her: a stranger's
-   first shelf must be their own, and clearing the demo rows from live devices
-   is already on the launch list. */
+/* Dev and preview builds only now — the production build compiles the seed
+   away, so a test user's first shelf is their own. */
 seedLibrary().catch((error) => {
   console.error('The preview shelf could not be laid down.', error)
+})
+
+/* And the other direction, in production only: devices seeded while the live
+   build was still seeding are still carrying those five books, and turning
+   the seed off does not reach them. Not awaited, for the same reason the seed
+   is not — the shelf is a live query and will drop them the moment they go. */
+clearDemoData().catch((error) => {
+  console.error('The demo shelf could not be cleared.', error)
 })
 
 createRoot(document.getElementById('root')!).render(

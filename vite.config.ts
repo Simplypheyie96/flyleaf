@@ -5,20 +5,21 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig({
   /* TEMPORARY, with src/data/seed.ts — a link is no use if it opens on an
-     empty library. This used to exempt production (Vercel sets VERCEL_ENV on
-     every build it runs), so the live deployment came out with the seed
-     compiled away.
+     empty library, so preview and dev builds lay down five books to look at.
 
-     Every build seeds for now, production included, because the live app is
-     what is being looked at and an empty shelf shows nothing. Nobody is using
-     Flyleaf yet, so the only person who can be handed these five books is
-     whoever is reviewing it.
+     Production is exempt again, and this time it stays exempt. For a stretch
+     every build seeded, live included, because the live link was what was
+     being reviewed and nobody was using Flyleaf yet. Test users are being let
+     in now, and a stranger's first shelf has to be their own — five invented
+     books arriving in someone's library on the day they install the app is
+     not a demo, it is somebody else's shelf in their house.
 
-     THIS MUST GO BEFORE ANYONE REAL SIGNS UP. Restore the guard by putting
-     `process.env.VERCEL_ENV !== 'production' &&` back in front of the true
-     below, or delete the seed outright — src/data/seed.ts says how. */
+     Vercel sets VERCEL_ENV on every build it runs, so this is false only in
+     the production build and true in dev and preview deployments. Turning the
+     seed off does nothing for devices that already have the demo rows;
+     src/data/unseed.ts is what takes those back off. */
   define: {
-    __PREVIEW_SEED__: JSON.stringify(true),
+    __PREVIEW_SEED__: JSON.stringify(process.env.VERCEL_ENV !== 'production'),
   },
   /* Listen on the network, not just on loopback.
 
