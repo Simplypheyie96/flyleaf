@@ -30,10 +30,17 @@ import styles from './Settings.module.css'
    them for devices this reader does not own. Folding a switch only puts a tap
    between someone and the thing they opened Settings to do.
 
-   And every row is one line high. The explaining lives in the footnote under
-   each card, said once, where it can be read or skipped — not repeated as a
-   hint under every label, which is what turned this page into an essay with
-   switches buried in it. */
+   NO FOOTNOTES. There used to be a line or two of prose under every card, and
+   the owner's verdict was that it was "really too much and not really needed…
+   it will overwhelm users when the texts are too much" — which is right, and
+   the arithmetic says why: six captions is six paragraphs standing between
+   seven groups of switches, so a page of controls reads as a page of reading.
+
+   Whatever genuinely needs saying is said INSIDE the row it belongs to, in
+   that row's fold, where only a reader who opened it meets it. The sync fold
+   explains Drive; the lock fold explains the code; the erase fold carries its
+   own warning; the tip sheet says what Paystack sees. None of that needed a
+   caption over the card to repeat it. */
 
 function Settings() {
   const [touring, setTouring] = useState(false)
@@ -53,7 +60,7 @@ function Settings() {
               read in. Three rows on one card, one line each — the face row
               folds its own twelve discs away, which is the only thing on this
               page that was ever taller than a line. */}
-          <Group label="You" note="Auto follows your device from day into night.">
+          <Group label="You">
             <NameCard />
             <FaceCard />
             <Row title="Theme" control={<ThemeToggle />} />
@@ -72,10 +79,7 @@ function Settings() {
               reader, not before them. Everything about the journey, syncing,
               the tour, installing and the small print now follows. */}
           {TIP_JAR && (
-            <Group
-              label="Support the maker"
-              note="Flyleaf is free, has no ads, and is made by one person. Nothing here is ever locked."
-            >
+            <Group label="Support the maker">
               <Tip />
             </Group>
           )}
@@ -86,24 +90,13 @@ function Settings() {
               subject is that they can also end it. A separate "Danger zone"
               card would say the opposite of everything this app is: it would
               make leaving feel like breaking something. */}
-          {/* ONE FOOTNOTE USED TO CARRY ALL OF THIS AND IT WAS FIVE SENTENCES
-              LONG (owner's call to break it up). It explained the file, the
-              Drive folder, the code and the printed journal under a single
-              card — so a reader who wanted to know one of those things read
-              past three they had not asked about, and nothing in the paragraph
-              sat next to the row it described.
-
-              Splitting the card in two is what fixed it, not shortening the
-              prose. These rows were always two subjects wearing one label:
-              WHERE the journey is kept and what you can carry it away in, then
-              WHO can reach it. Each half now has a footnote about its own
-              rows, short enough to read, and everything else moved inside the
-              row it belongs to — the lock's terms are in the lock's fold, the
-              erase warning in the erase fold. */}
-          <Group
-            label="Your journey"
-            note="Held on this device, never on our servers. A saved copy is one file with everything in it — open it anywhere to bring your journey back."
-          >
+          {/* Two cards, not one, and that split outlived the footnotes that
+              prompted it. These rows were always two subjects wearing one
+              label: WHERE the journey is kept and what you can carry it away
+              in, then WHO can reach it. Everything either half needs to say
+              sits inside the row it belongs to — the lock's terms in the
+              lock's fold, the erase warning in the erase fold. */}
+          <Group label="Your journey">
             <BackupCard />
             {/* Last, and in this half rather than beside the lock: ending the
                 journey is the final thing you can do WITH it, not a question
@@ -120,10 +113,7 @@ function Settings() {
               broken its own promise. Sync first: it is the one that answers
               "what if I lose this phone", which is the question the rows above
               raise. */}
-          <Group
-            label="Sync and lock"
-            note="Both optional. Syncing keeps a copy in your own Google Drive, in a hidden folder only Flyleaf can open, so a new phone finds your reading waiting."
-          >
+          <Group label="Sync and lock">
             <SyncCard />
             <LockCard />
           </Group>
@@ -145,10 +135,7 @@ function Settings() {
               for the thing rather than the place it lands — the first row
               already says "Add to your home screen", and a caption repeating
               its own first row is a stutter. */}
-          <Group
-            label="Install Flyleaf"
-            note="Installing only takes the browser away from around it. No update ever clears what you have written."
-          >
+          <Group label="Install Flyleaf">
             <InstallHow />
           </Group>
 

@@ -36,21 +36,9 @@
   border-block-start: 0;
 }
 
-/* The footnote. Everything the rows used to say in their own hints is said
-   here instead, once, under the card it belongs to. */
-.note {
-  margin: 0;
-  max-inline-size: none;
-  padding-inline: var(--space-3);
-  font-size: var(--text-xs);
-  line-height: var(--leading-body);
-  color: var(--color-ink-soft);
-  /* Greedy, not pretty. This note is the longest prose in Settings — three or
-     four lines on a phone — which is exactly the length where WebKit's rag
-     optimiser has enough to work with and leaves the column visibly unfilled.
-     See the note on `p` in index.css for the measurements. */
-  text-wrap: wrap;
-}
+/* The footnote under the card is GONE — see Group.tsx for why. Whatever a card
+   needs to say now lives inside the row it describes, styled by
+   settings.module.css/.note in that row's fold. */
 
 /* A row is one line high. 48px is a comfortable tap and a tight list at the
    same time; 12px of block padding around a 24px control lands exactly there

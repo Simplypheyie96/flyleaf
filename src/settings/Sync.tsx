@@ -24,9 +24,10 @@ import styles from './settings.module.css'
 
    What it says, it says plainly. Not "back up to the cloud", which sounds like
    our cloud: the journey goes into the reader's OWN Google Drive, into a hidden
-   folder no other app can open, and we never hold a copy. The footnote under
-   the card carries that sentence rather than this row, because a row is one
-   line — the same rule every other row on this page follows.
+   folder no other app can open, and we never hold a copy. That sentence used to
+   live in a footnote under the card; footnotes are gone (see Group.tsx), so it
+   is now inside this row's fold, where the reader who pressed to find out how
+   syncing works is the one who meets it. The row's own line stays one line.
 
    Signing out leaves the Drive copy alone, deliberately. Ending sync on one
    device must not reach across and delete the reader's journey from their own
@@ -205,7 +206,9 @@ function SyncCard() {
           ) : (
             <p className={styles.note}>
               Sign in with Google and this journal appears on your other
-              devices, and keeps up with them by itself.
+              devices, and keeps up with them by itself. The copy goes into
+              your own Google Drive, in a hidden folder only Flyleaf can open —
+              never onto our servers.
             </p>
           )}
 
