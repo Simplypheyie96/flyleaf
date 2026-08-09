@@ -136,9 +136,23 @@
     border-color var(--dur-press) var(--ease-out);
 }
 
-.skip:hover {
+.skip:hover:not(:disabled) {
   border-color: var(--control-border);
   color: var(--color-ink);
+}
+
+/* Sign-in shares this button: it is the same rank on the panel — the quiet
+   thing standing beside Begin — and while Google's popup is up it must read
+   as busy rather than as a second tappable choice. */
+.skip:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* Said only when a sign-in fails, in the same fine print that carries the
+   storage promise, so nothing shifts on the panel except the words. */
+.fine[data-tone='bad'] {
+  color: var(--color-danger);
 }
 
 /* ---- The tour (Guide.tsx) ---- */
