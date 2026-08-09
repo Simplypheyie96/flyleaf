@@ -2,7 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/leaf-icon.svg" />
+    <!-- Two icons, in this order on purpose. A browser that understands SVG
+         takes the second and scales it crisply at any size; everything else
+         falls back to the .ico, which carries real 48/32/16 bitmaps rather
+         than letting something downsample a 512px tile to a smudge.
+
+         The .ico is also what gets fetched when nothing asks: browsers, feed
+         readers and link unfurlers request /favicon.ico blind, and without the
+         file that is a 404 on every cold load.
+
+         No dark-mode variant, deliberately: the mark sits on its own opaque
+         sky tile, so it reads on light and dark browser chrome alike. A
+         transparent favicon is the thing that needs two versions. -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/leaf-icon.svg" sizes="any" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <!-- `interactive-widget=resizes-content` asks the browser to shrink the
          page itself when the keyboard opens, which is what Chrome and Android
@@ -16,7 +29,71 @@
     />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#c2e4f8" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c2338" />
-    <title>Flyleaf</title>
+
+    <!-- The name first, then what it is. A tab, a bookmark and a search result
+         all show this line, and "Flyleaf" alone tells a stranger nothing. -->
+    <title>Flyleaf — a private journal for the books you read</title>
+    <meta
+      name="description"
+      content="Keep quotes, notes, voice memos and photographs from every book you read. Private by default, works offline, and everything stays on your own device."
+    />
+
+    <!-- EVERY ABSOLUTE URL BELOW POINTS AT ONE HOST, AND IT IS TEMPORARY.
+         Link previews and canonical tags cannot be relative — a scraper has no
+         page to resolve them against — so the host is written out. When the
+         real domain is bought and attached in Vercel, change it HERE, in
+         robots.txt and in sitemap.xml, and nowhere else. Leaving a stale host
+         behind is worse than having none: it hands every share and every
+         crawler an address that redirects, or one day stops existing. -->
+    <link rel="canonical" href="https://flyleaf.vercel.app/" />
+
+    <!-- The picture a pasted link shows. Built in src/routes/OgLab.tsx and
+         screenshotted to /og.jpg at exactly 1200×630 — see that file's header
+         for how to regenerate it when the mark, the type or the palette move.
+         JPEG rather than PNG: the same picture is 108 KB instead of 712 KB,
+         and WhatsApp quietly refuses to render a preview much past 600 KB. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Flyleaf" />
+    <meta property="og:url" content="https://flyleaf.vercel.app/" />
+    <meta property="og:title" content="Flyleaf — a private journal for the books you read" />
+    <meta
+      property="og:description"
+      content="Keep quotes, notes, voice memos and photographs from every book you read. Private by default, works offline, and everything stays on your own device."
+    />
+    <meta property="og:image" content="https://flyleaf.vercel.app/og.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Three keepsake cards on a pale sky — a handwritten quote, a photograph and a voice memo — beside the words: a private journal for the books you read."
+    />
+    <meta property="og:locale" content="en_GB" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Flyleaf — a private journal for the books you read" />
+    <meta
+      name="twitter:description"
+      content="Keep quotes, notes, voice memos and photographs from every book you read. Private by default, works offline, and everything stays on your own device."
+    />
+    <meta name="twitter:image" content="https://flyleaf.vercel.app/og.jpg" />
+
+    <!-- Flyleaf renders entirely in the browser, so a crawler that does not run
+         JavaScript sees an empty <div id="root">. This block is the one thing
+         it can read: it names the app, says what it does and what it costs,
+         without depending on the bundle having run. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Flyleaf",
+        "url": "https://flyleaf.vercel.app/",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Any",
+        "description": "A private journal for the books you read. Keep quotes, notes, voice memos and photographs from every book, stored on your own device.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
     <script>
       /* Set the theme before first paint to avoid a flash of the wrong mode. */
       try {

@@ -23,6 +23,7 @@ import CardLab from "./routes/CardLab";
 import Home from "./routes/Home";
 import Library from "./routes/Library";
 import Lost from "./routes/Lost";
+import OgLab from "./routes/OgLab";
 import Settings from "./routes/Settings";
 import Styleguide from "./routes/Styleguide";
 import styles from "./App.module.css";
@@ -208,6 +209,7 @@ function App() {
           <>
             <Route path="/styleguide" element={<Styleguide />} />
             <Route path="/lab/cards" element={<CardLab />} />
+            <Route path="/lab/og" element={<OgLab />} />
           </>
         )}
         {/* Last, and it matches everything left over. Without it a mistyped or
