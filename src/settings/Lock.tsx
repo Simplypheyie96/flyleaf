@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Row } from './Group'
 import {
   CODE_MAX,
@@ -28,7 +29,15 @@ import styles from './settings.module.css'
 
    THE HINT IS OPTIONAL AND ITS WARNING IS NOT DECORATION. It appears on the
    lock screen after two wrong tries, which means it appears to whoever is
-   holding the phone. "It's 1994" is not a hint, it is the code. */
+   holding the phone. "It's 1994" is not a hint, it is the code.
+
+   THE ROW ONCE CARRIED A SENTENCE SAYING THIS IS NOT ENCRYPTION and it has
+   been deleted (owner's call). It was true and it was useless: a reader
+   deciding whether to keep their sister out of their reading journal cannot do
+   anything with a threat model, and being handed one in a settings row reads
+   as the app apologising for itself. The honest version of that sentence is
+   the promise this row already makes — it stops someone picking up your phone
+   — and that promise is kept. Do not put it back. */
 
 function Key() {
   return (
@@ -62,6 +71,20 @@ function LockCard() {
   const [hint, setHint] = useState(getHint)
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<Note>(null)
+
+  /* Open on arrival when the lock notice sent the reader here. Somebody who
+     tapped "Set a code" has already agreed to the thing; making them hunt for
+     the row and unfold it is the app asking twice.
+
+     Watched through the router's own search params rather than read once from
+     window.location: the notice appears ON Settings as often as anywhere else,
+     so the address changes underneath a card that is already mounted and never
+     re-runs its initial state. The first version read the URL in a useState
+     initialiser and did nothing at all in exactly the common case. */
+  const [params] = useSearchParams()
+  useEffect(() => {
+    if (params.get('open') === 'lock') setOpen(true)
+  }, [params])
 
   useEffect(() => {
     const refresh = () => {
@@ -139,9 +162,7 @@ function LockCard() {
           ) : (
             <p className={styles.note}>
               A code, asked for when Flyleaf opens. It stops someone picking up
-              your phone and reading your journal. It is not encryption —
-              somebody who knows their way around a browser could still reach the
-              words on an unlocked device.
+              your phone and reading your journal.
             </p>
           )}
 

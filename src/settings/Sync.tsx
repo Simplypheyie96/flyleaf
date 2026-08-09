@@ -6,12 +6,21 @@ import styles from './settings.module.css'
 
 /* Sync, offered — never imposed.
 
-   This row is the whole of the sign-in story, and where it sits is the design.
-   It is IN Settings, under the rows about where the journey lives, and it is
-   nowhere else: not at first run, not behind a modal on the second visit, not
-   as a banner over the shelf. A reader can use Flyleaf for years and never meet
-   it. That is not an oversight — an app that asks who you are before it will
-   hold your reading has already broken the promise this one is built on.
+   This row is the permanent home of the sign-in story, and where it sits is
+   the design. It is IN Settings, under a label that says "optional" before it
+   says anything else. Nothing is gated behind it, no screen interrupts to
+   demand it, and a reader can use Flyleaf for years and never touch it — an
+   app that asks who you are before it will hold your reading has already
+   broken the promise this one is built on.
+
+   THERE IS NOW EXACTLY ONE PLACE THAT MENTIONS IT UNASKED, and this comment
+   used to say there were none. components/SyncNudge.tsx offers it once, after
+   a dozen memories are on the device, and never again after three refusals —
+   because a reader who has written a dozen entries has something a dropped
+   phone would really take away, and never being told is its own kind of
+   failure. That is the whole of the change: it is still not first run, still
+   not a wall, still nothing you must answer. See data/nudges.ts for the rules
+   that keep it to once.
 
    What it says, it says plainly. Not "back up to the cloud", which sounds like
    our cloud: the journey goes into the reader's OWN Google Drive, into a hidden

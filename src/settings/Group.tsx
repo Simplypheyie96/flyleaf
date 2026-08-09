@@ -14,6 +14,15 @@ import styles from './group.module.css'
    switches in it. Anything that genuinely needs saying is said once, in the
    footnote, in a line or two.
 
+   A LINE OR TWO IS THE RULE, NOT A SUGGESTION, and when a footnote outgrows it
+   the card is the thing that is wrong. It means the rows underneath are really
+   two subjects sharing a label, and the fix is to split the group so each half
+   gets a footnote about its own rows — not to write a shorter paragraph about
+   both. See the "Your journey" / "Sync and lock" pair in routes/Settings.tsx,
+   which is exactly that split after one footnote reached five sentences.
+   Anything longer than the two the footnote can hold belongs inside the row it
+   describes, in a fold, where only a reader who asked will meet it.
+
    The card carries no padding of its own. Every row brings its own, so a row
    that opens can run its contents to the card's edges. */
 
