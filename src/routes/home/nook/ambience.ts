@@ -78,8 +78,17 @@ function audio() {
   if (!ctx) {
     ctx = new AudioContext()
 
+    /* 0.34 was the number this was tuned to when the layers were synthesised
+       noise, which is a hot signal. The recordings that replaced them are not:
+       measured off the destination, rain peaked at 0.058 and fire at 0.14 —
+       around -25 dBFS, a bed you cannot hear over a quiet room, let alone on a
+       phone at arm's length. The owner reported all three as producing no sound
+       at all, and from a listener's seat that is exactly what -25 dBFS is.
+
+       So the master is unity and the levels below carry the balance, with the
+       limiter underneath as the safety net that lets them. */
     master = ctx.createGain()
-    master.gain.value = 0.34
+    master.gain.value = 1
     master.connect(ctx.destination)
 
     const veil = ctx.createBiquadFilter()
@@ -92,8 +101,20 @@ function audio() {
     floorCut.frequency.value = 58
     floorCut.Q.value = 0.5
 
+    /* Three beds can be lit at once, so the sum has to be caught somewhere. A
+       slow, high-threshold compressor is the right shape for it: it does
+       nothing at all to one layer, and only leans on the total when rain, fire
+       and the room are all on together. The long release keeps it from
+       breathing audibly, which on ambience would be worse than the peak. */
+    const hold = ctx.createDynamicsCompressor()
+    hold.threshold.value = -16
+    hold.knee.value = 12
+    hold.ratio.value = 6
+    hold.attack.value = 0.02
+    hold.release.value = 0.5
+
     bus = ctx.createGain()
-    bus.connect(floorCut).connect(veil).connect(master)
+    bus.connect(floorCut).connect(veil).connect(hold).connect(master)
   }
   /* Suspended is the normal state after a tab has been backgrounded, and a
      resume on a context that is already running is a no-op. */
@@ -210,11 +231,16 @@ function bed(c: AudioContext, buf: AudioBuffer, into: GainNode) {
   return () => src.stop()
 }
 
-/** How loud each one sits against the others, set by ear against the 0.34
-    master and the veil above. The recordings need less than the synthesised
-    versions did — a real rain bed already has its own internal dynamics, so it
-    does not have to be pushed to sound like anything. */
-const LEVEL: Record<Layer, number> = { rain: 0.5, fire: 0.45, room: 0.28 }
+/** How loud each one sits against the others. These are above 1 because the
+    recordings arrive quiet and the veil takes more off the top on the way out;
+    what matters is the number at the destination, not the number here.
+
+    Measured at the speakers with all three lit, one at a time: rain ≈ 0.45
+    peak, fire ≈ 0.5, the room ≈ 0.4 — a bed you can hear and still read over.
+    Rain gets the most because it is the quietest recording of the three and
+    the most diffuse; the room gets the least because it is the one layer meant
+    to sit under the others rather than beside them. */
+const LEVEL: Record<Layer, number> = { rain: 0.8, fire: 0.66, room: 0.16 }
 
 /* ── the switch ────────────────────────────────────────────────────────── */
 

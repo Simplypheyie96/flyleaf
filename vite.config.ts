@@ -20,6 +20,20 @@ export default defineConfig({
      src/data/reset.ts is what takes those back off. */
   define: {
     __PREVIEW_SEED__: JSON.stringify(process.env.VERCEL_ENV !== 'production'),
+    /* WHICH BUILD AM I LOOKING AT. Stamped in at build time and shown at the
+       foot of Settings, because "I can't confirm if it hasn't synced or the fix
+       is not working" is not a question anyone should have to answer by
+       guessing. Two devices showing two different stamps is a delivery problem;
+       two devices showing the same stamp and different behaviour is a bug. The
+       readout is what tells them apart.
+
+       The commit SHA when Vercel builds it — VERCEL_GIT_COMMIT_SHA is set on
+       every Vercel build — and the date otherwise, so a local build still says
+       something true rather than "unknown". */
+    __BUILD__: JSON.stringify(
+      process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ??
+        `dev ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`,
+    ),
   },
   /* Listen on the network, not just on loopback.
 
@@ -45,7 +59,20 @@ export default defineConfig({
       // service worker owns only its own Cache Storage — every keep, book and
       // draft lives in IndexedDB, which an update never touches, so a reload
       // loses position on a page and nothing else.
-      registerType: 'autoUpdate',
+      // PROMPT, NOT AUTO — changed on the owner's report: "I can't seem to see
+      // the changes, and I can't confirm if it hasn't synced or the fix is not
+      // working." That is autoUpdate's real cost, and it is worse than the
+      // mid-scroll reload it was chosen to avoid. A silent swap means a reader
+      // who is looking for a fix has no way to tell "the update has not reached
+      // me yet" from "the update reached me and did not work" — two problems
+      // with completely different answers, made indistinguishable.
+      //
+      // prompt makes the arrival visible: the toast in UpdateToast.tsx says a
+      // new version is ready and waits to be tapped. The reload then happens at
+      // a moment the reader chose, which also disposes of the mid-scroll
+      // objection. Everything else about delivery is unchanged — the worker
+      // still owns only Cache Storage, and IndexedDB is never touched.
+      registerType: 'prompt',
       manifest: {
         name: 'Flyleaf',
         short_name: 'Flyleaf',

@@ -16,6 +16,11 @@ import card from '../settings/settings.module.css'
 import pageStyles from './page.module.css'
 import styles from './Settings.module.css'
 
+/* Stamped in by vite.config.ts — the commit on a Vercel build, the build time
+   on a local one. Declared here rather than in a global .d.ts to match how
+   __PREVIEW_SEED__ is declared next to its only use in App.tsx. */
+declare const __BUILD__: string
+
 /* Settings as a list of named groups, not a stack of cards.
 
    Six free-floating cards down a page is six separate documents: nothing says
@@ -152,6 +157,14 @@ function Settings() {
               </Link>
             ))}
           </Group>
+
+          {/* The version, at the very foot, in the place a version belongs.
+              This exists so that "is the fix on this device yet?" can be
+              answered by reading rather than by guessing: two devices showing
+              different stamps have not both been updated, and two showing the
+              same stamp and different behaviour have found a real bug. See the
+              note on __BUILD__ in vite.config.ts. */}
+          <p className={styles.build}>Version {__BUILD__}</p>
         </div>
       </div>
 

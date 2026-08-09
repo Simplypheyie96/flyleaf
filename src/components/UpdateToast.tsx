@@ -10,8 +10,9 @@ const UPDATE_EVERY_MS = 60 * 60 * 1000
 
 /** The thing that actually gets a new build onto the reader's device.
 
-    Registration is in autoUpdate mode (see vite.config.ts), so a newer worker
-    installs and takes over on its own. But it can only do that after the
+    Registration is in prompt mode (see vite.config.ts), so a newer worker
+    installs, waits, and announces itself here rather than swapping in silently.
+    But it can only find out there is one to install after the
     browser re-fetches sw.js, and the browser does that on navigation. An
     installed PWA resumed from the home screen does not navigate: iOS suspends
     the app and hands it back on the same document it froze, so the check never
@@ -27,9 +28,10 @@ const UPDATE_EVERY_MS = 60 * 60 * 1000
     sw.js; when nothing has shipped it is a 304, no worker installs, and the
     reader sees nothing at all.
 
-    The notice below is kept and is inert under autoUpdate — `needRefresh` only
-    goes true in prompt mode. It stays so that going back to asking first is a
-    one-word change in vite.config.ts rather than rebuilding this. */
+    The notice below is the whole point of prompt mode: it is the only moment
+    at which a reader learns that the thing they are looking at has changed. It
+    names the version so "am I on the fix yet?" has an answer that does not
+    require faith. */
 function UpdateToast() {
   const {
     needRefresh: [needRefresh, setNeedRefresh],
@@ -60,7 +62,8 @@ function UpdateToast() {
       <GlassSurface>
         <div className={styles.body}>
           <p className={styles.message}>
-            A new version of Flyleaf is ready — tap to refresh.
+            A new version of Flyleaf is ready. Refresh to use it — nothing you
+            have written is affected.
           </p>
           <div className={styles.actions}>
             <button

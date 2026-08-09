@@ -77,3 +77,21 @@
    screen that was never wrong — a toggle whose label sits 1000px from it is
    worse to use, not better. Settings scrolls. A settings screen that scrolls
    is what every OS ships. */
+
+/* The version stamp. Quiet on purpose: it is a fact to be looked up, not a
+   piece of the page anyone should have to read past. Tabular figures so a
+   seven-character SHA and a timestamp both sit still. */
+.build {
+  /* The app sets a reading measure on `p` globally, which is right for prose
+     and wrong here: it left this line 132px short of its column's trailing
+     edge, so a centred stamp sat visibly off-centre. A version number is a
+     label, not prose, and takes the full width it is centred in. */
+  max-width: none;
+  width: 100%;
+  margin: 2rem 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-faint);
+}
