@@ -185,6 +185,20 @@ function BackupCard() {
     try {
       const back = await importJourney(file)
       if (back.handle && !getHandle()) setHandle(back.handle)
+
+      /* Somebody else's file, so the count alone would overstate what arrived
+         — a reader who brought 40 books across should not have to discover on
+         their own that the recordings stayed behind. */
+      if (back.adopted) {
+        setNote({
+          tone: 'good',
+          text: `${back.books} ${back.books === 1 ? 'book' : 'books'} and ${back.keeps} ${
+            back.keeps === 1 ? 'memory' : 'memories'
+          } came across. Only a Flyleaf file carries recordings and pictures.`,
+        })
+        return
+      }
+
       const added = back.keeps
         ? `${back.keeps} ${back.keeps === 1 ? 'memory' : 'memories'} came back`
         : 'Everything in that file was already here'

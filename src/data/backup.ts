@@ -27,6 +27,7 @@
 import { IMPRINT } from '../brand/imprint'
 import db, { type Book, type Entry, type Grave, type Sitting } from './db'
 import { buried, bookGrave, fingerprint, keepGrave, sittingGrave } from './graves'
+import { adopt } from './adopt'
 import { packLock, unpackLock } from './lock'
 import { getFace, setFace } from './reader'
 
@@ -187,6 +188,9 @@ export interface Restored {
   /** Already on this device, so nothing was written for them. */
   skipped: number
   handle?: string
+  /** Read out of somebody else's file rather than a Flyleaf journey, so the
+      reader can be told plainly what did and did not come across. */
+  adopted?: boolean
 }
 
 /** Read a journey file back onto this device, merging rather than replacing. */
@@ -197,13 +201,30 @@ export async function importJourney(file: File): Promise<Restored> {
   try {
     journey = JSON.parse(text) as Journey
   } catch {
-    throw new Error('That file is not a Flyleaf journey.')
+    throw new Error('That file is not readable. It needs to be a .json file.')
   }
 
-  if (typeof journey?.flyleaf !== 'number' || !Array.isArray(journey.books) || !Array.isArray(journey.entries)) {
-    throw new Error('That file is not a Flyleaf journey.')
-  }
-  if (journey.flyleaf > FORMAT) {
+  /* NOT OURS, BUT STILL A LIBRARY.
+
+     A file that fails the Flyleaf test is not necessarily rubbish — it is far
+     more likely to be another reading app's export, which is the one moment a
+     reader is most likely to be carrying one. `adopt` reads it by meaning and
+     hands back whatever it could honestly recognise; from there it is an
+     ordinary merge, so nothing below has to know where the books came from. */
+  const ours = typeof journey?.flyleaf === 'number' && Array.isArray(journey.books) && Array.isArray(journey.entries)
+  let adopted = false
+  if (!ours) {
+    const foreign = adopt(text)
+    if (!foreign) throw new Error('No books found in that file.')
+    journey = {
+      keptIn: IMPRINT,
+      flyleaf: FORMAT,
+      exportedAt: Date.now(),
+      books: foreign.books,
+      entries: foreign.entries as PackedEntry[],
+    }
+    adopted = true
+  } else if (journey.flyleaf > FORMAT) {
     throw new Error('That journey was saved by a newer Flyleaf. Update this device first.')
   }
 
@@ -346,6 +367,7 @@ export async function importJourney(file: File): Promise<Restored> {
     keeps: incoming.length,
     skipped,
     handle: journey.handle,
+    adopted,
   }
 }
 
