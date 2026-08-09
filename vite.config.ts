@@ -66,19 +66,27 @@ export default defineConfig({
       // She is right. A delivery mechanism that depends on the reader being on
       // the right screen at the right instant is not a delivery mechanism.
       //
-      // What breaks the deadlock is not a third guess at the default — it is
-      // that the ORIGINAL objection now has its own answer, and does not need
-      // this setting to carry it. settings/Recheck.tsx puts the version on the
-      // page and a button beside it that asks the server outright. "Am I on the
-      // fix yet" is answerable on demand, in words, whether or not anything
-      // swapped quietly. So the reason prompt existed is served elsewhere, and
-      // updates can go back to arriving by themselves.
+      // This setting was briefly flipped to autoUpdate on the strength of that
+      // report, and that was a misreading, corrected by the owner in one line:
+      // "i always want that prompt." The complaint was never that the notice
+      // was unwanted. It was that the notice was LATE. Silence is not a faster
+      // notice; it is no notice, and it takes away the only moment at which she
+      // learns the thing in her hands has changed.
       //
-      // The remaining cost is a reload landing mid-scroll, and it is bounded:
-      // the worker owns only its own Cache Storage. Every book, keep and draft
-      // is in IndexedDB, which an update never touches. A reload loses your
-      // place on a page and nothing else.
-      registerType: 'autoUpdate',
+      // So prompt stays, and the lateness is fixed where it actually lived —
+      // in components/UpdateToast.tsx, which carries the registration and was
+      // mounted inside a dock that bailed on a book journey and on the journal.
+      // On those screens no worker was registered and no check ever ran, so
+      // reloading while reading could not possibly produce a notice however
+      // many times it was done. It now renders on every route, checks at
+      // launch, checks every time the app returns to the foreground, and
+      // checks hourly while open.
+      //
+      // And the ORIGINAL objection keeps its own answer regardless:
+      // settings/Recheck.tsx puts the version on the page with a button beside
+      // it that asks the server outright, so "am I on the fix yet" is
+      // answerable on demand rather than by waiting.
+      registerType: 'prompt',
       manifest: {
         name: 'Flyleaf',
         short_name: 'Flyleaf',

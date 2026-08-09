@@ -17,7 +17,7 @@ import SyncNudge from "./components/SyncNudge";
 import SplashScreen from "./components/SplashScreen";
 import FlowerField from "./brand/FlowerField";
 import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
-import UpdateWatch from "./components/UpdateWatch";
+import UpdateToast from "./components/UpdateToast";
 import Welcome from "./onboarding/Welcome";
 import Legal from "./legal/Legal";
 import Journal from "./journal/Journal";
@@ -150,25 +150,35 @@ function Shell({ onAdd }: { onAdd: () => void }) {
    for the same reason. */
 function Dock() {
   const { pathname } = useLocation();
-  /* The update machinery is NOT in here any more, and that is the fix rather
-     than a tidy-up. It used to be — registration hook and all — so it
-     unmounted the moment a book journey opened, and a reader who spends her
-     time reading was reloading a page with no update machinery running on it.
-     It now sits above the router in App, where nothing can hide it. See
-     components/UpdateWatch.tsx. */
-  if (pathname.startsWith("/lab/") || pathname.startsWith("/journal"))
-    return null;
+  /* The dock itself now ALWAYS renders, and the route check moved inside it,
+     because one of the four notices must never be hidden.
+
+     UpdateToast carries the service-worker registration as a side effect of
+     being mounted. While the whole dock bailed on these routes, a book journey
+     and the journal were screens on which Flyleaf could not find out that a
+     new build existed — which is precisely where a reader spends her time, and
+     precisely why reloading again and again produced nothing. So it sits
+     outside the condition. The other three are ordinary invitations and can
+     wait until she is somewhere they belong. */
+  const quiet =
+    pathname.startsWith("/lab/") || pathname.startsWith("/journal");
 
   return (
     <div className={toast.dock}>
+      {/* Never route-gated. See above. */}
+      <UpdateToast />
       {/* Three invitations now, and every one of them is optional — so what
           keeps them from becoming a nag is not any of the three, it is
           data/nudges: one on screen at a time, one per launch, five days
           between, and gone for good after three refusals. Read that file
           before adding a fourth. */}
-      <InstallPrompt />
-      <SyncNudge />
-      <LockNudge />
+      {!quiet && (
+        <>
+          <InstallPrompt />
+          <SyncNudge />
+          <LockNudge />
+        </>
+      )}
     </div>
   );
 }
@@ -266,11 +276,6 @@ function App() {
           setFirstKeep("");
         }}
       />
-
-      {/* Draws nothing, and is mounted here rather than in the dock because
-          the dock is hidden on some routes and this must never be. It is what
-          notices a new build exists. */}
-      <UpdateWatch />
 
       <Dock />
 

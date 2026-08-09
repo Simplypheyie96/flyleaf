@@ -4,17 +4,15 @@ import styles from './Recheck.module.css'
 /* "IS THERE A NEWER FLYLEAF, AND CAN I HAVE IT NOW."
    ═════════════════════════════════════════════════
 
-   Builds now arrive by themselves — see registerType in vite.config.ts. This
-   is not the delivery mechanism; it is the ANSWER TO THE QUESTION delivery
-   cannot answer on its own, and the reason automatic updates are safe to have.
+   A new build announces itself — see UpdateToast, and registerType in
+   vite.config.ts. This is not the delivery mechanism and does not replace it.
+   It is the ANSWER ON DEMAND, for the reader who does not want to wait to be
+   told: she is hunting for a fix, she wants to know NOW whether it has reached
+   her, and "keep the app open and one will turn up" is not an answer.
 
-   A silent swap leaves a reader who is hunting for a fix unable to tell "it
-   has not reached me yet" from "it reached me and did not work" — two problems
-   with completely different answers. That is the exact objection that once
-   pushed this app onto prompt mode, and prompt mode bought a worse one: a
-   notice that only lands if the reader is on the right screen at the right
-   instant, and a version number at the foot of Settings that would not move no
-   matter how many times the page was reloaded.
+   Without it, a reader cannot tell "it has not reached me yet" from "it
+   reached me and did not work" — two problems with completely different next
+   steps — and the version at the foot of Settings just sits there not moving.
 
    So the version is stated above, and this asks the server outright and says
    what came back.
