@@ -11,6 +11,8 @@ import GlassSurface from "./components/GlassSurface";
 import InstallPrompt from "./components/InstallPrompt";
 import LeafButton from "./components/LeafButton";
 import Lock from "./components/LockScreen";
+import LockNudge from "./components/LockNudge";
+import SyncNudge from "./components/SyncNudge";
 import SplashScreen from "./components/SplashScreen";
 import FlowerField from "./brand/FlowerField";
 import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
@@ -153,7 +155,15 @@ function Dock() {
   return (
     <div className={toast.dock}>
       <UpdateToast />
+      {/* Three invitations now, and every one of them is optional — so what
+          keeps them from becoming a nag is not any of the three, it is
+          data/nudges: one on screen at a time, one per launch, five days
+          between, and gone for good after three refusals. Read that file
+          before adding a fourth. The update toast is not one of them and does
+          not answer to it — an update is news, not an offer. */}
       <InstallPrompt />
+      <SyncNudge />
+      <LockNudge />
     </div>
   );
 }

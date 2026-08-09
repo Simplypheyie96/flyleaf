@@ -65,23 +65,46 @@ function Settings() {
               subject is that they can also end it. A separate "Danger zone"
               card would say the opposite of everything this app is: it would
               make leaving feel like breaking something. */}
+          {/* ONE FOOTNOTE USED TO CARRY ALL OF THIS AND IT WAS FIVE SENTENCES
+              LONG (owner's call to break it up). It explained the file, the
+              Drive folder, the code and the printed journal under a single
+              card — so a reader who wanted to know one of those things read
+              past three they had not asked about, and nothing in the paragraph
+              sat next to the row it described.
+
+              Splitting the card in two is what fixed it, not shortening the
+              prose. These rows were always two subjects wearing one label:
+              WHERE the journey is kept and what you can carry it away in, then
+              WHO can reach it. Each half now has a footnote about its own
+              rows, short enough to read, and everything else moved inside the
+              row it belongs to — the lock's terms are in the lock's fold, the
+              erase warning in the erase fold. */}
           <Group
             label="Your journey"
-            note="Held on this device, never on our servers. A saved copy is one file with everything in it — open it anywhere to bring your journey back. Syncing puts that same file in your own Google Drive, in a hidden folder only Flyleaf can open, so a new phone or browser finds your reading waiting. A code keeps the journal shut until you open it, and takes nothing away if you forget it. A printed journal is the other kind of copy: the same reading, laid out to keep or hand to someone."
+            note="Held on this device, never on our servers. A saved copy is one file with everything in it — open it anywhere to bring your journey back."
           >
             <BackupCard />
-            {/* Above Erase, below the file rows it is the automatic version of.
-                A reader reads down this card and meets, in order: where the
-                journey is, how to carry it by hand, how to stop carrying it by
-                hand, and — last — how to end it. */}
-            <SyncCard />
-            {/* Under the two rows about where the journey is kept, above the
-                one that ends it. It answers the question those rows raise —
-                the journal is on this device, so who can open this device's
-                copy of it — and it is the only row here that is not about
-                moving the journey somewhere. */}
-            <LockCard />
+            {/* Last, and in this half rather than beside the lock: ending the
+                journey is the final thing you can do WITH it, not a question
+                about who may read it. A separate "Danger zone" card would say
+                the opposite of everything this app is — it would make leaving
+                feel like breaking something. */}
             <Erase />
+          </Group>
+
+          {/* Both optional, and the footnote says so in as many words. Neither
+              of these is how Flyleaf works — a reader can shelve books and
+              write in them for years having touched neither — and the day
+              sign-in starts reading as a requirement is the day this app has
+              broken its own promise. Sync first: it is the one that answers
+              "what if I lose this phone", which is the question the rows above
+              raise. */}
+          <Group
+            label="Sync and lock"
+            note="Both optional. Syncing keeps a copy in your own Google Drive, in a hidden folder only Flyleaf can open, so a new phone finds your reading waiting."
+          >
+            <SyncCard />
+            <LockCard />
           </Group>
 
           {/* Third of six, not second from last.
