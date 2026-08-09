@@ -63,10 +63,20 @@ import { seedLibrary } from './data/seed'
    has any work to do. See src/data/reset.ts for when it must be deleted. */
 import { clearEverything } from './data/reset'
 import { startAutoSync } from './data/sync'
+import { watchIdle } from './data/lock'
 import App from './App.tsx'
 import Boundary from './components/Boundary'
 
 applyTheme(getPref())
+
+/* A journal that only asks for its code on a cold start is barely locked: a
+   phone handed over mid-session is already open, and closing the app on a
+   phone usually does not end the page. This re-shuts it when Flyleaf has been
+   away for a couple of minutes. Registered at boot rather than from the lock
+   screen, because the lock screen is not mounted while the app is unlocked and
+   that is precisely when the app is being put down. Does nothing at all on a
+   device with no code on it. */
+watchIdle()
 
 /* ASK THE BROWSER NOT TO THROW THE JOURNEY AWAY.
    Everything a reader writes lives in IndexedDB on their own device, and a
