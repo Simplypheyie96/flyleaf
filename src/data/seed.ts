@@ -27,6 +27,7 @@
 
 import { PLACE_BOX, placeMarks } from '../journey/cards/art'
 import db, { type Book, type Entry } from './db'
+import { optedIn } from './google'
 
 declare const __PREVIEW_SEED__: boolean
 
@@ -464,8 +465,43 @@ function previewMap() {
   return new Blob([svg], { type: 'image/svg+xml' })
 }
 
+/** Take the demo shelf back off the device.
+
+    THE SEED AND SYNC MUST NEVER MEET. Preview builds lay down invented books
+    so there is something to look at; sync merges whatever is on the device up
+    into the reader's OWN Drive, content-addressed, with no idea which books
+    are props. Left alone, a reviewer who signs in on a preview URL pushes six
+    invented books into the journal they actually keep, and down onto their
+    phone — and because the merge is by content, deleting them on one device
+    does not stop the other device putting them back.
+
+    So this runs before every sync, and it deletes only rows this file wrote:
+    the fixed ids above, and the keeps hanging off them. A reader's own book
+    never carries one of these ids. In production the whole thing is compiled
+    away with the seed itself. */
+export async function unseed() {
+  if (!__PREVIEW_SEED__) return
+  const ids = PREVIEW_SHELF.map((book) => book.id).filter(
+    (id): id is number => typeof id === 'number',
+  )
+  await db.transaction('rw', db.books, db.entries, async () => {
+    await db.entries.where('bookId').anyOf(ids).delete()
+    await db.books.bulkDelete(ids)
+  })
+}
+
 export async function seedLibrary() {
   if (!__PREVIEW_SEED__) return
+
+  /* NEVER INTO A REAL JOURNEY. A preview build seeds demo books, and sync
+     merges whatever is on the device up into the reader's own Drive — so a
+     reviewer who signs in on a preview URL would push six invented books into
+     the journal they actually keep, and down onto their phone. The merge is
+     content-addressed and has no idea these are props.
+
+     Signing in is therefore the line: opted in means this is a real journey
+     being reviewed, not a blank device that needs something to show. */
+  if (optedIn()) return
 
   /* Every blob before the transaction opens. A Dexie transaction that awaits a
      promise which is not one of its own is closed by the time it resumes.

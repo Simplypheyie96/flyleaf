@@ -25,6 +25,7 @@ import db from './db'
 import { findJourney, readJourney, writeJourney } from './drive'
 import { optedIn, silentToken } from './google'
 import { getHandle, setHandle } from './reader'
+import { unseed } from './seed'
 
 const SYNCED_AT_KEY = 'flyleaf-synced-at'
 /** What this device looked like the last time a sync finished, so an unchanged
@@ -77,6 +78,11 @@ async function signature(): Promise<string> {
     reader. The caller supplies the token so an expired one can be renewed and
     the whole thing retried without this function knowing about auth at all. */
 async function run(token: string): Promise<SyncResult> {
+  /* First, before anything is measured or sent: a preview build's demo shelf
+     is not the reader's journey and must not travel. See seed.ts/unseed —
+     in production this is compiled away to nothing. */
+  await unseed()
+
   const remote = await findJourney(token)
   const here = await signature()
   const mark = `${remote?.modifiedTime ?? ''} ${here}`
