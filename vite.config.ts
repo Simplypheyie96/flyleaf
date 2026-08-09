@@ -51,7 +51,16 @@ export default defineConfig({
         short_name: 'Flyleaf',
         description:
           'A private companion for preserving your journey through every book you read.',
+        /* Pinned rather than inferred. Without an explicit id the browser
+           derives the app's identity from start_url, so the day start_url
+           changes an installed copy is treated as a different app — a second
+           icon on the home screen and the reader's journey apparently gone
+           (it is not; it is in the other origin-scoped copy). Naming it once
+           means start_url can move and the installed app stays the same app. */
+        id: '/',
         start_url: '/',
+        scope: '/',
+        lang: 'en-GB',
         display: 'standalone',
         background_color: '#c2e4f8',
         theme_color: '#c2e4f8',

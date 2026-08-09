@@ -1,0 +1,11 @@
+# Flyleaf. Everything a crawler can reach here is the front door — a reader's
+# books and keeps live in their own browser and were never on this server, so
+# there is nothing private to keep out.
+#
+# The host below is temporary; change it here, in index.html and in sitemap.xml
+# together when the real domain is attached.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://flyleaf.vercel.app/sitemap.xml

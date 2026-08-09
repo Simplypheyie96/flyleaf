@@ -1,0 +1,401 @@
+/* The studio, and the three boards in it. See OgLab.tsx.
+
+   Every board is exactly 1200×630 and does not respond to anything: a share
+   picture is a fixed rectangle, so the usual fluid rules would be actively
+   wrong here. The studio page around them scrolls and scales; the boards
+   never do. */
+
+.lab {
+  min-block-size: 100svh;
+  padding: var(--space-6) var(--space-5) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-7);
+}
+
+/* The screenshot page: no padding, no chrome, nothing but the board, so the
+   crop is the picture and not the picture inside a page. */
+.bare {
+  display: block;
+  inline-size: 1200px;
+  block-size: 630px;
+  overflow: hidden;
+}
+
+.labHead {
+  inline-size: min(100%, 640px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  text-align: center;
+  align-items: center;
+}
+
+.labHead h1 {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size: var(--text-xl);
+  color: var(--color-ink);
+}
+
+.labHead p {
+  margin: 0;
+  max-inline-size: 46ch;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+}
+
+.picker {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.picker button {
+  min-block-size: var(--tap-min);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-chip-active-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-chip-active);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.slot {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.slot figcaption {
+  font-size: var(--text-sm);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+/* ---- The board ---- */
+
+.board {
+  position: relative;
+  inline-size: 1200px;
+  block-size: 630px;
+  overflow: hidden;
+  /* The studio page is narrower than the board on most screens; scaling it
+     down to look at is fine, because the screenshot is taken on the ?shot=
+     page where the viewport is set to 1200×630 and this never fires. */
+  transform-origin: top center;
+}
+
+/* The app's own sky, not a new one: the same two-stop gradient index.css puts
+   on <html>, with the same thirteen cloud gradients over it and the same grain
+   on top. Repeated here rather than inherited because body's layers are fixed
+   to the viewport, and this needs them bounded to the board. */
+.sky {
+  background:
+    var(--sky-clouds),
+    linear-gradient(to bottom, var(--color-sky-high), var(--color-sky-low));
+}
+
+.sky::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--grain-bg-opacity);
+  background-image: var(--grain-tile);
+}
+
+.blooms {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Pressed white, not paper-white. The field behind the app uses --color-paper
+   because it sits under content that gives it an edge; on a bare sky at
+   thumbnail size a near-white flower on a near-white horizon is invisible, so
+   these get the opaque cloud core and a hairline of cool shadow under them —
+   the same trick the clouds use to stay visible in the top third. */
+.bloom {
+  position: absolute;
+  fill: var(--cloud-core);
+  filter: drop-shadow(0 1px 2px oklch(0.45 0.05 250 / 0.18));
+}
+
+/* ---- One: open sky, centred ---- */
+
+.centred {
+  position: absolute;
+  inset-inline: 0;
+  /* Optically centred, not mathematically: the rabbit occupies the lower
+     quarter, so a block on the true midline reads as sitting low. */
+  inset-block-start: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 30px;
+  line-height: var(--leading-body);
+  letter-spacing: 0.01em;
+  color: var(--color-ink-soft);
+}
+
+/* Sitting ON the board, not hanging off it. The rabbit's own artwork puts the
+   paws at the very bottom of its box, so any negative offset here cuts them
+   off mid-foot — which reads as a badly cropped image rather than as a
+   character waving up from the edge. */
+.waveSpot {
+  position: absolute;
+  inset-block-end: 12px;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+}
+
+/* ---- Two: scrapbook spread ---- */
+
+.masthead {
+  position: absolute;
+  inset-block-start: 44px;
+  inset-inline-start: 56px;
+}
+
+/* Sized to fill the board rather than to a comfortable card width. Three
+   modest cards pinned to the top left left the bottom third of a 630px
+   rectangle empty, which at thumbnail size reads as a picture that failed to
+   load. The cards are bigger, they start lower, and the stagger below carries
+   them down into the space the rabbit does not use. */
+.spread {
+  position: absolute;
+  inset-block-start: 88px;
+  inset-inline-start: 48px;
+  inline-size: 1104px;
+  display: flex;
+  align-items: flex-start;
+  gap: 26px;
+}
+
+/* One card recipe, three rotations. Paper, a hairline, and the featherweight
+   neutral-cool shadow the app uses everywhere — never a big warm drop. */
+.card {
+  position: relative;
+  padding: 30px 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+  box-shadow:
+    0 0 0 1px oklch(0.5 0.02 250 / 0.1),
+    0 10px 26px oklch(0.4 0.03 250 / 0.1);
+}
+
+/* The stagger keeps the three cards from reading as a row, but it is bounded:
+   every card has to finish above the claim in the lower band, because a
+   headline running under a rotated card is the one collision nobody forgives
+   in a share picture. Keep the deepest card's top offset plus its height
+   under roughly 400px if any of these change. */
+.quoteCard {
+  inline-size: 432px;
+  rotate: -2.2deg;
+  margin-block-start: 20px;
+}
+
+.photoCard {
+  inline-size: 336px;
+  rotate: 1.6deg;
+  margin-block-start: 0;
+}
+
+.memoCard {
+  inline-size: 284px;
+  rotate: -1.1deg;
+  margin-block-start: 62px;
+}
+
+/* Torn masking tape over the top edge, off-centre because nobody tapes
+   anything down the middle. */
+.tape {
+  position: absolute;
+  inset-block-start: -13px;
+  inset-inline-start: 58px;
+  inline-size: 96px;
+  block-size: 26px;
+  rotate: -3deg;
+  background: oklch(0.93 0.045 92 / 0.72);
+  box-shadow: 0 1px 2px oklch(0.4 0.03 250 / 0.12);
+}
+
+.quoteText {
+  margin: 0;
+  font-family: var(--font-read);
+  font-style: italic;
+  font-size: 27px;
+  line-height: 1.42;
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+
+.cardFoot {
+  margin: 18px 0 0;
+  font-size: 15px;
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* A photograph without a photograph: the app's own muted hues as a soft
+   landscape, so the card reads as an image keep without shipping a stock
+   picture into the brand. */
+.photo {
+  block-size: 162px;
+  border-radius: var(--radius-sm);
+  background:
+    radial-gradient(70% 52% at 30% 88%, oklch(0.83 0.05 145 / 0.9), transparent 70%),
+    radial-gradient(56% 44% at 76% 92%, oklch(0.86 0.045 120 / 0.85), transparent 72%),
+    radial-gradient(30% 22% at 72% 26%, oklch(0.95 0.05 92 / 0.95), transparent 70%),
+    linear-gradient(to bottom, oklch(0.9 0.05 232), oklch(0.95 0.03 210));
+}
+
+.orb {
+  display: block;
+  inline-size: 46px;
+  block-size: 46px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 36% 32%,
+    oklch(0.96 0.02 265),
+    oklch(0.74 0.08 268) 62%,
+    oklch(0.62 0.09 270)
+  );
+  box-shadow: 0 0 0 6px oklch(0.74 0.08 268 / 0.14);
+}
+
+.wave {
+  margin-block-start: 22px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  block-size: 34px;
+}
+
+.wave span {
+  inline-size: 4px;
+  border-radius: var(--radius-pill);
+  background: oklch(0.7 0.06 268 / 0.75);
+}
+
+/* The claim, in the sky the spread does not use. Measure capped well under the
+   available width so the headline breaks where it should rather than running
+   the full board — and balanced, because a two-line claim with one word on the
+   second line is the fault you notice first at thumbnail size. */
+.say {
+  position: absolute;
+  inset-block-end: 46px;
+  inset-inline-start: 56px;
+  inline-size: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sayLine {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size: 38px;
+  line-height: 1.24;
+  text-wrap: balance;
+  color: var(--color-ink);
+}
+
+.sayNote {
+  margin: 0;
+  font-size: 19px;
+  line-height: var(--leading-body);
+  /* Balanced, not pretty: at this width the natural break left "kept on"
+     dangling at the end of a long first line. Two even lines read as one
+     sentence; pretty only guards the last word. */
+  text-wrap: balance;
+  color: var(--color-ink-soft);
+}
+
+.peekSpot {
+  position: absolute;
+  inset-block-end: 10px;
+  inset-inline-end: 56px;
+}
+
+/* ---- Three: bookplate ---- */
+
+.plate {
+  position: absolute;
+  inset-block: 62px;
+  inset-inline: 168px;
+  padding: 14px;
+  border-radius: 4px;
+  background: var(--color-paper);
+  box-shadow:
+    0 0 0 1px oklch(0.5 0.02 250 / 0.12),
+    0 14px 40px oklch(0.4 0.03 250 / 0.12);
+}
+
+/* The ruled border of a real bookplate: a line inside the sheet, not on its
+   edge, so the paper shows outside it. */
+.rule {
+  block-size: 100%;
+  border: 1px solid oklch(0.55 0.03 250 / 0.28);
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 40px 72px;
+  text-align: center;
+}
+
+/* The short rule under the name, the way a title page separates the title
+   from what follows it. */
+.hair {
+  inline-size: 96px;
+  block-size: 1px;
+  background: oklch(0.55 0.03 250 / 0.35);
+}
+
+/* Balanced and capped: at the plate's full width the line broke after "you"
+   and left "read" alone on the second line, which on a bookplate — where the
+   inscription IS the design — is the one typographic fault you cannot miss. */
+.plateLine {
+  margin: 0;
+  max-inline-size: 22ch;
+  font-family: var(--font-read);
+  font-size: 38px;
+  line-height: 1.28;
+  text-wrap: balance;
+  color: var(--color-ink);
+}
+
+.plateNote {
+  margin: 0;
+  max-inline-size: 34ch;
+  font-size: 19px;
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+/* Out in the margin, half behind the plate — marginalia, not illustration. */
+.marginSpot {
+  position: absolute;
+  inset-block-end: 18px;
+  inset-inline-start: 26px;
+}
