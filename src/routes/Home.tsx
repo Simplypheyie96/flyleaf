@@ -91,13 +91,20 @@ function Hero({ book }: { book: Book }) {
               ? " "
               : [
                   book.pages ? `${book.pages} pages` : null,
-                  kept === 0
-                    ? "Nothing kept yet"
-                    : `${kept} ${kept === 1 ? "memory" : "memories"} kept`,
+                  /* "1 kept", not "1 memory kept" — the same phrase the
+                     header above already uses, and short enough that the
+                     whole line fits on one row at 390px instead of breaking
+                     after the page count and leaving a dot hanging. */
+                  kept === 0 ? "Nothing kept yet" : `${kept} kept`,
                   readFor ? `${inWords(readFor)} of reading` : null,
                 ]
                   .filter(Boolean)
-                  .join(" · ")}
+                  .map((fact, at) => (
+                    <span key={fact as string}>
+                      {at > 0 && " · "}
+                      <span className={styles.entryFact}>{fact}</span>
+                    </span>
+                  ))}
           </p>
         </div>
       </div>
