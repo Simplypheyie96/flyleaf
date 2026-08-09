@@ -62,6 +62,7 @@ import { seedLibrary } from './data/seed'
    seed it is not compiled out of production — production is the only place it
    has any work to do. See src/data/reset.ts for when it must be deleted. */
 import { clearEverything } from './data/reset'
+import { startAutoSync } from './data/sync'
 import App from './App.tsx'
 import Boundary from './components/Boundary'
 
@@ -90,9 +91,19 @@ seedLibrary().catch((error) => {
    device is carrying from the demo shelf or from testing goes, so the first
    readers start on their own empty page. Not awaited, for the same reason the
    seed is not — the shelf is a live query and drops the rows as they go. */
-clearEverything().catch((error) => {
-  console.error('The slate could not be cleared.', error)
-})
+/* Chained onto the sweep rather than fired beside it, and this is the whole
+   reason it is not one more line further up: a sync that started while the
+   one-time clear was still running would export a half-emptied device and push
+   THAT over the reader's Drive. Waiting costs a tick and removes the only way
+   this app could destroy something. Nothing here runs for a reader who has not
+   turned sync on — see data/sync.ts. */
+clearEverything()
+  .catch((error) => {
+    console.error('The slate could not be cleared.', error)
+  })
+  .finally(() => {
+    startAutoSync()
+  })
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
