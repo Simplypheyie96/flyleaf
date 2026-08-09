@@ -110,6 +110,11 @@
      threshold that makes iOS Safari zoom the page on focus. */
   font-size: var(--text-xl);
   font-variant-numeric: tabular-nums;
+  /* The dots. The field is a text field rather than a password field so that
+     iOS brings up the number pad — see the note beside it in LockScreen.tsx —
+     and this is what keeps the code hidden from the room instead. */
+  -webkit-text-security: disc;
+  text-security: disc;
   letter-spacing: 0.32em;
   /* The tracking is applied to the right of each character, so a centred value
      sits visibly left of centre without this pulling it back. */
