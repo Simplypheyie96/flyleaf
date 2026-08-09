@@ -21,6 +21,7 @@ import { useBookSearch } from '../books/useBookSearch'
 import type { BookResult } from '../books/sources'
 import { seedFrom } from '../books/seed'
 import db, { type BookFormat } from '../data/db'
+import { bookGrave, unbury } from '../data/graves'
 import { addKeep } from '../journey/keeps'
 import { landOnShelf } from '../motion/shelfLanding'
 import styles from './AddBookSheet.module.css'
@@ -411,6 +412,15 @@ function ConfirmStage({
               startedOn,
               addedAt: Date.now(),
             })
+            /* AND THE HEADSTONE COMES DOWN. Shelving a book is the reader
+               saying they want it, and that outranks every record of the time
+               they didn't. Without this the stone stands: the next sync reads
+               it as a deletion this device still means and takes the book
+               straight back off the shelf, half a minute after it was added.
+               The owner's words, and they settle it — "that i deleted
+               something doesn't mean i don't want it back… it should only
+               obey." */
+            await unbury([bookGrave(book.id)])
             /* AND THE LINE THEY WROTE FIRST. It was typed before this book
                existed, on a screen that promised "the line you type is the
                first thing kept" — and until now it was thrown away at the
