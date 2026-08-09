@@ -867,3 +867,35 @@
 .bare > button {
   margin-block-start: var(--space-2);
 }
+
+/* THE PIN MARK, on the corner of a held book's jacket.
+
+   A disc rather than a bare glyph: covers are photographs, and a stroke
+   dropped straight onto one lands on whatever colour that book happens to
+   have there — invisible on half the shelf. The disc carries its own
+   contrast, and the ring around it keeps it legible against a pale jacket as
+   well as a dark one.
+
+   Top-trailing corner: `OpenJourney` fills the whole tile as the tap target
+   and the title, where one is drawn, sits at the foot. */
+.pinned {
+  position: absolute;
+  inset-block-start: 5px;
+  inset-inline-end: 5px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  /* 18, not 20. On a ~135px tile the larger disc was the loudest thing on the
+     shelf, and a pin is meant to say "this one first", not to outshout the
+     jacket it is sitting on. */
+  inline-size: 18px;
+  block-size: 18px;
+  border-radius: var(--radius-pill);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  box-shadow: 0 0 0 1.5px oklch(0.99 0.003 240 / 0.9);
+}
+
+[data-theme='dark'] .pinned {
+  box-shadow: 0 0 0 1.5px oklch(0.285 0.022 262 / 0.9);
+}

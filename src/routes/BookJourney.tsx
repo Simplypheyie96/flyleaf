@@ -45,6 +45,9 @@ import Bunny from '../rabbit/Bunny'
 import Sheet from '../components/Sheet'
 import Sparkle from '../components/Sparkle'
 import CalendarPicker from '../components/date/CalendarPicker'
+import CoverStrip, { SwapCoverTab } from '../components/CoverChoice'
+import { chooseCover, coversOf } from '../books/covers'
+import { isPinned, togglePin } from '../data/pins'
 import { shortDate, spanPair, todayISO } from '../components/date/dates'
 import {
   CheckIcon,
@@ -54,6 +57,7 @@ import {
   FairCopyIcon,
   KeepIcon,
   OpeningIcon,
+  PinIcon,
   ShareIcon,
   SortIcon,
   TrashIcon,
@@ -217,6 +221,15 @@ function BookJourney() {
   const [keepsakeOpen, setKeepsakeOpen] = useState(false)
   const [fairOpen, setFairOpen] = useState(false)
   const [bookOpen, setBookOpen] = useState(false)
+  /* Whether the other jackets are showing, and the one sentence the pin has
+     to say for itself when the shelf is already holding three. */
+  const [swapping, setSwapping] = useState(false)
+  /* Carries a stamp as well as the words. Saying the same thing twice is the
+     normal case here — a reader taps a fourth book, then a fifth — and React
+     would reuse the one <p>, which means the CSS animation never replays and
+     the note sits at its faded-out end state saying nothing. The stamp keys it,
+     so every refusal is a new element with a new run. */
+  const [pinNote, setPinNote] = useState<{ text: string; at: number }>()
   const [undo, setUndo] = useState<Undo | null>(null)
   /* Whether the book itself has gone up under the chrome. Not a fold and not a
      threshold the reader can feel — it is one observation of where the head
@@ -601,6 +614,39 @@ function BookJourney() {
               >
                 <FairCopyIcon size={18} />
               </button>
+              {/* Pinning is a shelf decision, and this is the only screen
+                  that is unambiguously about one book — so it lives with the
+                  book's other verbs rather than in the Library, where it
+                  would need a per-tile control on three different views.
+                  Filled when it is holding, outlined when it is not. */}
+              <button
+                type="button"
+                className={styles.chromeAction}
+                data-on={isPinned(book) || undefined}
+                onClick={async () => {
+                  const what = await togglePin(book.id)
+                  /* The cap is the one outcome that needs words. Silence
+                     here would read as a broken button — the reader pressed
+                     pin and nothing pinned. */
+                  setPinNote(
+                    what === 'full'
+                      ? {
+                          text: 'Three books are already held at the front. Unpin one to make room.',
+                          at: Date.now(),
+                        }
+                      : undefined,
+                  )
+                }}
+                aria-pressed={isPinned(book)}
+                aria-label={
+                  isPinned(book)
+                    ? 'Pinned to the front of your library. Unpin it.'
+                    : 'Pin to the front of your library'
+                }
+                title={isPinned(book) ? 'Unpin' : 'Pin to the front'}
+              >
+                <PinIcon size={18} filled={isPinned(book)} />
+              </button>
               <button
                 type="button"
                 className={`${styles.chromeAction} ${styles.chromeDanger}`}
@@ -613,6 +659,20 @@ function BookJourney() {
             </div>
           </GlassSurface>
         </div>
+
+        {/* Only ever the full-shelf message, and only until the reader moves
+            on. A pin that worked says so by filling in; a pin that could not
+            has to explain why, because nothing else on screen would. */}
+        {pinNote && (
+          <p
+            key={pinNote.at}
+            className={styles.pinNote}
+            role="status"
+            onAnimationEnd={() => setPinNote(undefined)}
+          >
+            {pinNote.text}
+          </p>
+        )}
       </header>
 
       {/* ── The scroll: the book, the rail, and the thread, in one move ──── */}
@@ -640,13 +700,29 @@ function BookJourney() {
               {/* Sized in CSS rather than by prop, because its width is not a
               free choice any more: the board's height is the height of the
               record beside it, and 2:3 is what turns one into the other. */}
-              <BookCover
-                title={book.title}
-                author={book.author}
-                covers={book.covers}
-                size="small"
-                className={styles.cover}
-              />
+              {/* The jacket, and the quiet way to change it. The tab hangs on
+                  the cover's own corner rather than taking a row in the
+                  record beside it — swapping a cover is a by-the-way, and the
+                  record is for things about the book that are true. */}
+              <span className={styles.coverMount}>
+                <BookCover
+                  title={book.title}
+                  author={book.author}
+                  covers={coversOf(book)}
+                  size="small"
+                  className={styles.cover}
+                />
+                {/* The raw list, not the display one. `coversOf` empties itself
+                    when the drawn cover is the pick, and feeding that here would
+                    delete the control the moment a reader chose ours — no way
+                    back. It is also what the strip's indices are counted
+                    against. Only the jacket above reads the display list. */}
+                <SwapCoverTab
+                  covers={book.covers}
+                  open={swapping}
+                  onToggle={() => setSwapping((on) => !on)}
+                />
+              </span>
               {/* Everything that is *about* the book, in one column: name, byline,
               formats, dates. The cover is the other column and holds nothing
               but the cover.
@@ -770,6 +846,21 @@ function BookJourney() {
               somewhere it can never take part in the row's layout. */}
               <Sparkle size={15} className={styles.headSpark} />
             </div>
+
+            {/* The other jackets, unfolded under the whole head rather than
+                beside the cover: the strip is a scroller and the record next
+                to the cover is a narrow column, so this is the only edge it
+                can run the full width of. Written straight to the book — it
+                is already on the shelf, so there is nothing to confirm. */}
+            {swapping && (
+              <CoverStrip
+                title={book.title}
+                author={book.author}
+                covers={book.covers}
+                pick={book.coverPick ?? 0}
+                onPick={(pick) => void chooseCover(book.id, pick)}
+              />
+            )}
 
             {/* The hours, under the record and folded shut. Nothing at all
                 until this book has actually been sat with. */}

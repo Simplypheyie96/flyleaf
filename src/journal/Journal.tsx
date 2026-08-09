@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import BookCover from '../components/BookCover'
+import { coversOf } from '../books/covers'
 import { Mark } from '../brand/Wordmark'
 import { IMPRINT } from '../brand/imprint'
 import { longDate, shortDate, spanPair, todayISO } from '../components/date/dates'
@@ -175,7 +176,7 @@ function Chapter({ book, keeps, pictures }: Grouped & { pictures: Record<number,
         <BookCover
           title={book.title}
           author={book.author}
-          covers={book.covers}
+          covers={coversOf(book)}
           width={124}
           className={styles.cover}
         />

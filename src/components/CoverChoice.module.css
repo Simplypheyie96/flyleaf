@@ -1,0 +1,139 @@
+/* The strip of alternative jackets. Quiet by construction: no panel, no
+   border, no heading — it is a row of small books that appeared under a
+   bigger one. */
+
+.strip {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  /* The tiles carry a lifted ring when chosen, and a flush scroller would
+     clip it against its own edge. Padding here rather than margin so the
+     scrollable area itself is inset and the first tile does not begin at the
+     exact pixel the container does. */
+  padding: var(--space-2) var(--space-1) var(--space-3);
+  scroll-padding-inline: var(--space-1);
+  /* Nothing about a cover survives being squeezed; let them scroll. */
+  scrollbar-width: none;
+}
+
+.strip::-webkit-scrollbar {
+  display: none;
+}
+
+.tile {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  /* Every tile the same height whatever its art, so the row has one baseline
+     and the chosen ring is the only thing that moves the eye. */
+  line-height: 0;
+  transition: transform 180ms var(--ease-out);
+}
+
+.tile:hover {
+  transform: translateY(-2px);
+}
+
+.tileCover {
+  border-radius: var(--radius-sm);
+  /* The unchosen ones are present but not competing. Not hidden behind
+     opacity — a cover you are being asked to judge has to be legible — so it
+     is the ring that carries the state and this only softens the edge. */
+  box-shadow: 0 0 0 1px oklch(0.5 0.02 250 / 0.18);
+}
+
+.tile[data-on] .tileCover {
+  box-shadow:
+    0 0 0 2px var(--color-paper),
+    0 0 0 4px var(--color-accent-text),
+    0 4px 10px oklch(0.4 0.03 250 / 0.14);
+}
+
+.tile:focus-visible {
+  outline: none;
+}
+
+.tile:focus-visible .tileCover {
+  box-shadow:
+    0 0 0 2px var(--color-paper),
+    0 0 0 4px var(--color-ink);
+}
+
+/* The tick sits on the corner of the chosen jacket rather than over its
+   middle, because the middle is the part being judged. */
+.ticked {
+  position: absolute;
+  inset-block-end: -5px;
+  inset-inline-end: -5px;
+  display: grid;
+  place-items: center;
+  inline-size: 20px;
+  block-size: 20px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-text);
+  color: var(--color-paper);
+  box-shadow: 0 0 0 2px var(--color-paper);
+}
+
+/* The mark that opens all this: a corner tab on the cover the reader is
+   already looking at. Small, and it does not announce itself — the owner's
+   note was that this is a by-the-way, not a feature to advertise. */
+.swap {
+  position: absolute;
+  inset-block-end: var(--space-2);
+  inset-inline-end: var(--space-2);
+  display: grid;
+  place-items: center;
+  /* 28px of ink inside a 44px target: the tap area extends past the visible
+     tab with a transparent border, so a thumb hits it without a control that
+     size sitting on top of the artwork. */
+  inline-size: 28px;
+  block-size: 28px;
+  padding: 0;
+  border: 8px solid transparent;
+  box-sizing: content-box;
+  margin: -8px;
+  border-radius: var(--radius-pill);
+  background: oklch(0.99 0.003 240 / 0.86) padding-box;
+  color: var(--color-ink);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 4px oklch(0.4 0.03 250 / 0.22);
+  cursor: pointer;
+  transition: transform 180ms var(--ease-out);
+}
+
+.swap:hover {
+  transform: scale(1.06);
+}
+
+[data-theme='dark'] .swap {
+  background: oklch(0.32 0.022 262 / 0.86) padding-box;
+  color: var(--color-ink);
+}
+
+[data-theme='dark'] .tileCover {
+  box-shadow: 0 0 0 1px oklch(0.75 0.02 255 / 0.22);
+}
+
+[data-theme='dark'] .tile[data-on] .tileCover {
+  box-shadow:
+    0 0 0 2px var(--color-paper),
+    0 0 0 4px var(--color-accent-text),
+    0 4px 10px oklch(0.12 0.03 260 / 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile,
+  .swap {
+    transition: none;
+  }
+
+  .tile:hover,
+  .swap:hover {
+    transform: none;
+  }
+}

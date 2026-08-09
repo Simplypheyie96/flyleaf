@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import PaperSurface from '../components/PaperSurface'
 import Vignette from '../brand/Vignette'
 import BookCover from '../components/BookCover'
+import { coversOf } from '../books/covers'
 import db, { type Book } from '../data/db'
 import { KIND, KINDS } from '../journey/kinds'
 import { excerptAround, terms, type Archive, type Found } from './archive'
@@ -155,7 +156,7 @@ function Results({ archive, query, onFindBook }: ResultsProps) {
               <li key={book.id}>
                 <Link to={`/book/${book.id}`} className={styles.row}>
                   <span className={styles.coverMark}>
-                    <BookCover title={book.title} author={book.author} covers={book.covers} width={44} />
+                    <BookCover title={book.title} author={book.author} covers={coversOf(book)} width={44} />
                   </span>
                   <span className={styles.rowBody}>
                     <span className={styles.rowName}>{book.title}</span>

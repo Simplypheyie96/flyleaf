@@ -20,6 +20,14 @@ export interface Book {
   pages?: number
   /** Real cover URLs to try, in order. Empty means a drawn cover. */
   covers: string[]
+  /** Which of `covers` the reader chose to look at, or `DRAWN` (-1) for
+      Flyleaf's own. Absent means we never asked and the first one stands.
+      Read it through `coversOf()` in books/covers.ts, never directly. */
+  coverPick?: number
+  /** When this book was pinned to the front of the shelf; absent if it is
+      not. Three at a time — see data/pins.ts. Unindexed on purpose: three
+      rows out of a personal library is a filter, not a query. */
+  pinnedAt?: number
   format?: BookFormat
   /** ISO yyyy-mm-dd. A date, not a timestamp: nobody remembers the hour. */
   startedOn?: string
