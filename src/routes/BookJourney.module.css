@@ -50,7 +50,25 @@
      spacing bug in the head at all.
 
      90vw tracks the screen through that whole band and hands over to the same
-     560 cap at 622, so nothing wider changes. */
+     560 cap at 622, so a phone and a tablet meet the same page.
+
+     Past 1024 it opens to 640 — not the 1120 the Library shelf takes, and not
+     the 720 this was first set to, because this column is not a shelf. A
+     thread card holds a paragraph the reader wrote, and prose has a measure.
+     Measured on the rendered cards at 720: the quote's line box came out 538px
+     and the note's 658px, which is past the comfortable band on the note and
+     at the very edge of it on the quote. 640 pulls those to about 458 and 578
+     — mid-band on both. 1120 would have put the note near 1060, which is a
+     line nobody can track back to the start of.
+
+     Only the width changes. The head is not lifted into a fixed side column
+     beside the thread, which is the obvious desktop move and the wrong one
+     here: this page's whole mechanism is that the book block scrolls away
+     under a shrinking pinned bar, on a scroll handler that reads one
+     scroller. A head that no longer moves is a different page, not a wider
+     one. Branching the thread — knots alternating either side of a centred
+     spine — was considered for the same reason and left alone: a journal is
+     read in order, and a zig-zag makes the eye hunt for which side is next. */
   --column-max: clamp(420px, 90vw, 560px);
 
   /* 24, down from 32. What this gap has to hold is one drawn thing: the verb
@@ -1737,6 +1755,100 @@
   transition-duration: var(--dur-press);
 }
 
+/* OFF THE PHONE, THE CORNER BUTTON STANDS DOWN AND THE INLINE BUTTON TAKES OVER.
+
+   The trailing corner is the right home on a phone, where the corner IS beside
+   the thread — the column is the window. On a 1440 screen it stops being that:
+   the column is 640 centred, so the corner parks the only action on this page
+   roughly 320px out in open sky, diagonally away from everything the reader is
+   looking at, as a 56px disc with no label on a page full of paper. That is
+   what made it hard to find.
+
+   An earlier pass answered this by sliding the disc in beside the column. It
+   was better, and it was still the wrong shape of answer: a floating button is
+   chrome, and chrome on a desk has room to be a real invitation instead. What
+   is here now sits at the foot of the thread, in reading order, where the eye
+   already is when it reaches the end of what has been kept.
+
+   It started as a blank ruled sheet — "unwritten" said by being unwritten. It
+   read as a nice idea and not as something to press. So it is a plain button
+   now: filled, labelled, verb first. Prettiness that has to be decoded loses
+   to an obvious control every time.
+
+   Two rules, one swap, no viewport where both are showing. */
+/* ── The way in, off the phone ───────────────────────────────────────────
+   The swap starts at 768 — iPad portrait — not 1024. Anything with a tablet's
+   room already reads the floating disc as the odd chrome it is; the corner
+   only earns its place when the column really is the whole window.
+
+   The height floor keeps a phone held sideways on the phone treatment. A
+   landscape handset clears 768 wide but is ~390 tall, and that is still a
+   phone in the hand, where the thumb wants the corner.
+
+   The base rule has to come BEFORE the media query, not after: both are one
+   class deep, so on equal specificity the later rule wins and a `display:none`
+   written underneath silently cancels the `grid`. */
+.blankNotch {
+  display: none;
+}
+
+@media (min-width: 768px) and (min-height: 500px) {
+  .keepIt {
+    display: none;
+  }
+
+  .blankNotch {
+    display: grid;
+  }
+}
+
+/* Sized to the label, not the column: a control that stretches the full 614px
+   stops looking like a button and starts looking like another card. */
+.blank {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-block-size: 44px;
+  padding-inline: var(--space-4) var(--space-5);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-action);
+  box-shadow: var(--elevation-1);
+  color: var(--color-on-action);
+  font: 600 15px/1 var(--font-app);
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .blank:hover {
+    background: var(--color-action-hover);
+    box-shadow: var(--elevation-2);
+    transform: translateY(-1px);
+  }
+}
+
+.blank:active {
+  background: var(--color-action-press);
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blank {
+    transition: none;
+  }
+
+  .blank:hover,
+  .blank:active {
+    transform: none;
+  }
+}
+
 .undo {
   display: flex;
   align-items: center;
@@ -1932,5 +2044,16 @@
 
   @keyframes pinHeld {
     0%, 100% { opacity: 1; }
+  }
+}
+
+/* The desktop measure. See the note on --column-max at the top of .page for
+   why this is 720 and not the shelf's 1120, and for what deliberately does
+   NOT change here. Set on .page so the pinned head and the scrolling thread
+   both read it — they are siblings, and a head on a different measure from
+   the thread under it would be two pages stacked. */
+@media (min-width: 1024px) {
+  .page {
+    --column-max: 640px;
   }
 }

@@ -965,6 +965,35 @@ function BookJourney() {
               />
             ))}
             {forward ? closing : seal}
+
+            {/* ── THE DESKTOP WAY IN ───────────────────────────────────
+                Hidden below 1024, where the corner button is already right:
+                on a phone the corner IS beside the thread. On a desk it is
+                not — the column is 640 centred, so a 56px unlabelled disc in
+                the window's corner parks the only action on the page out in
+                open sky, diagonally away from everything the reader is
+                looking at. That is what made it hard to find.
+
+                So on a desk it hangs off the last knot instead, in reading
+                order, exactly where the eye already is when it reaches the
+                bottom of what has been kept. It was a blank ruled sheet at
+                first, which was prettier and slower to read as a control —
+                so it is a plain labelled button now. It opens the same
+                capture sheet the corner button opens; nothing about keeping
+                has changed except where the invitation sits. */}
+            <li className={`${styles.notch} ${styles.blankNotch}`} data-kind="thread" data-up="">
+              <span className={styles.gutter} aria-hidden="true">
+                <span className={styles.knot}>
+                  <KeepIcon size={13} />
+                </span>
+              </span>
+              <div className={styles.hang}>
+                <button type="button" className={styles.blank} onClick={() => setAdding('quote')}>
+                  <KeepIcon size={17} />
+                  Keep something
+                </button>
+              </div>
+            </li>
           </ol>
 
           {/* Two empty states on one leaf, and DELIBERATELY NOT THE SAME
