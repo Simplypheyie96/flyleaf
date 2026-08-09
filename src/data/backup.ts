@@ -188,9 +188,11 @@ export interface Restored {
   /** Already on this device, so nothing was written for them. */
   skipped: number
   handle?: string
-  /** Read out of somebody else's file rather than a Flyleaf journey, so the
-      reader can be told plainly what did and did not come across. */
-  adopted?: boolean
+  /** Not a journey from this Flyleaf, so the reader has to be told what came
+      across. `first` is the older Flyleaf's own export, every kind of which is
+      understood; `foreign` is another app's file, which can only ever carry
+      books, quotes and notes. */
+  adopted?: 'first' | 'foreign'
 }
 
 /** Read a journey file back onto this device, merging rather than replacing. */
@@ -212,7 +214,7 @@ export async function importJourney(file: File): Promise<Restored> {
      hands back whatever it could honestly recognise; from there it is an
      ordinary merge, so nothing below has to know where the books came from. */
   const ours = typeof journey?.flyleaf === 'number' && Array.isArray(journey.books) && Array.isArray(journey.entries)
-  let adopted = false
+  let adopted: Restored['adopted']
   if (!ours) {
     const foreign = adopt(text)
     if (!foreign) throw new Error('No books found in that file.')
@@ -220,10 +222,11 @@ export async function importJourney(file: File): Promise<Restored> {
       keptIn: IMPRINT,
       flyleaf: FORMAT,
       exportedAt: Date.now(),
+      handle: foreign.handle,
       books: foreign.books,
-      entries: foreign.entries as PackedEntry[],
+      entries: foreign.entries,
     }
-    adopted = true
+    adopted = foreign.first ? 'first' : 'foreign'
   } else if (journey.flyleaf > FORMAT) {
     throw new Error('That journey was saved by a newer Flyleaf. Update this device first.')
   }

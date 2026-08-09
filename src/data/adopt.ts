@@ -23,11 +23,23 @@
    key on the cover seed, keeps on a uid derived from their own words. */
 
 import { seedFrom } from '../books/seed'
-import type { Book, BookFormat, Entry } from './db'
+import type { Book, BookFormat, Entry, EntryType } from './db'
+
+/** A keep on its way in, with its picture still packed the way a file holds
+    one. `importJourney` unpacks it into a Blob exactly as it does for a
+    Flyleaf journey, so nothing here has to build one. */
+export interface AdoptedEntry extends Omit<Entry, 'id' | 'media'> {
+  media?: { type: string; data: string }
+}
 
 export interface Adopted {
   books: Book[]
-  entries: Omit<Entry, 'id'>[]
+  entries: AdoptedEntry[]
+  /** The reader's own name, when the file happens to carry one. */
+  handle?: string
+  /** An older Flyleaf's own file rather than a stranger's, so everything it
+      held is understood and the reader can be told so. */
+  first?: boolean
 }
 
 type Bag = Record<string, unknown>
@@ -202,6 +214,134 @@ function lines(value: unknown): { words: string; page?: number }[] {
   })
 }
 
+/* THE FIRST FLYLEAF.
+
+   There was a version of this app before this one, and its export is neither
+   a journey nor a stranger's file: `{ app: "flyleaf", version: 1 }`, books
+   keyed by uuid, and every keep in one list at the top rather than hanging off
+   its book. Read by the tolerant path above it would give up its books and
+   drop every last thing written about them, which for the person who wrote
+   them is the whole point of the file.
+
+   So it gets its own door, and the door is a translation. Five of the six old
+   kinds have an exact heir here; `lore` and `vocab` do not, and are placed
+   where they lose the least:
+
+     quote     → quote
+     note      → note
+     character → character      the reason for this whole path
+     plot      → thread         a suspicion, at the weakest stance, exactly as
+                                the old `strand` rows were upgraded in db.ts
+     lore      → place          world-building was always somewhere
+     vocab     → note           a word and why it was kept is a note about the
+                                book; there is no other honest home for it
+
+   Pictures come across — the old `photo` is already the shape this app packs
+   one in. Nothing else is invented: no stance the reader did not express, no
+   date they did not write. */
+const V1_KIND: Record<string, EntryType> = {
+  quote: 'quote',
+  note: 'note',
+  character: 'character',
+  plot: 'thread',
+  lore: 'place',
+  vocab: 'note',
+}
+
+function firstFlyleaf(root: Bag): Adopted | null {
+  const rows = Array.isArray(root.books) ? root.books.filter(isBag) : []
+  if (!rows.length) return null
+
+  const now = Date.now()
+  const books = new Map<number, Book>()
+  /* The old uuid to the new cover seed, so the keeps below can find the book
+     they belong to. A keep whose book was left out is left out with it. */
+  const byOldId = new Map<string, number>()
+  let samples = 0
+
+  rows.forEach((row, index) => {
+    const title = text(pick(row, ['title', 'name']))
+    if (!title) return
+
+    /* The old app shipped a demo book and marked it. It is not this reader's
+       reading, and a library that quietly gains a book nobody read is worse
+       than one that gains nothing. */
+    if (pick(row, ['isSample', 'sample', 'isDemo']) !== undefined) {
+      samples += 1
+      return
+    }
+
+    const author = people(pick(row, ['authors', 'author'])) ?? ''
+    const id = seedFrom(title, author)
+    const oldId = text(pick(row, ['id']))
+    if (oldId) byOldId.set(oldId, id)
+    if (books.has(id)) return
+
+    const shape = format(pick(row, ['format', 'binding', 'mediaType']))
+    books.set(id, {
+      id,
+      title,
+      author,
+      year: year(pick(row, ['year', 'published', 'publishedYear'])),
+      pages: count(pick(row, ['pages', 'pageCount', 'numPages'])),
+      covers: [],
+      startedOn: day(pick(row, ['startedOn', 'dateStarted', 'started'])),
+      finishedOn: day(pick(row, ['finishedOn', 'dateFinished', 'finished'])),
+      formats: shape ? [shape] : undefined,
+      addedAt: count(pick(row, ['addedAt'])) ?? now - (rows.length - index) * 1000,
+    })
+  })
+
+  /* Every book in the file was the old app's demo. Said out loud rather than
+     dropped through to the tolerant reader below, which does not know what
+     `isSample` means and would shelve the demo book as a real one. */
+  if (!books.size) {
+    if (samples) throw new Error('That file only holds the old sample book, so there was nothing to bring over.')
+    return null
+  }
+
+  const entries: AdoptedEntry[] = []
+  const keeps = Array.isArray(root.entries) ? root.entries.filter(isBag) : []
+  for (const keep of keeps) {
+    const kind = V1_KIND[text(pick(keep, ['type', 'kind']))?.toLowerCase() ?? '']
+    if (!kind) continue
+
+    const bookId = byOldId.get(text(pick(keep, ['bookId', 'book'])) ?? '')
+    if (bookId === undefined) continue
+
+    const words = text(pick(keep, ['text', 'body', 'content']))
+    const photo = pick(keep, ['photo', 'image', 'picture'])
+    const media =
+      isBag(photo) && typeof photo.data === 'string' && typeof photo.type === 'string'
+        ? { type: photo.type, data: photo.data }
+        : undefined
+    // Nothing to keep: no words and no picture is an empty row, not a memory.
+    if (!words && !media) continue
+
+    const at = count(pick(keep, ['createdAt', 'created', 'at'])) ?? now
+    entries.push({
+      bookId,
+      type: kind,
+      text: words,
+      // "p. 42" as often as 42 — the old field took whatever was typed.
+      page: count(pick(keep, ['page', 'pageNumber'])),
+      chapter: text(pick(keep, ['chapter'])),
+      media,
+      // Its own weakest stance, never a confidence the reader never claimed.
+      stance: kind === 'thread' ? 'hunch' : undefined,
+      keptOn: day(pick(keep, ['keptOn', 'date'])) ?? calendar(new Date(at))!,
+      createdAt: at,
+      /* The old uuid, kept as this keep's name forever. It was already unique
+         and already stable, so the same file imported twice lands on the same
+         rows rather than beside them. */
+      uid: text(pick(keep, ['id'])) ? `flyleaf1-${text(pick(keep, ['id']))}` : undefined,
+      editedAt: count(pick(keep, ['updatedAt', 'editedAt'])),
+    })
+  }
+
+  return { books: [...books.values()], entries, handle: text(pick(root, ['username', 'handle'])), first: true }
+}
+
 /** Read a foreign file. Returns null when nothing in it looks like a book,
     which is the caller's signal to say so plainly rather than import silence. */
 export function adopt(text_: string): Adopted | null {
@@ -212,12 +352,19 @@ export function adopt(text_: string): Adopted | null {
     return null
   }
 
+  /* An older Flyleaf's own file, which has its own door because it is the one
+     foreign shape whose every kind we already understand. */
+  if (isBag(root) && text(pick(root, ['app']))?.toLowerCase() === 'flyleaf') {
+    const first = firstFlyleaf(root)
+    if (first) return first
+  }
+
   const rows = findList(root)
   if (!rows?.length) return null
 
   const now = Date.now()
   const books = new Map<number, Book>()
-  const entries: Omit<Entry, 'id'>[] = []
+  const entries: AdoptedEntry[] = []
 
   rows.forEach((raw, index) => {
     const row = flatten(raw)
