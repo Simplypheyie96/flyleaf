@@ -74,6 +74,34 @@ let loading: Promise<void> | null = null
 /* One request may be in flight at a time: Google's callback is a single slot
    on the client, so a second overlapping call would resolve the first. */
 let pending: { resolve: (t: string) => void; reject: (e: Error) => void } | null = null
+/* The watchdog for that slot. GIS calls back on success, and on the failures it
+   recognises — a closed popup, a blocked popup. It calls back on NEITHER when
+   the popup dies on a page of Google's own (their 500 error page, reached and
+   reproduced during testing): the window is still open, so nothing was closed,
+   and no token is coming, so nothing succeeded. Without this, `pending` never
+   settles, the button reads "Connecting…" for the rest of the session, and even
+   a second press is refused by the guard below. Only a reload escapes.
+
+   Generous on purpose. This is not a network timeout — it is the last resort
+   after somebody has read a consent screen, possibly picked between accounts,
+   possibly typed a password. Cutting that short would cancel a sign-in that was
+   going perfectly well, which is a worse bug than the one it fixes. A silent
+   refresh puts no window on screen and gets a short leash instead. */
+let watchdog: ReturnType<typeof setTimeout> | null = null
+const PATIENCE = { interactive: 180_000, silent: 30_000 }
+
+/** Empty the single slot, cancelling its watchdog. Every path out of a token
+    request goes through here, so the slot can never be left holding a promise
+    nobody is going to settle. */
+function settle(): typeof pending {
+  const waiting = pending
+  pending = null
+  if (watchdog !== null) {
+    clearTimeout(watchdog)
+    watchdog = null
+  }
+  return waiting
+}
 
 export function optedIn(): boolean {
   try {
@@ -124,8 +152,7 @@ async function ensureClient(): Promise<TokenClient> {
     client_id: CLIENT_ID,
     scope: SCOPE,
     callback: (response) => {
-      const waiting = pending
-      pending = null
+      const waiting = settle()
       if (!waiting) return
       if (response.error || !response.access_token) {
         waiting.reject(new Error('Google did not grant access.'))
@@ -138,8 +165,7 @@ async function ensureClient(): Promise<TokenClient> {
       waiting.resolve(response.access_token)
     },
     error_callback: (error) => {
-      const waiting = pending
-      pending = null
+      const waiting = settle()
       if (!waiting) return
       /* A shut popup is a decision, not a fault — it gets a plain sentence
          rather than the tone of something having gone wrong. */
@@ -166,7 +192,26 @@ async function requestToken(interactive: boolean): Promise<string> {
 
   return new Promise<string>((resolve, reject) => {
     pending = { resolve, reject }
-    tokenClient.requestAccessToken({ prompt: interactive ? 'consent' : '' })
+    watchdog = setTimeout(
+      () => {
+        settle()?.reject(new Error('Google never answered. Try connecting again.'))
+      },
+      interactive ? PATIENCE.interactive : PATIENCE.silent,
+    )
+    /* Not `prompt: 'consent'`.
+
+       Forcing the consent screen is for apps collecting a refresh token, which
+       needs the reader to re-approve to be reissued. This app has no backend
+       and no refresh token — it holds an access token in memory for an hour and
+       asks again after that. So `consent` bought nothing and cost two things:
+       a reader who already said yes was made to say it again on every single
+       sign-in, and each of those replays hit Google's consent machinery against
+       a grant that already existed, which is where the 500s were appearing.
+
+       Empty means "ask for whatever this needs and no more": a first-time
+       reader still gets the full consent screen, because they must, and
+       everyone after that goes straight through. */
+    tokenClient.requestAccessToken({ prompt: '' })
   })
 }
 
