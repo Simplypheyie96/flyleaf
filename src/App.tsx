@@ -7,6 +7,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import AddBookSheet from "./components/AddBookSheet";
+import { fillMissingCovers } from "./books/refill";
 import GlassSurface from "./components/GlassSurface";
 import InstallPrompt from "./components/InstallPrompt";
 import LeafButton from "./components/LeafButton";
@@ -185,6 +186,16 @@ function App() {
   // Library, and this one is theirs. See startWriting in routes/home/Draw.tsx
   // for why a keep cannot exist without a book in the first place.
   const [firstKeep, setFirstKeep] = useState("");
+
+  /* Books imported from another app's file arrive with no cover — their file
+     never had one to give. This goes back and asks the same catalogues the
+     add sheet asks, for the whole shelf, so a book imported weeks ago repairs
+     itself too. Held back a few seconds so it never competes with the first
+     paint, and silent either way. See books/refill.ts. */
+  useEffect(() => {
+    const at = window.setTimeout(() => void fillMissingCovers(), 4000);
+    return () => window.clearTimeout(at);
+  }, []);
 
   useEffect(() => {
     function find(event: Event) {
