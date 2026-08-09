@@ -22,9 +22,21 @@ import BookJourney from "./routes/BookJourney";
 import CardLab from "./routes/CardLab";
 import Home from "./routes/Home";
 import Library from "./routes/Library";
+import Lost from "./routes/Lost";
 import Settings from "./routes/Settings";
 import Styleguide from "./routes/Styleguide";
 import styles from "./App.module.css";
+
+/* The two workbench routes below are ours, not the reader's. They are where a
+   card or a token gets looked at under a lamp, and on the live app they are a
+   back room somebody could wander into by typing a URL — nothing secret, but
+   nothing that belongs to a person keeping a reading journal either.
+
+   Gated on the same flag the preview seed reads, so they stay reachable on
+   every branch deploy, which is where they are actually used, and vanish from
+   production. Vite folds the constant at build time, so on the live app the
+   route elements are not hidden — they are not in the bundle at all. */
+declare const __PREVIEW_SEED__: boolean;
 import toast from "./components/Toast.module.css";
 
 const TABS = [
@@ -192,8 +204,17 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/legal/:slug" element={<Legal />} />
         <Route path="/journal" element={<Journal />} />
-        <Route path="/styleguide" element={<Styleguide />} />
-        <Route path="/lab/cards" element={<CardLab />} />
+        {__PREVIEW_SEED__ && (
+          <>
+            <Route path="/styleguide" element={<Styleguide />} />
+            <Route path="/lab/cards" element={<CardLab />} />
+          </>
+        )}
+        {/* Last, and it matches everything left over. Without it a mistyped or
+            truncated address rendered the chrome over an empty page, which
+            looks exactly like an app that has broken rather than an address
+            that does not exist. */}
+        <Route path="*" element={<Lost />} />
       </Routes>
 
       <Shell onAdd={() => setAdding(true)} />
