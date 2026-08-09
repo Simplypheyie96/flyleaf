@@ -59,6 +59,27 @@ function Settings() {
             <Row title="Theme" control={<ThemeToggle />} />
           </Group>
 
+          {/* Second of six, directly under "You" — the owner's call, and it
+              settles a question this comment used to argue the other way.
+
+              It has now moved twice. It began below the install steps, where a
+              reader had to scroll past seven sets of instructions for devices
+              they do not own before reaching it, and in practice nobody did.
+              It then sat third, under "Your journey", on the reasoning that an
+              app whose Settings open with a request for money is a different
+              app. That reasoning still holds for the FIRST group and this is
+              not it: "You" stays at the top, and the ask comes after the
+              reader, not before them. Everything about the journey, syncing,
+              the tour, installing and the small print now follows. */}
+          {TIP_JAR && (
+            <Group
+              label="Support the maker"
+              note="Flyleaf is free, has no ads, and is made by one person. Nothing here is ever locked."
+            >
+              <Tip />
+            </Group>
+          )}
+
           {/* Erase sits in this group and last in it, not in a group of its
               own. It is the same subject as the rows above — where the journey
               is and what the reader can do with it — and the honest end of that
@@ -106,28 +127,6 @@ function Settings() {
             <SyncCard />
             <LockCard />
           </Group>
-
-          {/* Third of six, not second from last.
-
-              It sat below the install steps, which meant a reader had to scroll
-              past seven sets of instructions for devices they do not own before
-              they found it — in practice, nobody did. Up here it is on the
-              first screen of Settings, under the two groups that are genuinely
-              the reader's own business.
-
-              Not higher than that. It stays below "You" and "Your journey"
-              because it is the one row on this page that asks for something
-              rather than offering something, and an app whose Settings OPEN
-              with a request for money is a different app. Visible, third,
-              nothing locked — that is the whole brief. */}
-          {TIP_JAR && (
-            <Group
-              label="Support the maker"
-              note="Flyleaf is free, has no ads, and is made by one person. Nothing here is ever locked."
-            >
-              <Tip />
-            </Group>
-          )}
 
           {/* The tour, findable ever after. The owner asked for a first-run
               guide and, rightly, for a way to see it that does not require
