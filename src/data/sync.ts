@@ -33,19 +33,34 @@ const SYNCED_AT_KEY = 'flyleaf-synced-at'
     asked about and answered. Anything newer than this, written somewhere else,
     is news. */
 const SEEN_KEY = 'flyleaf-sync-seen'
-/** The Drive copy the reader looked at and said "leave this device as it is"
-    to. While it stands, this device neither pulls nor pushes: pushing would
-    write the other device's work out of Drive without them ever agreeing. */
-const HELD_KEY = 'flyleaf-sync-held'
+/** Set the moment anything is written while this device is NOT signed in, and
+    cleared by the first sync that succeeds after it.
+
+    This is the whole trigger for the one question this file asks, and it
+    replaces a much larger machine. The old rule was "ask whenever the Drive
+    copy was last written by another device" — which sounds cautious and is
+    actually the steady state of every working pair of devices: write on the
+    phone, open the laptop, and the laptop finds a newer copy written
+    elsewhere. So it asked. Every time, forever, and stopped syncing in both
+    directions until it was answered.
+
+    The owner's rule is the right one and it is narrower: "the only occasion it
+    asks for a sync is when I have made changes when I was not logged into my
+    Google account." That is the one case where two journeys genuinely diverged
+    without her being able to see it happen. Everything else is a pair of
+    devices doing what she signed in for, and it should be silent. */
+const OFFLINE_KEY = 'flyleaf-wrote-signed-out'
 /** What this device looked like the last time a sync finished, so an unchanged
     device on an unchanged Drive can skip the whole round trip. */
 const MARK_KEY = 'flyleaf-sync-mark'
 
-/** 'merge' takes the union of both sides, which is what every automatic sync
-    does and the only thing that cannot lose anything. 'keep' sends this
-    device's journey up without reading the other one first — the reader's
-    answer to the meeting question, never a default. */
-export type Mode = 'merge' | 'keep'
+/* THERE IS NO LONGER A MODE. There were two: 'merge', the union of both
+   sides, and 'keep', which sent this device's journey up without reading the
+   other one first. 'keep' was the only operation in Flyleaf that could end a
+   sync with less than it started with, it existed to serve one button in
+   Settings, and that button is gone. A sync is a merge. That is now a fact
+   about this file rather than a default argument, and it cannot be overridden
+   by a caller that thinks it knows better. */
 
 export interface SyncResult {
   /** Keeps that came down from another device. */
@@ -106,92 +121,41 @@ async function signature(): Promise<string> {
   return `${books}.${keeps}.${sittings}.${graves}.${newest?.createdAt ?? 0}.${edited}`
 }
 
-/** What the reader is being asked about: which device wrote the copy waiting
-    in Drive, when, and the exact version it was — so an answer can be pinned
-    to the thing that was answered rather than to "Drive" in general. */
-export interface Arrival {
-  device: string
-  at: number
-  stamp: string
+/** Did anything get written on this device while it was not signed in? */
+export function wroteWhileSignedOut(): boolean {
+  return read(OFFLINE_KEY) !== ''
 }
 
-let asking: Arrival | null = null
-
-/** The question, once it has been raised, for anything that mounts after it
-    was asked. */
-export function pendingArrival(): Arrival | null {
-  return asking
+/** Called by the write hooks when a change lands with no account attached. */
+function markWroteSignedOut() {
+  write(OFFLINE_KEY, '1')
 }
 
-/** Is syncing stopped waiting on the reader — either the question is on
-    screen, or she answered "leave this device as it is" and the other device
-    has not written anything since? Settings says so on the line, because a
-    sync that has quietly stopped and a sync that is up to date must not look
-    identical. */
-export function syncHeld(): boolean {
-  return asking !== null || read(HELD_KEY) !== ''
-}
+/** Is this device carrying work that Drive has never been shown?
 
-/** Is there an unanswered question about this Drive copy — and if there is,
-    raise it and stop the sync where it stands?
-
-    Three things have to be true. It was written by ANOTHER device, or this is
-    just this device reading its own last push back. It is NEWER than the copy
-    this device has already been shown, or the same question returns every
-    ninety seconds forever. And this device has a journey of its own, because a
-    fresh install has nothing to lose and no reason to be interrogated. */
-async function unanswered(remote: { modifiedTime: string; device?: string }): Promise<boolean> {
-  const mine = deviceName()
-  const other = remote.device ?? ''
-  if (!other || other === mine) return false
-  if (remote.modifiedTime === read(SEEN_KEY)) return false
+    Two ways that happens. She wrote something while signed out — the flag
+    above. Or this device has simply never completed a sync, which is the same
+    situation seen from a device that predates the flag existing, and is the
+    honest fallback for every reader already carrying a journey when this
+    shipped. Either way there is a local journey that Drive has not seen, and
+    that is the one thing worth stopping to ask about. */
+export async function hasUnsharedWork(): Promise<boolean> {
   if (!(await hasLocalJourney())) return false
-
-  /* Already declined, and the reader has not been given anything new to
-     decline. Stay quiet, and stay stopped — the point of "leave this device as
-     it is" is that this device stops writing over the other one's work. */
-  if (remote.modifiedTime === read(HELD_KEY)) return true
-
-  asking = {
-    device: other,
-    at: Date.parse(remote.modifiedTime) || 0,
-    stamp: remote.modifiedTime,
-  }
-  pauseAutoSync()
-  window.dispatchEvent(new Event('flyleaf-sync-ask'))
-  return true
+  return wroteWhileSignedOut() || lastSync() === null
 }
 
-/** "Bring them together." The union, in both directions, which is what every
-    sync in this file does once it is allowed to run. */
+/** "Bring them together." The union, in both directions — which is simply what
+    every sync in this file does, so answering yes is answering "carry on". */
 export async function bringArrivalIn(): Promise<SyncResult> {
-  /* Settings answers the same question at first sign-in, where nothing raised
-     it and there is no stamp in hand. Without looking one up, the merge below
-     would run and then the arrival check would immediately ask her about the
-     very copy she had just said yes to. */
-  const stamp = asking?.stamp ?? (await findJourney(await silentToken()))?.modifiedTime
-  if (stamp) write(SEEN_KEY, stamp)
-  write(HELD_KEY, '')
-  asking = null
+  write(OFFLINE_KEY, '')
   resumeAutoSync()
-  window.dispatchEvent(new Event('flyleaf-sync-ask'))
-  return syncNow('merge')
-}
-
-/** "Leave this device as it is." Nothing arrives, and — the half that is easy
-    to miss — nothing leaves either. Syncing holds until the other device
-    writes again, and then the question comes back with the newer date on it. */
-export function leaveArrival() {
-  if (asking) write(HELD_KEY, asking.stamp)
-  asking = null
-  resumeAutoSync()
-  window.dispatchEvent(new Event('flyleaf-sync-ask'))
+  return syncNow()
 }
 
 /** One full sync: pull, merge, push. Throws with a sentence fit to show a
     reader. The caller supplies the token so an expired one can be renewed and
     the whole thing retried without this function knowing about auth at all. */
-async function run(token: string, mode: Mode = 'merge'): Promise<SyncResult> {
+async function run(token: string): Promise<SyncResult> {
   /* First, before anything is measured or sent: a preview build's demo shelf
      is not the reader's journey and must not travel. The sweep itself ships in
      every build — a device seeded on a preview must still be able to take the
@@ -200,35 +164,39 @@ async function run(token: string, mode: Mode = 'merge'): Promise<SyncResult> {
 
   const remote = await findJourney(token)
 
-  /* THE OTHER DEVICE MOVED, AND THIS IS WHERE THE READER HEARS ABOUT IT.
+  /* THE OTHER DEVICE MOVED, AND NOTHING STOPS TO SAY SO. That is deliberate,
+     and it is a reversal.
 
-     The owner's words are the whole specification: "if the last place i made a
-     change is on my phone, when i open on my mac, it should let me know that
-     the last device i was on made changes, do i want to sync to match that
-     device or leave as it is". Merging quietly is safe — it is a union — but
-     it is not knowable, and a sync you cannot feel happening is a sync you
-     cannot trust. So when the copy in Drive was last written somewhere else,
-     and this device has a journey of its own to be surprised about, nothing
-     moves in either direction until she has answered. */
-  if (remote && mode === 'merge' && (await unanswered(remote))) {
-    return { gained: 0, unchanged: true }
-  }
+     There used to be a check here that raised a question whenever the Drive
+     copy was last written by another device, and held the sync — both
+     directions — until it was answered. It was built from a real request: "if
+     the last place I made a change is on my phone, when I open on my Mac, it
+     should let me know". But the condition it shipped with describes the
+     ordinary life of two working devices, not an exceptional event. Write on
+     the phone, open the laptop: the laptop finds a newer copy written
+     elsewhere and asks. Every single time, and because the question returned
+     before the merge, the marker that would have quietened it never advanced.
+
+     The reader's verdict was the correct one: "in as much as I am logged into
+     the same account, I will automatically see them on the other device — I
+     don't understand why Flyleaf is so hard to sync properly. It has all these
+     buttons and prompts that I genuinely do not understand."
+
+     A merge cannot lose anything — that is the invariant this whole file is
+     built on and it was true the entire time the question was being asked. So
+     the question moves to the one moment it is actually about: signing in on a
+     device carrying work Drive has never seen. See hasUnsharedWork above. */
 
   const here = await signature()
   const mark = `${remote?.modifiedTime ?? ''} ${here}`
 
-  if (remote && mode === 'merge' && read(MARK_KEY) === mark) {
+  if (remote && read(MARK_KEY) === mark) {
     write(SYNCED_AT_KEY, String(Date.now()))
     return { gained: 0, unchanged: true }
   }
 
   let gained = 0
-  /* 'keep' skips the pull and nothing else. What is on this device goes up and
-     replaces the Drive copy — which is only ever reached from the reader
-     answering the meeting question with "keep what is on this device", and is
-     the one path in this file that can lose something. It is theirs to choose,
-     said in those words, and it is never automatic. */
-  if (remote && mode === 'merge') {
+  if (remote) {
     const text = await readJourney(token, remote.id)
     /* Through the same door a hand-carried file uses. One reader of the format
        means a journey that restores from a USB stick and a journey that
@@ -265,6 +233,9 @@ async function run(token: string, mode: Mode = 'merge'): Promise<SyncResult> {
      it the first poll after a merge would find a copy it had never been shown
      and ask about work it had itself just sent up. */
   write(SEEN_KEY, saved.modifiedTime)
+  /* Whatever was written while signed out has now been up and merged, so it is
+     no longer a reason to stop and ask anybody anything. */
+  write(OFFLINE_KEY, '')
   window.dispatchEvent(new Event('flyleaf-sync'))
   return { gained, unchanged: false }
 }
@@ -322,8 +293,9 @@ export async function forgetDrive(): Promise<void> {
     write(SYNCED_AT_KEY, '')
     /* The question and its answer both described a file that is gone. */
     write(SEEN_KEY, '')
-    write(HELD_KEY, '')
-    asking = null
+    /* Everything on this device is now unshared by definition, so signing in
+       again is a first meeting and should ask like one. */
+    write(OFFLINE_KEY, '1')
   } finally {
     resumeAutoSync()
   }
@@ -352,19 +324,19 @@ let running: Promise<SyncResult> | null = null
 
 /** Sync now. Safe to call from anywhere — overlapping calls share one run,
     because two syncs at once would each merge the other's half-written state. */
-export function syncNow(mode: Mode = 'merge'): Promise<SyncResult> {
+export function syncNow(): Promise<SyncResult> {
   if (running) return running
 
   running = (async () => {
     let token = await silentToken()
     try {
-      return await run(token, mode)
+      return await run(token)
     } catch (error) {
       /* One retry, and only for the hour being up. Everything else is a real
          failure and says so. */
       if (!(error instanceof Error) || error.message !== 'expired') throw error
       token = await silentToken()
-      return run(token, mode)
+      return run(token)
     }
   })().finally(() => {
     running = null
@@ -455,7 +427,14 @@ function attempt() {
    sync makes are themselves merges arriving from Drive — they would otherwise
    schedule a sync of the thing that was just synced, forever. */
 function touched() {
-  if (!optedIn()) return
+  /* Signed out, so there is nowhere to send this — but it is exactly the work
+     that will need reconciling if she signs in later, and remembering that now
+     is the only way to know it happened. This is the single input to the one
+     question this file asks. */
+  if (!optedIn()) {
+    markWroteSignedOut()
+    return
+  }
   if (settling) clearTimeout(settling)
   settling = setTimeout(() => {
     settling = null

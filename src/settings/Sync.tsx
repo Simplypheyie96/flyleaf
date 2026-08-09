@@ -4,13 +4,12 @@ import { SYNC_AVAILABLE, account, needsSignIn, optedIn, signIn, signOut, tokenHe
 import {
   autoSyncPaused,
   forgetDrive,
-  hasLocalJourney,
+  hasUnsharedWork,
   lastSync,
   otherJourney,
   pauseAutoSync,
   resumeAutoSync,
   bringArrivalIn,
-  syncHeld,
   syncNow,
 } from '../data/sync'
 import styles from './settings.module.css'
@@ -142,14 +141,23 @@ function SyncCard() {
       await signIn()
       setOn(true)
 
-      /* THE ONE QUESTION WORTH ASKING. Two journeys meeting for the first time
-         is the only moment where syncing changes what is on this screen without
-         the reader having written any of it — so it is the only moment that
-         stops and asks. The pause is held until they answer, or the write hooks
-         would merge it underneath the question. */
+      /* THE ONE QUESTION, AND THE ONLY ONE. It is asked here and nowhere else,
+         at the only moment it is really about: this device is carrying work
+         that Drive has never seen — written while signed out, or written
+         before this device ever synced — and Drive already holds a journey
+         from somewhere else. Those two things are what "my two devices have
+         drifted apart" actually looks like.
+
+         It is NOT asked merely because the other device wrote something. That
+         was the old rule and it fired on the ordinary life of a working pair,
+         which is how a question meant for one rare moment became a wall across
+         every sync. See the long note in data/sync.ts/run.
+
+         The pause is held until she answers, or the write hooks would merge
+         it underneath the question. */
       pauseAutoSync()
       const other = await otherJourney()
-      if (other && (await hasLocalJourney())) {
+      if (other && (await hasUnsharedWork())) {
         setAsk(other)
         setBusy(null)
         return
@@ -190,31 +198,6 @@ function SyncCard() {
         text: gained
           ? `Brought together. ${gained} ${gained === 1 ? 'memory' : 'memories'} came over from your other device.`
           : 'Brought together. Your journey is now in your own Google Drive.',
-      })
-    } catch (error) {
-      setNote({ tone: 'bad', text: error instanceof Error ? error.message : 'That did not sync.' })
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  /* The owner asked for this one by name: "request if it wants to merge or
-     keep the current data". What is on this device goes up and takes the other
-     copy's place — the one deliberate way to end up with less than you started
-     with, so it says so in the button and again in the note underneath.
-
-     It is not a delete of the other device: that phone still has every word it
-     had a minute ago. It is this journey becoming the one they all sync to. */
-  async function keepThisDevice() {
-    setBusy('in')
-    setAsk(null)
-    resumeAutoSync()
-    try {
-      await syncNow('keep')
-      setAt(lastSync())
-      setNote({
-        tone: 'good',
-        text: 'Kept. Your other devices will match this one the next time they sync.',
       })
     } catch (error) {
       setNote({ tone: 'bad', text: error instanceof Error ? error.message : 'That did not sync.' })
@@ -323,17 +306,7 @@ function SyncCard() {
         title="Sync across devices"
         control={
           <span className={styles.value}>
-            {!on
-              ? 'Off'
-              : stale
-                ? 'Sign in again'
-                : /* A sync that has stopped because the reader stopped it must
-                     never read as a sync that is up to date. */
-                  syncHeld()
-                  ? 'Waiting on you'
-                  : at
-                    ? when(at)
-                    : 'Not yet'}
+            {!on ? 'Off' : stale ? 'Sign in again' : at ? when(at) : 'Not yet'}
           </span>
         }
         open={open}
@@ -408,19 +381,14 @@ function SyncCard() {
                   <Cloud />
                 </span>
               </button>
-              <button
-                type="button"
-                className={styles.action}
-                disabled={busy !== null}
-                onClick={keepThisDevice}
-              >
-                Keep only what is on this device
-              </button>
-              <p className={styles.note}>
-                Keeping this one sends it up in place of the other copy. Your{' '}
-                {ask.device ? ask.device : 'other device'} keeps everything it
-                has until it next syncs, and then matches this one.
-              </p>
+              {/* There were three answers here and now there are two, which is
+                  what was asked for: "do I want to go with the data on device
+                  one or leave as is". The third was "keep only what is on this
+                  device" — the sole button in the app that could send a
+                  journey up in place of another one, and so the sole way to
+                  end a sync with less than you started with. Nobody needs a
+                  destructive option inside a question about two devices
+                  agreeing. */}
               <button
                 type="button"
                 className={styles.action}
@@ -439,12 +407,21 @@ function SyncCard() {
             </button>
           ) : (
             <>
-              <button type="button" className={styles.action} disabled={busy !== null} onClick={now}>
-                {busy === 'now' ? 'Syncing…' : stale ? 'Sign in to Google again' : 'Sync now'}
-                <span className={styles.mark}>
-                  <Cloud />
-                </span>
-              </button>
+              {/* "SYNC NOW" IS GONE, and its absence is the feature. Syncing
+                  happens on every write, on every return to the app and every
+                  ninety seconds it is in front of you; a button that asks for
+                  what is already happening only teaches the reader that it
+                  might not be. What remains here is the one case that is not
+                  automatic — Google has stopped letting this device refresh
+                  quietly and needs a human to say so again. */}
+              {stale && (
+                <button type="button" className={styles.action} disabled={busy !== null} onClick={now}>
+                  {busy === 'now' ? 'Signing in…' : 'Sign in to Google again'}
+                  <span className={styles.mark}>
+                    <Cloud />
+                  </span>
+                </button>
+              )}
 
               <button
                 type="button"
