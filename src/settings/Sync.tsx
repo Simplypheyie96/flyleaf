@@ -9,6 +9,8 @@ import {
   otherJourney,
   pauseAutoSync,
   resumeAutoSync,
+  bringArrivalIn,
+  syncHeld,
   syncNow,
 } from '../data/sync'
 import styles from './settings.module.css'
@@ -179,7 +181,9 @@ function SyncCard() {
     setAsk(null)
     resumeAutoSync()
     try {
-      const { gained } = await syncNow()
+      /* Not `syncNow` directly: answering here has to be recorded as answered,
+         or the arrival check asks the same question again a second later. */
+      const { gained } = await bringArrivalIn()
       setAt(lastSync())
       setNote({
         tone: 'good',
@@ -319,7 +323,17 @@ function SyncCard() {
         title="Sync across devices"
         control={
           <span className={styles.value}>
-            {!on ? 'Off' : stale ? 'Sign in again' : at ? when(at) : 'Not yet'}
+            {!on
+              ? 'Off'
+              : stale
+                ? 'Sign in again'
+                : /* A sync that has stopped because the reader stopped it must
+                     never read as a sync that is up to date. */
+                  syncHeld()
+                  ? 'Waiting on you'
+                  : at
+                    ? when(at)
+                    : 'Not yet'}
           </span>
         }
         open={open}

@@ -25,6 +25,7 @@
 
 import type { Book, Entry } from '../data/db'
 import { IMPRINT } from '../brand/imprint'
+import { MARK } from '../brand/Wordmark'
 import { KIND, KINDS } from './kinds'
 import { colophon } from './lexicon'
 
@@ -309,6 +310,16 @@ export function ground(ctx: CanvasRenderingContext2D, palette: Palette) {
 
   speckle(ctx, palette.ink, 0.045, 0, 0, W, H, 5200, 9973)
 
+  /* Embossed into the corner the type runs away from, and clipped to the
+     plate's own edge so it stops where the paper does rather than bleeding
+     past the hairline. See `blindStamp`. */
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(41, 41, W - 82, H - 82)
+  ctx.clip()
+  blindStamp(ctx, palette.accent, W - 210, H - 230, 520)
+  ctx.restore()
+
   /* The plate's edge. One hairline inside the bleed, which is what makes a
      picture read as a printed thing rather than as a screenshot. */
   ctx.strokeStyle = palette.soft
@@ -358,6 +369,89 @@ export function imprint(
   ctx.textAlign = was
 }
 
+/* ── The mark ──────────────────────────────────────────────────────────── */
+
+/* THE ROSETTE, ON THE PICTURE. The owner's report was one clause long and
+   entirely fair: "the logo is not there either, flyleaf's logo." Every picture
+   that left the app was signed in words and by nothing you could recognise
+   from across a room, which for a thing whose whole purpose is to be seen in
+   somebody else's message thread is the wrong way round.
+
+   It is the same path the tab bar, the splash and the home-screen icon are
+   drawn from — imported, not redrawn, for the reason Wordmark.tsx gives about
+   the five files that move together. Canvas takes SVG path data through
+   Path2D, arcs and all, so the mark on the picture is the mark on the icon to
+   the pixel rather than in spirit. */
+const ROSETTE = typeof Path2D === 'function' ? new Path2D(MARK) : null
+
+/** The mark, at any size, centred on a point. `size` is its full width, the
+    same number the React component takes, so the two are asked for in the
+    same units. */
+export function flower(
+  ctx: CanvasRenderingContext2D,
+  colour: string,
+  cx: number,
+  cy: number,
+  size: number,
+  alpha = 1,
+) {
+  if (!ROSETTE) return
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.fillStyle = colour
+  ctx.translate(cx, cy)
+  ctx.scale(size / 512, size / 512)
+  ctx.translate(-256, -256)
+  ctx.fill(ROSETTE)
+  ctx.restore()
+}
+
+/** The blind stamp: the mark set enormous and almost invisible, bled off a
+    corner, under everything.
+
+    This is the answer to the other half of the same report — "it's currently
+    too plain". A plate that is stock, one rule and a column of type is honest
+    and it is also flat, and the usual cures are worse: a border makes it a
+    certificate, a tint makes it a slide. What a press does instead is emboss
+    the paper, and an emboss reads as texture from across the room and as the
+    house mark when you actually look. At 4% it cannot compete with a word on
+    the page — which is the requirement, because nothing here is allowed to
+    make the reader's own sentence harder to read. */
+export function blindStamp(
+  ctx: CanvasRenderingContext2D,
+  colour: string,
+  cx: number,
+  cy: number,
+  size: number,
+) {
+  flower(ctx, colour, cx, cy, size, 0.045)
+}
+
+/** The press's signature: the mark, then the words, as one line.
+
+    Set as a pair rather than a lone stamp because two marks in two corners is
+    two logos. `x` is the line's outer edge on the side it is aligned to, so a
+    caller centring it needs the pair's width — which is why this returns it. */
+export function signature(
+  ctx: CanvasRenderingContext2D,
+  colour: string,
+  x: number,
+  y: number,
+  align: 'left' | 'right' | 'center' = 'left',
+) {
+  const MARK_SIZE = 26
+  const GAP = 14
+  const words = stampWidth(ctx, IMPRINT.toUpperCase())
+  const whole = MARK_SIZE + GAP + words
+  const left = align === 'left' ? x : align === 'right' ? x - whole : x - whole / 2
+
+  /* Centred on the CAPITALS beside it, not on the baseline. A stamp has no
+     descenders, so a mark centred on the baseline sits visibly low. */
+  flower(ctx, colour, left + MARK_SIZE / 2, y - 7.5, MARK_SIZE, 0.9)
+  imprint(ctx, colour, left + MARK_SIZE + GAP, y, 'left')
+  return whole
+}
+
 /** The author, stamped at the foot and kept out of the press's way.
 
     Ours is a fixed fifteen characters and theirs is not, so theirs is the one
@@ -367,7 +461,11 @@ export function imprint(
     through the plate's own margin, which is what an unmeasured author did
     before there was anything at the far end of this line to stop it. */
 function byline(ctx: CanvasRenderingContext2D, author: string, palette: Palette) {
-  const room = W - PAD * 2 - stampWidth(ctx, IMPRINT.toUpperCase()) - IMPRINT_GAP
+  /* The 40 is the rosette and its gap, which the press now carries at the far
+     end of this line — see `signature`. Left out, a long name would run into
+     the mark instead of into the words, which is the same bug one glyph
+     earlier. */
+  const room = W - PAD * 2 - stampWidth(ctx, IMPRINT.toUpperCase()) - 40 - IMPRINT_GAP
   ctx.textAlign = 'left'
   ctx.fillStyle = palette.soft
   stamp(ctx, elide(ctx, author.toUpperCase(), room), PAD, FOOT_Y)
@@ -578,6 +676,25 @@ function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
     if (lines.length * size * 1.24 <= room) break
   }
 
+  /* AND IF IT STILL DOES NOT FIT AT 52, IT IS CUT. The ladder above stops at
+     52px because below that a quotation in a message thread stops being read
+     and starts being texture — but stopping the shrinking is not the same as
+     making it fit, and nothing here was saying so. A long enough passage came
+     off the bottom of the ladder still eight lines tall, and drew straight
+     down through FLOOR and out the other side of the book's own title. Which
+     is the overlap the owner reported: "the journey share card is even worse
+     because some text overlap."
+
+     So the room gets the last word. What fits, fits; what does not is elided,
+     and the card stays a card. A picture is a doorway to the passage, never
+     the passage itself — a reader who wants all of it opens the app. */
+  const most = Math.max(1, Math.floor(room / (size * 1.24)))
+  if (lines.length > most) {
+    lines = lines.slice(0, most)
+    const last = lines[most - 1].replace(/[\s”“]+$/, '')
+    lines[most - 1] = `${elide(ctx, last, W - PAD * 2 - ctx.measureText('…”').width)}…”`
+  }
+
   const block = lines.length * size * 1.24
   let y = PAD + 120 + (room - block) / 2 + size
 
@@ -661,7 +778,7 @@ export function drawKeepsake(canvas: HTMLCanvasElement, k: Keepsake, look: Look)
      same line and a press that signs some of its own pictures is not a press.
      `soft` is the palette's quiet ink — the one the author beside it is
      already set in — so the two ends of the line weigh the same. */
-  imprint(ctx, look.palette.soft, W - PAD, FOOT_Y, 'right')
+  signature(ctx, look.palette.soft, W - PAD, FOOT_Y, 'right')
 }
 
 /* ── Getting it off the device ─────────────────────────────────────────── */

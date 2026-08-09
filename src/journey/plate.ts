@@ -37,17 +37,18 @@
    label goes, in the same stamped capitals `keepsake.ts` signs the whole
    reading with. See `brand/imprint.ts` for the words. */
 
-import type { Book, Entry } from '../data/db'
+import type { Book, Entry, EntryType } from '../data/db'
 import { groundHue } from '../books/CoverArt'
 import { seedFrom } from '../books/seed'
 import { KIND, STANCE } from './kinds'
 import { dayPhrase } from './lexicon'
 import {
   FACE_READ,
+  blindStamp,
+  signature,
   H,
   W,
   elide,
-  imprint,
   onField,
   read,
   speckle,
@@ -79,6 +80,9 @@ export interface Plate {
       — how sure the reader was. A hunch printed as a claim is a different
       sentence, which is why share.ts carries the stance too. */
   kind: string
+  /** The kind again, as the type rather than as a sentence. The head draws a
+      mark for it — see `glyph` — and a mark cannot be chosen from prose. */
+  type: EntryType
   /** A character's name, a place's name. The heading, where there is one. */
   name: string | null
   /** The words themselves. */
@@ -113,6 +117,7 @@ export function plateOf(
 
   return {
     kind: [`${article} ${one}`, stance].filter(Boolean).join(' · '),
+    type: keep.type,
     name: keep.name?.trim() || null,
     said: keep.text?.trim() ?? '',
     quoted: keep.type === 'quote',
@@ -216,14 +221,26 @@ function mount(ctx: CanvasRenderingContext2D, palette: Palette) {
   frame(ctx)
   ctx.clip()
   speckle(ctx, palette.ink, 0.045, CARD_X, CARD_TOP, CARD_W, CARD_H, 3600, 9973)
+
+  /* The rosette, pressed into the sheet rather than printed on it — the mark a
+     bindery leaves in the board, which is where the idea comes from and why it
+     is at four and a half percent. It has to be findable and it must not
+     compete with a single word set over it; anything darker and the reader is
+     looking at a watermarked stock photo. Clipped to the sheet, low and to the
+     right, where a keep's words have run out by. */
+  blindStamp(ctx, palette.accent, CARD_X + CARD_W - 130, CARD_BOT - 140, 440)
   ctx.restore()
 }
 
 /* ── The book, at the head ─────────────────────────────────────────────── */
 
-const COVER_W = 76
-const COVER_H = 114
-const COVER_GAP = 28
+/* Bigger than it was — 76×114 was sized for a crop, and a contained jacket
+   loses whichever dimension it does not fill. At 92 wide a square cover still
+   comes out 92 across, which is where a cover stops being a swatch and starts
+   being recognisable as the book. */
+const COVER_W = 92
+const COVER_H = 138
+const COVER_GAP = 30
 
 /** One oklch colour, resolved here rather than handed to the canvas as a
     string.
@@ -283,10 +300,24 @@ function board(ctx: CanvasRenderingContext2D, p: Plate, palette: Palette, x: num
   ctx.clip()
 
   if (p.cover) {
-    /* Cropped to fill, never letterboxed. A cover is somebody's design and a
-       band of paper down either side of it reads as a broken image, not as a
-       considered margin. */
-    const scale = Math.max(COVER_W / p.cover.width, COVER_H / p.cover.height)
+    /* THE WHOLE JACKET, AND NOT A CROP OF IT. This filled the board instead,
+       on the argument that a band of paper either side of a cover reads as a
+       broken image. The owner tested that argument and it lost: "the cover not
+       fully seen". She is right, and the reasoning was backwards — a jacket is
+       somebody's design, with the title set on it and the author's name at the
+       foot, and a fill at 2:3 crops exactly those off a cover that is any
+       other shape. A picture of her book that does not show her book is worse
+       than a margin.
+    
+       So it is contained, centred, and what shows beside it is the book's own
+       cloth rather than the sheet's paper — which is what a jacket wrapped
+       round a narrower board actually looks like, and why it does not read as
+       a letterbox. */
+    ctx.fillStyle = oklchHex(0.945, 0.05, p.hue)
+    ctx.fillRect(x, y, COVER_W, COVER_H)
+    speckle(ctx, oklchHex(0.44, 0.075, p.hue), 0.12, x, y, COVER_W, COVER_H, 300, 4801)
+
+    const scale = Math.min(COVER_W / p.cover.width, COVER_H / p.cover.height)
     const w = p.cover.width * scale
     const h = p.cover.height * scale
     ctx.drawImage(p.cover, x + (COVER_W - w) / 2, y + (COVER_H - h) / 2, w, h)
@@ -338,6 +369,110 @@ function board(ctx: CanvasRenderingContext2D, p: Plate, palette: Palette, x: num
   ctx.globalAlpha = 1
 }
 
+/* ── What kind of thing this is ────────────────────────────────────────── */
+
+/* THE PICTURE HAS TO SAY WHAT IT IS, AND IT DID NOT. The owner's report: "no
+   distinction in card wether it's a note, or it's a quote or if it's a plot
+   thread or character, it doesn't show it." It was there, technically — one
+   small stamped word at the very foot of the sheet, sharing a line with the
+   page number, set in the size the app uses for page numbers. Technically
+   there is not there. Somebody scrolling a message thread reads the head of a
+   picture and nothing else.
+
+   So the kind moves to the head, above the book's own title, and it brings a
+   drawing with it. A word alone would still be a word among words; a mark is
+   what the eye lands on before it has read anything, and it is how the seven
+   kinds tell each other apart everywhere else in this app.
+
+   Drawn here rather than lifted out of TabIcons, which is a React component
+   tree and not something a canvas can paint. Same seven ideas at the same
+   weight — a quotation mark, a ruled leaf, a waveform, a frame, a head and
+   shoulders, a pin, a line finding its way — reduced to what survives at 26px
+   in stroke. */
+const GLYPH = 32
+
+function glyph(
+  ctx: CanvasRenderingContext2D,
+  type: EntryType,
+  colour: string,
+  x: number,
+  mid: number,
+) {
+  const at = (n: number) => (n * GLYPH) / 24
+  ctx.save()
+  ctx.translate(x, mid - GLYPH / 2)
+  ctx.strokeStyle = colour
+  ctx.fillStyle = colour
+  ctx.lineWidth = at(2.1)
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  if (type === 'quote') {
+    /* The one kind that is somebody else's sentence, so it wears the mark that
+       says so — and in the reading face, not the app's, for the same reason. */
+    /* The baseline is at 30 of a 24 box, which looks like a mistake and is
+       not: an opening quotation mark is drawn at the TOP of its em, so a
+       glyph hung on the box's own baseline floats above every other mark in
+       the set. Dropping the baseline past the box brings the mark back to the
+       middle, where the other six sit. */
+    ctx.font = `600 ${at(38)}px ${FACE_READ}`
+    ctx.textAlign = 'left'
+    ctx.fillText('\u201C', at(2), at(29))
+  } else if (type === 'note') {
+    ctx.beginPath()
+    for (let i = 0; i < 3; i++) {
+      ctx.moveTo(at(3), at(7 + i * 5))
+      ctx.lineTo(at(i === 2 ? 14 : 21), at(7 + i * 5))
+    }
+    ctx.stroke()
+  } else if (type === 'voice') {
+    ctx.beginPath()
+    ;[8, 15, 22, 13, 6].forEach((h, i) => {
+      ctx.moveTo(at(3 + i * 4.5), at(12 - h / 2))
+      ctx.lineTo(at(3 + i * 4.5), at(12 + h / 2))
+    })
+    ctx.stroke()
+  } else if (type === 'image') {
+    ctx.beginPath()
+    ctx.roundRect(at(3), at(5), at(18), at(14), at(2.5))
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.arc(at(9), at(11), at(1.8), 0, Math.PI * 2)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.moveTo(at(5), at(18))
+    ctx.lineTo(at(11), at(12.5))
+    ctx.lineTo(at(19), at(18))
+    ctx.stroke()
+  } else if (type === 'character') {
+    ctx.beginPath()
+    ctx.arc(at(12), at(8.5), at(4), 0, Math.PI * 2)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.arc(at(12), at(21), at(7.5), Math.PI * 1.15, Math.PI * 1.85)
+    ctx.stroke()
+  } else if (type === 'place') {
+    ctx.beginPath()
+    ctx.arc(at(12), at(9.5), at(6.5), Math.PI * 0.85, Math.PI * 0.15)
+    ctx.lineTo(at(12), at(21.5))
+    ctx.closePath()
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.arc(at(12), at(9.5), at(2.2), 0, Math.PI * 2)
+    ctx.fill()
+  } else {
+    /* A thread: a line working its way across. The one glyph that is not a
+       symbol of anything, because a plot thread is not a thing, it is a shape
+       a story makes. */
+    ctx.beginPath()
+    ctx.moveTo(at(3), at(18))
+    ctx.bezierCurveTo(at(3), at(10), at(9), at(6), at(12), at(12))
+    ctx.bezierCurveTo(at(15), at(18), at(21), at(14), at(21), at(6))
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
 /** More lines than the plate can hold: keep what fits and say so. A picture
     that silently stops mid-sentence reads as a bug at the far end. */
 function clamp(lines: string[], most: number, tail = '…') {
@@ -363,6 +498,14 @@ function head(ctx: CanvasRenderingContext2D, p: Plate, palette: Palette) {
   const x = IN_X + COVER_W + COVER_GAP
   const room = IN_W - COVER_W - COVER_GAP
 
+  /* Without its article. `kind` reads "a quote" because share.ts sets it in a
+     sentence, and a sentence needs one; this is a label, and "QUOTE · A HUNCH"
+     reads as one where "A QUOTE · A HUNCH" reads as a form field. The article
+     is dropped here rather than at the source so the written share keeps its
+     grammar. */
+  const kind = p.kind.replace(/^an? /i, '').toUpperCase()
+  const KIND_STEP = 46
+
   const SIZE = read(34)
   const STEP = Math.round(SIZE * 1.16)
   ctx.textAlign = 'left'
@@ -376,15 +519,25 @@ function head(ctx: CanvasRenderingContext2D, p: Plate, palette: Palette) {
      way this was first written — puts a one-line title's capitals fifteen
      pixels below the top of the cover, which is not enough to name and quite
      enough to make the head look like it slipped. So the block is measured
-     from the top of the caps to the author's baseline (a stamped line is all
-     capitals, so it has no descender to allow for) and centred against the
-     board. Two lines then span the board almost exactly, which is luck, but
-     it is the kind of luck worth keeping: the geometry above was chosen
-     partly because it lands there. */
+     from the top of the kind's capitals to the author's baseline (a stamped
+     line is all capitals, so it has no descender to allow for) and centred
+     against the board. */
   const CAP = SIZE * 0.66
   const AUTHOR_GAP = 40
-  const tall = CAP + (lines.length - 1) * STEP + AUTHOR_GAP
-  let y = Math.round(IN_TOP + COVER_H / 2 + CAP - tall / 2)
+  const tall = KIND_STEP + CAP + (lines.length - 1) * STEP + AUTHOR_GAP
+  let y = Math.round(IN_TOP + COVER_H / 2 + 15 - tall / 2)
+
+  /* The mark and its word, above everything, in the one colour on the sheet
+     that is neither the ink nor the quiet grey — because what this is is not
+     a fact about the book, it is the picture naming itself. */
+  glyph(ctx, p.type, palette.accent, x, y - 8)
+  ctx.fillStyle = palette.accent
+  ctx.textAlign = 'left'
+  stamp(ctx, elide(ctx, kind, room - GLYPH - 16), x + GLYPH + 16, y)
+  y += KIND_STEP + CAP
+
+  ctx.fillStyle = palette.ink
+  ctx.font = `600 ${SIZE}px ${FACE_READ}`
   for (const line of lines) {
     ctx.fillText(line, x, y)
     y += STEP
@@ -394,9 +547,9 @@ function head(ctx: CanvasRenderingContext2D, p: Plate, palette: Palette) {
   ctx.fillStyle = palette.soft
   stamp(ctx, elide(ctx, p.author.toUpperCase(), room), x, author)
 
-  /* Under whichever of the two ran longer. A one-line title clears the board
-     by 30px and a two-line one overruns it, and a rule at a fixed height would
-     either float above the second case or crowd the first. */
+  /* Under whichever of the two ran longer. A short head clears the board and a
+     tall one overruns it, and a rule at a fixed height would either float
+     above the second case or crowd the first. */
   const rule = Math.max(IN_TOP + COVER_H, author + 14) + 34
   ctx.strokeStyle = palette.soft
   ctx.globalAlpha = 0.34
@@ -429,20 +582,19 @@ function place(ctx: CanvasRenderingContext2D, where: string, room: number) {
   return ''
 }
 
-/* What it is and where it came from, on one line at the sheet's foot. They
-   were two stamps in two corners and read as a form; joined by the same middot
-   the app uses everywhere else, they read as a caption. */
+/* Where in the book it came from, at the sheet's foot.
+
+   This line used to carry the kind as well — "QUOTE · PAGE 214" — and that was
+   the whole of how a picture said what it was. The kind has moved up to the
+   head, where it has a mark beside it and is read before the words rather than
+   after them, so what is left here is provenance and only provenance: the page,
+   the chapter, the minute. Which is the one thing a foot should carry. */
 function mark(ctx: CanvasRenderingContext2D, p: Plate, palette: Palette) {
-  /* Without its article. `kind` reads "a quote" because share.ts sets it in a
-     sentence, and a sentence needs one; a stamp is a label, and "A QUOTE ·
-     JULY 5" reads like a form field where "QUOTE · JULY 5" reads like a
-     caption. The article is dropped here rather than at the source so the
-     written share keeps its grammar. */
-  const kind = p.kind.replace(/^an? /i, '').toUpperCase()
-  const where = place(ctx, p.where, IN_W - stampWidth(ctx, kind) - 40)
+  const where = place(ctx, p.where, IN_W)
+  if (!where) return
   ctx.textAlign = 'left'
   ctx.fillStyle = palette.accent
-  stamp(ctx, [kind, where.toUpperCase()].filter(Boolean).join(' · '), IN_X, IN_BOT)
+  stamp(ctx, where.toUpperCase(), IN_X, IN_BOT)
 }
 
 /* The room between the head's rule and the foot's stamp. Everything a cut
@@ -758,7 +910,7 @@ export function drawPlate(canvas: HTMLCanvasElement, p: Plate, cast: Cast) {
      because the sheet above it is centred between two equal side margins and a
      label hung off one corner of a symmetrical mount reads as having slipped
      rather than as having been placed. */
-  imprint(ctx, onField(cast.palette), W / 2, IMPRINT_Y, 'center')
+  signature(ctx, onField(cast.palette), W / 2, IMPRINT_Y, 'center')
 }
 
 /* ── The book's own cover ──────────────────────────────────────────────── */
