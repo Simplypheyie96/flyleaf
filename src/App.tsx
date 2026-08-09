@@ -17,7 +17,7 @@ import SyncNudge from "./components/SyncNudge";
 import SplashScreen from "./components/SplashScreen";
 import FlowerField from "./brand/FlowerField";
 import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
-import UpdateToast from "./components/UpdateToast";
+import UpdateWatch from "./components/UpdateWatch";
 import Welcome from "./onboarding/Welcome";
 import Legal from "./legal/Legal";
 import Journal from "./journal/Journal";
@@ -150,32 +150,28 @@ function Shell({ onAdd }: { onAdd: () => void }) {
    for the same reason. */
 function Dock() {
   const { pathname } = useLocation();
-  /* THE UPDATE TOAST IS NOT SUBJECT TO THIS, at the owner's instruction — "I
-     still want the toast no matter what." It used to be, and that was a real
-     hole rather than a nicety: the whole component, registration hook and all,
-     unmounted the moment a book journey opened, so a reader who spends their
-     time in a journey both never saw the notice AND had the hourly check torn
-     down under them. A notice about the app itself is not chrome over the work;
-     it is the one message that cannot wait for a better screen. */
-  const quiet =
-    pathname.startsWith("/lab/") || pathname.startsWith("/journal");
+  /* The update machinery is NOT in here any more, and that is the fix rather
+     than a tidy-up. It used to be — registration hook and all — so it
+     unmounted the moment a book journey opened, and a reader who spends her
+     time reading was reloading a page with no update machinery running on it.
+     It now sits above the router in App, where nothing can hide it. See
+     components/UpdateWatch.tsx. */
+  if (pathname.startsWith("/lab/") || pathname.startsWith("/journal"))
+    return null;
 
   return (
     <div className={toast.dock}>
-      <UpdateToast />
       {/* A question, not an offer: it holds syncing in both directions until
-          it is answered, so it sits with the update toast rather than with
-          the three invitations below. */}
-      {!quiet && <SyncArrival />}
+          it is answered, so it sits above the three invitations below. */}
+      <SyncArrival />
       {/* Three invitations now, and every one of them is optional — so what
           keeps them from becoming a nag is not any of the three, it is
           data/nudges: one on screen at a time, one per launch, five days
           between, and gone for good after three refusals. Read that file
-          before adding a fourth. The update toast is not one of them and does
-          not answer to it — an update is news, not an offer. */}
-      {!quiet && <InstallPrompt />}
-      {!quiet && <SyncNudge />}
-      {!quiet && <LockNudge />}
+          before adding a fourth. */}
+      <InstallPrompt />
+      <SyncNudge />
+      <LockNudge />
     </div>
   );
 }
@@ -263,6 +259,11 @@ function App() {
           setFirstKeep("");
         }}
       />
+
+      {/* Draws nothing, and is mounted here rather than in the dock because
+          the dock is hidden on some routes and this must never be. It is what
+          notices a new build exists. */}
+      <UpdateWatch />
 
       <Dock />
 
