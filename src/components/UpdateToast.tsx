@@ -29,9 +29,21 @@ const UPDATE_EVERY_MS = 60 * 60 * 1000
     reader sees nothing at all.
 
     The notice below is the whole point of prompt mode: it is the only moment
-    at which a reader learns that the thing they are looking at has changed. It
-    names the version so "am I on the fix yet?" has an answer that does not
-    require faith. */
+    at which a reader learns that the thing they are looking at has changed,
+    and the owner asked for it back in those words — "i always want that
+    prompt". It briefly went away in favour of a silent autoUpdate, which
+    answered a complaint she never made: the prompt was not unwanted, it was
+    LATE.
+
+    IT MUST BE MOUNTED ON EVERY SCREEN, and that is the actual fix rather than
+    a tidy-up. The hook above registers the worker as a side effect of this
+    component existing, so any screen that does not render it is a screen on
+    which Flyleaf cannot notice a new build at all. It used to be rendered
+    inside the notice dock's route check, which bailed on a book journey and on
+    the journal — so a reader who spends her time reading was reloading a page
+    with no update machinery running on it, over and over, and nothing was ever
+    going to happen. See the note in App's Dock: this one notice renders
+    unconditionally and the other three keep their route check. */
 function UpdateToast() {
   const {
     needRefresh: [needRefresh, setNeedRefresh],

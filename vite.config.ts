@@ -46,32 +46,46 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      // 'autoUpdate', not 'prompt'. Prompt was the polite choice and it did not
-      // work: a new build reaches `waiting` and then sits there until someone
-      // taps a toast, and on an installed iOS copy that toast is easy to never
-      // see — the app is resumed rather than loaded, so the reader gets no
-      // obvious moment where a refresh is being offered. The result was fixes
-      // shipping to a device that stayed on a months-old build and a reader
-      // reasonably concluding nothing had been fixed.
+      // AUTOUPDATE. This line has been changed twice before, and the history is
+      // the argument for why it stays here now — read it before changing it a
+      // fourth time.
       //
-      // autoUpdate swaps the new worker in as soon as one is found and reloads.
-      // Cost: a reload can land mid-scroll. That cost is bounded because the
-      // service worker owns only its own Cache Storage — every keep, book and
-      // draft lives in IndexedDB, which an update never touches, so a reload
-      // loses position on a page and nothing else.
-      // PROMPT, NOT AUTO — changed on the owner's report: "I can't seem to see
-      // the changes, and I can't confirm if it hasn't synced or the fix is not
-      // working." That is autoUpdate's real cost, and it is worse than the
-      // mid-scroll reload it was chosen to avoid. A silent swap means a reader
-      // who is looking for a fix has no way to tell "the update has not reached
-      // me yet" from "the update reached me and did not work" — two problems
-      // with completely different answers, made indistinguishable.
+      // It began as autoUpdate: a new worker takes over as soon as it is found
+      // and the page reloads. That was changed to prompt on the owner's report,
+      // "I can't seem to see the changes, and I can't confirm if it hasn't
+      // synced or the fix is not working." A fair objection, and the real cost
+      // of a silent swap: a reader hunting for a fix cannot tell "it has not
+      // reached me" from "it reached me and did not work" — two problems with
+      // completely different answers, made indistinguishable.
       //
-      // prompt makes the arrival visible: the toast in UpdateToast.tsx says a
-      // new version is ready and waits to be tapped. The reload then happens at
-      // a moment the reader chose, which also disposes of the mid-scroll
-      // objection. Everything else about delivery is unchanged — the worker
-      // still owns only Cache Storage, and IndexedDB is never touched.
+      // Prompt answered that and bought a worse problem. A build reaches
+      // `waiting` and sits there until a toast is tapped, and the toast can
+      // only be tapped if it is on screen at the moment the worker settles. The
+      // owner's report this time: "I refreshed and refreshed and refreshed
+      // several times before I got the prompt, and that is not cool at all."
+      // She is right. A delivery mechanism that depends on the reader being on
+      // the right screen at the right instant is not a delivery mechanism.
+      //
+      // This setting was briefly flipped to autoUpdate on the strength of that
+      // report, and that was a misreading, corrected by the owner in one line:
+      // "i always want that prompt." The complaint was never that the notice
+      // was unwanted. It was that the notice was LATE. Silence is not a faster
+      // notice; it is no notice, and it takes away the only moment at which she
+      // learns the thing in her hands has changed.
+      //
+      // So prompt stays, and the lateness is fixed where it actually lived —
+      // in components/UpdateToast.tsx, which carries the registration and was
+      // mounted inside a dock that bailed on a book journey and on the journal.
+      // On those screens no worker was registered and no check ever ran, so
+      // reloading while reading could not possibly produce a notice however
+      // many times it was done. It now renders on every route, checks at
+      // launch, checks every time the app returns to the foreground, and
+      // checks hourly while open.
+      //
+      // And the ORIGINAL objection keeps its own answer regardless:
+      // settings/Recheck.tsx puts the version on the page with a button beside
+      // it that asks the server outright, so "am I on the fix yet" is
+      // answerable on demand rather than by waiting.
       registerType: 'prompt',
       manifest: {
         name: 'Flyleaf',

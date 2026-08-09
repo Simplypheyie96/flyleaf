@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Row } from './Group'
 import db from '../data/db'
 import { download, exportJourney, importJourney, lastExport, markExported } from '../data/backup'
+import { allowAnotherPass, fillMissingCovers } from '../books/refill'
 import Face, { FacePicker } from '../components/Face'
 import { getFace, getHandle, setFace, setHandle } from '../data/reader'
 import styles from './settings.module.css'
@@ -188,6 +189,14 @@ function BackupCard() {
          data/backup.ts. A sync never gets this. */
       const back = await importJourney(file, { exhume: true })
       if (back.handle && !getHandle()) setHandle(back.handle)
+
+      /* Another app's file carries no cover URLs, so everything that just
+         arrived is wearing a drawn cover. Go and find the real ones — not
+         awaited, because the reader is owed their "40 books came across"
+         sentence now, not in a minute, and the shelf repairs itself
+         underneath them. See books/refill.ts. */
+      allowAnotherPass()
+      void fillMissingCovers()
 
       /* Somebody else's file, so the count alone would overstate what arrived
          — a reader who brought 40 books across should not have to discover on

@@ -1,0 +1,44 @@
+/* Sits directly under the version stamp and belongs to it, so it is centred on
+   the same axis and carries the same quiet weight. Nothing here should read as
+   a feature — it is the footnote to a number. */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+}
+
+/* A text button rather than a filled one. The version stamp above it is the
+   faintest thing on the page; a solid control under it would make the foot of
+   Settings louder than anything a reader actually came here to change. */
+.action {
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink-soft);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-strong);
+  cursor: pointer;
+}
+
+.action:disabled {
+  color: var(--color-ink-faint);
+  cursor: default;
+}
+
+/* What the check came back with. Overriding the global reading measure on `p`
+   for the same reason .build does: this is a one-line label centred in its
+   column, and a measure cap would leave it visibly off its own centre. */
+.said {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: var(--leading-body);
+  color: var(--color-ink-faint);
+}
