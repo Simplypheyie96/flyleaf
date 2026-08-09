@@ -6,6 +6,7 @@ import Sparkle from '../components/Sparkle'
 import ThemeToggle from '../components/ThemeToggle'
 import Group, { Row } from '../settings/Group'
 import Erase from '../settings/Erase'
+import LockCard from '../settings/Lock'
 import SyncCard from '../settings/Sync'
 import InstallHow from '../settings/InstallHow'
 import { BackupCard, FaceCard, NameCard } from '../settings/Journey'
@@ -29,10 +30,17 @@ import styles from './Settings.module.css'
    them for devices this reader does not own. Folding a switch only puts a tap
    between someone and the thing they opened Settings to do.
 
-   And every row is one line high. The explaining lives in the footnote under
-   each card, said once, where it can be read or skipped — not repeated as a
-   hint under every label, which is what turned this page into an essay with
-   switches buried in it. */
+   NO FOOTNOTES. There used to be a line or two of prose under every card, and
+   the owner's verdict was that it was "really too much and not really needed…
+   it will overwhelm users when the texts are too much" — which is right, and
+   the arithmetic says why: six captions is six paragraphs standing between
+   seven groups of switches, so a page of controls reads as a page of reading.
+
+   Whatever genuinely needs saying is said INSIDE the row it belongs to, in
+   that row's fold, where only a reader who opened it meets it. The sync fold
+   explains Drive; the lock fold explains the code; the erase fold carries its
+   own warning; the tip sheet says what Paystack sees. None of that needed a
+   caption over the card to repeat it. */
 
 function Settings() {
   const [touring, setTouring] = useState(false)
@@ -52,11 +60,29 @@ function Settings() {
               read in. Three rows on one card, one line each — the face row
               folds its own twelve discs away, which is the only thing on this
               page that was ever taller than a line. */}
-          <Group label="You" note="Auto follows your device from day into night.">
+          <Group label="You">
             <NameCard />
             <FaceCard />
             <Row title="Theme" control={<ThemeToggle />} />
           </Group>
+
+          {/* Second of six, directly under "You" — the owner's call, and it
+              settles a question this comment used to argue the other way.
+
+              It has now moved twice. It began below the install steps, where a
+              reader had to scroll past seven sets of instructions for devices
+              they do not own before reaching it, and in practice nobody did.
+              It then sat third, under "Your journey", on the reasoning that an
+              app whose Settings open with a request for money is a different
+              app. That reasoning still holds for the FIRST group and this is
+              not it: "You" stays at the top, and the ask comes after the
+              reader, not before them. Everything about the journey, syncing,
+              the tour, installing and the small print now follows. */}
+          {TIP_JAR && (
+            <Group label="Support the maker">
+              <Tip />
+            </Group>
+          )}
 
           {/* Erase sits in this group and last in it, not in a group of its
               own. It is the same subject as the rows above — where the journey
@@ -64,40 +90,33 @@ function Settings() {
               subject is that they can also end it. A separate "Danger zone"
               card would say the opposite of everything this app is: it would
               make leaving feel like breaking something. */}
-          <Group
-            label="Your journey"
-            note="Held on this device, never on our servers. A saved copy is one file with everything in it — open it anywhere to bring your journey back. Syncing puts that same file in your own Google Drive, in a hidden folder only Flyleaf can open, so a new phone or browser finds your reading waiting. A printed journal is the other kind of copy: the same reading, laid out to keep or hand to someone."
-          >
+          {/* Two cards, not one, and that split outlived the footnotes that
+              prompted it. These rows were always two subjects wearing one
+              label: WHERE the journey is kept and what you can carry it away
+              in, then WHO can reach it. Everything either half needs to say
+              sits inside the row it belongs to — the lock's terms in the
+              lock's fold, the erase warning in the erase fold. */}
+          <Group label="Your journey">
             <BackupCard />
-            {/* Above Erase, below the file rows it is the automatic version of.
-                A reader reads down this card and meets, in order: where the
-                journey is, how to carry it by hand, how to stop carrying it by
-                hand, and — last — how to end it. */}
-            <SyncCard />
+            {/* Last, and in this half rather than beside the lock: ending the
+                journey is the final thing you can do WITH it, not a question
+                about who may read it. A separate "Danger zone" card would say
+                the opposite of everything this app is — it would make leaving
+                feel like breaking something. */}
             <Erase />
           </Group>
 
-          {/* Third of six, not second from last.
-
-              It sat below the install steps, which meant a reader had to scroll
-              past seven sets of instructions for devices they do not own before
-              they found it — in practice, nobody did. Up here it is on the
-              first screen of Settings, under the two groups that are genuinely
-              the reader's own business.
-
-              Not higher than that. It stays below "You" and "Your journey"
-              because it is the one row on this page that asks for something
-              rather than offering something, and an app whose Settings OPEN
-              with a request for money is a different app. Visible, third,
-              nothing locked — that is the whole brief. */}
-          {TIP_JAR && (
-            <Group
-              label="Support the maker"
-              note="Flyleaf is free, has no ads, and is made by one person. Nothing here is ever locked."
-            >
-              <Tip />
-            </Group>
-          )}
+          {/* Both optional, and the footnote says so in as many words. Neither
+              of these is how Flyleaf works — a reader can shelve books and
+              write in them for years having touched neither — and the day
+              sign-in starts reading as a requirement is the day this app has
+              broken its own promise. Sync first: it is the one that answers
+              "what if I lose this phone", which is the question the rows above
+              raise. */}
+          <Group label="Sync and lock">
+            <SyncCard />
+            <LockCard />
+          </Group>
 
           {/* The tour, findable ever after. The owner asked for a first-run
               guide and, rightly, for a way to see it that does not require
@@ -116,10 +135,7 @@ function Settings() {
               for the thing rather than the place it lands — the first row
               already says "Add to your home screen", and a caption repeating
               its own first row is a stutter. */}
-          <Group
-            label="Install Flyleaf"
-            note="Installing only takes the browser away from around it. No update ever clears what you have written."
-          >
+          <Group label="Install Flyleaf">
             <InstallHow />
           </Group>
 

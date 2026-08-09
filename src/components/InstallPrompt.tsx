@@ -10,6 +10,7 @@ import {
   watchInstallable,
 } from '../settings/installable'
 import { detect, installed } from '../settings/platform'
+import { claim, markDismissed, markDone } from '../data/nudges'
 import styles from './Toast.module.css'
 
 const DISMISS_KEY = 'flyleaf-install-dismissed'
@@ -32,31 +33,49 @@ function InstallPrompt() {
   const offered = useSyncExternalStore(watchInstallable, canInstall, () => false)
   const shelved = useLiveQuery(() => db.books.count(), [], 0)
 
+  const [live, setLive] = useState(false)
+
   useEffect(() => {
-    const hide = () => setGone(true)
+    const hide = () => {
+      markDone('install')
+      setGone(true)
+    }
     window.addEventListener('appinstalled', hide)
     return () => window.removeEventListener('appinstalled', hide)
   }, [])
-
-  if (gone || !shelved) return null
 
   // Safari of any kind will never fire the install event; everywhere else, no
   // event means the browser has not decided yet — and inviting a reader to
   // install with nothing behind the button is a dead end.
   const manual = ['iphone', 'ipad', 'safari-mac'].includes(detect())
-  if (!offered && !manual) return null
+  const earned = !gone && shelved > 0 && (offered || manual)
+
+  /* This invite predates the scheduler and kept its own permanent dismissal
+     key — a reader who says no to their home screen once has said no. What it
+     gained is the shared floor: it may now be the thing that speaks this
+     launch, which is what stops it landing on top of the sync offer. */
+  useEffect(() => {
+    if (earned) setLive(claim('install', true))
+  }, [earned])
+
+  if (gone || !live) return null
 
   function dismiss() {
     localStorage.setItem(DISMISS_KEY, '1')
+    markDismissed('install')
     setGone(true)
   }
 
   async function act() {
     if (offered) {
-      if (await install()) setGone(true)
+      if (await install()) {
+        markDone('install')
+        setGone(true)
+      }
       return
     }
     openInstallGuide()
+    markDone('install')
     setGone(true)
   }
 

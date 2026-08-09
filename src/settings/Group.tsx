@@ -8,28 +8,32 @@ import styles from './group.module.css'
    share a card and are parted by a hairline, and the group is named above it
    in a quiet caption rather than inside it as a heading.
 
-   The explaining goes UNDER the card, not in the rows. A row is a label and a
-   control on one line; the moment a sentence of prose is allowed inside one,
-   every row grows to three lines and the page turns into an essay with
-   switches in it. Anything that genuinely needs saying is said once, in the
-   footnote, in a line or two.
+   THERE IS NO FOOTNOTE, and there used to be one under every card. The owner's
+   verdict on them was that they were "really too much and not really needed…
+   it will overwhelm users when the texts are too much", which is right: six
+   captions is six paragraphs standing between seven groups of switches, so a
+   page of controls read as a page of reading.
+
+   A row is a label and a control on one line. Anything that genuinely needs
+   saying is said INSIDE the row it belongs to, in that row's fold, where only
+   a reader who opened it will meet it — the sync fold explains Drive, the lock
+   fold explains the code, the erase fold carries its own warning. If something
+   seems to need a caption over the whole card, it belongs in one of the rows
+   under that card, and the caption is the wrong place for it.
 
    The card carries no padding of its own. Every row brings its own, so a row
    that opens can run its contents to the card's edges. */
 
 interface GroupProps {
   label: string
-  /** The footnote under the card. One or two short lines, never a paragraph. */
-  note?: ReactNode
   children: ReactNode
 }
 
-function Group({ label, note, children }: GroupProps) {
+function Group({ label, children }: GroupProps) {
   return (
     <section className={styles.group}>
       <h2 className={styles.label}>{label}</h2>
       <PaperSurface className={styles.card}>{children}</PaperSurface>
-      {note && <p className={styles.note}>{note}</p>}
     </section>
   )
 }

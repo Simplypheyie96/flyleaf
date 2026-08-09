@@ -5,6 +5,9 @@ import PaperSurface from '../components/PaperSurface'
 import Wordmark from '../brand/Wordmark'
 import { FacePicker } from '../components/Face'
 import { getFace, getHandle, hasMet, markMet, setFace, setHandle } from '../data/reader'
+import { SYNC_AVAILABLE, signIn } from '../data/google'
+import { syncNow } from '../data/sync'
+import { markDone } from '../data/nudges'
 import styles from './onboarding.module.css'
 
 /* The first thirty seconds.
@@ -15,11 +18,19 @@ import styles from './onboarding.module.css'
    what this is, one that asks what to call you, and Skip on the second. No
    account, no email, no password, nothing sent anywhere.
 
-   Google sign-in is where 09 puts it — right here, optional — but it is not
-   offered yet, because offering a button that cannot sign anyone in is worse
-   than not offering it. The sentence under the field is the honest version of
-   the same promise: nothing leaves the device, and Settings is where a copy
-   gets made.
+   SIGNING IN IS ON THE FIRST PANEL, AND ONLY FOR PEOPLE COMING BACK. It is
+   not a second way to start — it is the way a reader who already keeps a
+   journal on their phone opens it on a laptop. Without it, that reader has to
+   invent a name they already have, pick a face they already picked, sit
+   through a tour of an app they use daily, and only then find sync in
+   Settings — where the name arriving from Drive overwrites the one they just
+   typed. The whole ceremony was for a stranger who was not there.
+
+   So it is worded for the returning reader ("Already have a journal?"),
+   ranked below Begin, and hidden entirely when no client ID was built in. A
+   new reader reads past it. Nobody is stopped by it: the panel behind it
+   still starts a journal with no account of any kind, which is the promise
+   the fine print on the next panel makes.
 
    IT SHOWS ONCE. `hasMet` is written on the way out whichever door is used,
    so a reader who skips is not asked again on the next launch. */
@@ -29,6 +40,8 @@ function Welcome() {
   const [panel, setPanel] = useState<0 | 1 | 2>(0)
   const [name, setName] = useState(getHandle)
   const [face, setPickedFace] = useState(getFace)
+  const [busy, setBusy] = useState(false)
+  const [trouble, setTrouble] = useState('')
   const field = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -51,6 +64,32 @@ function Welcome() {
   function finish() {
     markMet()
     setOpen(false)
+  }
+
+  /* The returning reader's door. Everything the other two doors ask for is
+     skipped, because the answers are already in Drive: the name rides down
+     with the journey (sync sets it when this device has none), and the tour
+     is for somebody who has not seen the app.
+
+     It leaves only after the first sync has finished rather than dropping
+     them on Home to watch books appear — arriving at an empty shelf is the
+     one thing this door exists to prevent. A failure keeps the panel up and
+     says so, so nobody is silently turned into a new reader with a blank
+     journal. */
+  async function comeBack() {
+    setBusy(true)
+    setTrouble('')
+    try {
+      await signIn()
+      await syncNow()
+      markDone('sync')
+      markMet()
+      setOpen(false)
+    } catch {
+      setTrouble('That did not connect. You can start here and sign in from Settings.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   function leave(withName: string) {
@@ -85,8 +124,25 @@ function Welcome() {
               journey per book, just for you.
             </p>
             <div className={styles.acts}>
-              <LeafButton onClick={() => setPanel(1)}>Start my journal</LeafButton>
+              <LeafButton disabled={busy} onClick={() => setPanel(1)}>
+                Start my journal
+              </LeafButton>
+              {SYNC_AVAILABLE && (
+                <button
+                  type="button"
+                  className={styles.skip}
+                  disabled={busy}
+                  onClick={() => void comeBack()}
+                >
+                  {busy ? 'Finding your journal…' : 'Already have one? Sign in'}
+                </button>
+              )}
             </div>
+            {trouble && (
+              <p className={styles.fine} data-tone="bad" role="status">
+                {trouble}
+              </p>
+            )}
           </PaperSurface>
         ) : (
           <PaperSurface taped rotate={0.4} className={styles.panel}>

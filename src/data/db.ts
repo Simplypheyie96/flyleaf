@@ -34,11 +34,12 @@ export interface Book {
   /** Set the day the book is finished. Its absence is what "still reading"
       means — there is no status field to contradict it. */
   finishedOn?: string
-  /** How far in. Pages rather than a percentage, because a reader knows the
-      number on the page in front of them and does not know what fraction of
-      the book it is. The percentage is derived where it is shown. */
-  pagesRead?: number
   addedAt: number
+  /** When anything on this row was last changed, so a sync can tell an edit
+      from a stale copy. Absent on every row written before it existed, which
+      reads as "older than anything stamped" and is exactly right: a device
+      that has never edited a book should lose to one that has. */
+  editedAt?: number
   /** Every way this book is being read.
 
       An array rather than the single `format` above it, because a great many
@@ -104,8 +105,10 @@ export interface Entry {
       listening knows neither.
 
       Per entry, never per book: the page a line is on is a fact about that
-      line. A book-level "what page are you on" is `Book.pagesRead`, and the
-      two are not the same number. */
+      line, and it is the ONLY page number this app holds. There was a
+      book-level `pagesRead` beside it and nothing ever wrote to it — if a
+      "how far in am I" number is ever wanted, it has to arrive with a screen
+      that sets it, not as a field hoping to be filled. */
   page?: number
   chapter?: string
   /** Recording or picture, held on the device. Never a URL: an entry that
@@ -121,6 +124,21 @@ export interface Entry {
       the day it happened rather than the day it was typed in. */
   keptOn: string
   createdAt: number
+  /** WHO THIS KEEP IS, everywhere, forever — and `id` is not that, because ids
+      are per-device autoincrements that two devices hand out independently.
+
+      Sync used to recognise a keep by its content: book, kind, day, moment,
+      words. That works until the reader corrects a typo, at which point the
+      words are different, the content no longer matches, and the other device
+      receives the corrected quote as a SECOND quote and keeps both. A uid
+      survives an edit, so a correction arrives as a correction.
+
+      Optional because rows written before it existed have none; those still
+      fall back to the content fingerprint, exactly as they always did. */
+  uid?: string
+  /** When the keep was last edited. Same job as `Book.editedAt`: it decides
+      which of two copies of one keep is the current one. */
+  editedAt?: number
   /** What it is called — a character's name, a place's name. The heading of
       the card, kept apart from `text` so the two can be styled and searched
       as the different things they are. */
@@ -168,10 +186,19 @@ export interface Sitting {
   keptOn: string
 }
 
+/** A deletion, recorded so it can travel. See db.version(8) for why a merge
+    that only ever adds cannot express one, and graves.ts for the keys. */
+export interface Grave {
+  /** `b:<bookId>`, `e:<uid or fingerprint>`, `s:<bookId>:<startedAt>`. */
+  key: string
+  at: number
+}
+
 const db = new Dexie('flyleaf') as Dexie & {
   books: EntityTable<Book, 'id'>
   entries: EntityTable<Entry, 'id'>
   sittings: EntityTable<Sitting, 'id'>
+  graves: EntityTable<Grave, 'key'>
 }
 
 // Only the fields we actually query on: newest-first on the shelf, and title
@@ -302,6 +329,47 @@ db.version(7).stores({
   books: 'id, addedAt, title',
   entries: '++id, bookId, type, [bookId+createdAt]',
   sittings: '++id, bookId, startedAt, [bookId+startedAt]',
+})
+
+/* THE HEADSTONES, and syncing does not work without them.
+
+   Sync merges: it takes the union of what two devices hold, which is what
+   stops a phone with no signal losing an afternoon's writing to a laptop. But
+   a union has no way to say "this is gone". Delete a book on the phone and the
+   laptop still has it; the laptop pushes its copy up, the phone pulls it back
+   down, and the book the reader deleted reappears — not once, but every time,
+   because nothing in the file records the deletion as a fact.
+
+   So a deletion becomes a row. `key` names WHAT died in terms both devices
+   agree on — a book by its cover seed, a keep by its uid, a sitting by the
+   millisecond it began — and `at` is when. They travel in the journey file
+   like everything else, and on the way in they are applied after the merge, so
+   a copy that arrived in the same file is taken straight back out again.
+
+   Tiny and permanent. A headstone is a few dozen bytes and there is no safe
+   moment to sweep one away: a device that has been in a drawer for a year
+   still holds the book, and the only thing that will ever remove it is the
+   headstone still being there when it wakes up. */
+db.version(8).stores({
+  books: 'id, addedAt, title',
+  entries: '++id, bookId, type, [bookId+createdAt]',
+  sittings: '++id, bookId, startedAt, [bookId+startedAt]',
+  graves: 'key, at',
+})
+
+/* `editedAt` indexed, and only so that sync can ask one question cheaply:
+   has anything on this device been EDITED since the last time it synced?
+   Without the index the answer costs a full read of both tables, which on a
+   journal with voice memos in it means pulling every recording off disk once
+   every ninety seconds to compute a string. With it, it is two lookups.
+
+   Rows written before the stamp existed simply are not in the index, which is
+   correct — they have never been edited. */
+db.version(9).stores({
+  books: 'id, addedAt, title, editedAt',
+  entries: '++id, bookId, type, editedAt, [bookId+createdAt]',
+  sittings: '++id, bookId, startedAt, [bookId+startedAt]',
+  graves: 'key, at',
 })
 
 export default db

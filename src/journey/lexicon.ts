@@ -486,10 +486,9 @@ export function colophon(book: Book, keeps: Entry[]): ColophonLine[] {
   const threads = named('thread')
   if (threads.length) lines.push({ term: 'Wondered about', detail: threads.join(', ') })
 
-  const pages = book.pages
-  if (pages && book.pagesRead && !book.finishedOn) {
-    lines.push({ term: 'Reached', detail: `page ${book.pagesRead} of ${pages}` })
-  }
+  /* How long it is, not how far in — the "how far in" number was never
+     written by anything in the app. See routes/Library.tsx. */
+  if (book.pages) lines.push({ term: 'Length', detail: `${book.pages} pages` })
 
   return lines
 }
@@ -828,9 +827,7 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
         : '',
     book.finishedOn
       ? ''
-      : book.pagesRead
-        ? `I am not finished with it — ${book.pagesRead} pages in as I write this, so take this as a report from partway through.`
-        : 'I am not finished with it yet, so take this as a report from partway through.',
+      : 'I am not finished with it yet, so take this as a report from partway through.',
   )
 
   /* Nothing of the reader's own made it in: every keep was a bare name, or too

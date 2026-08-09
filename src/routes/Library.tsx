@@ -438,15 +438,16 @@ function excerpt(keep: Entry) {
   return `A ${KEEP[keep.type].one}.`
 }
 
-/** Where the reader is in the book, said the way the shelf can say it without
-    the journey's whole colophon: a page if there is one, otherwise nothing.
-    Deliberately not a percentage — see `Book.pagesRead`. */
+/** The one thing the shelf can say about a book without opening it: that it is
+    finished, or else how long it is.
+
+    IT USED TO CLAIM TO SAY HOW FAR IN THE READER WAS, and it could not. That
+    number lived in a field nothing in the app ever wrote, so it was only ever
+    filled in on the demo shelf. A page count comes from the search that
+    shelved the book and is true for every book that has one. */
 function bookmark(book: Book) {
   if (book.finishedOn) return 'Finished'
-  if (!book.pagesRead) return null
-  return book.pages
-    ? `page ${book.pagesRead} of ${book.pages}`
-    : `page ${book.pagesRead}`
+  return book.pages ? `${book.pages} pages` : null
 }
 
 function FeedRow({
@@ -758,10 +759,16 @@ function Library() {
             <GlassSurface className={styles.search}>
               <div className={styles.searchInner}>
                 <SearchIcon size={18} />
+                {/* The placeholder is measured, not guessed: this field is
+                    151px wide on a 375px phone once the sort and filter pills
+                    have taken their corner, and "Search everything you have
+                    kept" needed 243px of it, so the end of the sentence ran
+                    off the field. The whole sentence is still said in the
+                    aria-label, where length costs nothing. */}
                 <input
                   type="search"
                   className={styles.searchInput}
-                  placeholder="Search everything you have kept"
+                  placeholder="Search everything"
                   aria-label="Search your books and memories"
                   autoComplete="off"
                   spellCheck={false}
