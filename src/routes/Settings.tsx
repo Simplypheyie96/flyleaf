@@ -5,6 +5,7 @@ import Sheet from '../components/Sheet'
 import Sparkle from '../components/Sparkle'
 import ThemeToggle from '../components/ThemeToggle'
 import Group, { Row } from '../settings/Group'
+import Erase from '../settings/Erase'
 import InstallHow from '../settings/InstallHow'
 import { BackupCard, FaceCard, NameCard } from '../settings/Journey'
 import Tip, { TIP_JAR } from '../settings/Tip'
@@ -56,11 +57,18 @@ function Settings() {
             <Row title="Theme" control={<ThemeToggle />} />
           </Group>
 
+          {/* Erase sits in this group and last in it, not in a group of its
+              own. It is the same subject as the rows above — where the journey
+              is and what the reader can do with it — and the honest end of that
+              subject is that they can also end it. A separate "Danger zone"
+              card would say the opposite of everything this app is: it would
+              make leaving feel like breaking something. */}
           <Group
             label="Your journey"
             note="Held on this device only, never on our servers. A saved copy is one file with everything in it — open it anywhere to bring your journey back. A printed journal is the other kind of copy: the same reading, laid out to keep or hand to someone."
           >
             <BackupCard />
+            <Erase />
           </Group>
 
           {/* Third of six, not second from last.
