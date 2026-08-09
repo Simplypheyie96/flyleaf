@@ -1,11 +1,26 @@
 /* Finding a book.
 
-   Two public catalogues, queried together and merged: Open Library first
-   because its records are richer for older and non-English editions, Google
-   Books second because it is better on recent trade paperbacks and on
-   anything self-published. Neither is asked to be authoritative — a search
+   Three public catalogues, queried together and merged, in this order of
+   trust: OPEN LIBRARY first, because its records are richer for older and
+   non-English editions and it is the only one that knows a book's *first*
+   publication year. APPLE BOOKS second, because it is where the last ten
+   years of trade and self-published fiction actually live, and because its
+   relevance ranking is far better than Open Library's on a bare title.
+   GOOGLE BOOKS third — see the quota note below; treat it as a source that
+   is usually simply absent. None is asked to be authoritative — a search
    result only has to be recognisable enough for the reader to point at the
    right book. What we keep afterwards is ours.
+
+   Apple was added after two failures the owner hit on the same book, which
+   turned out to be one failure wearing two hats. Searching "conform" put
+   Ariel Sullivan's novel nowhere in Open Library's 9,100 fuzzy matches —
+   Conformal mapping, A Conformable Wife — and it surfaced only once the
+   author narrowed the query to a single hit. And its Open Library record
+   carries no cover at all: all six ISBNs and all four edition IDs 404 on the
+   cover server, so the fall-through below was walking a list with nothing at
+   the end of it. Google, the source meant to catch exactly that, was 429ing.
+   Apple answers both: it ranks that book first for the bare word "conform",
+   and it has the jacket.
 
    Both are called straight from the browser rather than through a function of
    ours: no server to run and no key to hold or rotate, and search keeps
@@ -21,7 +36,7 @@
    source that has to carry the search, which is why it is asked for every
    cover identifier it holds rather than just the obvious one.
 
-   Nothing here may ever be load-bearing. Both sources are allowed to be down,
+   Nothing here may ever be load-bearing. Every source is allowed to be down,
    rate-limited, or wrong; the reader can always type the book in by hand, and
    a book with no cover anywhere still gets one. */
 
@@ -65,13 +80,17 @@ export async function searchBooks(
   // whichever dialect each one speaks.
   const isbn = asIsbn(q)
 
-  const [open, google] = await Promise.all([
+  const [open, apple, google] = await Promise.all([
     orNothing(searchOpenLibrary(q, isbn, signal)),
+    orNothing(searchAppleBooks(q, isbn, signal)),
     orNothing(searchGoogleBooks(q, isbn, signal)),
   ])
 
-  const answered = [open, google].filter((list) => list !== null).length
-  const results = lendCovers(merge(open ?? [], google ?? [])).slice(0, TOTAL)
+  const answered = [open, apple, google].filter((list) => list !== null).length
+  /* Order is the trust order, because `merge` lets the first source to claim a
+     field keep it. Open Library's year is a first-publication year; Apple's is
+     the day an ebook went on sale, which for Things Fall Apart is 1992. */
+  const results = lendCovers(merge(q, open ?? [], apple ?? [], google ?? [])).slice(0, TOTAL)
   return { results, answered }
 }
 
@@ -207,6 +226,73 @@ function coverUrl(kind: 'id' | 'olid' | 'isbn', key: string | number) {
   return `https://covers.openlibrary.org/b/${kind}/${key}-L.jpg?default=false`
 }
 
+/* ---- Apple Books ----
+
+   The iTunes Search API, which is what Apple Books is searchable through. No
+   key, no quota to share with strangers, and `access-control-allow-origin: *`,
+   so it is callable straight from the page like the other two.
+
+   `country` is stated rather than left to Apple's IP guess: the US storefront
+   is the widest ebook catalogue, and a reader in Lagos searching for a British
+   novel should get the same answer as a reader in London. It selects a
+   catalogue to search, not a price to show — nothing here is for sale.
+
+   No page count in these records, and the year is the ebook's release date
+   rather than the book's. Both are left to Open Library, which is why Apple
+   sits second in the merge. */
+
+async function searchAppleBooks(q: string, isbn: string | undefined, signal?: AbortSignal) {
+  const url = new URL('https://itunes.apple.com/search')
+  /* There is no ISBN field to query. A bare number as the search term does
+     find some books — it is in the indexed text of the record — and finds
+     nothing for others, which is the correct answer either way. */
+  url.searchParams.set('term', isbn ?? q)
+  url.searchParams.set('media', 'ebook')
+  url.searchParams.set('country', 'US')
+  url.searchParams.set('limit', String(PER_SOURCE))
+
+  const res = await fetch(url, { signal })
+  if (!res.ok) throw new Error(`Apple Books ${res.status}`)
+  /* Served as text/javascript — a leftover from the days this endpoint was
+     called with a JSONP callback. The body is ordinary JSON; `res.json()`
+     does not care what the content type claims. */
+  const body = (await res.json()) as { results?: AppleBook[] }
+
+  return (body.results ?? []).flatMap((book) => {
+    if (!book.trackName || !book.artistName) return []
+    const cover = appleCover(book.artworkUrl100)
+    return [
+      {
+        id: seedFrom(book.trackName, book.artistName),
+        title: book.trackName,
+        author: book.artistName,
+        year: Number(book.releaseDate?.slice(0, 4)) || undefined,
+        covers: cover ? [cover] : [],
+      },
+    ]
+  })
+}
+
+interface AppleBook {
+  trackName?: string
+  artistName?: string
+  releaseDate?: string
+  artworkUrl100?: string
+}
+
+/* Apple serves one artwork at whatever size the path asks for, so the 100px
+   thumbnail in the record is really a template. 600 to match Open Library's
+   `-L`, which caps its long edge at 500 — both land comfortably above the
+   210px the board draws a jacket at, on a 2x phone.
+
+   `bb` fits the long edge inside the box rather than padding to a square:
+   measured, 600x600bb returns 400x600 on a normal 2:3 jacket, so this is a
+   cover and not a cover in a frame. */
+function appleCover(artwork?: string) {
+  if (!artwork) return undefined
+  return artwork.replace(/\/100x100bb\.jpg$/, '/600x600bb.jpg')
+}
+
 /* ---- Google Books ---- */
 
 async function searchGoogleBooks(q: string, isbn: string | undefined, signal?: AbortSignal) {
@@ -273,32 +359,81 @@ function googleCover(links?: Record<string, string>) {
 
 /* ---- Merging ---- */
 
-/* The same book arrives from both sources spelled differently — curly versus
-   straight apostrophes, accents, a stray double space. seedFrom already
+/* The same book arrives from several sources spelled differently — curly
+   versus straight apostrophes, accents, a stray double space. seedFrom already
    normalises all of that to give a book one stable cover, so reusing it here
    means two records merge on exactly the condition under which they would
-   have drawn the same cover anyway. One identity, used for both jobs. */
-function merge(...lists: BookResult[][]) {
-  const byId = new Map<number, BookResult>()
+   have drawn the same cover anyway. One identity, used for both jobs.
 
-  for (const list of lists) {
-    for (const book of list) {
+   TWO SEPARATE QUESTIONS, and running them together is what made this wrong
+   the first time. Which record's *fields* win is a question about trust, and
+   the answer is the source order — Open Library's first-publication year beats
+   Apple's ebook release date. What order the results are *shown* in is a
+   question about relevance, and the source order is a terrible answer to it.
+
+   Concatenating meant every one of Open Library's twelve results came before
+   Apple's first. So a reader searching "conform" got Conformal mapping,
+   Conformity and conflict and A Conformable Wife — Open Library's fuzzy
+   matches against 9,100 records — while the book they meant sat at position
+   thirteen, because Apple had ranked it first and Apple went second. That is
+   the exact failure the owner reported: the book only appeared once she added
+   the author, which narrowed Open Library to a single hit.
+
+   So results are interleaved by RANK instead: every source's best result, then
+   every source's second, and so on. A book that two catalogues both rank
+   highly rises above one that only Open Library liked, and the source order
+   survives only as the tie-break between records at equal rank. */
+function merge(query: string, ...lists: BookResult[][]) {
+  const typed = stem(query)
+  const byId = new Map<number, BookResult>()
+  /* Where to show it: best rank any source gave it, and which source that
+     was. Only ever improved, never worsened, by a later source. */
+  const place = new Map<number, [rank: number, source: number]>()
+
+  lists.forEach((list, source) => {
+    list.forEach((book, rank) => {
+      const standing = place.get(book.id)
+      if (!standing || rank < standing[0]) place.set(book.id, [rank, source])
+
       const seen = byId.get(book.id)
       if (!seen) {
         byId.set(book.id, book)
-        continue
+        return
       }
-      // First source wins on the fields it has; the second fills the gaps and
-      // adds its cover as a second thing to try if the first URL fails.
+      // First source wins on the fields it has; later ones fill the gaps and
+      // add their covers as further things to try if the first URL fails.
       seen.year ??= book.year
       seen.pages ??= book.pages
       for (const url of book.covers) {
         if (!seen.covers.includes(url)) seen.covers.push(url)
       }
-    }
-  }
+    })
+  })
 
-  return [...byId.values()]
+  return [...byId.values()].sort((a, b) => {
+    const [rankA, sourceA] = place.get(a.id) ?? [Infinity, Infinity]
+    const [rankB, sourceB] = place.get(b.id) ?? [Infinity, Infinity]
+    return match(a, typed) - match(b, typed) || rankA - rankB || sourceA - sourceB
+  })
+}
+
+/* Ahead of rank, because it is a stronger signal than either catalogue's own.
+   Somebody who types a whole title has told us the title; a source that ranks
+   its own loose match above it is simply wrong, and both of them do. Open
+   Library leads "the salt path" with the Dutch translation, Het zoutpad, and
+   leads "conform" with Conformity and conflict.
+
+   Three tiers only, and no scoring beyond them. Exact is what they typed.
+   Starts-with catches the subtitle a catalogue has glued on. Everything else
+   keeps the order its source gave it, which is the right default — this is a
+   correction to relevance ranking, not a replacement for one. An author-name
+   query matches no title, lands entirely in the last tier, and is left
+   untouched. */
+function match(book: BookResult, typed: string) {
+  if (!typed) return 2
+  const title = stem(book.title)
+  if (title === typed) return 0
+  return title.startsWith(typed) ? 1 : 2
 }
 
 /* ---- Lending covers between near-identical records ----
@@ -326,19 +461,28 @@ function merge(...lists: BookResult[][]) {
    actually failed.
 
    Nothing extra is fetched — this only reuses URLs already in hand. */
+/* A title reduced to the part a reader would say out loud. Shared by the
+   loose match below and by the relevance tiers above, so "The Salt Path", the
+   query "salt path" and "Salt Path: A Memoir" are all one string. */
+function stem(title: string) {
+  return (
+    title
+      .toLowerCase()
+      // "Quiet: The Power of Introverts" and "Quiet" are the same book to a
+      // reader; so are a title and its parenthesised series note.
+      .split(/[:(]/)[0]
+      .replace(/^(the|a|an)\s+/, '')
+      .replace(/[^a-z0-9]+/g, '')
+  )
+}
+
 function looseKey(title: string, author: string) {
-  const stem = title
-    .toLowerCase()
-    // "Quiet: The Power of Introverts" and "Quiet" are the same book to a
-    // reader; so are a title and its parenthesised series note.
-    .split(/[:(]/)[0]
-    .replace(/^(the|a|an)\s+/, '')
-    .replace(/[^a-z0-9]+/g, '')
+  const key = stem(title)
   // Catalogues disagree constantly about initials and middle names, and agree
   // about surnames.
   const surname =
     author.toLowerCase().replace(/[^a-z\s]/g, '').trim().split(/\s+/).pop() ?? ''
-  return `${stem}|${surname}`
+  return `${key}|${surname}`
 }
 
 function lendCovers(results: BookResult[]) {
