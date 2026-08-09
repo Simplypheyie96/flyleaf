@@ -39,5 +39,5 @@ export function coversOf(book: Pick<Book, 'covers' | 'coverPick'>): string[] {
 
 /** Remember the jacket. `DRAWN` for our own. */
 export function chooseCover(bookId: number, pick: number) {
-  return db.books.update(bookId, { coverPick: pick })
+  return db.books.update(bookId, { coverPick: pick, editedAt: Date.now() })
 }
