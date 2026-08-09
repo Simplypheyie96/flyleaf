@@ -27,6 +27,7 @@
 import { IMPRINT } from '../brand/imprint'
 import db, { type Book, type Entry, type Sitting } from './db'
 import { packLock, unpackLock } from './lock'
+import { getFace, setFace } from './reader'
 
 /** Bumped only when a reader's older file would otherwise be misread.
 
@@ -55,6 +56,11 @@ interface Journey {
   flyleaf: number
   exportedAt: number
   handle?: string
+  /** The avatar seed, travelling with the name for the same reason the name
+      travels: a reader who signs in on a second device and finds no face has
+      arrived at somebody else's copy of their journal. Not a picture — see
+      reader.ts/getFace. */
+  face?: string
   books: Book[]
   entries: PackedEntry[]
   /** Absent in every file written before the clock existed. */
@@ -120,6 +126,7 @@ export async function exportJourney(handle: string): Promise<{ blob: Blob; name:
     flyleaf: FORMAT,
     exportedAt: Date.now(),
     handle: handle || undefined,
+    face: getFace() || undefined,
     lock: packLock(),
     books,
     entries: packed,
@@ -232,6 +239,11 @@ export async function importJourney(file: File): Promise<Restored> {
   /* After the rows, not before: a device that took the lock and then failed to
      write the reading would be a door in front of an empty room. */
   unpackLock(journey.lock)
+
+  /* Only when this device has none. A reader who deliberately picked a
+     different face on the phone keeps it; a fresh device gets the one they
+     already chose, instead of a blank where their avatar should be. */
+  if (journey.face && !getFace()) setFace(journey.face)
 
   return {
     books: journey.books.length,

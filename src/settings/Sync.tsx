@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Row } from './Group'
-import { SYNC_AVAILABLE, optedIn, signIn, signOut } from '../data/google'
+import { SYNC_AVAILABLE, account, needsSignIn, optedIn, signIn, signOut, tokenHeld, warmUp } from '../data/google'
 import { lastSync, syncNow } from '../data/sync'
 import styles from './settings.module.css'
 
@@ -70,6 +70,8 @@ function SyncCard() {
   const [busy, setBusy] = useState<'in' | 'now' | 'out' | null>(null)
   const [note, setNote] = useState<Note>(null)
   const [open, setOpen] = useState(false)
+  const [who, setWho] = useState(account)
+  const [stale, setStale] = useState(needsSignIn)
 
   /* Both `google.ts` and `sync.ts` fire this, so a sync that ran by itself in
      the background updates the date under the reader's eyes rather than
@@ -78,10 +80,15 @@ function SyncCard() {
     const refresh = () => {
       setOn(optedIn())
       setAt(lastSync())
+      setWho(account())
+      setStale(needsSignIn())
     }
     window.addEventListener('flyleaf-sync', refresh)
     return () => window.removeEventListener('flyleaf-sync', refresh)
   }, [])
+
+  /* Google's script, fetched now rather than during the press — see warmUp. */
+  useEffect(warmUp, [])
 
   /* No client ID built in means no working sign-in, so the row does not exist.
      Same rule as the tip jar: never offer a button that opens onto an error. */
@@ -113,20 +120,18 @@ function SyncCard() {
     setBusy('now')
     setNote(null)
     try {
-      /* One retry, and only one, through Google's own window. The silent
-         refresh behind this button asks for a token without ever showing
-         anything; when the reader's Google session has lapsed there is nothing
-         it can do about that quietly. Rather than hand back "Google did not
-         grant access." with no way forward, the one press they made becomes
-         the one sign-in they see. */
-      let result
-      try {
-        result = await syncNow()
-      } catch {
-        await signIn()
-        result = await syncNow()
-      }
-      const { gained, unchanged } = result
+      /* THE SIGN-IN GOES FIRST, INSIDE THE PRESS. This used to sync, catch the
+         failure, and only then open Google's window — and by that point the
+         press was over. Safari grants a popup to the gesture that asked for
+         it and to nothing afterwards, so the recovery attempt was blocked
+         before it began and the reader was told "Google could not open its
+         sign-in window", which was true and useless.
+
+         So the decision is made here, synchronously, before a single await:
+         if this device is not already holding a live token, the one press
+         they made becomes the one sign-in they see, and the sync follows it. */
+      if (!tokenHeld()) await signIn()
+      const { gained, unchanged } = await syncNow()
       setAt(lastSync())
       setNote({
         tone: 'good',
@@ -167,18 +172,36 @@ function SyncCard() {
       <Row
         title="Sync across devices"
         control={
-          <span className={styles.value}>{!on ? 'Off' : at ? when(at) : 'Not yet'}</span>
+          <span className={styles.value}>
+            {!on ? 'Off' : stale ? 'Sign in again' : at ? when(at) : 'Not yet'}
+          </span>
         }
         open={open}
         onFold={() => setOpen(!open)}
       >
         <div className={styles.eraseBox}>
           {on ? (
-            <p className={styles.note}>
-              This device syncs on its own — when you write something, when you
-              open Flyleaf, and while it is in front of you. There is nothing
-              to press.
-            </p>
+            <>
+              {/* WHO, before anything else. The owner's words were "why is the
+                  app not showing account the user is signed into? everything is
+                  just so vague" — and she was right: two devices could both say
+                  "On" while syncing to two different Drives, and nothing on
+                  this page could tell her. */}
+              <p className={styles.note}>
+                {who ? (
+                  <>
+                    Signed in as <strong>{who}</strong>.
+                  </>
+                ) : (
+                  'Signed in to Google.'
+                )}
+              </p>
+              <p className={styles.note}>
+                {stale
+                  ? 'Google has stopped letting this device refresh quietly, so syncing has paused. Sign in again to start it up.'
+                  : 'This device syncs on its own — when you write something, when you open Flyleaf, and while it is in front of you. There is nothing to press.'}
+              </p>
+            </>
           ) : (
             <p className={styles.note}>
               Sign in with Google and this journal appears on your other
@@ -196,7 +219,7 @@ function SyncCard() {
           ) : (
             <>
               <button type="button" className={styles.action} disabled={busy !== null} onClick={now}>
-                {busy === 'now' ? 'Syncing…' : 'Sync now'}
+                {busy === 'now' ? 'Syncing…' : stale ? 'Sign in to Google again' : 'Sync now'}
                 <span className={styles.mark}>
                   <Cloud />
                 </span>

@@ -1045,51 +1045,102 @@
   color: var(--color-ink-soft);
 }
 
-/* ── Also open — the other books mid-read ─────────────────────────────────
-   A reader in three books at once gets the freshest as the hero and the rest
-   here: covers, not another card, because a second full card under the first
-   would argue with it. The label does the explaining once, for the row. */
-.also {
+/* ── The open books, paged inside one card ────────────────────────────────
+   Replaces the old "Also open" strip of thumbnails that sat BELOW the hero.
+   The owner's note: the other books should be reachable inside the Currently
+   reading card by swiping, with the card itself showing there is more. A row
+   of small covers under a big card said "these are the lesser books"; a page
+   in the same card says "this is the one you are looking at right now".
+
+   THE PAGE IS THE SCROLLER'S FULL WIDTH, exactly, and the breathing room is
+   inside it. `Reading` works out which book is showing from
+   `scrollLeft / clientWidth`, so a padding on the scroller instead of the page
+   would put the maths half a gutter out on every card after the first. The
+   padding here is also what keeps the rotated card's corners and its shadow
+   from being shaved off by the overflow. */
+.deck {
+  display: flex;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.deck::-webkit-scrollbar {
+  display: none;
+}
+
+.page {
+  flex: 0 0 100%;
+  min-inline-size: 0;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  /* Room for the card's tilt and its shadow, on all four sides. */
+  padding: 3px 4px 4px;
+}
+
+/* The indicator, inside the card and under a hairline — part of the sheet of
+   paper rather than a control floating beneath it. */
+.pager {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  margin-block-start: var(--space-3);
-  padding-inline: var(--space-2);
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid color-mix(in oklch, var(--color-ink), transparent 88%);
 }
 
-.alsoLabel {
-  flex: none;
+.pagerCount {
+  font-family: var(--font-app);
   font-size: var(--text-2xs);
-  font-weight: var(--weight-label);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-caps);
   text-transform: uppercase;
-  color: var(--color-ink-faint);
+  /* The count changes as you swipe; proportional digits would shift the line. */
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
 }
 
-.alsoList {
+.pagerDots {
   display: flex;
+  align-items: center;
   gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
 }
 
-.alsoBook {
-  display: block;
-  /* A BOARD IS 2:3 AND NOTHING ELSE — BookCover sets an aspect ratio and
-     leaves the width to whoever placed it, so in a flex row with no basis it
-     came out exactly nothing wide. The row rendered its label over a line of
-     invisible books, and only showed up at all once the "also open" test
-     stopped demanding a start date. Small on purpose: these are the books that
-     are NOT the one being read, so they are a glance, not a second hero. */
-  inline-size: 32px;
-  border-radius: var(--radius-sm);
-  transition: transform var(--dur-press) var(--ease-out);
+/* 7px of ink inside a 24px target. The dot is the drawing; the button is the
+   thing a thumb actually has to hit, and the two are not the same size. */
+.pagerDot {
+  inline-size: 24px;
+  block-size: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
 }
-.alsoBook:active {
-  transform: translateY(var(--press));
+.pagerDot::after {
+  content: '';
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklch, var(--color-ink), transparent 72%);
+  transition:
+    background-color var(--dur-press) var(--ease-out),
+    scale var(--dur-press) var(--ease-out);
 }
-.alsoBook:focus-visible {
+.pagerDot[aria-current='true']::after {
+  background: var(--color-ink);
+  scale: 1.15;
+}
+.pagerDot:focus-visible {
   outline: 2px solid var(--color-accent-text);
-  outline-offset: 3px;
+  outline-offset: 1px;
+  border-radius: var(--radius-pill);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagerDot::after {
+    transition: none;
+  }
 }

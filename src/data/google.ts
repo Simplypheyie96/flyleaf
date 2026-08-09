@@ -28,11 +28,20 @@
    yes. Signing out clears the flag and revokes the token. */
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
-const SCOPE = 'https://www.googleapis.com/auth/drive.appdata'
+/* Two scopes, and the second one is there because the app was being vague.
+   `drive.appdata` is still the only thing that touches a file. `userinfo.email`
+   grants one fact and no more: the address of the account that just signed in,
+   so Settings can say WHICH Google this device is syncing to instead of a bare
+   "On". A reader with two accounts could not otherwise tell whether the phone
+   and the laptop were even talking to the same Drive. */
+const SCOPE = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email'
 const GIS_SRC = 'https://accounts.google.com/gsi/client'
+const WHO = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 /** Remembers only that the reader opted in — never a token. */
 const OPTED_IN_KEY = 'flyleaf-sync-on'
+/** The address on the line in Settings. A label, not a credential. */
+const ACCOUNT_KEY = 'flyleaf-google-account'
 
 interface TokenResponse {
   access_token?: string
@@ -111,6 +120,68 @@ export function optedIn(): boolean {
   }
 }
 
+/** The signed-in address, or an empty string when it is not known yet. */
+export function account(): string {
+  try {
+    return localStorage.getItem(ACCOUNT_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+/** True while this device holds a live token — so a caller can tell the
+    difference between "about to sync quietly" and "about to need Google's
+    window", BEFORE it starts doing anything asynchronous. Safari only lets a
+    popup open inside the gesture that asked for it, so that distinction has to
+    be answerable synchronously or the popup is blocked. */
+export function tokenHeld(): boolean {
+  return token !== null && Date.now() < expiresAt
+}
+
+/* THE SILENT PATH CAN BE SHUT, AND THEN IT MUST STOP KNOCKING.
+
+   `prompt: 'none'` is a real window — a popup Google opens and closes again in
+   the same breath. When it works, nobody sees more than a flicker. When the
+   browser will not allow it (Safari blocks a popup that no tap asked for, and
+   blocks third-party cookies besides), it fails, and the app was asking again
+   on the very next write. That is the owner's report exactly: a Google window
+   flashing every single time she changed a date.
+
+   So a silent refusal closes the silent path for a good while. Sync stops
+   trying by itself, Settings says so in words, and the next real tap through
+   Google's window opens it again. One flicker, then quiet — instead of one per
+   keystroke's worth of work. */
+const REST = 6 * 60 * 60 * 1000
+let quietUntil = 0
+
+/** True when a background sync would have to bother the reader to proceed. */
+export function needsSignIn(): boolean {
+  return optedIn() && !tokenHeld() && Date.now() < quietUntil
+}
+
+function keep(address: string) {
+  try {
+    if (address) localStorage.setItem(ACCOUNT_KEY, address)
+    else localStorage.removeItem(ACCOUNT_KEY)
+  } catch {
+    /* See remember(): the sync still works, it is only unlabelled. */
+  }
+  window.dispatchEvent(new Event('flyleaf-sync'))
+}
+
+/** Ask Google who this is, once, and never block anything on the answer. */
+async function learnAccount(access: string) {
+  try {
+    const response = await fetch(WHO, { headers: { Authorization: `Bearer ${access}` } })
+    if (!response.ok) return
+    const who = (await response.json()) as { email?: string }
+    if (who.email && who.email !== account()) keep(who.email)
+  } catch {
+    /* An unnamed account is a smaller failure than a sync that refused to run
+       because it could not read a label. */
+  }
+}
+
 function remember(on: boolean) {
   try {
     if (on) localStorage.setItem(OPTED_IN_KEY, '1')
@@ -162,6 +233,9 @@ async function ensureClient(): Promise<TokenClient> {
       // A minute short of the real expiry, so a request never starts on a
       // token that dies mid-flight.
       expiresAt = Date.now() + ((response.expires_in ?? 3600) - 60) * 1000
+      // A token arrived, so whatever was blocking the quiet path is over.
+      quietUntil = 0
+      void learnAccount(response.access_token)
       waiting.resolve(response.access_token)
     },
     error_callback: (error) => {
@@ -218,6 +292,17 @@ async function requestToken(interactive: boolean): Promise<string> {
   })
 }
 
+/** Fetch Google's script ahead of the press that needs it.
+
+    Not an optimisation — a correctness fix. Safari lets a popup open only from
+    inside the gesture that asked for it, and loading a script over the network
+    mid-gesture spends that permission before the popup is ever requested. Any
+    screen with a sign-in button should call this when it appears, so the press
+    itself has nothing left to wait for. */
+export function warmUp() {
+  if (SYNC_AVAILABLE) void ensureClient().catch(() => {})
+}
+
 /** The reader pressed the button. Shows Google's own chooser. */
 export async function signIn(): Promise<void> {
   await requestToken(true)
@@ -229,7 +314,19 @@ export async function signIn(): Promise<void> {
     connected right now" rather than as an error worth shouting about. */
 export async function silentToken(): Promise<string> {
   if (!optedIn()) throw new Error('Not signed in.')
-  return requestToken(false)
+  if (tokenHeld()) return token as string
+  if (Date.now() < quietUntil) throw new Error('Sign in to Google again to keep syncing.')
+  try {
+    return await requestToken(false)
+  } catch (error) {
+    /* Shut the silent path — see REST above. The sentence handed back is the
+       one a reader can act on, not Google's account of what its popup did. */
+    quietUntil = Date.now() + REST
+    window.dispatchEvent(new Event('flyleaf-sync'))
+    throw error instanceof Error && error.message === 'Not signed in.'
+      ? error
+      : new Error('Sign in to Google again to keep syncing.')
+  }
 }
 
 /** Hand the token back to Google and forget the whole arrangement. The copy in
@@ -240,6 +337,8 @@ export async function signOut(): Promise<void> {
   const held = token
   token = null
   expiresAt = 0
+  quietUntil = 0
+  keep('')
   remember(false)
   if (!held) return
   try {

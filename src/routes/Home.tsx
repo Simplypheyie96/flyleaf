@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import BookCover from '../components/BookCover'
 import { coversOf } from '../books/covers'
@@ -54,7 +54,7 @@ function inTheMiddleOf(books: Book[]): Book | undefined {
   return started[0] ?? reading[0]
 }
 
-function Hero({ book }: { book: Book }) {
+function Hero({ book, pager }: { book: Book; pager?: ReactNode }) {
   const kept = useKeepCount(book.id)
   const readFor = useReadingTime(book.id)
   const pages = book.pages ?? 0
@@ -62,8 +62,15 @@ function Hero({ book }: { book: Book }) {
   const pct = pages > 0 ? Math.min(100, Math.round((read / pages) * 100)) : null
 
   return (
-    <Link to={`/book/${book.id}`} className={styles.heroLink}>
-      <PaperSurface rotate={-0.4} className={styles.heroCard}>
+    /* THE PAPER IS THE OUTSIDE NOW, NOT THE INSIDE. It used to be the link that
+       wrapped the card; the pager underneath has to be pressable, and a button
+       inside an anchor is neither valid nor operable. So the card holds two
+       things — a link over the whole book, and, when there is more than one
+       book open, a row of pages under it. Both inside the same sheet of paper,
+       which is what the owner asked for: the other books reachable from within
+       Currently reading rather than stacked below it. */
+    <PaperSurface rotate={-0.4} className={styles.heroCard}>
+      <Link to={`/book/${book.id}`} className={styles.heroLink}>
         <div className={styles.hero}>
           <BookCover
             title={book.title}
@@ -112,8 +119,91 @@ function Hero({ book }: { book: Book }) {
             </p>
           </div>
         </div>
-      </PaperSurface>
-    </Link>
+      </Link>
+      {pager}
+    </PaperSurface>
+  )
+}
+
+/* EVERY OPEN BOOK, IN ONE CARD.
+
+   The other books used to sit in a strip of thumbnails BELOW Currently reading,
+   labelled "Also open", and the owner's objection was exact: they belong inside
+   the card, reachable by swiping, with the card itself saying there is more.
+   A second row under a hero card reads as a lesser class of book. Swiped
+   through the card, they are the same thing — you are simply not looking at
+   that one right now.
+
+   A SCROLLER, NOT A CAROUSEL. Each book is a full-width page in a horizontally
+   snapping strip, so the gesture is the platform's own: momentum, rubber-band
+   at the ends, and a real scrollbar for a mouse. Nothing here re-implements
+   dragging, which is the part of a hand-built carousel that always feels wrong.
+   The dots are buttons for anyone not swiping — a pointer, a keyboard, a
+   screen reader — and they say which book they go to.
+
+   Order is the shelf's order and never re-sorts as you swipe; a card that
+   rearranges itself under a thumb is unusable. */
+function Reading({ books }: { books: Book[] }) {
+  const strip = useRef<HTMLDivElement>(null)
+  const [at, setAt] = useState(0)
+
+  /* Read the page from the scroll position rather than tracking it, so a swipe,
+     a dot, a trackpad and a scrollbar all agree without any of them telling the
+     others what they did. */
+  const follow = useCallback(() => {
+    const box = strip.current
+    if (!box) return
+    const page = Math.round(box.scrollLeft / Math.max(1, box.clientWidth))
+    setAt(Math.min(books.length - 1, Math.max(0, page)))
+  }, [books.length])
+
+  if (books.length === 1) return <Hero book={books[0]} />
+
+  function goTo(index: number) {
+    const box = strip.current
+    if (!box) return
+    box.scrollTo({
+      left: index * box.clientWidth,
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    })
+  }
+
+  const pager = (
+    <div className={styles.pager}>
+      {/* Said in words as well as dots. Dots alone are a puzzle at a glance —
+          "how many more?" is the question the card is here to answer. */}
+      <span className={styles.pagerCount}>
+        {at + 1} of {books.length} open
+      </span>
+      <div className={styles.pagerDots}>
+        {books.map((book, index) => (
+          <button
+            key={book.id}
+            type="button"
+            className={styles.pagerDot}
+            aria-current={index === at}
+            aria-label={`Show ${book.title}`}
+            onClick={() => goTo(index)}
+          />
+        ))}
+      </div>
+    </div>
+  )
+
+  return (
+    <div
+      ref={strip}
+      className={styles.deck}
+      onScroll={follow}
+      aria-roledescription="carousel"
+      aria-label="Books you have open"
+    >
+      {books.map((book) => (
+        <div key={book.id} className={styles.page}>
+          <Hero book={book} pager={pager} />
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -165,17 +255,14 @@ function Home() {
   const shelf = books ?? []
   const settled = books !== undefined
   const book = inTheMiddleOf(shelf)
-  /* The owner's question, answered: a reader in the middle of several books
-     gets the freshest one as the hero and the rest as covers underneath —
-     visible, named to a screen reader, one tap from their own journeys.
+  /* Every book still open, the freshest first — the deck's pages, in the order
+     `inTheMiddleOf` would have picked them.
 
-     UNFINISHED IS THE TEST, NOT STARTED, and the two must match `inTheMiddleOf`
-     exactly or books fall down the gap between them. This line used to demand
-     `startedOn` while the hero above happily falls back to a book that has
-     none — so a reader with two books going, one of them shelved without a
-     start date, was shown one and told nothing about the other. Whatever the
-     hero would have accepted, this row has to accept too. */
-  const alsoOpen = shelf.filter((b) => !b.finishedOn && b.id !== book?.id)
+     UNFINISHED IS THE TEST, NOT STARTED, and it has to match `inTheMiddleOf`
+     exactly or books fall down the gap between them: a reader with two books
+     going, one shelved without a start date, was once shown one and told
+     nothing about the other. */
+  const open = book ? [book, ...shelf.filter((b) => !b.finishedOn && b.id !== book.id)] : []
   const byId = new Map(shelf.map((b) => [b.id, b]))
   const firstRun = PREVIEW_FIRST || (settled && shelf.length === 0)
 
@@ -300,30 +387,7 @@ function Home() {
                           </span>
                         </span>
                       </span>
-                      <Hero book={book} />
-                      {alsoOpen.length > 0 && (
-                        <div className={styles.also}>
-                          <span className={styles.alsoLabel}>Also open</span>
-                          <ul className={styles.alsoList}>
-                            {alsoOpen.map((b) => (
-                              <li key={b.id}>
-                                <Link
-                                  to={`/book/${b.id}`}
-                                  className={styles.alsoBook}
-                                  aria-label={`Open ${b.title}`}
-                                >
-                                  <BookCover
-                                    title={b.title}
-                                    author={b.author}
-                                    covers={coversOf(b)}
-                                    size="thumb"
-                                  />
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                      <Reading books={open} />
                     </>
                   ) : (
                     <Idle />
