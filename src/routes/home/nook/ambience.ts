@@ -76,7 +76,24 @@ const live = new Map<Layer, () => void>()
  *  can hear working. */
 function audio() {
   if (!ctx) {
+    /* THE RINGER SWITCH IS NOT A VOLUME CONTROL, and iOS treats Web Audio as
+       if it were. By default Safari files everything an AudioContext plays
+       under the "ambient" audio session, which the hardware silent switch
+       mutes outright — so a reader with the switch flicked and the volume up
+       turns on the rain, sees the layer light, and hears nothing. Nothing is
+       broken and there is no way to tell that from the inside; the owner spent
+       a fix cycle on it.
+
+       Declaring the session as playback is the browser-level statement that
+       this is audio the reader deliberately asked for, like a podcast, rather
+       than an incidental interface noise — and playback audio ignores the
+       switch. Safari 16.4 and up; optional-chained because no other browser
+       implements it and none of them need it. */
     ctx = new AudioContext()
+    const session = (
+      navigator as Navigator & { audioSession?: { type: string } }
+    ).audioSession
+    if (session) session.type = 'playback'
 
     /* 0.34 was the number this was tuned to when the layers were synthesised
        noise, which is a hot signal. The recordings that replaced them are not:

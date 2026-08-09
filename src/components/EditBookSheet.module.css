@@ -2,21 +2,62 @@
    look for jackets, and a line explaining why there are none. Everything else
    here is AddBookSheet's — one form recipe, not two that drift. */
 
+/* The search words and the button that sends them, as one row. It was a lone
+   text action until the words became editable; a field and its action belong
+   on the same line, and stacking them would put three full-width boxes in a
+   row down a sheet that also has to show the jackets.
+
+   The field takes the room and the action takes what it needs, so the button
+   never wraps under its own field. They separate on the narrowest phones,
+   where a pill and a label genuinely cannot share 20rem without the field
+   shrinking to a slot too small to read a title in. */
+.hunt {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+@media (max-width: 22rem) {
+  .hunt {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Same pill as every other field in this sheet — it is one, and giving the
+   cover search a shape of its own would say it belongs to something else. */
+.field {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--field-fill);
+  border: 1px solid var(--field-border);
+  color: var(--color-ink);
+  font-family: var(--font-app);
+  font-size: var(--text-field); /* keeps iOS from zooming the sheet on focus */
+  /* Safari draws a search field with its own inset shape and a clear button
+     that sits outside this padding; this is what makes it an ordinary box. */
+  appearance: none;
+}
+
+.field::placeholder {
+  color: var(--color-ink-faint);
+}
+
 /* A quiet text action, not a dashed pill. The add sheet's dashed button is the
    second WAY IN to a flow with nothing else to offer; this is a small favour
-   offered beside a strip that is usually already full. Leading-edge aligned to
-   the fields above it, and never stretched across the sheet, so it cannot be
+   offered beside a strip that is usually already full — and it must not be
    mistaken for the button that finishes the job. */
-.hunt {
-  align-self: flex-start;
-  /* The body is a scroller, so every box in it can be squeezed. Without this
-     the row collapses to its own border and the words vanish. */
+.go {
   flex: none;
   min-height: var(--tap-min);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 0 var(--space-2);
-  margin-inline-start: calc(var(--space-2) * -1);
   border: none;
   background: none;
   font-family: var(--font-app);
@@ -25,13 +66,29 @@
   text-decoration: underline;
   text-decoration-thickness: from-font;
   text-underline-offset: 3px;
+  white-space: nowrap;
   cursor: pointer;
 }
 
-.hunt:disabled {
+.go:disabled {
   color: var(--color-ink-soft);
   text-decoration: none;
   cursor: default;
+}
+
+/* The field's label. The placeholder says what to type and the button says
+   what happens, so a visible label would be a third line saying neither —
+   but a field with no label at all is unreadable to a screen reader, so it
+   is here and only the sighted reader is spared it. */
+.hide {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* Why the strip above is empty. A sentence, at reading size, with air on one

@@ -9,6 +9,7 @@ import Erase from '../settings/Erase'
 import LockCard from '../settings/Lock'
 import SyncCard from '../settings/Sync'
 import InstallHow from '../settings/InstallHow'
+import Recheck from '../settings/Recheck'
 import { BackupCard, FaceCard, NameCard } from '../settings/Journey'
 import Tip, { TIP_JAR } from '../settings/Tip'
 import { DOCS } from '../legal/documents'
@@ -165,6 +166,20 @@ function Settings() {
               same stamp and different behaviour have found a real bug. See the
               note on __BUILD__ in vite.config.ts. */}
           <p className={styles.build}>Version {__BUILD__}</p>
+          {/* A PULL, BECAUSE THE PUSH IS NOT RELIABLE ENOUGH TO BE THE ONLY WAY.
+              The update toast is the right default and it still stands, but it
+              depends on a chain of things going right that a reader cannot see:
+              the browser refetching sw.js, the new worker reaching `waiting`,
+              and the toast being on screen at the moment it does. When any link
+              in that chain slips, the reader is left reloading a page over and
+              over with nothing to tell them why the version above has not
+              moved — which is exactly what happened, and it is a worse failure
+              than the one prompt mode was chosen to fix.
+
+              This asks the server directly and then says what it found, in
+              those words. There is no state it can leave the reader in where
+              the honest answer is "keep reloading and hope". */}
+          <Recheck />
         </div>
       </div>
 
