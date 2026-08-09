@@ -190,11 +190,15 @@ function BackupCard() {
          — a reader who brought 40 books across should not have to discover on
          their own that the recordings stayed behind. */
       if (back.adopted) {
+        const came = `${back.books} ${back.books === 1 ? 'book' : 'books'} and ${back.keeps} ${
+          back.keeps === 1 ? 'memory' : 'memories'
+        } came across.`
         setNote({
           tone: 'good',
-          text: `${back.books} ${back.books === 1 ? 'book' : 'books'} and ${back.keeps} ${
-            back.keeps === 1 ? 'memory' : 'memories'
-          } came across. Only a Flyleaf file carries recordings and pictures.`,
+          text:
+            back.adopted === 'first'
+              ? `${came} People, places and plot threads came with them; voice notes did not.`
+              : `${came} Only a Flyleaf file carries recordings and pictures.`,
         })
         return
       }
