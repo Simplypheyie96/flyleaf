@@ -12,7 +12,6 @@ import InstallPrompt from "./components/InstallPrompt";
 import LeafButton from "./components/LeafButton";
 import Lock from "./components/LockScreen";
 import LockNudge from "./components/LockNudge";
-import SyncArrival from "./components/SyncArrival";
 import SyncNudge from "./components/SyncNudge";
 import SplashScreen from "./components/SplashScreen";
 import FlowerField from "./brand/FlowerField";
@@ -161,9 +160,6 @@ function Dock() {
 
   return (
     <div className={toast.dock}>
-      {/* A question, not an offer: it holds syncing in both directions until
-          it is answered, so it sits above the three invitations below. */}
-      <SyncArrival />
       {/* Three invitations now, and every one of them is optional — so what
           keeps them from becoming a nag is not any of the three, it is
           data/nudges: one on screen at a time, one per launch, five days
