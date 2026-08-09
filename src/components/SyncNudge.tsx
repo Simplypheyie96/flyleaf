@@ -4,7 +4,7 @@ import GlassSurface from './GlassSurface'
 import LeafButton from './LeafButton'
 import db from '../data/db'
 import { SYNC_AVAILABLE, optedIn, signIn } from '../data/google'
-import { otherJourney, pauseAutoSync, syncNow } from '../data/sync'
+import { hasUnsharedWork, otherJourney, pauseAutoSync, syncNow } from '../data/sync'
 import { claim, markDismissed, markDone } from '../data/nudges'
 import styles from './Toast.module.css'
 
@@ -67,13 +67,16 @@ function SyncNudge() {
     setFailed(false)
     try {
       await signIn()
-      /* If that Drive already holds a journey from another device, the two are
-         meeting for the first time and the reader gets asked before anything
-         moves — see settings/Sync.tsx. The question does not fit in a toast, so
-         the toast hands over rather than merging quietly, which is the exact
-         thing the question exists to stop. */
+      /* Two conditions, and the second one is the whole point: Drive already
+         holds a journey from another device AND this device is carrying work
+         Drive has never been shown. Only then did two journeys genuinely
+         diverge, and only then is there anything to ask about. If Drive has a
+         copy and this device has nothing unshared, merging IS the answer and
+         the reader should never see the question — see the note on
+         OFFLINE_KEY in data/sync.ts. The question does not fit in a toast, so
+         when it is warranted the toast hands over to settings/Sync.tsx. */
       const other = await otherJourney()
-      if (other) {
+      if (other && (await hasUnsharedWork())) {
         pauseAutoSync()
         setMeeting(other.device || 'another device')
         return
