@@ -3,26 +3,26 @@
      view onto one reader's own books, held in their browser and never on this
      server — there is nothing there for a crawler to fetch.
 
-     The host is temporary: change it here, in robots.txt and in index.html
-     together when the real domain is attached. -->
+     The apex is the address, and www redirects to it. If that ever changes,
+     it changes here, in robots.txt and in index.html together. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://flyleaf.vercel.app/</loc>
+    <loc>https://flyleaf.cc/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://flyleaf.vercel.app/legal/privacy</loc>
+    <loc>https://flyleaf.cc/legal/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://flyleaf.vercel.app/legal/terms</loc>
+    <loc>https://flyleaf.cc/legal/terms</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://flyleaf.vercel.app/legal/licences</loc>
+    <loc>https://flyleaf.cc/legal/licences</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>

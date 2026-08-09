@@ -2,10 +2,10 @@
 # books and keeps live in their own browser and were never on this server, so
 # there is nothing private to keep out.
 #
-# The host below is temporary; change it here, in index.html and in sitemap.xml
-# together when the real domain is attached.
+# The apex is the address, and www redirects to it. If that ever changes, it
+# changes here, in index.html and in sitemap.xml together.
 
 User-agent: *
 Allow: /
 
-Sitemap: https://flyleaf.vercel.app/sitemap.xml
+Sitemap: https://flyleaf.cc/sitemap.xml
