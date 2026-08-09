@@ -1,0 +1,58 @@
+/* Dressed as the rest of the app, and centred in what is left of the screen
+   once the page scaffold has taken its padding. Same shape as the crash
+   boundary on purpose — these are the app's two dead ends and a reader who
+   meets both should recognise the second. */
+
+/* The shared column sizes itself to its content, which on a page holding three
+   lines leaves the block pinned to the top of an otherwise empty screen. This
+   route is the one place that is wrong, so it stretches the column here rather
+   than changing the scaffold every other page depends on. */
+.fill {
+  flex: 1;
+}
+
+.middle {
+  /* Fills the column, so the block sits in the middle of the screen rather
+     than at the top of an otherwise empty page. Not 100svh: the page scaffold
+     above has already reserved room for the floating bar, and repeating the
+     full viewport height here would push the button under it. */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+.said {
+  max-inline-size: 36ch;
+  margin: 0;
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-ink-soft);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  margin-block-start: var(--space-2);
+  min-block-size: var(--tap-min);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+}
