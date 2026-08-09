@@ -4,16 +4,20 @@ import styles from './Recheck.module.css'
 /* "IS THERE A NEWER FLYLEAF, AND CAN I HAVE IT NOW."
    ═════════════════════════════════════════════════
 
-   The update toast in UpdateToast.tsx is the ordinary way a new build arrives,
-   and it stays. This is the thing to reach for when it does not.
+   Builds now arrive by themselves — see registerType in vite.config.ts. This
+   is not the delivery mechanism; it is the ANSWER TO THE QUESTION delivery
+   cannot answer on its own, and the reason automatic updates are safe to have.
 
-   Prompt mode gives the reader control, but it also gives them a wait they
-   cannot inspect. The toast only appears if the browser refetched sw.js, and
-   the new worker reached `waiting`, and the reader was on a screen showing the
-   notice dock at that moment. Every one of those is invisible from the reading
-   side, so when the chain slips the only symptom is a version number at the
-   foot of Settings that will not change no matter how many times the page is
-   reloaded. That is not a delay, it is a dead end.
+   A silent swap leaves a reader who is hunting for a fix unable to tell "it
+   has not reached me yet" from "it reached me and did not work" — two problems
+   with completely different answers. That is the exact objection that once
+   pushed this app onto prompt mode, and prompt mode bought a worse one: a
+   notice that only lands if the reader is on the right screen at the right
+   instant, and a version number at the foot of Settings that would not move no
+   matter how many times the page was reloaded.
+
+   So the version is stated above, and this asks the server outright and says
+   what came back.
 
    So: ask, and then say what came back. Three outcomes, all of them stated —
    there is already a newer build and here is the button that takes it; there
