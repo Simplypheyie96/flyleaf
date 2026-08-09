@@ -177,9 +177,38 @@ const QUIET = 10_000
 
 let lastRun = 0
 let settling: ReturnType<typeof setTimeout> | null = null
+let held: ReturnType<typeof setTimeout> | null = null
 
+/* THE FLOOR DELAYS A SYNC; IT MUST NEVER CANCEL ONE, and until now it did.
+
+   `attempt` returned when the last run was under ten seconds old and nothing
+   rescheduled it, so a write that landed inside that window was simply dropped
+   — the book was on the device, the device believed it had just synced, and
+   the only thing that would ever send it was the ninety-second beat, if the
+   app was still in front when it came round. The owner's report was exactly
+   that shape: a book added shortly after a sync that never reached her phone.
+
+   So a blocked attempt now books itself for the moment the floor lifts. One
+   timer, not one per caller: three triggers firing inside the same window
+   still produce one sync, which is what the floor was for. */
 function attempt() {
-  if (!optedIn() || Date.now() - lastRun < QUIET) return
+  if (!optedIn()) return
+
+  const waited = Date.now() - lastRun
+  if (waited < QUIET) {
+    if (!held) {
+      held = setTimeout(() => {
+        held = null
+        attempt()
+      }, QUIET - waited)
+    }
+    return
+  }
+
+  if (held) {
+    clearTimeout(held)
+    held = null
+  }
   lastRun = Date.now()
   void syncNow().catch(() => {
     /* Silence is right here. This one was not asked for: a reader on a train
