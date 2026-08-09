@@ -1,4 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import GlassSurface from './GlassSurface'
 import LeafButton from './LeafButton'
@@ -10,26 +11,42 @@ import {
   watchInstallable,
 } from '../settings/installable'
 import { detect, installed } from '../settings/platform'
+import { lastExport } from '../data/backup'
+import { hasMet } from '../data/reader'
 import { claim, markDismissed, markDone } from '../data/nudges'
 import styles from './Toast.module.css'
 
 const DISMISS_KEY = 'flyleaf-install-dismissed'
+const CARRY_KEY = 'flyleaf-install-carry-warned'
 
-/* A gentle, dismissible invitation to keep Flyleaf on the home screen.
+/* A dismissible invitation to keep Flyleaf on the home screen — and, on Apple
+   devices, the warning that has to come with it.
 
-   Held back until there is a book on the shelf. An install offer on first
-   paint asks a reader to commit their home screen to something they have not
-   used yet, which is how an invitation becomes a nag; after the first book
-   there is something on the other side of the icon.
+   THE APPLE PROBLEM. On iPhone and iPad, Safari and the home-screen app get
+   separate storage. Nothing written in the Safari tab is visible to the
+   installed app: it opens on an empty journal and asks the reader to start
+   again. There is no API to merge the two, so the only bridge is the export
+   file in Settings — which means the app's whole job here is timing.
 
-   Shown on Safari too, where there is no install event to wait for. That is
-   the case that matters most — an iPhone gets no prompt from anyone, ever —
-   so the button there opens the guide instead of installing, and the copy
-   promises help rather than a result. */
+   So this notice has two shapes on Apple:
+
+   EARLY — before the first book. Asking someone to install a thing they have
+   not used is normally a nag, and everywhere else it still is. Here it is the
+   one moment the split costs nothing, so it is the moment to ask.
+
+   CARRY — once there are books and no export has ever been made. If they said
+   no early, or arrived with a shelf already full, they must not tap Add to
+   Home Screen without being told what it does. This one is a data warning
+   rather than an invitation, so it does not go through the nudge scheduler's
+   five-day quiet — it would arrive days after the install it was meant to
+   precede. It is shown once, ever, and never after an export exists.
+
+   Everywhere else the old behaviour stands: wait for a book, then offer. */
+type Stage = 'early' | 'carry' | 'plain'
+
 function InstallPrompt() {
-  const [gone, setGone] = useState(
-    () => installed() || localStorage.getItem(DISMISS_KEY) !== null,
-  )
+  const navigate = useNavigate()
+  const [gone, setGone] = useState(installed)
   const offered = useSyncExternalStore(watchInstallable, canInstall, () => false)
   const shelved = useLiveQuery(() => db.books.count(), [], 0)
 
@@ -48,25 +65,46 @@ function InstallPrompt() {
   // event means the browser has not decided yet — and inviting a reader to
   // install with nothing behind the button is a dead end.
   const manual = ['iphone', 'ipad', 'safari-mac'].includes(detect())
-  const earned = !gone && shelved > 0 && (offered || manual)
+  const said = localStorage.getItem(DISMISS_KEY) !== null
 
-  /* This invite predates the scheduler and kept its own permanent dismissal
+  let stage: Stage | null = null
+  if (!gone) {
+    if (manual && shelved > 0) {
+      if (localStorage.getItem(CARRY_KEY) === null && lastExport() === null) stage = 'carry'
+      else if (!said) stage = 'plain'
+    } else if (manual && hasMet() && !said) stage = 'early'
+    else if (!manual && shelved > 0 && offered && !said) stage = 'plain'
+  }
+
+  /* The invitation predates the scheduler and kept its own permanent dismissal
      key — a reader who says no to their home screen once has said no. What it
      gained is the shared floor: it may now be the thing that speaks this
-     launch, which is what stops it landing on top of the sync offer. */
+     launch, which is what stops it landing on top of the sync offer. The
+     warning skips that floor for the reason given above. */
   useEffect(() => {
-    if (earned) setLive(claim('install', true))
-  }, [earned])
+    if (!stage) setLive(false)
+    else if (stage === 'carry') setLive(true)
+    else setLive(claim('install', true))
+  }, [stage])
 
-  if (gone || !live) return null
+  if (!stage || !live) return null
 
   function dismiss() {
-    localStorage.setItem(DISMISS_KEY, '1')
-    markDismissed('install')
+    if (stage === 'carry') localStorage.setItem(CARRY_KEY, '1')
+    else {
+      localStorage.setItem(DISMISS_KEY, '1')
+      markDismissed('install')
+    }
     setGone(true)
   }
 
   async function act() {
+    if (stage === 'carry') {
+      localStorage.setItem(CARRY_KEY, '1')
+      setGone(true)
+      navigate('/settings')
+      return
+    }
     if (offered) {
       if (await install()) {
         markDone('install')
@@ -79,19 +117,26 @@ function InstallPrompt() {
     setGone(true)
   }
 
+  const message =
+    stage === 'carry'
+      ? 'Adding Flyleaf to your home screen starts a separate, empty journal. Save a copy of this one first, then bring it over.'
+      : stage === 'early'
+        ? 'Add Flyleaf to your home screen first. The home-screen app keeps its own journal, so anything you write in Safari now stays in Safari.'
+        : 'Keep Flyleaf close — add it to your home screen?'
+
+  const go = stage === 'carry' ? 'Save a copy' : offered ? 'Install' : 'Show me how'
+
   return (
     <div className={styles.toast} role="status">
       <GlassSurface>
         <div className={styles.body}>
-          <p className={styles.message}>
-            Keep Flyleaf close — add it to your home screen?
-          </p>
+          <p className={styles.message}>{message}</p>
           <div className={styles.actions}>
             <button type="button" className={styles.quiet} onClick={dismiss}>
               Not now
             </button>
             <LeafButton className={styles.compact} onClick={() => void act()}>
-              {offered ? 'Install' : 'Show me how'}
+              {go}
             </LeafButton>
           </div>
         </div>
