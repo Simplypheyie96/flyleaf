@@ -758,10 +758,16 @@ function Library() {
             <GlassSurface className={styles.search}>
               <div className={styles.searchInner}>
                 <SearchIcon size={18} />
+                {/* The placeholder is measured, not guessed: this field is
+                    151px wide on a 375px phone once the sort and filter pills
+                    have taken their corner, and "Search everything you have
+                    kept" needed 243px of it, so the end of the sentence ran
+                    off the field. The whole sentence is still said in the
+                    aria-label, where length costs nothing. */}
                 <input
                   type="search"
                   className={styles.searchInput}
-                  placeholder="Search everything you have kept"
+                  placeholder="Search everything"
                   aria-label="Search your books and memories"
                   autoComplete="off"
                   spellCheck={false}
