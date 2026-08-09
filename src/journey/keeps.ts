@@ -82,9 +82,30 @@ export async function editKeep(
   next.editedAt = Date.now()
   /* And a uid if this keep predates them, so THIS edit is the last one that
      has to be recognised by its content. Every one after it is recognised by
-     the uid, which is the only identity an edit cannot change. */
-  if (!next.uid) next.uid = crypto.randomUUID()
-  await db.entries.put(next as unknown as Entry)
+     the uid, which is the only identity an edit cannot change.
+
+     AND A HEADSTONE OVER THE OLD CONTENT, which is the half that was missing
+     and the owner's report exactly: "when i make changes on my phone, it
+     always likes to enforce the one on my mac". The other device is still
+     holding this keep under its old fingerprint. Correcting it here changes
+     the words, so that fingerprint no longer names anything on this device —
+     and a merge that meets a keep it cannot match ADDS it. The uncorrected
+     version came back down and sat on the thread looking like the edit had
+     been overruled. Burying the old name says "that one is gone" in the one
+     language the merge already speaks, so the stale copy is taken off the
+     other device rather than pushed back onto this one.
+
+     Only when a uid is minted. A keep that already has one was matched by it
+     on both sides, so there is no orphaned name to bury — and burying a
+     uid-named keep would tell the other device to delete the very row this
+     edit is trying to send it. */
+  const named = !next.uid
+  if (named) next.uid = crypto.randomUUID()
+
+  await db.transaction('rw', db.entries, db.graves, async () => {
+    await db.entries.put(next as unknown as Entry)
+    if (named) await bury([keepGrave(current)])
+  })
 }
 
 /** Delete, with the row and a way back. The caller shows an undo rather than

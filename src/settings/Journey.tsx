@@ -183,7 +183,10 @@ function BackupCard() {
     setBusy('in')
     setNote(null)
     try {
-      const back = await importJourney(file)
+      /* The reader went and found this file themselves, so it outranks
+         anything this device remembers deleting — see `Restoring` in
+         data/backup.ts. A sync never gets this. */
+      const back = await importJourney(file, { exhume: true })
       if (back.handle && !getHandle()) setHandle(back.handle)
 
       /* Somebody else's file, so the count alone would overstate what arrived
@@ -203,8 +206,17 @@ function BackupCard() {
         return
       }
 
-      const added = back.keeps
-        ? `${back.keeps} ${back.keeps === 1 ? 'memory' : 'memories'} came back`
+      /* Books counted out loud as well as memories. A file can be all shelf
+         and no thread — books carried over from another app, before a word has
+         been kept from any of them — and the old sentence read that as
+         "everything in that file was already here" while four books landed on
+         the shelf behind it. */
+      const arrived = [
+        back.books ? `${back.books} ${back.books === 1 ? 'book' : 'books'}` : '',
+        back.keeps ? `${back.keeps} ${back.keeps === 1 ? 'memory' : 'memories'}` : '',
+      ].filter(Boolean)
+      const added = arrived.length
+        ? `${arrived.join(' and ')} came back`
         : 'Everything in that file was already here'
       const same = back.skipped ? ` (${back.skipped} already on this device).` : '.'
       setNote({ tone: 'good', text: `${added}${same}` })

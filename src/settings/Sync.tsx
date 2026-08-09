@@ -3,6 +3,7 @@ import { Row } from './Group'
 import { SYNC_AVAILABLE, account, needsSignIn, optedIn, signIn, signOut, tokenHeld, warmUp } from '../data/google'
 import {
   autoSyncPaused,
+  forgetDrive,
   hasLocalJourney,
   lastSync,
   otherJourney,
@@ -39,7 +40,16 @@ import styles from './settings.module.css'
 
    Signing out leaves the Drive copy alone, deliberately. Ending sync on one
    device must not reach across and delete the reader's journey from their own
-   Drive; that is theirs to remove, in Drive, whenever they like. */
+   Drive.
+
+   REMOVING IT IS A SEPARATE, NAMED BUTTON, and it had to become one. The old
+   answer was "that is theirs to remove, in Drive, whenever they like" — which
+   was wrong, and the owner is the one who found out: the hidden folder Flyleaf
+   syncs into does not appear in Drive's file list, so there is nothing there
+   to delete and no set of steps that matches what she sees. An app that can
+   put a copy of a diary somewhere has to be able to take it back out from
+   inside itself. Two presses, because it is the only thing on this card that
+   cannot be undone. */
 
 function Cloud() {
   return (
@@ -76,7 +86,11 @@ type Note = { tone: 'good' | 'bad'; text: string } | null
 function SyncCard() {
   const [on, setOn] = useState(optedIn)
   const [at, setAt] = useState(lastSync)
-  const [busy, setBusy] = useState<'in' | 'now' | 'out' | null>(null)
+  const [busy, setBusy] = useState<'in' | 'now' | 'out' | 'drop' | null>(null)
+  /* The remove-from-Drive button, once pressed. Two presses rather than a
+     dialog, and rather than one: it is the only irreversible thing on this
+     card, and the second press is where the sentence explaining that lands. */
+  const [sure, setSure] = useState(false)
   const [note, setNote] = useState<Note>(null)
   const [open, setOpen] = useState(false)
   const [who, setWho] = useState(account)
@@ -261,6 +275,34 @@ function SyncCard() {
     setBusy(null)
   }
 
+  /* The copy in Drive, removed from inside the app — because the owner could
+     not remove it from outside it: "things are not like that in google drive,
+     i couldn't follow your instructions to do that. so i can't delete it."
+     The hidden folder that makes syncing tidy is the same thing that leaves
+     her no row to delete, so the app owes her this button. */
+  async function drop() {
+    setBusy('drop')
+    setNote(null)
+    try {
+      await forgetDrive()
+      /* Signed out as part of the same press: still signed in, this device
+         would write the journey straight back up and the removal would last
+         about four seconds. */
+      await signOut()
+      setOn(false)
+      setAt(null)
+      setSure(false)
+      setNote({
+        tone: 'good',
+        text: 'Removed from Google Drive, and this device has stopped syncing. Everything you have written is still here.',
+      })
+    } catch (error) {
+      setNote({ tone: 'bad', text: error instanceof Error ? error.message : 'That could not be removed.' })
+    } finally {
+      setBusy(null)
+    }
+  }
+
   /* One folding row, the shape the lock beneath it already uses — the owner
      asked for the two to match, and they should: they are the same kind of
      thing, a subject with a state on the line and a tray of actions under it.
@@ -281,7 +323,12 @@ function SyncCard() {
           </span>
         }
         open={open}
-        onFold={() => setOpen(!open)}
+        onFold={() => {
+          setOpen(!open)
+          // A half-armed irreversible button must not still be armed the next
+          // time this row is opened.
+          setSure(false)
+        }}
       >
         <div className={styles.eraseBox}>
           {/* Nothing about how syncing behaves, while the reader is being asked
@@ -392,6 +439,27 @@ function SyncCard() {
                 onClick={disconnect}
               >
                 {busy === 'out' ? 'Stopping…' : 'Stop syncing this device'}
+              </button>
+
+              {sure && (
+                <p className={styles.note} data-tone="bad">
+                  This deletes the copy in your Google Drive and stops this
+                  device syncing. Everything you have written stays on this
+                  device — but your other devices will have nothing to sync
+                  with, and the copy cannot be brought back.
+                </p>
+              )}
+              <button
+                type="button"
+                className={styles.action}
+                disabled={busy !== null}
+                onClick={() => (sure ? void drop() : setSure(true))}
+              >
+                {busy === 'drop'
+                  ? 'Removing…'
+                  : sure
+                    ? 'Yes, remove it from Drive'
+                    : 'Remove my journey from Drive'}
               </button>
             </>
           )}

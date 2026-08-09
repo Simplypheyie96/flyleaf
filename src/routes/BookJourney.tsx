@@ -187,7 +187,13 @@ function Notch({ keep, tie, showSide, onEdit, onShare, onDelete }: NotchProps) {
             phrase adrift. */}
         <p className={styles.when}>
           <span className={styles.whenDay}>
+            {/* Chapter before page, and both — the thread showed the page
+                alone, so a reader who wrote down a chapter and no page saw
+                nothing at all come back. Chapter first because that is the
+                order the sheet asks in, the order the journal prints, and the
+                order the share picture stamps. */}
             {keptLabel(keep.keptOn)}
+            {keep.chapter?.trim() ? ` · ${keep.chapter.trim()}` : ''}
             {keep.page !== undefined && ` · p. ${keep.page}`}
           </span>
           {showSide && <em className={styles.whenSide}>{SIDE[side].word}</em>}

@@ -41,6 +41,8 @@ import { optedIn } from './google'
 const CODE_KEY = 'flyleaf-lock'
 const RESET_KEY = 'flyleaf-lock-reset'
 const TRIES_KEY = 'flyleaf-lock-tries'
+/** When the code was last taken off this device. See packLock/unpackLock. */
+const OFF_KEY = 'flyleaf-lock-off'
 
 /** Minimum digits. Four is the phone-lock convention and the most anybody will
     actually keep; the field allows more for those who want more. */
@@ -67,6 +69,11 @@ interface Stored {
   /** The reader's own words, shown after a few wrong tries. Optional, and never
       the code itself — the field warns about that. */
   hint?: string
+  /** When this code was set. Absent on every lock written before removals
+      learned to travel, which reads as "older than any removal" — exactly the
+      right answer for a code that has been going round in circles since before
+      the fix. */
+  setAt?: number
 }
 
 interface Tries {
@@ -145,9 +152,14 @@ export function isLockSet(): boolean {
    It cannot replace a code already set here, because that would let an old
    file — or a device the reader had already changed the code on — quietly
    restore a code they had moved on from and lock them out of their own
-   journal. Taking a lock OFF is likewise a local act: it is done on a device,
-   and the next sync does not push the removal, so the other devices keep
-   asking until they are told to stop in the same deliberate way. */
+   journal.
+
+   TAKING A LOCK OFF IS STILL A LOCAL ACT — no device unlocks another one's
+   door — but the removal is now DATED, and the date travels. That is the
+   difference between a lock the reader keeps on the phone by choice and a
+   lock they cannot get rid of anywhere: a code older than the newest removal
+   is one they have already thrown away, so no arriving file may hand it back.
+   Each device still has to be told to stop asking, on the device. */
 
 /** The lock as it travels: exactly what is stored, or nothing when there is
     no lock to carry. */
@@ -155,9 +167,38 @@ export function packLock(): Stored | undefined {
   return read<Stored>(CODE_KEY) ?? undefined
 }
 
-/** Take a lock arriving from another device, and only when this one is open. */
-export function unpackLock(lock: Stored | undefined) {
+/** When this device last took its code off, or 0. Travels beside the lock so
+    the other device can tell a code that is still wanted from one that was
+    removed after it was written. */
+export function lockOff(): number {
+  return read<number>(OFF_KEY) ?? 0
+}
+
+/** Take a lock arriving from another device, and only when this one is open.
+
+    AND ONLY WHEN IT HAS NOT SINCE BEEN REMOVED, which is the line that closes
+    the loop. Before it, a code could not be got rid of: the reader took it off
+    here, the copy in Drive still held the hash, and the very next sync — this
+    device having no lock, so "arriving is one-way" said yes — put it straight
+    back on. Removal now travels too, as a moment rather than a flag, and a
+    lock older than the newest removal either side knows about is a lock the
+    reader has already thrown away. Setting a NEW code stamps `setAt` fresh and
+    clears the removal, so this can never refuse a code somebody actually
+    wants. */
+export function unpackLock(lock: Stored | undefined, removedAt = 0) {
+  const off = Math.max(lockOff(), removedAt)
+  /* Remembered, not merely used: this device must carry the other one's
+     removal onward, or the third device in the account keeps handing the code
+     back to both of them. */
+  if (off > lockOff()) write(OFF_KEY, off)
+
   if (!lock?.salt || !lock.hash || isLockSet()) return
+  /* `off` of zero means nobody has ever taken a code off, so an undated lock
+      — every one written before removals travelled — still carries across to
+      a new device exactly as it always did. It is only once a removal exists
+      that an undated lock is read as older than it, which is the right answer:
+      the code going round in circles is by definition the old one. */
+  if (off && (lock.setAt ?? 0) <= off) return
   write(CODE_KEY, lock)
 }
 
@@ -171,14 +212,24 @@ export async function setCode(code: string, hint?: string) {
   const salt = toBase64(bytes(16))
   const hash = await derive(code, salt)
   const trimmed = hint?.trim().slice(0, 60)
-  write(CODE_KEY, { salt, hash, ...(trimmed ? { hint: trimmed } : {}) } satisfies Stored)
+  write(CODE_KEY, {
+    salt,
+    hash,
+    setAt: Date.now(),
+    ...(trimmed ? { hint: trimmed } : {}),
+  } satisfies Stored)
   write(TRIES_KEY, null)
   write(RESET_KEY, null)
+  // A code the reader has just chosen outranks every removal before it.
+  write(OFF_KEY, null)
 }
 
 /** Take the lock off. Everything the reader has written stays exactly where it
     is — this removes a door, not a room. */
 export function clearLock() {
+  /* Dated, and the date is kept. It is the only thing standing between the
+     reader and a code that comes back down from Drive an hour later. */
+  write(OFF_KEY, Date.now())
   write(CODE_KEY, null)
   write(TRIES_KEY, null)
   write(RESET_KEY, null)
