@@ -3,9 +3,9 @@ import { Row } from './Group'
 import { SYNC_AVAILABLE, account, needsSignIn, optedIn, signIn, signOut, tokenHeld, warmUp } from '../data/google'
 import {
   autoSyncPaused,
-  driveHasJourney,
   hasLocalJourney,
   lastSync,
+  otherJourney,
   pauseAutoSync,
   resumeAutoSync,
   syncNow,
@@ -81,15 +81,21 @@ function SyncCard() {
   const [open, setOpen] = useState(false)
   const [who, setWho] = useState(account)
   const [stale, setStale] = useState(needsSignIn)
-  /* True when this device and the Drive both already hold a journey and the
-     reader has not yet said to bring them together. See sync.ts. */
-  const [ask, setAsk] = useState(autoSyncPaused)
+  /* Set when this device and the Drive both already hold a journey and the
+     reader has not yet said what to do about it — and it holds WHERE and WHEN
+     the other one was last written, because that is the fact the question
+     turns on. See sync.ts/otherJourney. */
+  const [ask, setAsk] = useState<{ device: string; at: number } | null>(null)
 
   /* Opened with the question already outstanding — the nudge signed in, found
      another device's journey, paused and pointed here. Unfold so it is not
      hidden behind a row nobody knew to press. */
   useEffect(() => {
-    if (autoSyncPaused()) setOpen(true)
+    if (!autoSyncPaused()) return
+    setOpen(true)
+    /* The nudge found the other journey and paused; it did not carry the
+       details over, so they are read again here. One metadata call. */
+    void otherJourney().then((other) => other && setAsk(other))
   }, [])
 
   /* Both `google.ts` and `sync.ts` fire this, so a sync that ran by itself in
@@ -126,8 +132,9 @@ function SyncCard() {
          stops and asks. The pause is held until they answer, or the write hooks
          would merge it underneath the question. */
       pauseAutoSync()
-      if ((await hasLocalJourney()) && (await driveHasJourney())) {
-        setAsk(true)
+      const other = await otherJourney()
+      if (other && (await hasLocalJourney())) {
+        setAsk(other)
         setBusy(null)
         return
       }
@@ -155,7 +162,7 @@ function SyncCard() {
      sides, and both devices end up holding it. */
   async function bringTogether() {
     setBusy('in')
-    setAsk(false)
+    setAsk(null)
     resumeAutoSync()
     try {
       const { gained } = await syncNow()
@@ -173,10 +180,35 @@ function SyncCard() {
     }
   }
 
+  /* The owner asked for this one by name: "request if it wants to merge or
+     keep the current data". What is on this device goes up and takes the other
+     copy's place — the one deliberate way to end up with less than you started
+     with, so it says so in the button and again in the note underneath.
+
+     It is not a delete of the other device: that phone still has every word it
+     had a minute ago. It is this journey becoming the one they all sync to. */
+  async function keepThisDevice() {
+    setBusy('in')
+    setAsk(null)
+    resumeAutoSync()
+    try {
+      await syncNow('keep')
+      setAt(lastSync())
+      setNote({
+        tone: 'good',
+        text: 'Kept. Your other devices will match this one the next time they sync.',
+      })
+    } catch (error) {
+      setNote({ tone: 'bad', text: error instanceof Error ? error.message : 'That did not sync.' })
+    } finally {
+      setBusy(null)
+    }
+  }
+
   /* No. Signing back out is the honest undo: leaving this device signed in but
      never syncing would be a switch that says On and does nothing. */
   async function leaveThemApart() {
-    setAsk(false)
+    setAsk(null)
     setBusy('out')
     await signOut()
     resumeAutoSync()
@@ -288,14 +320,21 @@ function SyncCard() {
 
           {ask ? (
             <>
-              {/* Said before either button, and said plainly: the reason a
-                  merge felt alarming is that nobody explained it could not
-                  take anything away. */}
+              {/* WHERE, AND WHEN, BEFORE ANY BUTTON. The reason this question
+                  was unanswerable is that it used to be about "your Drive" —
+                  a place the reader has never been and cannot picture. Named
+                  as their own iPhone, and dated, it becomes a question about
+                  something they either remember doing or don't. */}
               <p className={styles.note}>
-                There is already a journey in this Google account’s Drive, from
-                another device. Bringing them together adds anything that is
-                only there to this device, and anything that is only here to
-                that one. Nothing is replaced, and nothing is removed.
+                This Google account already holds a journey, last changed{' '}
+                {ask.device ? <>on your <strong>{ask.device}</strong>, </> : null}
+                {ask.at ? when(ask.at).toLowerCase() : 'on another device'}.
+              </p>
+              <p className={styles.note}>
+                Bringing them together adds anything that is only there to this
+                device, and anything that is only here to that one. Nothing is
+                replaced and nothing is removed — it is the only choice here
+                that cannot lose a word.
               </p>
               <button
                 type="button"
@@ -308,6 +347,19 @@ function SyncCard() {
                   <Cloud />
                 </span>
               </button>
+              <button
+                type="button"
+                className={styles.action}
+                disabled={busy !== null}
+                onClick={keepThisDevice}
+              >
+                Keep only what is on this device
+              </button>
+              <p className={styles.note}>
+                Keeping this one sends it up in place of the other copy. Your{' '}
+                {ask.device ? ask.device : 'other device'} keeps everything it
+                has until it next syncs, and then matches this one.
+              </p>
               <button
                 type="button"
                 className={styles.action}

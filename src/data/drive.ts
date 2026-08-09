@@ -24,6 +24,18 @@ const UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files'
 export interface DriveFile {
   id: string
   modifiedTime: string
+  /** Who last wrote it — "iPhone", "Mac". Rides as Drive's own file metadata
+      rather than inside the journey, so the question "where was the last
+      change made" can be answered by the one metadata call `findJourney`
+      already makes. Reading it out of the document would mean downloading a
+      reader's entire library, recordings and all, to render a sentence.
+      Absent on every file written before this existed. */
+  device?: string
+}
+
+/** Drive returns custom metadata under `appProperties`, one flat string map. */
+function unpack(file: DriveFile & { appProperties?: Record<string, string> }): DriveFile {
+  return { id: file.id, modifiedTime: file.modifiedTime, device: file.appProperties?.device }
 }
 
 /** Turn Drive's refusal into a sentence a reader can act on. Google puts a
@@ -79,10 +91,12 @@ async function ask(token: string, url: string, init?: RequestInit): Promise<Resp
 /** The journey already in this reader's Drive, or null the first time. */
 export async function findJourney(token: string): Promise<DriveFile | null> {
   const url = `${FILES}?spaces=appDataFolder&pageSize=1&orderBy=modifiedTime desc&fields=${encodeURIComponent(
-    'files(id,modifiedTime)',
+    'files(id,modifiedTime,appProperties)',
   )}&q=${encodeURIComponent(`name = '${FILE_NAME}'`)}`
-  const { files } = (await (await ask(token, url)).json()) as { files?: DriveFile[] }
-  return files?.[0] ?? null
+  const { files } = (await (await ask(token, url)).json()) as {
+    files?: (DriveFile & { appProperties?: Record<string, string> })[]
+  }
+  return files?.[0] ? unpack(files[0]) : null
 }
 
 export async function readJourney(token: string, id: string): Promise<string> {
@@ -93,33 +107,44 @@ export async function readJourney(token: string, id: string): Promise<string> {
     after that. Overwriting is safe here in a way it would not be for most
     apps, because what goes up is always the MERGE of both sides — see sync.ts.
     Nothing is ever replaced by less than itself. */
-export async function writeJourney(token: string, body: Blob, id?: string): Promise<DriveFile> {
-  if (id) {
-    const response = await ask(token, `${UPLOAD}/${id}?uploadType=media&fields=id,modifiedTime`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-    })
-    return (await response.json()) as DriveFile
-  }
+export async function writeJourney(
+  token: string,
+  body: Blob,
+  device: string,
+  id?: string,
+): Promise<DriveFile> {
+  /* Multipart both ways now, where an update used to be a bare `media` PATCH.
+     The metadata half is what carries `appProperties.device`, and a media-only
+     upload has nowhere to put it — so an update would leave whichever device
+     created the file named on it forever, and the question in Settings would
+     name the wrong one from the second sync onwards.
 
-  /* A multipart create, because the first write has to carry the file's
-     metadata — its name and, crucially, `parents: ['appDataFolder']`, which is
-     what puts it in the hidden folder rather than loose in the reader's Drive
-     where it would sit among their own documents. */
+     The create half additionally carries the name and, crucially,
+     `parents: ['appDataFolder']`, which is what puts the file in the hidden
+     folder rather than loose in the reader's Drive among their own documents.
+     A file cannot be re-parented on update, so that goes on the create only. */
+  const meta = id
+    ? { appProperties: { device } }
+    : { name: FILE_NAME, parents: ['appDataFolder'], appProperties: { device } }
+
   const boundary = `flyleaf-${crypto.randomUUID()}`
   const head =
     `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n` +
-    `${JSON.stringify({ name: FILE_NAME, parents: ['appDataFolder'] })}\r\n` +
+    `${JSON.stringify(meta)}\r\n` +
     `--${boundary}\r\nContent-Type: application/json\r\n\r\n`
   const multipart = new Blob([head, body, `\r\n--${boundary}--`])
 
-  const response = await ask(token, `${UPLOAD}?uploadType=multipart&fields=id,modifiedTime`, {
-    method: 'POST',
-    headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
-    body: multipart,
-  })
-  return (await response.json()) as DriveFile
+  const fields = 'fields=id,modifiedTime,appProperties'
+  const response = await ask(
+    token,
+    id ? `${UPLOAD}/${id}?uploadType=multipart&${fields}` : `${UPLOAD}?uploadType=multipart&${fields}`,
+    {
+      method: id ? 'PATCH' : 'POST',
+      headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+      body: multipart,
+    },
+  )
+  return unpack((await response.json()) as DriveFile & { appProperties?: Record<string, string> })
 }
 
 /** Which Google account this is, for the settings row to name. Best-effort:

@@ -4,7 +4,7 @@ import GlassSurface from './GlassSurface'
 import LeafButton from './LeafButton'
 import db from '../data/db'
 import { SYNC_AVAILABLE, optedIn, signIn } from '../data/google'
-import { driveHasJourney, pauseAutoSync, syncNow } from '../data/sync'
+import { otherJourney, pauseAutoSync, syncNow } from '../data/sync'
 import { claim, markDismissed, markDone } from '../data/nudges'
 import styles from './Toast.module.css'
 
@@ -38,7 +38,7 @@ function SyncNudge() {
   const [failed, setFailed] = useState(false)
   /* Signed in, and a journey from another device was found waiting. Nothing has
      been merged; Settings holds the question. */
-  const [meeting, setMeeting] = useState(false)
+  const [meeting, setMeeting] = useState('')
   const memories = useLiveQuery(() => db.entries.count(), [], 0)
 
   /* Already syncing means the question is answered, however it was answered —
@@ -72,9 +72,10 @@ function SyncNudge() {
          moves — see settings/Sync.tsx. The question does not fit in a toast, so
          the toast hands over rather than merging quietly, which is the exact
          thing the question exists to stop. */
-      if (await driveHasJourney()) {
+      const other = await otherJourney()
+      if (other) {
         pauseAutoSync()
-        setMeeting(true)
+        setMeeting(other.device || 'another device')
         return
       }
       await syncNow()
@@ -93,7 +94,7 @@ function SyncNudge() {
         <div className={styles.body}>
           <p className={styles.message}>
             {meeting
-              ? 'Signed in. There is already a journey in that Drive from another device — nothing has been merged yet. Settings will ask you first.'
+              ? `Signed in. That Drive already holds a journey, last changed on your ${meeting} — nothing has been merged yet. Settings will ask you first.`
               : failed
                 ? 'That did not connect. You can try again from Settings whenever you like.'
                 : 'Your journal lives on this phone only. Sign in with Google and it waits for you on your other devices too.'}
