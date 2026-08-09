@@ -17,6 +17,7 @@ import { claim, markDismissed, markDone } from '../data/nudges'
 import styles from './Toast.module.css'
 
 const DISMISS_KEY = 'flyleaf-install-dismissed'
+const EARLY_KEY = 'flyleaf-install-asked-early'
 const CARRY_KEY = 'flyleaf-install-carry-warned'
 
 /* A dismissible invitation to keep Flyleaf on the home screen — and, on Apple
@@ -72,49 +73,55 @@ function InstallPrompt() {
     if (manual && shelved > 0) {
       if (localStorage.getItem(CARRY_KEY) === null && lastExport() === null) stage = 'carry'
       else if (!said) stage = 'plain'
-    } else if (manual && hasMet() && !said) stage = 'early'
+    } else if (manual && hasMet() && localStorage.getItem(EARLY_KEY) === null) stage = 'early'
     else if (!manual && shelved > 0 && offered && !said) stage = 'plain'
   }
 
-  /* The invitation predates the scheduler and kept its own permanent dismissal
-     key — a reader who says no to their home screen once has said no. What it
-     gained is the shared floor: it may now be the thing that speaks this
-     launch, which is what stops it landing on top of the sync offer. The
-     warning skips that floor for the reason given above. */
+  /* Only the ordinary invitation answers to the nudge scheduler — it is an
+     offer, and offers can wait five days or be given up on. The two Apple
+     notices are neither: one is the only moment the storage split is free to
+     avoid, the other is a warning about losing work. Both would have been
+     silenced on any device that had already met the old invitation, which is
+     every device that has been using Flyleaf. So they keep their own one-time
+     keys and speak once regardless. */
   useEffect(() => {
     if (!stage) setLive(false)
-    else if (stage === 'carry') setLive(true)
-    else setLive(claim('install', true))
+    else if (stage === 'plain') setLive(claim('install', true))
+    else setLive(true)
   }, [stage])
 
   if (!stage || !live) return null
 
-  function dismiss() {
+  /** Whichever notice this was, it has now been answered and does not come
+      back — a no is a no, and a yes has nowhere left to go. */
+  function settle() {
     if (stage === 'carry') localStorage.setItem(CARRY_KEY, '1')
-    else {
-      localStorage.setItem(DISMISS_KEY, '1')
-      markDismissed('install')
-    }
+    else if (stage === 'early') localStorage.setItem(EARLY_KEY, '1')
+    else localStorage.setItem(DISMISS_KEY, '1')
     setGone(true)
+  }
+
+  function dismiss() {
+    if (stage === 'plain') markDismissed('install')
+    settle()
   }
 
   async function act() {
     if (stage === 'carry') {
-      localStorage.setItem(CARRY_KEY, '1')
-      setGone(true)
+      settle()
       navigate('/settings')
       return
     }
     if (offered) {
       if (await install()) {
         markDone('install')
-        setGone(true)
+        settle()
       }
       return
     }
     openInstallGuide()
     markDone('install')
-    setGone(true)
+    settle()
   }
 
   const message =
