@@ -4,7 +4,7 @@ import GlassSurface from './GlassSurface'
 import LeafButton from './LeafButton'
 import db from '../data/db'
 import { SYNC_AVAILABLE, optedIn, signIn } from '../data/google'
-import { syncNow } from '../data/sync'
+import { driveHasJourney, pauseAutoSync, syncNow } from '../data/sync'
 import { claim, markDismissed, markDone } from '../data/nudges'
 import styles from './Toast.module.css'
 
@@ -36,6 +36,9 @@ function SyncNudge() {
   const [gone, setGone] = useState(false)
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
+  /* Signed in, and a journey from another device was found waiting. Nothing has
+     been merged; Settings holds the question. */
+  const [meeting, setMeeting] = useState(false)
   const memories = useLiveQuery(() => db.entries.count(), [], 0)
 
   /* Already syncing means the question is answered, however it was answered —
@@ -64,6 +67,16 @@ function SyncNudge() {
     setFailed(false)
     try {
       await signIn()
+      /* If that Drive already holds a journey from another device, the two are
+         meeting for the first time and the reader gets asked before anything
+         moves — see settings/Sync.tsx. The question does not fit in a toast, so
+         the toast hands over rather than merging quietly, which is the exact
+         thing the question exists to stop. */
+      if (await driveHasJourney()) {
+        pauseAutoSync()
+        setMeeting(true)
+        return
+      }
       await syncNow()
       markDone('sync')
       setGone(true)
@@ -79,15 +92,17 @@ function SyncNudge() {
       <GlassSurface>
         <div className={styles.body}>
           <p className={styles.message}>
-            {failed
-              ? 'That did not connect. You can try again from Settings whenever you like.'
-              : 'Your journal lives on this phone only. Sign in with Google and it waits for you on your other devices too.'}
+            {meeting
+              ? 'Signed in. There is already a journey in that Drive from another device — nothing has been merged yet. Settings will ask you first.'
+              : failed
+                ? 'That did not connect. You can try again from Settings whenever you like.'
+                : 'Your journal lives on this phone only. Sign in with Google and it waits for you on your other devices too.'}
           </p>
           <div className={styles.actions}>
             <button type="button" className={styles.quiet} onClick={dismiss}>
-              {failed ? 'Close' : 'Not now'}
+              {failed || meeting ? 'Close' : 'Not now'}
             </button>
-            {!failed && (
+            {!failed && !meeting && (
               <LeafButton
                 className={styles.compact}
                 disabled={busy}

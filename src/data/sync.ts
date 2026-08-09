@@ -61,17 +61,34 @@ export function lastSync(): number | null {
   return at > 0 ? at : null
 }
 
-/** A cheap stand-in for "has anything changed here". Counts plus the newest
-    moment: writing a keep moves one of them, and editing one moves none — which
-    is why the mark is only ever used to skip work, never to decide a merge. */
+/** A cheap stand-in for "has anything changed here", and it has to notice an
+    EDIT as well as an addition.
+
+    It used to be counts plus the newest keep, and an edit moves neither: mark a
+    book as finished and nothing else, and this device looked identical to the
+    one that had just synced, so the round trip was skipped and the other device
+    never heard about it. That is the owner's report exactly — books marked read
+    on one device still reading on the other.
+
+    So the newest `editedAt` on either table goes in too. Deletions are already
+    covered, by the counts and by the headstones they leave. */
 async function signature(): Promise<string> {
-  const [books, keeps, sittings, newest] = await Promise.all([
+  const [books, keeps, sittings, graves, newest] = await Promise.all([
     db.books.count(),
     db.entries.count(),
     db.sittings.count(),
+    db.graves.count(),
     db.entries.orderBy('id').last(),
   ])
-  return `${books}.${keeps}.${sittings}.${newest?.createdAt ?? 0}`
+  /* Off the index rather than a scan. Reading every row to find the newest
+     stamp would pull every voice memo's blob out of the database once every
+     ninety seconds, on a phone, to compute a string. */
+  const [bookEdit, keepEdit] = await Promise.all([
+    db.books.orderBy('editedAt').last(),
+    db.entries.orderBy('editedAt').last(),
+  ])
+  const edited = Math.max(bookEdit?.editedAt ?? 0, keepEdit?.editedAt ?? 0)
+  return `${books}.${keeps}.${sittings}.${graves}.${newest?.createdAt ?? 0}.${edited}`
 }
 
 /** One full sync: pull, merge, push. Throws with a sentence fit to show a
@@ -115,6 +132,48 @@ async function run(token: string): Promise<SyncResult> {
   write(MARK_KEY, `${saved.modifiedTime} ${await signature()}`)
   window.dispatchEvent(new Event('flyleaf-sync'))
   return { gained, unchanged: false }
+}
+
+/* ── Asking first, the one time it matters ──────────────────────────────────
+
+   Signing in used to merge on the spot, and the owner's words were exact: it
+   "randomly syncs from another device without asking if you want to merge or
+   not". Merging is safe — it is a union, nothing is replaced — but safe is not
+   the same as expected, and a shelf that grows by four books a second after a
+   sign-in is a thing that happened TO somebody.
+
+   So on the one press where two journeys meet for the first time, Settings
+   asks. These two are what it needs to know that they are meeting, and the
+   pause is what stops the automatic triggers merging underneath the question. */
+
+/** Has this device got a journey of its own to lose the surprise of? */
+export async function hasLocalJourney(): Promise<boolean> {
+  const [books, keeps] = await Promise.all([db.books.count(), db.entries.count()])
+  return books + keeps > 0
+}
+
+/** Is there already a journey in this Google account's Drive? */
+export async function driveHasJourney(): Promise<boolean> {
+  return (await findJourney(await silentToken())) !== null
+}
+
+let paused = false
+
+/** Hold every automatic sync — the write hooks, the beat, the return to the
+    front — while a question is on screen. Explicit syncs still run: `syncNow`
+    is only ever called by something the reader pressed. */
+export function pauseAutoSync() {
+  paused = true
+}
+
+export function resumeAutoSync() {
+  paused = false
+}
+
+/** Is a question still outstanding? The nudge pauses and hands over to
+    Settings, so Settings has to be able to find out that it was handed to. */
+export function autoSyncPaused(): boolean {
+  return paused
 }
 
 let running: Promise<SyncResult> | null = null
@@ -192,7 +251,7 @@ let held: ReturnType<typeof setTimeout> | null = null
    timer, not one per caller: three triggers firing inside the same window
    still produce one sync, which is what the floor was for. */
 function attempt() {
-  if (!optedIn()) return
+  if (!optedIn() || paused) return
 
   const waited = Date.now() - lastRun
   if (waited < QUIET) {

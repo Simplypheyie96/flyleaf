@@ -26,16 +26,52 @@ export interface DriveFile {
   modifiedTime: string
 }
 
+/** Turn Drive's refusal into a sentence a reader can act on. Google puts a
+    machine-readable `reason` in the body of every error it returns; this reads
+    it and says the corresponding human thing, falling back to the status only
+    when the body is something unexpected. */
+async function explain(response: Response): Promise<string> {
+  let reason = ''
+  try {
+    const body = (await response.json()) as {
+      error?: { errors?: { reason?: string }[]; message?: string }
+    }
+    reason = body.error?.errors?.[0]?.reason ?? ''
+  } catch {
+    /* An error page rather than an error object. The status still says
+       something, and that is what the last line falls back to. */
+  }
+
+  if (reason === 'insufficientPermissions' || reason === 'insufficientFilePermissions')
+    return 'Flyleaf was not given permission to use your Drive. Sign in again and leave the Flyleaf box ticked on Google’s screen.'
+  if (reason === 'storageQuotaExceeded') return 'Your Google Drive is full, so nothing could be saved to it.'
+  if (reason === 'rateLimitExceeded' || reason === 'userRateLimitExceeded')
+    return 'Google asked us to slow down. Syncing will try again shortly.'
+  if (response.status === 403)
+    return 'Google would not let Flyleaf into your Drive. Sign in again and leave the Flyleaf box ticked.'
+  if (response.status >= 500) return 'Google Drive is having trouble. Syncing will try again shortly.'
+  return 'Your journey could not reach Google Drive. Check your connection and try again.'
+}
+
 async function ask(token: string, url: string, init?: RequestInit): Promise<Response> {
   const response = await fetch(url, {
     ...init,
     headers: { ...init?.headers, Authorization: `Bearer ${token}` },
   })
   if (!response.ok) {
-    /* 401 is the one worth naming: it means the hour is up, and the caller can
-       get a fresh token and come back rather than telling the reader that
-       something broke. */
-    throw new Error(response.status === 401 ? 'expired' : `Google Drive said no (${response.status}).`)
+    /* 401 is the one worth naming to the CALLER: it means the hour is up, and
+       it can get a fresh token and come back rather than telling the reader
+       that something broke.
+
+       Everything else is named to the READER, and "Google Drive said no (403)"
+       was not that. A number is not a thing anybody can act on, and the two
+       things a 403 actually means here have completely different answers:
+       either the reader left the Drive box unticked on Google's consent screen
+       — Google shows a checkbox per permission and quietly hands back a token
+       without the one it covers — or their Drive is full. Both are fixable in
+       about ten seconds by somebody who is told which it is. */
+    if (response.status === 401) throw new Error('expired')
+    throw new Error(await explain(response))
   }
   return response
 }
