@@ -26,6 +26,7 @@
 
 import { IMPRINT } from '../brand/imprint'
 import db, { type Book, type Entry, type Sitting } from './db'
+import { packLock, unpackLock } from './lock'
 
 /** Bumped only when a reader's older file would otherwise be misread.
 
@@ -58,6 +59,11 @@ interface Journey {
   entries: PackedEntry[]
   /** Absent in every file written before the clock existed. */
   sittings?: Omit<Sitting, 'id'>[]
+  /** The door, never the key: a salt and a PBKDF2 hash, which cannot be turned
+      back into the reader's code. Absent when the journal has no lock, and
+      taken on the way in only by a device that has none of its own. See
+      data/lock.ts for why arriving is one-way. */
+  lock?: { salt: string; hash: string; hint?: string }
 }
 
 /* Blob ↔ base64, in chunks.
@@ -114,6 +120,7 @@ export async function exportJourney(handle: string): Promise<{ blob: Blob; name:
     flyleaf: FORMAT,
     exportedAt: Date.now(),
     handle: handle || undefined,
+    lock: packLock(),
     books,
     entries: packed,
     // Ids dropped here for the same reason they are dropped on the way back
@@ -221,6 +228,10 @@ export async function importJourney(file: File): Promise<Restored> {
     }
     if (sittings.length) await db.sittings.bulkAdd(sittings as Sitting[])
   })
+
+  /* After the rows, not before: a device that took the lock and then failed to
+     write the reading would be a door in front of an empty room. */
+  unpackLock(journey.lock)
 
   return {
     books: journey.books.length,

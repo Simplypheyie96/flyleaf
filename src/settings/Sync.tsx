@@ -69,6 +69,7 @@ function SyncCard() {
   const [at, setAt] = useState(lastSync)
   const [busy, setBusy] = useState<'in' | 'now' | 'out' | null>(null)
   const [note, setNote] = useState<Note>(null)
+  const [open, setOpen] = useState(false)
 
   /* Both `google.ts` and `sync.ts` fire this, so a sync that ran by itself in
      the background updates the date under the reader's eyes rather than
@@ -112,7 +113,20 @@ function SyncCard() {
     setBusy('now')
     setNote(null)
     try {
-      const { gained, unchanged } = await syncNow()
+      /* One retry, and only one, through Google's own window. The silent
+         refresh behind this button asks for a token without ever showing
+         anything; when the reader's Google session has lapsed there is nothing
+         it can do about that quietly. Rather than hand back "Google did not
+         grant access." with no way forward, the one press they made becomes
+         the one sign-in they see. */
+      let result
+      try {
+        result = await syncNow()
+      } catch {
+        await signIn()
+        result = await syncNow()
+      }
+      const { gained, unchanged } = result
       setAt(lastSync())
       setNote({
         tone: 'good',
@@ -138,42 +152,68 @@ function SyncCard() {
     setBusy(null)
   }
 
-  if (!on)
-    return (
-      <>
-        <button type="button" className={styles.action} disabled={busy !== null} onClick={connect}>
-          {busy === 'in' ? 'Connecting…' : 'Sync across devices'}
-          <span className={styles.mark}>
-            <Cloud />
-          </span>
-        </button>
-        {note && (
-          <Row>
-            <p className={styles.note} data-tone={note.tone} role="status">
-              {note.text}
-            </p>
-          </Row>
-        )}
-      </>
-    )
+  /* One folding row, the shape the lock beneath it already uses — the owner
+     asked for the two to match, and they should: they are the same kind of
+     thing, a subject with a state on the line and a tray of actions under it.
 
+     WHAT IS ON THE LINE IS THE STATE, NOT AN INSTRUCTION. Shut, the row
+     answers the only question a reader opens Settings with — is my reading
+     safe, and how lately. "Off", or how long ago the last sync was, which
+     since sync now runs by itself is almost always "Just now". The buttons
+     inside are the exceptions: joining, leaving, and forcing a sync that has
+     already happened. */
   return (
     <>
       <Row
-        title="Last synced"
-        control={<span className={styles.value}>{at ? when(at) : 'Not yet'}</span>}
-      />
+        title="Sync across devices"
+        control={
+          <span className={styles.value}>{!on ? 'Off' : at ? when(at) : 'Not yet'}</span>
+        }
+        open={open}
+        onFold={() => setOpen(!open)}
+      >
+        <div className={styles.eraseBox}>
+          {on ? (
+            <p className={styles.note}>
+              This device syncs on its own — when you write something, when you
+              open Flyleaf, and while it is in front of you. There is nothing
+              to press.
+            </p>
+          ) : (
+            <p className={styles.note}>
+              Sign in with Google and this journal appears on your other
+              devices, and keeps up with them by itself.
+            </p>
+          )}
 
-      <button type="button" className={styles.action} disabled={busy !== null} onClick={now}>
-        {busy === 'now' ? 'Syncing…' : 'Sync now'}
-        <span className={styles.mark}>
-          <Cloud />
-        </span>
-      </button>
+          {!on ? (
+            <button type="button" className={styles.action} disabled={busy !== null} onClick={connect}>
+              {busy === 'in' ? 'Connecting…' : 'Sign in with Google'}
+              <span className={styles.mark}>
+                <Cloud />
+              </span>
+            </button>
+          ) : (
+            <>
+              <button type="button" className={styles.action} disabled={busy !== null} onClick={now}>
+                {busy === 'now' ? 'Syncing…' : 'Sync now'}
+                <span className={styles.mark}>
+                  <Cloud />
+                </span>
+              </button>
 
-      <button type="button" className={styles.action} disabled={busy !== null} onClick={disconnect}>
-        {busy === 'out' ? 'Stopping…' : 'Stop syncing this device'}
-      </button>
+              <button
+                type="button"
+                className={styles.action}
+                disabled={busy !== null}
+                onClick={disconnect}
+              >
+                {busy === 'out' ? 'Stopping…' : 'Stop syncing this device'}
+              </button>
+            </>
+          )}
+        </div>
+      </Row>
 
       {note && (
         <Row>
