@@ -33,6 +33,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useState } from 'react'
 import db, { type Sitting } from './db'
+import { bury, sittingGrave, unbury } from './graves'
 
 const RUNNING_KEY = 'flyleaf-sitting'
 
@@ -130,9 +131,20 @@ export function discardSitting() {
     the reader should be able to look at what happened before deciding it was a
     mistake, which is an undo rather than a confirmation dialog. */
 export async function removeSitting(sitting: Sitting) {
-  await db.sittings.delete(sitting.id)
+  /* And a headstone, so the deletion survives a sync: without one the other
+     device still holds the nine-hour lie and sends it straight back. Taken
+     down again by the undo, for the same reason `removeKeep` takes its
+     down — see data/graves.ts. */
+  const grave = sittingGrave(sitting)
+  await db.transaction('rw', db.sittings, db.graves, async () => {
+    await db.sittings.delete(sitting.id)
+    await bury([grave])
+  })
   return async function restore() {
-    await db.sittings.put(sitting)
+    await db.transaction('rw', db.sittings, db.graves, async () => {
+      await db.sittings.put(sitting)
+      await unbury([grave])
+    })
   }
 }
 
