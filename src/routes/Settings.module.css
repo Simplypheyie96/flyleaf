@@ -51,3 +51,29 @@
   color: var(--color-voice);
   opacity: 0.55;
 }
+
+/* Settings on a desk — and why it is still ONE column.
+
+   Seven groups, measured at the 560 reading column: 192, 72, 302, 100, 72,
+   519, 168 — 1651px of page, of which a 900px screen shows half. Breaking the
+   list into two was built and measured, and it has to be recorded as tried
+   rather than quietly dropped.
+
+   CSS multi-column is the right shape for it: seven unequal groups, balanced
+   by the browser, with `break-inside: avoid` keeping each one whole. What it
+   also does is break the folding rows. `.foldBox` collapses by animating a
+   grid track from `1fr` to `0fr` (see settings/group.module.css); inside a
+   multicol fragmentation context that track does not resolve to zero, so every
+   fold sprang open — "You" went 192 -> 406 with the avatar picker showing, and
+   "Sync and lock" 100 -> 830. The two-column page came out 1823px tall against
+   the single column's 1731. It was taller AND it had broken a feature.
+
+   Grid was the other candidate and has its own version of the fault: a group
+   spanning two rows feeds its height into both, so the short column gets a
+   band of nothing in the middle of it. Home hit exactly that and is written up
+   there.
+
+   So the rows keep the width they were designed at, which is the part of this
+   screen that was never wrong — a toggle whose label sits 1000px from it is
+   worse to use, not better. Settings scrolls. A settings screen that scrolls
+   is what every OS ships. */

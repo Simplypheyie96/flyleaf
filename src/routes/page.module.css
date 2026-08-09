@@ -37,8 +37,19 @@
   .page {
     padding-bottom: var(--space-7);
     /* Clearance for the side rail, which replaces the bottom bar at this
-       width. Logical, so the rail and its clearance stay on the same side
-       when the document direction flips. */
-    padding-inline-start: calc(var(--space-8) + var(--space-8));
+       width — and the SAME clearance on the other side, which is the part
+       that was missing.
+
+       It used to pad only the start. The page is `align-items: center`, so
+       centring inside a box padded 128 on one side and 24 on the other put
+       the column 52px right of the screen's middle: measured at 1440, the
+       column ran 492→1052 against a viewport centre of 720. Nothing about
+       that reads as deliberate — it reads as a column that has slipped.
+
+       Padding both sides costs 104px of a width that has plenty, and buys a
+       column that is actually centred in the window the reader is looking
+       at. The rail is thin chrome floating at the edge; the page should be
+       centred in the viewport, not in the gap beside the rail. */
+    padding-inline: calc(var(--space-8) + var(--space-8));
   }
 }

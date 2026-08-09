@@ -344,6 +344,16 @@ function Home() {
 
   return (
     <main className={pageStyles.page}>
+      {/* ONE COLUMN AT EVERY WIDTH — and this was tried the other way.
+
+          A desktop pass paired "Currently reading" and "Look what fell out"
+          side by side, on nothing better than the fact that two cards fit.
+          The owner's verdict killed it, and the reasoning is the layout's own:
+          the two cards below them — the nook and the clock — stayed stacked,
+          so the page read as one row of two, then a stack, with no rule a
+          reader could infer for which pairs and which does not. Home is a
+          short vertical list of four unlike things. A wider screen makes the
+          list more comfortable to read, not a grid. */}
       <div className={pageStyles.column}>
         {/* A NAME-PLATE: three lines of type, and the face across from them.
 
