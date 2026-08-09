@@ -497,9 +497,16 @@ const COLOPHON_FLOOR = H - PAD - 60
    under it, and both the measuring pass and the drawing pass read these — a
    colophon whose epigraph was sized against a different set of facts than the
    one printed beneath it would run off the bottom of the plate. */
-const TERM_STEP = 36
+/* Term baseline to its detail's baseline. 36 was too tight to be a step at
+   all: the detail sets in the serif at read(36) = 46px, whose ascenders stand
+   about 32px above their own baseline, so a 36px drop left four pixels of air
+   and the stamped label sat down on top of the date under it. Every fact on
+   the card read as one collided lump — the overlap the owner reported. 52
+   gives the label its own line and still groups it with its detail, because
+   the gap to the NEXT term is 56 + 30. */
+const TERM_STEP = 52
 const DETAIL_STEP = 56
-const FACT_GAP = 24
+const FACT_GAP = 30
 
 function factLines(ctx: CanvasRenderingContext2D, detail: string) {
   ctx.font = `400 ${read(36)}px ${FACE_READ}`
@@ -600,7 +607,9 @@ function drawColophon(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   ctx.textAlign = 'left'
   ctx.fillStyle = look.palette.soft
   stamp(ctx, 'A READING', PAD, y)
-  y += 76
+  /* 76 put the title's cap height six pixels under this label's baseline, which
+     at a glance is a collision even though nothing technically touched. */
+  y += 92
 
   ctx.fillStyle = look.palette.ink
   ctx.font = `600 ${read(76)}px ${FACE_READ}`
