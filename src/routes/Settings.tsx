@@ -6,6 +6,7 @@ import Sparkle from '../components/Sparkle'
 import ThemeToggle from '../components/ThemeToggle'
 import Group, { Row } from '../settings/Group'
 import Erase from '../settings/Erase'
+import LockCard from '../settings/Lock'
 import SyncCard from '../settings/Sync'
 import InstallHow from '../settings/InstallHow'
 import { BackupCard, FaceCard, NameCard } from '../settings/Journey'
@@ -66,7 +67,7 @@ function Settings() {
               make leaving feel like breaking something. */}
           <Group
             label="Your journey"
-            note="Held on this device, never on our servers. A saved copy is one file with everything in it — open it anywhere to bring your journey back. Syncing puts that same file in your own Google Drive, in a hidden folder only Flyleaf can open, so a new phone or browser finds your reading waiting. A printed journal is the other kind of copy: the same reading, laid out to keep or hand to someone."
+            note="Held on this device, never on our servers. A saved copy is one file with everything in it — open it anywhere to bring your journey back. Syncing puts that same file in your own Google Drive, in a hidden folder only Flyleaf can open, so a new phone or browser finds your reading waiting. A code keeps the journal shut until you open it, and takes nothing away if you forget it. A printed journal is the other kind of copy: the same reading, laid out to keep or hand to someone."
           >
             <BackupCard />
             {/* Above Erase, below the file rows it is the automatic version of.
@@ -74,6 +75,12 @@ function Settings() {
                 journey is, how to carry it by hand, how to stop carrying it by
                 hand, and — last — how to end it. */}
             <SyncCard />
+            {/* Under the two rows about where the journey is kept, above the
+                one that ends it. It answers the question those rows raise —
+                the journal is on this device, so who can open this device's
+                copy of it — and it is the only row here that is not about
+                moving the journey somewhere. */}
+            <LockCard />
             <Erase />
           </Group>
 
