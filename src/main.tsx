@@ -55,11 +55,11 @@ import { applyTheme, getPref } from './theme'
 /* The demo shelf is gone. What remains is the sweep that takes it back off
    devices that were seeded before it went — see data/seed.ts. */
 import { unseed } from './data/seed'
-/* TEMPORARY the other way round, and destructive: this clears the live app
-   once, so the first test users open it the way a stranger will. Unlike the
-   seed it is not compiled out of production — production is the only place it
-   has any work to do. See src/data/reset.ts for when it must be deleted. */
-import { clearEverything } from './data/reset'
+/* There was a one-time production wipe here (data/reset.ts). It has shipped and
+   run, so it is gone: it decided whether to fire by reading a localStorage
+   stamp, and Safari drops localStorage for an app left unopened for a week. On
+   the day that stamp went missing from a real reader's phone, the wipe would
+   have taken their whole journal with it. */
 import { startAutoSync } from './data/sync'
 import { watchIdle } from './data/lock'
 import App from './App.tsx'
@@ -90,21 +90,14 @@ void navigator.storage?.persist?.().catch(() => {})
    arriving back down from Drive, before it pushes anything up. Not awaited by
    the render: the shelf is a live query and drops the rows as they go.
 
-   In production only and exactly once, `clearEverything` then takes whatever a
-   device is carrying from testing, so the first readers start on their own
-   empty page. Chained rather than fired beside, and this is the whole reason
-   it is not three separate lines: a sync that started while either sweep was
-   still running would export a half-emptied device and push THAT over the
-   reader's Drive. Waiting costs a tick and removes the only way this app could
-   destroy something. Nothing here runs for a reader who has not turned sync
-   on — see data/sync.ts. */
+   Sync waits for it rather than starting beside it: a sync that began while the
+   sweep was still running would export a half-emptied device and push THAT over
+   the reader's Drive. Waiting costs a tick and removes the only way this app
+   could destroy something. Nothing here runs for a reader who has not turned
+   sync on — see data/sync.ts. */
 unseed()
   .catch((error: unknown) => {
     console.error('The demo shelf could not be swept.', error)
-  })
-  .then(clearEverything)
-  .catch((error) => {
-    console.error('The slate could not be cleared.', error)
   })
   .finally(() => {
     startAutoSync()

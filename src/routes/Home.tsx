@@ -69,33 +69,39 @@ function Hero({ book }: { book: Book }) {
           title={book.title}
           author={book.author}
           covers={coversOf(book)}
-          width={104}
+          /* The cover sets the card's height — the text beside it no longer
+             fills 104px of cover now that the progress rail is gone, and a
+             card padded out around empty space reads as unfinished. */
+          width={92}
           rotate={-2}
         />
         <div className={styles.heroInfo}>
           <h3 className={styles.heroTitle}>{book.title}</h3>
           <p className={styles.heroAuthor}>{book.author}</p>
-          {/* One quiet line, up to three facts: how long the book is, what has
-                been kept, and how long this book has been sat with. The clock's
-                minutes belong on the reading, not only on the clock.
+          {/* HOW LONG IT IS, NOT HOW FAR IN. There was a progress bar here and
+                it was a lie: `pagesRead` was never written by anything in the
+                app, so it read from the demo shelf and nowhere else. The length
+                of a book is a fact we actually have, from the search that
+                shelved it — and on the third or so of books the sources give no
+                page count for, this line is simply absent rather than showing
+                an empty rail.
 
-                HOW LONG IT IS, NOT HOW FAR IN. There was a progress bar here
-                and it was a lie: `pagesRead` was never written by anything in
-                the app, so it read from the demo shelf and nowhere else. The
-                length of a book is a fact we actually have, from the search
-                that shelved it — and on the third or so of books the sources
-                give no page count for, this line simply says one thing fewer
-                rather than showing an empty rail. */}
+                On its own line, above the rest. Squeezed onto one row with the
+                memories it had to be shortened to "1 kept" to fit, and a
+                stranded number beside a page count reads as part of it. */}
+          {book.pages ? (
+            <p className={styles.entryHint}>{book.pages} pages</p>
+          ) : null}
+          {/* What has been kept, and how long this book has been sat with. The
+                clock's minutes belong on the reading, not only on the clock.
+                Each fact is unbreakable so a wrap falls between them. */}
           <p className={styles.entryHint}>
             {kept === undefined
               ? " "
               : [
-                  book.pages ? `${book.pages} pages` : null,
-                  /* "1 kept", not "1 memory kept" — the same phrase the
-                     header above already uses, and short enough that the
-                     whole line fits on one row at 390px instead of breaking
-                     after the page count and leaving a dot hanging. */
-                  kept === 0 ? "Nothing kept yet" : `${kept} kept`,
+                  kept === 0
+                    ? "Nothing kept yet"
+                    : `${kept} ${kept === 1 ? "memory" : "memories"} kept`,
                   readFor ? `${inWords(readFor)} of reading` : null,
                 ]
                   .filter(Boolean)

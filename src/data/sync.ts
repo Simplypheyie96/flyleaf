@@ -103,8 +103,9 @@ async function signature(): Promise<string> {
     the whole thing retried without this function knowing about auth at all. */
 async function run(token: string, mode: Mode = 'merge'): Promise<SyncResult> {
   /* First, before anything is measured or sent: a preview build's demo shelf
-     is not the reader's journey and must not travel. See seed.ts/unseed —
-     in production this is compiled away to nothing. */
+     is not the reader's journey and must not travel. The sweep itself ships in
+     every build — a device seeded on a preview must still be able to take the
+     props off — so this costs a query even where there was never a shelf. */
   await unseed()
 
   const remote = await findJourney(token)
@@ -187,11 +188,6 @@ export async function otherJourney(): Promise<{ device: string; at: number } | n
   const file = await findJourney(await silentToken())
   if (!file) return null
   return { device: file.device ?? '', at: Date.parse(file.modifiedTime) || 0 }
-}
-
-/** Is there already a journey in this Google account's Drive? */
-export async function driveHasJourney(): Promise<boolean> {
-  return (await otherJourney()) !== null
 }
 
 let paused = false
