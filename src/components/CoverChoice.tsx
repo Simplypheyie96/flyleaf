@@ -19,13 +19,16 @@
    answers: that one, not that one. */
 
 import BookCover from './BookCover'
-import { CheckIcon, CoversIcon } from './TabIcons'
+import { CheckIcon, EditIcon } from './TabIcons'
 import { DRAWN } from '../books/covers'
 import styles from './CoverChoice.module.css'
 
-/** The corner tab that opens the strip. Sits on the cover it changes, inside
- *  a positioned wrapper the caller owns — so it costs the layout nothing and
- *  needs no row, no label, and no space of its own anywhere.
+/** The little mark that opens the strip. Sits on the bottom edge of the cover
+ *  it changes, half over the jacket and half below it, inside a positioned
+ *  wrapper the caller owns — so it costs the layout nothing and needs no row,
+ *  no label, and no space of its own anywhere. It began life as a disc in the
+ *  corner and covered too much of the artwork; on the edge it hides a sliver
+ *  of margin instead of a piece of the picture.
  *
  *  Absent entirely when there is nothing to choose between, which is the same
  *  test `CoverStrip` makes: a mark that opens an empty drawer is worse than
@@ -45,7 +48,7 @@ export function SwapCoverTab({ covers, open, onToggle }: {
       aria-label={`Change the cover — ${covers.length + 1} to choose from`}
       title="Change the cover"
     >
-      <CoversIcon size={16} />
+      <EditIcon size={13} />
     </button>
   )
 }

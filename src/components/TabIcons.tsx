@@ -691,21 +691,6 @@ export function FilterIcon({ size = 22 }: IconProps) {
   )
 }
 
-/* Two jackets, one behind the other — the mark for swapping a book's cover.
-   Not a pencil and not a camera: neither is true here. Nothing is edited and
-   nothing is uploaded; one of several real covers is chosen, and a stack is
-   what several of something looks like. */
-export function CoversIcon({ size = 22 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-      <g {...strokeProps}>
-        <path d="M9.5 4.5 H 19 A 1.5 1.5 0 0 1 20.5 6 V 17 A 1.5 1.5 0 0 1 19 18.5 H 9.5 A 1.5 1.5 0 0 1 8 17 V 6 A 1.5 1.5 0 0 1 9.5 4.5 Z" />
-        <path d="M5 7.5 A 1.5 1.5 0 0 0 3.5 9 V 18 A 1.5 1.5 0 0 0 5 19.5 H 15" />
-      </g>
-    </svg>
-  )
-}
-
 /* A real pin, seen from the side — head, shaft, point. The pushpin-at-an-
    angle every interface draws is a map marker's cousin and reads as "place";
    this reads as "held down", which is what it does to a book on the shelf. */
