@@ -11,3 +11,9 @@ dist/
 
 # Local browser-session logs from the review harness.
 .playwright-mcp/
+
+# A stray render copied to the root — the film lives in video/out (ignored).
+launch.mp4
+
+# The launch film workspace stays local (owner: do not push video to GitHub).
+video/
