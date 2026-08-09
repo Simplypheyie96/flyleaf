@@ -20,7 +20,6 @@ const PREVIEW_SHELF: Book[] = [
     /* Somewhere in, so the journey header has a progress figure to show and
        is not reviewed with one of its three facts missing. Scaffolding, like
        the rest of this file. */
-    pagesRead: 203,
     covers: [],
     formats: ['physical'],
     startedOn: '2019-03-14',
@@ -35,7 +34,6 @@ const PREVIEW_SHELF: Book[] = [
        invented one: everything kept from it below had to be written by hand,
        and putting invented quotations under a real author's name — even in
        scaffolding, even locally — is not a thing to do. */
-    pagesRead: 168,
     covers: [],
     formats: ['physical', 'audio'],
     startedOn: '2026-07-02',

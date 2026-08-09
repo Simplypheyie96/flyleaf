@@ -438,15 +438,16 @@ function excerpt(keep: Entry) {
   return `A ${KEEP[keep.type].one}.`
 }
 
-/** Where the reader is in the book, said the way the shelf can say it without
-    the journey's whole colophon: a page if there is one, otherwise nothing.
-    Deliberately not a percentage — see `Book.pagesRead`. */
+/** The one thing the shelf can say about a book without opening it: that it is
+    finished, or else how long it is.
+
+    IT USED TO CLAIM TO SAY HOW FAR IN THE READER WAS, and it could not. That
+    number lived in a field nothing in the app ever wrote, so it was only ever
+    filled in on the demo shelf. A page count comes from the search that
+    shelved the book and is true for every book that has one. */
 function bookmark(book: Book) {
   if (book.finishedOn) return 'Finished'
-  if (!book.pagesRead) return null
-  return book.pages
-    ? `page ${book.pagesRead} of ${book.pages}`
-    : `page ${book.pagesRead}`
+  return book.pages ? `${book.pages} pages` : null
 }
 
 function FeedRow({

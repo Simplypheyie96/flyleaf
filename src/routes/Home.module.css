@@ -681,57 +681,6 @@
   color: var(--color-ink-soft);
 }
 
-/* Progress gauge — a quiet inset panel. Neutral on purpose: the sage tint it
-   used to carry was the only green on the screen and read as a status colour
-   the app doesn't otherwise use. */
-.gauge {
-  margin-top: var(--space-2);
-  border: 1px solid color-mix(in oklch, var(--color-ink), transparent 82%);
-  border-radius: 10px;
-  padding: var(--space-3);
-  /* 97%, not 95%. The panel tints itself by laying ink over the card, which
-     also darkens the paper under the 11px readout printed on it — soft ink on
-     that slightly muddied wash measured 4.48:1, under AA by a rounding error
-     at the smallest size in the app. Two points of wash is the whole fix; the
-     panel still reads as inset because the hairline is doing that work. */
-  background: color-mix(in oklch, var(--color-ink), transparent 97%);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-/* Page count left, percentage right — the count lives here so the hero has
-   one metadata line, not two competing ones. */
-.gaugeHead {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-3);
-  /* Mono, like every other counted thing in the app. A page count is the
-     clearest case for it there is: two numbers and a percentage, read at a
-     glance, never read as a sentence. */
-  font-family: var(--font-app);
-  font-size: var(--text-2xs);
-  letter-spacing: var(--track-caps);
-  /* the page count and percentage both climb as you read; proportional digits
-     would shift the row on every update */
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink-soft);
-  white-space: nowrap;
-}
-
-.gaugeTrack {
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: color-mix(in oklch, var(--color-ink), transparent 85%);
-  overflow: hidden;
-}
-
-.gaugeFill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--color-ink);
-}
-
 /* A count, not an inventory — the memories themselves live in the timeline
    below, so the hero only says how many are kept. */
 /* Sans, not mono: "3 memories kept" is a sentence, and mono is rationed to

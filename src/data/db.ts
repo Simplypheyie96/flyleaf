@@ -34,10 +34,6 @@ export interface Book {
   /** Set the day the book is finished. Its absence is what "still reading"
       means — there is no status field to contradict it. */
   finishedOn?: string
-  /** How far in. Pages rather than a percentage, because a reader knows the
-      number on the page in front of them and does not know what fraction of
-      the book it is. The percentage is derived where it is shown. */
-  pagesRead?: number
   addedAt: number
   /** When anything on this row was last changed, so a sync can tell an edit
       from a stale copy. Absent on every row written before it existed, which
@@ -109,8 +105,10 @@ export interface Entry {
       listening knows neither.
 
       Per entry, never per book: the page a line is on is a fact about that
-      line. A book-level "what page are you on" is `Book.pagesRead`, and the
-      two are not the same number. */
+      line, and it is the ONLY page number this app holds. There was a
+      book-level `pagesRead` beside it and nothing ever wrote to it — if a
+      "how far in am I" number is ever wanted, it has to arrive with a screen
+      that sets it, not as a field hoping to be filled. */
   page?: number
   chapter?: string
   /** Recording or picture, held on the device. Never a URL: an entry that

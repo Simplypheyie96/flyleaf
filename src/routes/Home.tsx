@@ -57,10 +57,6 @@ function inTheMiddleOf(books: Book[]): Book | undefined {
 function Hero({ book }: { book: Book }) {
   const kept = useKeepCount(book.id);
   const readFor = useReadingTime(book.id);
-  const pages = book.pages ?? 0;
-  const read = book.pagesRead ?? 0;
-  const pct =
-    pages > 0 ? Math.min(100, Math.round((read / pages) * 100)) : null;
 
   return (
     /* NO PAPER OF ITS OWN. The card is above this, and there is exactly one of
@@ -79,36 +75,22 @@ function Hero({ book }: { book: Book }) {
         <div className={styles.heroInfo}>
           <h3 className={styles.heroTitle}>{book.title}</h3>
           <p className={styles.heroAuthor}>{book.author}</p>
-          {pct !== null && (
-            <div className={styles.gauge}>
-              <div className={styles.gaugeHead}>
-                <span>
-                  {read} / {pages}
-                </span>
-                <span>{pct}%</span>
-              </div>
-              <div
-                className={styles.gaugeTrack}
-                role="progressbar"
-                aria-label="Reading progress"
-                aria-valuenow={read}
-                aria-valuemin={0}
-                aria-valuemax={pages}
-              >
-                <div
-                  className={styles.gaugeFill}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </div>
-          )}
-          {/* One quiet line, up to two facts: what has been kept, and how
-                long this book has been sat with. The clock's minutes belong
-                on the reading, not only on the clock. */}
+          {/* One quiet line, up to three facts: how long the book is, what has
+                been kept, and how long this book has been sat with. The clock's
+                minutes belong on the reading, not only on the clock.
+
+                HOW LONG IT IS, NOT HOW FAR IN. There was a progress bar here
+                and it was a lie: `pagesRead` was never written by anything in
+                the app, so it read from the demo shelf and nowhere else. The
+                length of a book is a fact we actually have, from the search
+                that shelved it — and on the third or so of books the sources
+                give no page count for, this line simply says one thing fewer
+                rather than showing an empty rail. */}
           <p className={styles.entryHint}>
             {kept === undefined
               ? " "
               : [
+                  book.pages ? `${book.pages} pages` : null,
                   kept === 0
                     ? "Nothing kept yet"
                     : `${kept} ${kept === 1 ? "memory" : "memories"} kept`,

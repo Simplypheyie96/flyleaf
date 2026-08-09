@@ -116,19 +116,6 @@ export async function setDates(bookId: number, dates: { startedOn?: string; fini
   await db.books.update(bookId, { ...dates, editedAt: Date.now() })
 }
 
-/** How far in. Pages, because that is the number the reader is looking at —
-    the percentage on the jacket is derived from it and is never stored.
-    Clamped rather than validated: a reader typing 5000 into a 300-page book
-    has made a typo, and the bookmark should not fall off the end of the
-    jacket while they fix it. */
-export async function setProgress(bookId: number, pagesRead: number, pages?: number) {
-  const at = Math.max(0, Math.round(pagesRead))
-  await db.books.update(bookId, {
-    pagesRead: pages ? Math.min(at, pages) : at,
-    editedAt: Date.now(),
-  })
-}
-
 /** Finishing is a date, not a status — see `Book.finishedOn`. Unfinishing has
     to clear the field rather than blank it, for the same reason as above. */
 export async function finish(bookId: number, on: string | null) {
