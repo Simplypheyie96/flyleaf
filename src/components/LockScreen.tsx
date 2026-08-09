@@ -122,7 +122,12 @@ function LockScreen() {
     event.preventDefault()
     if (busy || wait > 0) return
     setBusy(true)
-    const ok = await verify(code)
+    /* Trimmed, because a keyboard can hand us a space the reader never meant
+       to type — iOS inserts one after an autocorrected word, and a wireless
+       keyboard's spacebar is next to nothing at all. A code that is right
+       except for an invisible character reads to the reader as a lock that
+       refused a code they know is correct. */
+    const ok = await verify(code.trim())
     setBusy(false)
     if (ok) {
       setCode('')
@@ -215,10 +220,24 @@ function LockScreen() {
               <label className={styles.away} htmlFor="lock-code">
                 Your journal code
               </label>
+              {/* NOT `type="password"`, and the dots come from CSS instead.
+
+                  iOS Safari ignores `inputMode` on a password field and brings
+                  up the full alphabetic keyboard, so a reader with a four-digit
+                  code was typing digits off the tiny top row of a QWERTY
+                  keyboard — which is exactly how a code that is known gets
+                  entered wrong two or three times before it goes in. As a text
+                  field the number pad appears, and `-webkit-text-security`
+                  hides the characters just the same.
+
+                  Only disabled while a penalty is actually running. Disabling
+                  it for the moment the hash is computed took the keyboard down
+                  and the focus with it on every single attempt, so each retry
+                  began with a tap to get the field back. */}
               <input
                 id="lock-code"
                 ref={field}
-                type="password"
+                type="text"
                 className={styles.code}
                 inputMode="numeric"
                 autoComplete="off"
@@ -226,7 +245,8 @@ function LockScreen() {
                 autoCapitalize="none"
                 spellCheck={false}
                 value={code}
-                disabled={busy || wait > 0}
+                readOnly={busy}
+                disabled={wait > 0}
                 onChange={(e) => {
                   setCode(e.target.value)
                   setWrong(false)
