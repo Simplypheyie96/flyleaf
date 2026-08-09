@@ -1,0 +1,224 @@
+/* The locked door.
+
+   Built on the welcome's geometry on purpose — same sky, same centred column,
+   same paper panel — because these are the app's two front doors and a reader
+   meeting one after the other should feel one building, not two. What differs
+   is only what a door asks for. */
+
+.lock {
+  position: fixed;
+  inset: 0;
+  /* Above the welcome (90) and above the toasts: nothing may paint over a
+     locked journal, including the app's own furniture. */
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: var(--space-7) var(--space-5)
+    calc(var(--space-7) + env(safe-area-inset-bottom, 0px));
+  /* The app's own sky rather than a scrim. A blurred shelf behind glass would
+     show the reader's own book titles through the door they just locked. */
+  background: linear-gradient(to bottom, var(--color-sky-high), var(--color-sky-low));
+  overflow-y: auto;
+  animation: lockIn var(--dur-move) var(--ease-out) both;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  inline-size: 100%;
+  max-inline-size: 440px;
+}
+
+.mark {
+  margin-block-end: var(--space-2);
+}
+
+.panel {
+  --paper-pad: var(--space-6);
+  inline-size: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* The reset request, on its own sheet above the panel so it reads as a note
+   left on the door rather than part of the door. */
+.notice {
+  --paper-pad: var(--space-4);
+  inline-size: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.noticeText {
+  margin: 0;
+  max-inline-size: none;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-read);
+  /* The cap-height regime, not the x-height one: this is a name on a door, so
+     it is measured the way the page titles elsewhere are. See tokens.css. */
+  font-size-adjust: var(--font-adjust-cap);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-display-read);
+  line-height: var(--leading-display);
+  letter-spacing: var(--track-title);
+  color: var(--color-ink);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.body {
+  margin: 0;
+  max-inline-size: none;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  text-align: center;
+  text-wrap: pretty;
+}
+
+/* The field. Big, centred and widely tracked, because what goes in it is four
+   or six characters rather than a sentence, and because a code being typed
+   under a thumb wants to be legible at arm's length. */
+.code {
+  inline-size: 100%;
+  min-block-size: 56px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-md);
+  background: var(--field-fill);
+  color: var(--color-ink);
+  font-family: var(--font-app);
+  /* 16px floor is not enough here and would not have been the reason anyway:
+     this is the one field on screen, so it gets display size. Well above the
+     threshold that makes iOS Safari zoom the page on focus. */
+  font-size: var(--text-xl);
+  font-variant-numeric: tabular-nums;
+  /* The dots. The field is a text field rather than a password field so that
+     iOS brings up the number pad — see the note beside it in LockScreen.tsx —
+     and this is what keeps the code hidden from the room instead. */
+  -webkit-text-security: disc;
+  text-security: disc;
+  letter-spacing: 0.32em;
+  /* The tracking is applied to the right of each character, so a centred value
+     sits visibly left of centre without this pulling it back. */
+  text-indent: 0.32em;
+  text-align: center;
+  transition: border-color var(--dur-quick) var(--ease-out);
+}
+
+.code:focus-visible {
+  outline: none;
+  border-color: var(--color-accent-text);
+}
+
+.code:disabled {
+  opacity: 0.55;
+}
+
+/* Always in the layout, even when it has nothing to say, so the panel does not
+   jump a line taller the first time a code is wrong — a door that moves under
+   the thumb retyping a code is a door that gets the code wrong twice. */
+.status {
+  margin: 0;
+  /* A line of its own reserved whether or not there is anything to say, so the
+     panel does not jump the moment a code comes back wrong. Computed rather
+     than handed the leading token straight: --leading-body is unitless, and a
+     unitless min-block-size is not a length — the browser drops it. */
+  min-block-size: calc(var(--text-sm) * var(--leading-body));
+  max-inline-size: none;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  text-align: center;
+  text-wrap: pretty;
+}
+
+.status[data-tone='bad'] {
+  color: var(--color-danger);
+}
+
+/* The quiet way out, under the loud one. Underlined rather than button-shaped,
+   so it never competes with the action it sits beneath. */
+.plain {
+  align-self: center;
+  min-block-size: var(--tap-min);
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  background: none;
+  color: var(--color-ink-soft);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.plain:hover:not(:disabled) {
+  color: var(--color-ink);
+}
+
+.plain:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.plain:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* The same gap the form itself uses. This tray opens INSIDE the form, so a
+   tighter rhythm here reads as a second, denser panel bolted under the first
+   rather than a continuation of the one the reader is already looking at. */
+.ask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Labelling the field for a screen reader without printing "Your journal code"
+   above a field that already has "Your code" as its heading. */
+.away {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@keyframes lockIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lock {
+    animation: none;
+  }
+  .code {
+    transition-duration: 0.01ms;
+  }
+}

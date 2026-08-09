@@ -114,6 +114,23 @@ const AWAY = 3_000
    byline, but short enough that the section visibly lives. */
 const HOLD = 9_000
 
+/* How long the card on screen has to leave before the next one is dealt.
+
+   A turn used to be one event: the key changed, the old card was gone in that
+   frame, and the new one began its drop from nothing. The owner's report is
+   the accurate description of what that does — "it causes you to blink a
+   little with the sudden change like a snap" — because a card removed
+   instantly leaves a hole, and a hole is the brightest thing on a quiet
+   screen.
+
+   So the two halves are separated in time. The card lifts and fades for this
+   long; the swap happens in the moment after it, when there is nothing on
+   screen to be snatched; then the new card drops as it always did. Matches
+   the `lift` animation in Draw.module.css exactly — if one changes, both do.
+   Reduced motion skips the wait entirely and swaps at once, which is what a
+   reader who has asked for no movement is asking for. */
+const LEAVE = 300
+
 /* DEV ONLY, and it exists because of a real hole: the first run only renders
    on an empty drawer, so once you have kept anything there is no way to look
    at that screen again without deleting your own memories. `?first` shows it
@@ -272,6 +289,10 @@ function Draw({ books, reading, opening }: Props) {
      is a new card. */
   const [drawn, setDrawn] = useState<number | null>(null)
   const [pull, setPull] = useState(0)
+  /* True while the card on screen is on its way out. Nothing else may start a
+     turn during it — two overlapping turns would swap the card mid-lift, which
+     is the snap this whole arrangement exists to remove. */
+  const [going, setGoing] = useState(false)
   /* A finger or a caret on the section stops the clock. Someone touching this
      card is reading it, and swapping the sentence out from under them is the
      one failure mode a self-turning card has. */
@@ -308,6 +329,46 @@ function Draw({ books, reading, opening }: Props) {
   pool.current = ids ?? []
   const leftAt = useRef(0)
 
+  /* EVERY TURN GOES THROUGH HERE, arrival and timer alike, so the two halves
+     of a swap can never be arranged differently in two places. Refs rather
+     than state for the guard and the id, because this is called from listeners
+     and intervals that are bound once and must read what is true NOW, not what
+     was true when they were bound. */
+  const shown = useRef<number | null>(null)
+  shown.current = drawn
+  const turning = useRef(false)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const swap = useRef<() => void>(() => {})
+  swap.current = () => {
+    if (turning.current) return
+    const next = draw(pool.current, shown.current)
+    if (next === null || next === shown.current) return
+
+    function land() {
+      turning.current = false
+      timer.current = null
+      setGoing(false)
+      setDrawn(next)
+      setPull((p) => p + 1)
+    }
+
+    if (still) {
+      land()
+      return
+    }
+    turning.current = true
+    setGoing(true)
+    timer.current = setTimeout(land, LEAVE)
+  }
+
+  /* A card mid-lift when the section unmounts would otherwise land on nothing.
+     One cleanup, at the end of the component's life, for whichever timer is
+     outstanding. */
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current)
+  }, [])
+
   useEffect(() => {
     function look() {
       if (document.hidden) {
@@ -315,8 +376,7 @@ function Draw({ books, reading, opening }: Props) {
         return
       }
       if (Date.now() - leftAt.current < AWAY) return
-      setDrawn((cur) => draw(pool.current, cur))
-      setPull((p) => p + 1)
+      swap.current()
     }
     document.addEventListener('visibilitychange', look)
     return () => document.removeEventListener('visibilitychange', look)
@@ -336,8 +396,7 @@ function Draw({ books, reading, opening }: Props) {
     if (held || still) return
     const turn = setInterval(() => {
       if (document.hidden || pool.current.length < 2) return
-      setDrawn((cur) => draw(pool.current, cur))
-      setPull((p) => p + 1)
+      swap.current()
     }, HOLD)
     return () => clearInterval(turn)
   }, [held, still])
@@ -415,7 +474,17 @@ function Draw({ books, reading, opening }: Props) {
           <span className={styles.sheet} />
         </div>
 
-        <PaperSurface key={pull} taped tone={kind.tone} rotate={-1.1} className={styles.card}>
+        {/* Not re-keyed while it is leaving: the key is what replays the drop,
+            and the card on its way out is the OLD one, still holding the old
+            words. It keeps its identity until the swap, then takes the new key
+            and drops. */}
+        <PaperSurface
+          key={pull}
+          taped
+          tone={kind.tone}
+          rotate={-1.1}
+          className={going ? `${styles.card} ${styles.leaving}` : styles.card}
+        >
           <p className={styles.mark}>
             <span className={styles.markIcon} aria-hidden="true">
               <kind.Icon size={14} />

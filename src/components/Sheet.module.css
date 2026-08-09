@@ -238,6 +238,23 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  /* THE SHELL'S OWN SCROLL, and until now there was none.
+
+     `.panel` is capped at 86svh and clips what it cannot hold, which is right
+     for the panel — it must not grow past the screen. But nothing underneath
+     it scrolled, so any sheet whose contents outgrew that cap simply lost the
+     bottom of itself with no way to reach it. Some sheets hid the fault by
+     scrolling a list of their own inside; the two shelf tools do not, and on
+     a short phone the owner found sort and filter cut off and immovable.
+
+     It belongs here rather than in each sheet: every sheet in the app shares
+     this shell, so a sheet that overflows on somebody's screen size is a
+     condition of the shell, not a property of one caller. A sheet with two
+     rows in it is still two rows tall and never scrolls. `contain` stops the
+     bounce at the end of the list from turning into a pull on the page behind
+     the sheet, which on iOS reads as the sheet dragging itself away. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
   /* The handle already sits 28px above this, so the sheet's own top padding
      comes off — otherwise the title is pushed down by a control that exists
      to be unobtrusive. */

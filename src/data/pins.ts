@@ -40,11 +40,11 @@ export async function togglePin(bookId: number): Promise<'pinned' | 'unpinned' |
   const book = await db.books.get(bookId)
   if (!book) return 'full'
   if (isPinned(book)) {
-    await db.books.update(bookId, { pinnedAt: undefined })
+    await db.books.update(bookId, { pinnedAt: undefined, editedAt: Date.now() })
     return 'unpinned'
   }
   const count = await db.books.filter(isPinned).count()
   if (count >= MAX_PINS) return 'full'
-  await db.books.update(bookId, { pinnedAt: Date.now() })
+  await db.books.update(bookId, { pinnedAt: Date.now(), editedAt: Date.now() })
   return 'pinned'
 }

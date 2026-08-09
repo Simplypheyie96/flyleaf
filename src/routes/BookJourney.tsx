@@ -218,6 +218,10 @@ function BookJourney() {
   const [sharing, setSharing] = useState<Entry | null>(null)
   const [picking, setPicking] = useState<'opened' | 'closed' | null>(null)
   const [ordering, setOrdering] = useState(false)
+  /* The chooser, then the two things it chooses between. Three flags rather
+     than one mode, because the chooser closes before either sheet opens: two
+     sheets on screen at once is two dialogs fighting over the top layer. */
+  const [shareOpen, setShareOpen] = useState(false)
   const [keepsakeOpen, setKeepsakeOpen] = useState(false)
   const [fairOpen, setFairOpen] = useState(false)
   const [bookOpen, setBookOpen] = useState(false)
@@ -591,28 +595,24 @@ function BookJourney() {
               together lives in one container. The delete sheet still asks. */}
           <GlassSurface className={styles.capsule}>
             <div className={styles.chromeSet}>
-              {/* A share button, and it says so with the glyph the phone
-                  already uses for sharing — the same one on every keep. It
-                  wore a colophon mark and read "share this reading", which is
-                  a phrase, not a verb: nobody scanning a row of round icons
-                  works out that the leaf is how you send the book on. */}
+              {/* ONE SHARE BUTTON, TWO THINGS TO SHARE, and it used to be two
+                  buttons standing side by side. Both sent this reading
+                  somewhere; they differed only in what came out — a picture or
+                  a paragraph. A row of round icons cannot carry that
+                  distinction, so the second one read as a mystery verb rather
+                  than as the other half of the first.
+
+                  So the icon means share, the way it does on every keep, and
+                  the choice between the two is made in words on the sheet
+                  behind it. */}
               <button
                 type="button"
                 className={styles.chromeAction}
-                onClick={() => setKeepsakeOpen(true)}
-                aria-label="Share — as a card, a picture, or plain text"
+                onClick={() => setShareOpen(true)}
+                aria-label="Share this reading"
                 title="Share"
               >
                 <ShareIcon size={18} />
-              </button>
-              <button
-                type="button"
-                className={styles.chromeAction}
-                onClick={() => setFairOpen(true)}
-                aria-label="Draft my review — everything you wrote, gathered to edit"
-                title="Draft my review"
-              >
-                <FairCopyIcon size={18} />
               </button>
               {/* Pinning is a shelf decision, and this is the only screen
                   that is unambiguously about one book — so it lives with the
@@ -1227,6 +1227,68 @@ function BookJourney() {
               Still reading it, actually
             </button>
           )}
+        </div>
+      </Sheet>
+
+      {/* Two ways to send one reading, said in words. A round icon can carry
+          "share"; it cannot carry "share, but as prose instead of a picture",
+          which is why the second icon that used to sit beside it never
+          explained itself. Here the difference is the whole row: what comes
+          out, and what it is for. */}
+      <Sheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        label="Share this reading"
+        name="journey-share"
+      >
+        <header className={sheet.head}>
+          <h2 className={sheet.title}>Share this reading</h2>
+          <button
+            type="button"
+            className={sheet.iconButton}
+            onClick={() => setShareOpen(false)}
+            aria-label="Close"
+          >
+            <CloseIcon size={20} />
+          </button>
+        </header>
+        <div className={sheet.body}>
+          <div className={sheet.rows}>
+            <button
+              type="button"
+              className={sheet.row}
+              onClick={() => {
+                setShareOpen(false)
+                setKeepsakeOpen(true)
+              }}
+            >
+              <ShareIcon size={19} />
+              <span className={sheet.rowText}>
+                <span>Share the journey</span>
+                <span className={sheet.rowHint}>
+                  A picture of the reading — the line you kept, and the whole
+                  journey under it.
+                </span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={sheet.row}
+              onClick={() => {
+                setShareOpen(false)
+                setFairOpen(true)
+              }}
+            >
+              <FairCopyIcon size={19} />
+              <span className={sheet.rowText}>
+                <span>Share as a review</span>
+                <span className={sheet.rowHint}>
+                  A draft written out of what you kept, in your own words —
+                  and yours to edit before it goes.
+                </span>
+              </span>
+            </button>
+          </div>
         </div>
       </Sheet>
 

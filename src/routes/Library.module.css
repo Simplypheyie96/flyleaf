@@ -179,6 +179,11 @@
 
 .searchInput {
   flex: 1;
+  /* A flex item's floor is its content, and an input's content is its `size`
+     attribute — around 20 characters, wider than the phone leaves this field
+     once the sort and filter pills have taken their corner. Without this the
+     field refuses to narrow and the placeholder runs off the end. */
+  min-width: 0;
   min-height: var(--tap-min);
   border: none;
   background: transparent;

@@ -197,6 +197,38 @@
   animation: drop 460ms cubic-bezier(0.16, 0.84, 0.28, 1.04) both;
 }
 
+/* THE CARD BEFORE IT, ON ITS WAY OUT — and this is why it exists.
+
+   The drop was only ever half a swap. The outgoing card was removed in the
+   same frame the new one mounted at opacity 0, so a turn read as a blank
+   flash between two cards: the owner's word for it was a blink, and she was
+   describing a real one — the eye is dragged to the hole, not to the arrival.
+
+   So a turn is now two moves that do not overlap. The card on screen lifts a
+   few pixels and goes, and only when it is gone does the next one drop. The
+   swap happens behind an empty frame nobody is looking at, which is the whole
+   trick: what you see is one card leaving and one card arriving, never a
+   substitution. Slower on the way out than in, because leaving is the half
+   that must not feel snatched. */
+.leaving {
+  animation: lift 300ms cubic-bezier(0.4, 0, 0.7, 0.2) both;
+}
+
+@keyframes lift {
+  from {
+    opacity: 1;
+    translate: 0 0;
+    rotate: -1.1deg;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    translate: 0 -7px;
+    rotate: -2.6deg;
+    scale: 0.985;
+  }
+}
+
 @keyframes drop {
   from {
     opacity: 0;

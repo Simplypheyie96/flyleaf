@@ -52,21 +52,29 @@ import './styles/tokens.css'
 import './styles/motion.css'
 import './index.css'
 import { applyTheme, getPref } from './theme'
-/* TEMPORARY — delete this import, the call below, and src/data/seed.ts when
-   previews no longer need a shelf to look at. Development only: five invented
-   books arriving in a real reader's library on the day they install the app is
-   not a demo, it is somebody else's shelf in their house. */
-import { seedLibrary } from './data/seed'
-/* TEMPORARY the other way round, and destructive: this clears the live app
-   once, so the first test users open it the way a stranger will. Unlike the
-   seed it is not compiled out of production — production is the only place it
-   has any work to do. See src/data/reset.ts for when it must be deleted. */
-import { clearEverything } from './data/reset'
+/* The demo shelf is gone. What remains is the sweep that takes it back off
+   devices that were seeded before it went — see data/seed.ts. */
+import { unseed } from './data/seed'
+/* There was a one-time production wipe here (data/reset.ts). It has shipped and
+   run, so it is gone: it decided whether to fire by reading a localStorage
+   stamp, and Safari drops localStorage for an app left unopened for a week. On
+   the day that stamp went missing from a real reader's phone, the wipe would
+   have taken their whole journal with it. */
 import { startAutoSync } from './data/sync'
+import { watchIdle } from './data/lock'
 import App from './App.tsx'
 import Boundary from './components/Boundary'
 
 applyTheme(getPref())
+
+/* A journal that only asks for its code on a cold start is barely locked: a
+   phone handed over mid-session is already open, and closing the app on a
+   phone usually does not end the page. This re-shuts it when Flyleaf has been
+   away for a couple of minutes. Registered at boot rather than from the lock
+   screen, because the lock screen is not mounted while the app is unlocked and
+   that is precisely when the app is being put down. Does nothing at all on a
+   device with no code on it. */
+watchIdle()
 
 /* ASK THE BROWSER NOT TO THROW THE JOURNEY AWAY.
    Everything a reader writes lives in IndexedDB on their own device, and a
@@ -77,29 +85,19 @@ applyTheme(getPref())
    worth a word to the reader. Export in Settings is still the real backup. */
 void navigator.storage?.persist?.().catch(() => {})
 
-/* Not awaited: the shelf is a live query, so the books appear the moment they
-   land rather than holding the first paint for a database write. Reported
-   though — a seed that fails silently looks exactly like a seed that decided
-   not to run, and the difference is worth a line in the console. */
-/* Dev and preview builds only now — the production build compiles the seed
-   away, so a test user's first shelf is their own. */
-seedLibrary().catch((error) => {
-  console.error('The preview shelf could not be laid down.', error)
-})
+/* The props first, and BEFORE any sync can start — a device still carrying the
+   old demo shelf must take it off, and leave the headstones that stop it
+   arriving back down from Drive, before it pushes anything up. Not awaited by
+   the render: the shelf is a live query and drops the rows as they go.
 
-/* And the other direction, in production only and exactly once: whatever a
-   device is carrying from the demo shelf or from testing goes, so the first
-   readers start on their own empty page. Not awaited, for the same reason the
-   seed is not — the shelf is a live query and drops the rows as they go. */
-/* Chained onto the sweep rather than fired beside it, and this is the whole
-   reason it is not one more line further up: a sync that started while the
-   one-time clear was still running would export a half-emptied device and push
-   THAT over the reader's Drive. Waiting costs a tick and removes the only way
-   this app could destroy something. Nothing here runs for a reader who has not
-   turned sync on — see data/sync.ts. */
-clearEverything()
-  .catch((error) => {
-    console.error('The slate could not be cleared.', error)
+   Sync waits for it rather than starting beside it: a sync that began while the
+   sweep was still running would export a half-emptied device and push THAT over
+   the reader's Drive. Waiting costs a tick and removes the only way this app
+   could destroy something. Nothing here runs for a reader who has not turned
+   sync on — see data/sync.ts. */
+unseed()
+  .catch((error: unknown) => {
+    console.error('The demo shelf could not be swept.', error)
   })
   .finally(() => {
     startAutoSync()
