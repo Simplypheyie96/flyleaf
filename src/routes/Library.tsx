@@ -706,7 +706,16 @@ function Library() {
 
   return (
     <main className={pageStyles.page}>
-      <div className={`${pageStyles.column} ${styles.shelfColumn}`}>
+      {/* The view is on the column because on a desktop screen the three views
+          do not want the same width, and only CSS needs to know. A shelf and a
+          contact sheet are objects laid side by side — width buys more books.
+          The feed is a list of rows with an excerpt in them, and a list widened
+          to 1100px is a line of text nobody can track back to the start of. So
+          Shelf and Grid open up past 1024 and Feed holds its measure. */}
+      <div
+        className={`${pageStyles.column} ${styles.shelfColumn}`}
+        data-view={view}
+      >
         {/* The name and, on a narrow column, the folded-up display control.
             Nothing else may share this line: the only way "The Library" is
             never allowed to wrap is that a display serif never competes for

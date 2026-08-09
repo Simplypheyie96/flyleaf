@@ -11,6 +11,39 @@
   container-type: inline-size;
 }
 
+/* DESKTOP: the two views made of objects get the window, the one made of
+   sentences does not.
+
+   760 is the right cap for a phone or a tablet, and on a 1440px screen it left
+   the Library as a narrow strip with two thirds of the window empty beside it
+   — the "stretched phone" this pass exists to fix. Shelf and Grid are a wall
+   of spines and a contact sheet of covers: both are collections of objects
+   laid side by side, and every extra 116px is another book visible without
+   scrolling. They take the room.
+
+   Feed does not, and this is why the width is per-view rather than one number
+   on the column. A feed row is a jacket beside a title, an author and an
+   excerpt of something the reader wrote. Stretch that to 1100px and the
+   excerpt runs to a measure of well over a hundred characters, which is the
+   length at which the eye stops finding the start of the next line. The cap
+   below is the same 760 it always had, stated rather than inherited so that
+   raising the other two can never quietly drag it along.
+
+   Everything inside all three views is driven by @container queries on this
+   element, so widening it here is the whole change: the grid fills in another
+   column of covers, the feed's jacket steps up, the shelf wraps a longer row.
+   Nothing per-view needed a new breakpoint. */
+@media (min-width: 1024px) {
+  .shelfColumn[data-view='Shelf'],
+  .shelfColumn[data-view='Grid'] {
+    --column-max: min(1120px, 100%);
+  }
+
+  .shelfColumn[data-view='Feed'] {
+    --column-max: 760px;
+  }
+}
+
 .masthead {
   display: flex;
   align-items: flex-end;
@@ -167,6 +200,17 @@
   min-width: 0;
   --glass-pad: 0;
   --glass-radius: var(--radius-pill);
+  /* A CAP, because `flex: 1` on a 1120px shelf produced a 944px-wide input.
+     Nobody types a 944px query. A search field that long stops reading as a
+     field and starts reading as a rule drawn across the page, and it puts the
+     caret a screen away from the sort and filter controls it works with.
+
+     440 is a comfortable two-thirds of the longest thing anyone searches here
+     — a book title — with the magnifier and the placeholder still in
+     proportion to it. It is a max, not a width, so every narrower screen is
+     untouched: the field goes on flexing to fill the row exactly as before
+     until the row is wider than a search field has any use for. */
+  max-width: 440px;
 }
 
 .searchInner {
