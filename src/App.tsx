@@ -150,8 +150,15 @@ function Shell({ onAdd }: { onAdd: () => void }) {
    for the same reason. */
 function Dock() {
   const { pathname } = useLocation();
-  if (pathname.startsWith("/lab/") || pathname.startsWith("/journal"))
-    return null;
+  /* THE UPDATE TOAST IS NOT SUBJECT TO THIS, at the owner's instruction — "I
+     still want the toast no matter what." It used to be, and that was a real
+     hole rather than a nicety: the whole component, registration hook and all,
+     unmounted the moment a book journey opened, so a reader who spends their
+     time in a journey both never saw the notice AND had the hourly check torn
+     down under them. A notice about the app itself is not chrome over the work;
+     it is the one message that cannot wait for a better screen. */
+  const quiet =
+    pathname.startsWith("/lab/") || pathname.startsWith("/journal");
 
   return (
     <div className={toast.dock}>
@@ -159,16 +166,16 @@ function Dock() {
       {/* A question, not an offer: it holds syncing in both directions until
           it is answered, so it sits with the update toast rather than with
           the three invitations below. */}
-      <SyncArrival />
+      {!quiet && <SyncArrival />}
       {/* Three invitations now, and every one of them is optional — so what
           keeps them from becoming a nag is not any of the three, it is
           data/nudges: one on screen at a time, one per launch, five days
           between, and gone for good after three refusals. Read that file
           before adding a fourth. The update toast is not one of them and does
           not answer to it — an update is news, not an offer. */}
-      <InstallPrompt />
-      <SyncNudge />
-      <LockNudge />
+      {!quiet && <InstallPrompt />}
+      {!quiet && <SyncNudge />}
+      {!quiet && <LockNudge />}
     </div>
   );
 }
