@@ -1087,7 +1087,20 @@
   min-inline-size: 0;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+  /* Block padding for the tilted cover's corners and shadow. Inline padding for
+     something smaller and more annoying: the card's width is fractional, so the
+     scroller's clip and the page's own edge land a pixel or two apart and a
+     stripe of the NEXT book's cover shows down the right-hand edge at rest —
+     which reads as a peek nobody designed. The owner's note: the arrows and the
+     count are enough.
+
+     It goes on the page rather than the scroller ON PURPOSE, and the padding
+     stays INSIDE the page's 100% (everything here is border-box), so
+     `scrollLeft / clientWidth` still lands on a whole book. A padding on the
+     scroller would put that sum half a gutter out on every card after the
+     first. What shows past the edge now is blank paper. */
   padding-block: 6px;
+  padding-inline: 3px;
 }
 
 /* MOUNTED ON THE CARD'S BOTTOM EDGE, MIRRORING THE HEADING TAB.

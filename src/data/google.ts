@@ -34,7 +34,8 @@ const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
    so Settings can say WHICH Google this device is syncing to instead of a bare
    "On". A reader with two accounts could not otherwise tell whether the phone
    and the laptop were even talking to the same Drive. */
-const SCOPE = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email'
+const DRIVE = 'https://www.googleapis.com/auth/drive.appdata'
+const SCOPE = `${DRIVE} https://www.googleapis.com/auth/userinfo.email`
 const GIS_SRC = 'https://accounts.google.com/gsi/client'
 const WHO = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
@@ -46,6 +47,9 @@ const ACCOUNT_KEY = 'flyleaf-google-account'
 interface TokenResponse {
   access_token?: string
   expires_in?: number
+  /** The permissions Google actually granted, space-separated — which is not
+      always the ones we asked for. See DRIVE below. */
+  scope?: string
   error?: string
 }
 
@@ -227,6 +231,22 @@ async function ensureClient(): Promise<TokenClient> {
       if (!waiting) return
       if (response.error || !response.access_token) {
         waiting.reject(new Error('Google did not grant access.'))
+        return
+      }
+      /* THE BOX ON GOOGLE'S SCREEN CAN BE LEFT UNTICKED, and Google hands back
+         a perfectly valid token anyway — one that can read the reader's email
+         address and cannot touch a single file. Every Drive call then comes
+         back 403, which is what the owner saw on her phone, several steps and
+         one confusing error message after the moment she could have fixed it.
+
+         So the token is checked here, where the fix is still one press away,
+         and a token that cannot reach Drive is refused rather than stored. */
+      if (!(response.scope ?? '').split(' ').includes(DRIVE)) {
+        waiting.reject(
+          new Error(
+            'Flyleaf needs permission to use your Google Drive. Try again and leave the Flyleaf box ticked.',
+          ),
+        )
         return
       }
       token = response.access_token

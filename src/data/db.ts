@@ -359,4 +359,19 @@ db.version(8).stores({
   graves: 'key, at',
 })
 
+/* `editedAt` indexed, and only so that sync can ask one question cheaply:
+   has anything on this device been EDITED since the last time it synced?
+   Without the index the answer costs a full read of both tables, which on a
+   journal with voice memos in it means pulling every recording off disk once
+   every ninety seconds to compute a string. With it, it is two lookups.
+
+   Rows written before the stamp existed simply are not in the index, which is
+   correct — they have never been edited. */
+db.version(9).stores({
+  books: 'id, addedAt, title, editedAt',
+  entries: '++id, bookId, type, editedAt, [bookId+createdAt]',
+  sittings: '++id, bookId, startedAt, [bookId+startedAt]',
+  graves: 'key, at',
+})
+
 export default db

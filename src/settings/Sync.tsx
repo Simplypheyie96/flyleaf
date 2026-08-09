@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Row } from './Group'
 import { SYNC_AVAILABLE, account, needsSignIn, optedIn, signIn, signOut, tokenHeld, warmUp } from '../data/google'
-import { lastSync, syncNow } from '../data/sync'
+import {
+  autoSyncPaused,
+  driveHasJourney,
+  hasLocalJourney,
+  lastSync,
+  pauseAutoSync,
+  resumeAutoSync,
+  syncNow,
+} from '../data/sync'
 import styles from './settings.module.css'
 
 /* Sync, offered — never imposed.
@@ -73,6 +81,16 @@ function SyncCard() {
   const [open, setOpen] = useState(false)
   const [who, setWho] = useState(account)
   const [stale, setStale] = useState(needsSignIn)
+  /* True when this device and the Drive both already hold a journey and the
+     reader has not yet said to bring them together. See sync.ts. */
+  const [ask, setAsk] = useState(autoSyncPaused)
+
+  /* Opened with the question already outstanding — the nudge signed in, found
+     another device's journey, paused and pointed here. Unfold so it is not
+     hidden behind a row nobody knew to press. */
+  useEffect(() => {
+    if (autoSyncPaused()) setOpen(true)
+  }, [])
 
   /* Both `google.ts` and `sync.ts` fire this, so a sync that ran by itself in
      the background updates the date under the reader's eyes rather than
@@ -101,6 +119,20 @@ function SyncCard() {
     try {
       await signIn()
       setOn(true)
+
+      /* THE ONE QUESTION WORTH ASKING. Two journeys meeting for the first time
+         is the only moment where syncing changes what is on this screen without
+         the reader having written any of it — so it is the only moment that
+         stops and asks. The pause is held until they answer, or the write hooks
+         would merge it underneath the question. */
+      pauseAutoSync()
+      if ((await hasLocalJourney()) && (await driveHasJourney())) {
+        setAsk(true)
+        setBusy(null)
+        return
+      }
+      resumeAutoSync()
+
       const { gained } = await syncNow()
       setAt(lastSync())
       setNote({
@@ -110,11 +142,50 @@ function SyncCard() {
           : 'Synced. Your journey is now in your own Google Drive.',
       })
     } catch (error) {
+      resumeAutoSync()
       setOn(optedIn())
       setNote({ tone: 'bad', text: error instanceof Error ? error.message : 'That did not connect.' })
     } finally {
       setBusy(null)
     }
+  }
+
+  /* Yes. Nothing here is a choice between the two journeys, because there is no
+     version of this that loses anything: what goes up is the union of both
+     sides, and both devices end up holding it. */
+  async function bringTogether() {
+    setBusy('in')
+    setAsk(false)
+    resumeAutoSync()
+    try {
+      const { gained } = await syncNow()
+      setAt(lastSync())
+      setNote({
+        tone: 'good',
+        text: gained
+          ? `Brought together. ${gained} ${gained === 1 ? 'memory' : 'memories'} came over from your other device.`
+          : 'Brought together. Your journey is now in your own Google Drive.',
+      })
+    } catch (error) {
+      setNote({ tone: 'bad', text: error instanceof Error ? error.message : 'That did not sync.' })
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  /* No. Signing back out is the honest undo: leaving this device signed in but
+     never syncing would be a switch that says On and does nothing. */
+  async function leaveThemApart() {
+    setAsk(false)
+    setBusy('out')
+    await signOut()
+    resumeAutoSync()
+    setOn(false)
+    setNote({
+      tone: 'good',
+      text: 'Left as they are. This device is not syncing, and the journey in your Drive is untouched.',
+    })
+    setBusy(null)
   }
 
   async function now() {
@@ -181,7 +252,10 @@ function SyncCard() {
         onFold={() => setOpen(!open)}
       >
         <div className={styles.eraseBox}>
-          {on ? (
+          {/* Nothing about how syncing behaves, while the reader is being asked
+              whether it should start at all — the question below carries its own
+              explanation and is the only thing on this fold that matters. */}
+          {ask ? null : on ? (
             <>
               {/* WHO, before anything else. The owner's words were "why is the
                   app not showing account the user is signed into? everything is
@@ -212,7 +286,38 @@ function SyncCard() {
             </p>
           )}
 
-          {!on ? (
+          {ask ? (
+            <>
+              {/* Said before either button, and said plainly: the reason a
+                  merge felt alarming is that nobody explained it could not
+                  take anything away. */}
+              <p className={styles.note}>
+                There is already a journey in this Google account’s Drive, from
+                another device. Bringing them together adds anything that is
+                only there to this device, and anything that is only here to
+                that one. Nothing is replaced, and nothing is removed.
+              </p>
+              <button
+                type="button"
+                className={styles.action}
+                disabled={busy !== null}
+                onClick={bringTogether}
+              >
+                {busy === 'in' ? 'Bringing them together…' : 'Bring them together'}
+                <span className={styles.mark}>
+                  <Cloud />
+                </span>
+              </button>
+              <button
+                type="button"
+                className={styles.action}
+                disabled={busy !== null}
+                onClick={leaveThemApart}
+              >
+                {busy === 'out' ? 'Stopping…' : 'Leave them as they are'}
+              </button>
+            </>
+          ) : !on ? (
             <button type="button" className={styles.action} disabled={busy !== null} onClick={connect}>
               {busy === 'in' ? 'Connecting…' : 'Sign in with Google'}
               <span className={styles.mark}>
