@@ -53,6 +53,27 @@ export function SwapCoverTab({ covers, open, onToggle }: {
   )
 }
 
+/** The same mark, on a book that is already on the shelf — where it opens the
+ *  whole edit sheet rather than a strip of jackets, and where it is therefore
+ *  never absent. On the shelf the question is not only "which cover" but "is
+ *  any of this right", and a book that arrived from another app with no
+ *  author and no jacket is precisely the book with nothing to swap between.
+ *  Hiding the way in from the reader who needs it most was the bug. */
+export function EditBookTab({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      className={styles.swap}
+      onClick={onToggle}
+      aria-expanded={open}
+      aria-label="Edit this book"
+      title="Edit this book"
+    >
+      <EditIcon size={13} />
+    </button>
+  )
+}
+
 interface Props {
   title: string
   author: string

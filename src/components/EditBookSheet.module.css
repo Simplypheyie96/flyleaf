@@ -1,0 +1,64 @@
+/* The two things this sheet has that the add sheet does not: a way to go and
+   look for jackets, and a line explaining why there are none. Everything else
+   here is AddBookSheet's — one form recipe, not two that drift. */
+
+/* A quiet text action, not a dashed pill. The add sheet's dashed button is the
+   second WAY IN to a flow with nothing else to offer; this is a small favour
+   offered beside a strip that is usually already full. Leading-edge aligned to
+   the fields above it, and never stretched across the sheet, so it cannot be
+   mistaken for the button that finishes the job. */
+.hunt {
+  align-self: flex-start;
+  /* The body is a scroller, so every box in it can be squeezed. Without this
+     the row collapses to its own border and the words vanish. */
+  flex: none;
+  min-height: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  margin-inline-start: calc(var(--space-2) * -1);
+  border: none;
+  background: none;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-accent-text);
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.hunt:disabled {
+  color: var(--color-ink-soft);
+  text-decoration: none;
+  cursor: default;
+}
+
+/* Why the strip above is empty. A sentence, at reading size, with air on one
+   side only — the fieldset's own gap gives it the other. */
+.note {
+  margin: 0;
+  flex: none;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+/* Pages and year, on one line. Two number fields at full width each cost a
+   hundred pixels of a sheet that also has to hold the jackets, and neither is
+   a long answer — this is the pair that can share a row without either
+   becoming cramped. They stack again on the narrowest phones, where half a
+   row is genuinely too little. */
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 22rem) {
+  .pair {
+    grid-template-columns: 1fr;
+  }
+}

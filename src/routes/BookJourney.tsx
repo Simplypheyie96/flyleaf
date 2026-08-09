@@ -45,8 +45,9 @@ import Bunny from '../rabbit/Bunny'
 import Sheet from '../components/Sheet'
 import Sparkle from '../components/Sparkle'
 import CalendarPicker from '../components/date/CalendarPicker'
-import CoverStrip, { SwapCoverTab } from '../components/CoverChoice'
-import { chooseCover, coversOf } from '../books/covers'
+import { EditBookTab } from '../components/CoverChoice'
+import EditBookSheet from '../components/EditBookSheet'
+import { coversOf } from '../books/covers'
 import { isPinned, togglePin } from '../data/pins'
 import { shortDate, spanPair, todayISO } from '../components/date/dates'
 import {
@@ -225,9 +226,9 @@ function BookJourney() {
   const [keepsakeOpen, setKeepsakeOpen] = useState(false)
   const [fairOpen, setFairOpen] = useState(false)
   const [bookOpen, setBookOpen] = useState(false)
-  /* Whether the other jackets are showing, and the one sentence the pin has
-     to say for itself when the shelf is already holding three. */
-  const [swapping, setSwapping] = useState(false)
+  /* Whether the book's own edit sheet is open — the details and the jacket,
+     not a keep. (`editing` above is a keep.) */
+  const [fixing, setFixing] = useState(false)
   /* Carries a stamp as well as the words. Saying the same thing twice is the
      normal case here — a reader taps a fourth book, then a fifth — and React
      would reuse the one <p>, which means the CSS animation never replays and
@@ -700,10 +701,16 @@ function BookJourney() {
               {/* Sized in CSS rather than by prop, because its width is not a
               free choice any more: the board's height is the height of the
               record beside it, and 2:3 is what turns one into the other. */}
-              {/* The jacket, and the quiet way to change it. The tab hangs on
-                  the cover's own corner rather than taking a row in the
-                  record beside it — swapping a cover is a by-the-way, and the
-                  record is for things about the book that are true. */}
+              {/* The jacket, and the quiet way to correct the book. The mark
+                  hangs on the cover's own corner rather than taking a row in
+                  the record beside it — fixing a detail is a by-the-way, and
+                  the record is for things about the book that are true.
+
+                  Always there, whatever the book is wearing. It used to hide
+                  itself when there were no other jackets to swap to, which
+                  meant the one book that most needed correcting — carried in
+                  from somewhere that never asked for an author or a cover —
+                  was the one book with no way in. */}
               <span className={styles.coverMount}>
                 <BookCover
                   title={book.title}
@@ -712,16 +719,7 @@ function BookJourney() {
                   size="small"
                   className={styles.cover}
                 />
-                {/* The raw list, not the display one. `coversOf` empties itself
-                    when the drawn cover is the pick, and feeding that here would
-                    delete the control the moment a reader chose ours — no way
-                    back. It is also what the strip's indices are counted
-                    against. Only the jacket above reads the display list. */}
-                <SwapCoverTab
-                  covers={book.covers}
-                  open={swapping}
-                  onToggle={() => setSwapping((on) => !on)}
-                />
+                <EditBookTab open={fixing} onToggle={() => setFixing(true)} />
               </span>
               {/* Everything that is *about* the book, in one column: name, byline,
               formats, dates. The cover is the other column and holds nothing
@@ -847,20 +845,22 @@ function BookJourney() {
               <Sparkle size={15} className={styles.headSpark} />
             </div>
 
-            {/* The other jackets, unfolded under the whole head rather than
-                beside the cover: the strip is a scroller and the record next
-                to the cover is a narrow column, so this is the only edge it
-                can run the full width of. Written straight to the book — it
-                is already on the shelf, so there is nothing to confirm. */}
-            {swapping && (
-              <CoverStrip
-                title={book.title}
-                author={book.author}
-                covers={book.covers}
-                pick={book.coverPick ?? 0}
-                onPick={(pick) => void chooseCover(book.id, pick)}
-              />
-            )}
+            {/* The jackets used to unfold here, under the head. They live in
+                the edit sheet now: a book whose author is wrong needs both
+                fixes in one place, and correcting the author moves the book
+                to a new address — which a strip written straight to the shelf
+                could never do. */}
+            <EditBookSheet
+              book={book}
+              open={fixing}
+              onClose={() => setFixing(false)}
+              onSaved={(id) => {
+                setFixing(false)
+                // Renamed: the book lives at a new address now, and the one
+                // this page is reading no longer exists.
+                if (id !== book.id) navigate(`/book/${id}`, { replace: true })
+              }}
+            />
 
             {/* The hours, under the record and folded shut. Nothing at all
                 until this book has actually been sat with. */}
