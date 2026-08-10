@@ -314,11 +314,8 @@
   font-weight: var(--weight-body);
   line-height: var(--leading-read);
   color: var(--color-ink);
-  /* Comfortable for two to four lines of a kept line, not a paragraph. Widened
-     with the drop in weight: 26ch was cut for a display-weight line, and roman
-     Garamond at 400 sets narrower still, so the old cap left a short measure
-     with air beside it. */
-  max-inline-size: 30ch;
+  /* The card is the measure — see the note under `.said`. */
+  max-inline-size: 100%;
   text-wrap: pretty;
 }
 
@@ -340,40 +337,34 @@
   font-size: var(--text-md);
   line-height: 1.7;
   color: var(--color-ink);
-  max-inline-size: 32ch;
+  max-inline-size: 100%;
   text-wrap: pretty;
 }
 
-/* THE CARD GROWS AND THE WRITING ON IT DID NOT.
+/* THE CARD IS THE MEASURE, AND `ch` WAS LYING ABOUT IT.
 
-   Both measures above are set for a phone, where the card is about 311px and a
-   30–32ch line very nearly fills it. Nothing in this file had a width query, so
-   on a wider screen the column opens to its 560px cap, the card opens with it —
-   and the text stayed where it was. Measured on an 894px viewport: the card ran
-   566px with 512px of usable width inside its padding, and the handwriting drew
-   259px of that. Forty-five percent. The rule under it and the provenance line
-   both span the full card, so the eye gets a full-width card, a full-width rule
-   and a half-width block of writing stranded against the leading edge — which
-   does not read as a short note deliberately placed, it reads as text that
-   failed to load the rest of itself.
+   Both blocks above used to carry a cap in `ch` — 30/32 on a phone, stepped to
+   40/46 above 600px — and the owner's report was that the writing "cuts before
+   it fills the container", with a dead band of paper beside it. She was reading
+   it exactly right. `ch` is the width of the digit ZERO in the face that is
+   set, and neither face here sets a zero anything like its own average letter:
+   Kalam is a narrow cursive and Garamond's roman is narrower still. Measured on
+   an 894px viewport, the card ran 565px with 517px of usable width inside its
+   24px padding, and 46ch of Kalam at 16px computed to 368px. Seventy-one
+   percent. The rule under it and the provenance line both span the whole card,
+   so the eye got a full-width card, a full-width hairline, and a block of
+   handwriting stranded against the leading edge — which does not read as a
+   short note deliberately placed, it reads as a note that was cut off.
 
-   The cap is still a cap. A kept line is two to four lines of someone's hand,
-   not an essay, and letting it run the whole 512px would be 64ch — a paragraph
-   measure, and a different kind of object. This lands near 46ch: long enough
-   that the block sits under the rule rather than beside a hole, short enough
-   that it is still a note. Stepped at 600px because that is where the type
-   scale itself steps (tokens.css) — `ch` is a function of the font size, so a
-   measure in `ch` has to move when the size under it moves or it silently
-   means something different on each side of the breakpoint. */
-@media (min-width: 600px) {
-  .quote {
-    max-inline-size: 40ch;
-  }
+   Nothing was ever being truncated. The text was always all there; it was being
+   wrapped early, which costs extra lines and therefore extra height, and a
+   too-tall block of too-short lines is what produced the gap she saw.
 
-  .said {
-    max-inline-size: 46ch;
-  }
-}
+   So the cap comes off, because the card ALREADY IS one. Home's column is
+   capped at 560px, which leaves the text a hard ceiling of about 517px — 60-odd
+   characters of Kalam, the top of a comfortable reading measure and well short
+   of a paragraph. A second cap on top of that was not protecting the measure,
+   it was just guessing at it in a unit that cannot see the font. */
 
 /* Voice: the words on top, the recording underneath.
    ═════════════════════════════════════════════════

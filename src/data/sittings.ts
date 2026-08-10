@@ -119,6 +119,23 @@ export async function stopSitting(): Promise<number> {
   return seconds
 }
 
+/** Point the running clock at a different book, keeping the minutes.
+
+    A reader with two books open starts the clock and only then notices it is
+    counting against the wrong one (owner's report: "the time is adamant on
+    just one book when I start the clock, and there is no way for me to change
+    it"). Stopping and restarting would be the wrong answer twice — it throws
+    away the minutes already read, and if it has been under a minute it throws
+    them away silently.
+
+    The minutes are not in dispute; only which book they belong to is. So the
+    start time is left exactly where it was and the book under it changes. */
+export function moveSitting(bookId: number) {
+  const running = readRunning()
+  if (!running || running.bookId === bookId) return
+  writeRunning({ ...running, bookId })
+}
+
 /** Throw the running clock away without keeping anything. */
 export function discardSitting() {
   writeRunning(null)
