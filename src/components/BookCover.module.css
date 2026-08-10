@@ -125,8 +125,14 @@
    and nothing else: no type of ours on top of their typography. Applied only
    once the photograph has decoded; until then the drawn cover is what the
    reader sees. */
+.art,
+.type {
+  transition: opacity 0.2s ease;
+}
+
 .photographed .art,
 .photographed .type {
+  opacity: 0;
   visibility: hidden;
 }
 
@@ -142,6 +148,12 @@
   object-fit: cover;
   border-radius: inherit;
   display: block;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.photographed .image {
+  opacity: 1;
 }
 
 /* At night the drawn boards come down to 0.40 with the rest of the room. A

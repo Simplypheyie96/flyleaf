@@ -44,6 +44,8 @@ interface BookCoverProps {
    real cover is a photograph of someone else's design and carries its own
    typography, so we put nothing on top of it. A generated cover is ours, so we
    set the title and author ourselves, in our own serif, crisply. */
+const LOADED_COVERS = new Set<string>()
+
 function BookCover({
   title,
   author,
@@ -59,15 +61,19 @@ function BookCover({
   // Open Library in particular answers a missing cover with a 404 by design,
   // so this path is ordinary rather than exceptional.
   const [attempt, setAttempt] = useState(0)
-  const [loaded, setLoaded] = useState(false)
-  // Depending on the array itself would reset on every render, since callers
-  // build it inline. The URLs are the thing that actually changed.
   const list = covers?.join('\n') ?? ''
-  useEffect(() => {
-    setAttempt(0)
-    setLoaded(false)
-  }, [list])
   const src = covers?.[attempt]
+
+  const [loaded, setLoaded] = useState(() => Boolean(src && LOADED_COVERS.has(src)))
+
+  useEffect(() => {
+    if (src && LOADED_COVERS.has(src)) {
+      setLoaded(true)
+    } else {
+      setAttempt(0)
+      setLoaded(Boolean(src && LOADED_COVERS.has(src)))
+    }
+  }, [list, src])
 
   const seed = seedFrom(title, author)
   const style = {
@@ -87,6 +93,15 @@ function BookCover({
     .join(' ')
 
   const typeset = size !== 'thumb' && !bare
+
+  const handleLoad = (url: string) => {
+    LOADED_COVERS.add(url)
+    setLoaded(true)
+  }
+
+  const handleError = () => {
+    setAttempt((n) => n + 1)
+  }
 
   return (
     <div className={className_} style={style}>
@@ -108,13 +123,18 @@ function BookCover({
         // <img> that has already errored will not fire onError again.
         <img
           key={src}
+          ref={(el) => {
+            if (el?.complete && el.naturalWidth > 0) {
+              handleLoad(src)
+            }
+          }}
           className={styles.image}
           src={src}
           alt={`${title} by ${author}`}
           loading="lazy"
           decoding="async"
-          onLoad={() => setLoaded(true)}
-          onError={() => setAttempt((n) => n + 1)}
+          onLoad={() => handleLoad(src)}
+          onError={handleError}
         />
       )}
     </div>
