@@ -155,6 +155,19 @@ export async function exportJourney(handle: string): Promise<{ blob: Blob; name:
     }),
   )
 
+  /* Purge any graves that correspond to active books, entries, or sittings.
+     An active item cannot also be dead. */
+  const activeKeys = new Set([
+    ...books.map((b) => bookGrave(b.id)),
+    ...entries.map((e) => keepGrave(e)),
+    ...sittings.map((s) => sittingGrave(s)),
+  ])
+  const deadActiveKeys = graves.filter((g) => activeKeys.has(g.key)).map((g) => g.key)
+  if (deadActiveKeys.length) {
+    await db.graves.bulkDelete(deadActiveKeys)
+  }
+  const cleanGraves = graves.filter((g) => !activeKeys.has(g.key))
+
   const journey: Journey = {
     keptIn: IMPRINT,
     flyleaf: FORMAT,
@@ -168,7 +181,7 @@ export async function exportJourney(handle: string): Promise<{ blob: Blob; name:
     // Ids dropped here for the same reason they are dropped on the way back
     // in: they are per-device autoincrements and mean nothing anywhere else.
     sittings: sittings.map(({ id: _id, ...rest }) => rest),
-    graves,
+    graves: cleanGraves,
   }
 
   const blob = new Blob([JSON.stringify(journey)], { type: 'application/json' })

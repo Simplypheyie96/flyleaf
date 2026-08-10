@@ -53,8 +53,13 @@ export async function eraseEverything() {
      local state intact — a failed erase that left the name and the theme is
      recoverable and visibly incomplete; one that cleared them and left the
      books behind would look like it had worked. */
-  await db.transaction('rw', db.books, db.entries, db.sittings, async () => {
-    await Promise.all([db.books.clear(), db.entries.clear(), db.sittings.clear()])
+  await db.transaction('rw', db.books, db.entries, db.sittings, db.graves, async () => {
+    await Promise.all([
+      db.books.clear(),
+      db.entries.clear(),
+      db.sittings.clear(),
+      db.graves.clear(),
+    ])
   })
 
   /* Collected before anything is removed: removing while walking `key(i)`
