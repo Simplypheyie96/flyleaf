@@ -192,6 +192,23 @@ export function unpackLock(lock: Stored | undefined, removedAt = 0) {
      back to both of them. */
   if (off > lockOff()) write(OFF_KEY, off)
 
+  /* A REMOVAL HAS TO REMOVE, and until now it only ever refused to add.
+     Everything below this line is about declining a code arriving from Drive.
+     Nothing took a code OFF a device that already had one — so the reader took
+     the code off her Mac, the removal travelled to her iPhone as a date, the
+     iPhone dutifully wrote the date down, and then hit `isLockSet()` and
+     returned with its own lock still standing. "I removed the code and it keeps
+     showing up, both on mac and iphone" was never fixed; only half of it was.
+     A code older than the newest removal either side knows about is a code the
+     reader has thrown away, and that is true of the one already on this device
+     exactly as it is true of one arriving. */
+  const mine = read<Stored>(CODE_KEY)
+  if (mine && off && (mine.setAt ?? 0) <= off) {
+    write(CODE_KEY, null)
+    write(TRIES_KEY, null)
+    write(RESET_KEY, null)
+  }
+
   if (!lock?.salt || !lock.hash || isLockSet()) return
   /* `off` of zero means nobody has ever taken a code off, so an undated lock
       — every one written before removals travelled — still carries across to

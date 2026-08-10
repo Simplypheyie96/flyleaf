@@ -26,7 +26,17 @@
 
 import { IMPRINT } from '../brand/imprint'
 import db, { type Book, type Entry, type Grave, type Sitting } from './db'
-import { buried, bookGrave, fingerprint, keepGrave, sittingGrave } from './graves'
+import {
+  bookGrave,
+  bookMadeAt,
+  buriedWhen,
+  fingerprint,
+  isBuried,
+  keepGrave,
+  keepMadeAt,
+  sittingGrave,
+} from './graves'
+import { SEED_GRAVES } from './seed'
 import { adopt } from './adopt'
 import { lockOff, packLock, unpackLock } from './lock'
 import { getFace, setFace } from './reader'
@@ -277,9 +287,16 @@ export async function importJourney(file: File, how: Restoring = {}): Promise<Re
      a book deleted on the laptop is taken off the phone by the same union
      coming back the other way. Everything below then checks against this set
      rather than trying to remember which side each key came from. */
-  const graves = await buried()
-  const arriving = (journey.graves ?? []).filter((grave) => !graves.has(grave.key))
-  for (const grave of arriving) graves.add(grave.key)
+  const graves = await buriedWhen()
+  /* SEED HEADSTONES NEVER ARRIVE. `unseed` stopped writing them and takes down
+     the ones this device holds, but Drive copies written before that fix still
+     carry them, and two of the five ids they name — `seedFrom(title, author)`
+     for The Salt Path and for Quiet — are exactly the ids a reader's OWN copies
+     of those books have. Letting them in deletes her books on the way past. */
+  const arriving = (journey.graves ?? []).filter(
+    (grave) => !graves.has(grave.key) && !SEED_GRAVES.has(grave.key),
+  )
+  for (const grave of arriving) graves.set(grave.key, grave.at)
 
   /* AND THEN, FOR A HAND-PICKED FILE, THE OTHER DIRECTION. See `Restoring`.
      The stones come down before anything below consults them, so the ordinary
@@ -326,7 +343,7 @@ export async function importJourney(file: File, how: Restoring = {}): Promise<Re
     /* Buried on one side or the other. Not counted as skipped: "already on
        this device" is what that number tells the reader, and a keep they
        deleted is not on this device at all. */
-    if (graves.has(`e:${key}`)) continue
+    if (isBuried(graves, `e:${key}`, keepMadeAt(entry))) continue
 
     const mine = here.get(key) ?? here.get(fingerprint(entry))
     if (mine && (entry.editedAt ?? 0) <= (mine.editedAt ?? 0)) {
@@ -365,7 +382,7 @@ export async function importJourney(file: File, how: Restoring = {}): Promise<Re
   const already = new Set((await db.sittings.toArray()).map((sit) => `${sit.bookId} ${sit.startedAt}`))
   const sittings = (journey.sittings ?? []).filter((sit) => {
     const key = `${sit.bookId} ${sit.startedAt}`
-    if (already.has(key) || graves.has(sittingGrave(sit))) return false
+    if (already.has(key) || isBuried(graves, sittingGrave(sit), sit.startedAt)) return false
     already.add(key)
     return true
   })
@@ -376,7 +393,7 @@ export async function importJourney(file: File, how: Restoring = {}): Promise<Re
      The stamp decides instead of the arrival order. */
   const mineByBook = new Map((await db.books.toArray()).map((book) => [book.id, book]))
   const books = journey.books.filter((book) => {
-    if (graves.has(bookGrave(book.id))) return false
+    if (isBuried(graves, bookGrave(book.id), bookMadeAt(book))) return false
     const mine = mineByBook.get(book.id)
     return !mine || (book.editedAt ?? 0) > (mine.editedAt ?? 0)
   })
@@ -406,14 +423,25 @@ export async function importJourney(file: File, how: Restoring = {}): Promise<Re
        arriving is that prompt. Last, so it also takes back out anything a
        stale copy in the same file smuggled in. */
     if (arriving.length) {
-      const dead = new Set(arriving.map((grave) => grave.key))
-      const goners = (await db.books.toArray()).filter((book) => dead.has(bookGrave(book.id)))
+      /* AND EVERY ONE OF THESE IS DATED. A headstone can only take down a row
+         that was already there when it was raised — see graves.ts/isBuried. The
+         set alone deleted a book the reader had deliberately added back after
+         deleting it, on every sync, forever, because a book's id is a hash of
+         its title and author and so the old grave fits the new row perfectly. */
+      const dead = new Map(arriving.map((grave) => [grave.key, grave.at]))
+      const goners = (await db.books.toArray()).filter((book) =>
+        isBuried(dead, bookGrave(book.id), bookMadeAt(book)),
+      )
       if (goners.length) await db.books.bulkDelete(goners.map((book) => book.id))
 
-      const keeps = (await db.entries.toArray()).filter((entry) => dead.has(keepGrave(entry)))
+      const keeps = (await db.entries.toArray()).filter((entry) =>
+        isBuried(dead, keepGrave(entry), keepMadeAt(entry)),
+      )
       if (keeps.length) await db.entries.bulkDelete(keeps.map((entry) => entry.id))
 
-      const sits = (await db.sittings.toArray()).filter((sit) => dead.has(sittingGrave(sit)))
+      const sits = (await db.sittings.toArray()).filter((sit) =>
+        isBuried(dead, sittingGrave(sit), sit.startedAt),
+      )
       if (sits.length) await db.sittings.bulkDelete(sits.map((sit) => sit.id))
     }
   })

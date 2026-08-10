@@ -76,3 +76,47 @@ export async function buried(): Promise<Set<string>> {
   return new Set((await db.graves.toArray()).map((grave) => grave.key))
 }
 
+/** Every headstone with the MOMENT it was raised — which is the difference
+    between a deletion and a life sentence.
+
+    A grave key for a book is `b:<id>`, and a book's id is a hash of its title
+    and author. So the key does not name the row that died; it names the BOOK,
+    for as long as that book exists anywhere. Delete a book today, add it again
+    next month, and the headstone from today is still standing over it: the very
+    next sync reads the grave, finds a matching row, and deletes the book a
+    second time. The reader adds it, watches it appear, and watches it go — and
+    there is no way out, because re-adding produces the same id every time.
+
+    That is the owner's report, exactly: "some of the books i imported got
+    deleted." It was not the import that was wrong. It was that the app was
+    still holding a grudge from a deletion she had made and moved on from.
+
+    The fix is the stamp `bury` has always written and nothing has ever read. A
+    headstone speaks for the row that was there WHEN IT WAS RAISED. A row made
+    afterwards is a different act by the same reader, more recent than the
+    deletion, and it wins. */
+export async function buriedWhen(): Promise<Map<string, number>> {
+  return new Map((await db.graves.toArray()).map((grave) => [grave.key, grave.at]))
+}
+
+/** Is this row dead? Only if a headstone stands over it AND that headstone was
+    raised after the row was made. `madeAt` is the row's own newest stamp — when
+    it was added, or last edited, whichever is later. */
+export function isBuried(graves: Map<string, number>, key: string, madeAt: number): boolean {
+  const at = graves.get(key)
+  if (at === undefined) return false
+  /* `>=`, not `>`: a grave and a row stamped in the same millisecond is the
+     deletion, since the row has to exist before it can be deleted. */
+  return at >= madeAt
+}
+
+/** The newest moment a book was touched. */
+export function bookMadeAt(book: { addedAt?: number; editedAt?: number }): number {
+  return Math.max(book.addedAt ?? 0, book.editedAt ?? 0)
+}
+
+/** The newest moment a keep was touched. */
+export function keepMadeAt(entry: { createdAt?: number; editedAt?: number }): number {
+  return Math.max(entry.createdAt ?? 0, entry.editedAt ?? 0)
+}
+

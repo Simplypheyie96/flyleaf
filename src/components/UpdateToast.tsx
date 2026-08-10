@@ -85,9 +85,28 @@ function UpdateToast() {
             >
               Later
             </button>
+            {/* AND IF NOTHING HAPPENS, RELOAD ANYWAY.
+
+                `updateServiceWorker(true)` tells the waiting worker to take
+                over and reloads when the browser says it has. That is two
+                things that can silently not happen: the waiting worker may
+                already be gone (the notice outlives it — dismiss nothing, leave
+                the tab open an hour, and the button is now addressed to a
+                worker that has been replaced), and `controllerchange` does not
+                fire at all if this page was never under a controller, which is
+                every hard-reloaded desktop tab. Either way the reader presses
+                Refresh and the app just sits there — "i am even clicking on
+                refresh on desktop and it's not responding or working".
+
+                So the press promises a reload rather than a handover. The
+                worker gets its moment; if the page is still here after it, we
+                reload ourselves, which delivers the new build regardless. */}
             <LeafButton
               className={styles.compact}
-              onClick={() => updateServiceWorker(true)}
+              onClick={() => {
+                void Promise.resolve(updateServiceWorker(true)).catch(() => {})
+                window.setTimeout(() => window.location.reload(), 1500)
+              }}
             >
               Refresh
             </LeafButton>
