@@ -165,11 +165,11 @@ export async function dropJourney(token: string, id: string): Promise<void> {
 }
 
 /** Take all journey files back out of Drive.
-    Finds every file named `journey.json` in `appDataFolder` and deletes it. */
+    Finds every file in `appDataFolder` and deletes it. */
 export async function dropAllJourneys(token: string): Promise<number> {
-  const url = `${FILES}?spaces=appDataFolder&pageSize=100&q=${encodeURIComponent(`name = '${FILE_NAME}'`)}`
+  const url = `${FILES}?spaces=appDataFolder&pageSize=100&fields=${encodeURIComponent('files(id,name)')}`
   const { files } = (await (await ask(token, url)).json()) as {
-    files?: { id: string }[]
+    files?: { id: string; name: string }[]
   }
   if (!files || files.length === 0) return 0
   for (const file of files) {
