@@ -613,18 +613,6 @@ function feeling(texts: string[]) {
   return { warm, cool }
 }
 
-/** Where the reader's attention went, said as a person would say it. Keyed by
-    the kind that dominates their journey. */
-const PULL: Record<EntryType, string> = {
-  quote: 'What I kept most of was the language — I was copying it out as I went.',
-  note: 'Most of what is here is my own thinking, put down while I still had it.',
-  voice: 'Most of what I kept, I said out loud rather than wrote.',
-  image: 'Most of what I kept were pictures rather than words.',
-  character: 'Most of what I wrote down was about the people in it.',
-  place: 'Most of what I wrote down was about where it happens.',
-  thread: 'Most of what I wrote down was me working out where it was going.',
-}
-
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 /** The reader's words as a sentence: trimmed, whitespace collapsed, closed
@@ -670,22 +658,12 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
 
   const of = (type: EntryType) => written.filter((e) => e.type === type)
   const spent = new Set<number>()
-  /* A keep may carry the draft once. Nothing reads better in a review than a
-     reader's own sentence and nothing reads worse than the same sentence
-     twice, so every paragraph takes from what is left. */
+
   const spend = (e: Entry | undefined) => {
     if (!e) return ''
     spent.add(e.id)
     return asSentence(e.text?.trim() ?? '')
   }
-  /* A thin journey has no long sentences to be choosy about. Three keeps or
-     fewer and anything the reader wrote is worth having; past that, hold out
-     for something with a thought in it. */
-  const enough = written.length <= 3 ? 1 : 40
-  const richest = (rows: Entry[]) =>
-    rows
-      .filter((e) => !spent.has(e.id) && (e.text?.trim().length ?? 0) >= enough)
-      .sort((a, b) => (b.text?.length ?? 0) - (a.text?.length ?? 0))[0]
 
   const paragraphs: string[] = []
   const say = (...lines: string[]) => {
@@ -693,7 +671,7 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
     if (kept.length) paragraphs.push(kept.join(' '))
   }
 
-  /* ── One: the reading itself ──────────────────────────────────────────── */
+  /* ── 1. Opening & Reading Context ───────────────────────────────────── */
   const formats = formatsOf(book)
   const verb = formats.length === 1 && formats[0] === 'audio' ? 'listened to' : 'read'
   let opening = `I ${verb} ${book.title}${book.author ? ` by ${book.author}` : ''}`
@@ -708,8 +686,6 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
     opening += `, starting on ${dayPhrase(book.startedOn)}`
   }
 
-  /* How often a reader stopped is the one measure of a book's grip that does
-     not require having read it. */
   const marks = written.length
   const pace =
     days > 1 && marks / days >= 1.5
@@ -717,14 +693,7 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
       : days >= 14 && marks / days <= 0.15
         ? 'Spread thinly across all those weeks, which says something about the pace I read it at.'
         : ''
-  /* "Twice", never "two times" — English has a word for it and a review that
-     does not use it sounds machine-made, which is the one thing this paragraph
-     cannot afford to sound.
 
-     And past twelve, `spell` gives up and hands back a numeral, so the count
-     moves to the end of the sentence rather than opening it. "13 times I
-     stopped" starts a sentence on a digit and sits badly beside the "Ten times"
-     a shorter journey gets. */
   say(
     `${opening}.`,
     marks === 1
@@ -737,11 +706,11 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
     pace,
   )
 
-  /* ── Two: how it felt ─────────────────────────────────────────────────── */
+  /* ── 2. Emotional Arc & Overall Impression ───────────────────────────── */
   const mood = feeling(
     written.filter((e) => e.type !== 'quote').map((e) => `${e.name ?? ''} ${e.text ?? ''}`),
   )
-  const verdict =
+  let verdict =
     mood.warm >= 2 && mood.warm > mood.cool * 2
       ? 'Reading my own notes back, they are warm nearly the whole way through.'
       : mood.cool >= 2 && mood.cool > mood.warm * 2
@@ -749,103 +718,74 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
         : mood.warm >= 1 && mood.cool >= 1
           ? 'My notes run hot and cold in about equal measure, which is usually the mark of a book worth arguing with.'
           : ''
-  /* The LAST substantial note, not the longest: a thought written near the end
-     of a reading is the closest thing in the journey to a verdict. */
-  const last = [...of('note')]
-    .reverse()
-    .find((e) => !spent.has(e.id) && (e.text?.trim().length ?? 0) >= enough)
-  say(verdict, spend(last))
 
-  /* ── Three: what held me ──────────────────────────────────────────────── */
-  const counted = KINDS.map((type) => ({ type, n: of(type).length })).sort((a, b) => b.n - a.n)
-  const top = counted[0]
-  /* A lead, not merely a maximum. Four quotes out of eleven keeps is a spread,
-     not a preoccupation, and calling it one would be the app inventing a
-     reader. */
-  const lead = top && top.n >= 2 && top.n >= written.length * 0.4 ? top.type : undefined
-  if (lead) {
-    const named = [...new Set(of(lead).map((e) => e.name?.trim()).filter(Boolean))] as string[]
-    const who =
-      lead === 'character' && named.length
-        ? `I kept coming back to ${listOf(named)}.`
-        : lead === 'place' && named.length
-          ? `${named.length === 1 ? 'The place that stayed with me was' : 'The places that stayed with me were'} ${listOf(named)}.`
-          : lead === 'thread' && named.length
-            ? `What I could not leave alone: ${listOf(named)}.`
-            : ''
-    /* The reader's own sentence comes next, and it usually opens on a pronoun
-       — "She is the only one in this house…" — which English hands to the last
-       name it heard. After a list of three that is the wrong one. So when the
-       sentence belongs to a named keep and there were other names before it,
-       a short line points at whose it is and the pronoun lands right. */
-    const chosen = lead === 'quote' ? undefined : richest(of(lead))
-    const subject = chosen?.name?.trim()
-    /* Capitalised because it opens a sentence, not because the name was typed
-       that way — "the drowned village" and "the second brother" are how readers
-       actually name a place or a loose end, and they must not start a sentence
-       in lower case. The name is unchanged everywhere else it appears. */
-    const point =
-      subject && named.length > 1
-        ? lead === 'place'
-          ? `${cap(subject)}, more than anywhere.`
-          : lead === 'thread'
-            ? `${cap(subject)}, mostly.`
-            : `${cap(subject)}, more than any of them.`
-        : ''
-    /* The line itself gets its own paragraph below, so a quote-led journey
-       says what it is and then lets that paragraph do the quoting. */
-    say(PULL[lead], who, point, spend(chosen))
+  const notesList = [...of('note'), ...of('thread'), ...of('character')]
+  const unspentNotes = notesList.filter((e) => !spent.has(e.id) && e.text?.trim())
+
+  if (!verdict && unspentNotes.length) {
+    verdict = 'Reflecting on my reading notes throughout the book, here is the impression it left on me:'
   }
 
-  /* ── Four: the line ───────────────────────────────────────────────────── */
-  const lines = of('quote').filter((e) => !spent.has(e.id) && e.text?.trim())
-  if (lines.length) {
-    /* The best line to put in a review is a substantial one that still fits in
-       a breath. Longest under about three lines of type; failing that, the
-       shortest, because a wall of somebody else's prose is not a review. */
-    const sized = [...lines].sort((a, b) => (a.text?.length ?? 0) - (b.text?.length ?? 0))
-    const best = [...sized].reverse().find((e) => (e.text?.trim().length ?? 0) <= 220) ?? sized[0]
+  const firstNote = unspentNotes[0]
+  say(verdict, spend(firstNote))
+
+  /* ── 3. Characters, Setting & Key Focus ─────────────────────────────── */
+  const chars = of('character').map((e) => e.name?.trim()).filter(Boolean) as string[]
+  const places = of('place').map((e) => e.name?.trim()).filter(Boolean) as string[]
+  const threads = of('thread').map((e) => e.name?.trim()).filter(Boolean) as string[]
+
+  const charNames = [...new Set(chars)]
+  const placeNames = [...new Set(places)]
+  const threadNames = [...new Set(threads)]
+
+  if (charNames.length || placeNames.length || threadNames.length) {
+    const focusParts: string[] = []
+    if (charNames.length) focusParts.push(`I kept coming back to ${listOf(charNames)}`)
+    if (placeNames.length) focusParts.push(`${placeNames.length === 1 ? 'the setting that stayed with me was' : 'the settings that stayed with me were'} ${listOf(placeNames)}`)
+    if (threadNames.length) focusParts.push(`the main plot threads I circled were ${listOf(threadNames)}`)
+
+    const leadNote = unspentNotes.find((e) => !spent.has(e.id) && e.text?.trim())
+    say(`${cap(focusParts.join('; '))}.`, spend(leadNote))
+  }
+
+  /* ── 4. Key Quotes / Standout Lines ──────────────────────────────────── */
+  const quotes = of('quote').filter((e) => !spent.has(e.id) && e.text?.trim())
+  if (quotes.length) {
+    const sized = [...quotes].sort((a, b) => (b.text?.length ?? 0) - (a.text?.length ?? 0))
+    const best = sized.find((e) => (e.text?.trim().length ?? 0) <= 240) ?? sized[0]
     spent.add(best.id)
     const body = best.text!.trim().replace(/^[“"']+/, '').replace(/[”"']+$/, '')
     const where = best.page ? ` (page ${best.page})` : best.chapter ? ` (${best.chapter})` : ''
     say(
-      lines.length === 1
+      quotes.length === 1
         ? `There is one line I copied out word for word${where}:`
-        : `${cap(count(lines.length, { one: 'line', many: 'lines' }))} went down word for word. This is the one I would read out to somebody${where}:`,
+        : `Of the ${quotes.length} lines I copied out word for word, this is the one that captured the book's essence${where}:`,
       `${QUOTE_OPEN}${body}${QUOTE_CLOSE}`,
     )
   }
 
-  /* ── Five: how it ended, for me ───────────────────────────────────────── */
-  const threads = of('thread')
-  const settled = threads.filter((e) => e.stance === 'certain').length
+  /* ── 5. Unspent Reader Notes / Reactions ─────────────────────────────── */
+  const remaining = written.filter((e) => !spent.has(e.id) && e.text?.trim())
+  if (remaining.length) {
+    const extraSentences = remaining.slice(0, 2).map((e) => spend(e)).filter(Boolean)
+    if (extraSentences.length) {
+      say('Other thoughts I noted along the way:', ...extraSentences)
+    }
+  }
+
+  /* ── 6. Conclusion & Verdict ─────────────────────────────────────────── */
+  const threadList = of('thread')
+  const settled = threadList.filter((e) => e.stance === 'certain').length
   say(
     settled
       ? 'Some of what I only suspected early on I was sure of by the end.'
-      : threads.length >= 2
+      : threadList.length >= 2
         ? 'I never did settle most of what I kept circling.'
         : '',
     book.finishedOn
       ? ''
       : 'I am not finished with it yet, so take this as a report from partway through.',
   )
-
-  /* Nothing of the reader's own made it in: every keep was a bare name, or too
-     short to clear the bar, or a quote that lost the coin toss. Their words are
-     the point of the draft, so the richest one goes in regardless — and failing
-     even that, the names do. A journey holding a character and a place used to
-     draft two sentences of dates that never mentioned either of them, which is
-     a review of nothing. */
-  if (!spent.size) {
-    const anything = [...written].sort((a, b) => (b.text?.length ?? 0) - (a.text?.length ?? 0))[0]
-    const words = asSentence(anything.text?.trim() ?? '')
-    const names = [...new Set(written.map((e) => e.name?.trim()).filter(Boolean))] as string[]
-    /* Second paragraph, not last. The closing paragraph is the one that says
-       the reading is unfinished, and anything after that reads like it was
-       remembered on the way out the door. */
-    const late = words || (names.length ? `What I did not want to forget: ${listOf(names)}.` : '')
-    if (late) paragraphs.splice(1, 0, late)
-  }
 
   const text = paragraphs.join('\n\n')
   return { text, words: countWords(text), omitted }
