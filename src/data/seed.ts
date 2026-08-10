@@ -130,12 +130,12 @@ const PREVIEW_SHELF: Book[] = [
    `forgetSeedGraves` takes down the ones already written. It is not a
    migration and does not need a stamp: five keyed deletes, idempotent, and
    the keys are ours by construction. */
-const SEED_GRAVES = PREVIEW_SHELF.filter((book) => typeof book.id === 'number').map((book) =>
-  bookGrave(book.id!),
+export const SEED_GRAVES = new Set(
+  PREVIEW_SHELF.filter((book) => typeof book.id === 'number').map((book) => bookGrave(book.id!)),
 )
 
 export async function forgetSeedGraves() {
-  await db.graves.bulkDelete(SEED_GRAVES)
+  await db.graves.bulkDelete([...SEED_GRAVES])
 }
 
 export async function unseed() {
