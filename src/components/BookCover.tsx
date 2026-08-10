@@ -93,6 +93,9 @@ function BookCover({
     .join(' ')
 
   const typeset = size !== 'thumb' && !bare
+  // Render custom drawn needlework CoverArt ONLY when there is no real photo source
+  // (e.g. when user picked DRAWN or when no photo URL exists/all photo URLs failed).
+  const showDrawnArt = !src
 
   const handleLoad = (url: string) => {
     LOADED_COVERS.add(url)
@@ -105,8 +108,8 @@ function BookCover({
 
   return (
     <div className={className_} style={style}>
-      <CoverArt className={styles.art} seed={seed} bare={!typeset} />
-      {typeset && (
+      {showDrawnArt && <CoverArt className={styles.art} seed={seed} bare={!typeset} />}
+      {typeset && !loaded && (
         <div className={styles.type}>
           {/* The band clamps to three lines, so the whole title has to stay
               reachable somewhere other than the book's own page. */}
