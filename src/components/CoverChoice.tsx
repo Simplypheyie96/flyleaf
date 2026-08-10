@@ -20,7 +20,7 @@
 
 import BookCover from './BookCover'
 import { CheckIcon, EditIcon } from './TabIcons'
-import { DRAWN } from '../books/covers'
+import { DRAWN, cleanCovers } from '../books/covers'
 import styles from './CoverChoice.module.css'
 
 /** The little mark that opens the strip. Sits on the bottom edge of the cover
@@ -38,14 +38,15 @@ export function SwapCoverTab({ covers, open, onToggle }: {
   open: boolean
   onToggle: () => void
 }) {
-  if (covers.length === 0) return null
+  const valid = cleanCovers(covers)
+  if (valid.length === 0) return null
   return (
     <button
       type="button"
       className={styles.swap}
       onClick={onToggle}
       aria-expanded={open}
-      aria-label={`Change the cover — ${covers.length + 1} to choose from`}
+      aria-label={`Change the cover — ${valid.length + 1} to choose from`}
       title="Change the cover"
     >
       <EditIcon size={13} />
@@ -89,11 +90,12 @@ interface Props {
  *  book with no catalogue cover at all is already wearing the only jacket
  *  there is, and offering to swap it for itself is a control that lies. */
 export function CoverStrip({ title, author, covers, pick, onPick }: Props) {
-  if (covers.length === 0) return null
+  const validCovers = cleanCovers(covers)
+  if (validCovers.length === 0 && pick !== DRAWN) return null
 
   return (
     <div className={styles.strip} role="radiogroup" aria-label="Cover">
-      {[...covers.map((_, i) => i), DRAWN].map((index) => {
+      {[...validCovers.map((_, i) => i), DRAWN].map((index) => {
         const on = index === pick
         return (
           <button
@@ -107,7 +109,7 @@ export function CoverStrip({ title, author, covers, pick, onPick }: Props) {
             /* The only words in the control, and they are for the screen
                reader alone — sighted readers are comparing pictures. */
             aria-label={
-              index === DRAWN ? 'Flyleaf’s drawn cover' : `Cover ${index + 1} of ${covers.length}`
+              index === DRAWN ? 'Flyleaf’s drawn cover' : `Cover ${index + 1} of ${validCovers.length}`
             }
           >
             <BookCover
@@ -118,7 +120,7 @@ export function CoverStrip({ title, author, covers, pick, onPick }: Props) {
               /* One url per tile, so a tile shows the cover it stands for and
                  cannot quietly fall through to its neighbour's. The drawn tile
                  gets an empty list, which is what draws ours. */
-              covers={index === DRAWN ? [] : [covers[index]]}
+              covers={index === DRAWN ? [] : [validCovers[index]]}
               className={styles.tileCover}
             />
             {on && (

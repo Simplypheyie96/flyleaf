@@ -41,6 +41,7 @@
    a book with no cover anywhere still gets one. */
 
 import { seedFrom } from './seed'
+import { cleanCovers } from './covers'
 
 export interface BookResult {
   /** The book's identity: dedupe key, React key, and the cover's seed. */
@@ -203,7 +204,7 @@ function openLibraryCovers(doc: OpenLibraryDoc) {
     doc.cover_edition_key && coverUrl('olid', doc.cover_edition_key),
     ...(doc.isbn ?? []).slice(0, 2).map((isbn) => coverUrl('isbn', isbn)),
   ]
-  return [...new Set(urls.filter((url) => typeof url === 'string'))]
+  return cleanCovers(urls.filter((url): url is string => typeof url === 'string'))
 }
 
 /* `default=false` is the important part: without it a missing cover returns a
@@ -488,6 +489,7 @@ function looseKey(title: string, author: string) {
 function lendCovers(results: BookResult[]) {
   const lenders = new Map<string, string[]>()
   for (const book of results) {
+    book.covers = cleanCovers(book.covers)
     if (!book.covers.length) continue
     const key = looseKey(book.title, book.author)
     // First one wins: results arrive in relevance order, so the earliest
@@ -498,9 +500,7 @@ function lendCovers(results: BookResult[]) {
   for (const book of results) {
     const lent = lenders.get(looseKey(book.title, book.author))
     if (!lent) continue
-    for (const url of lent) {
-      if (!book.covers.includes(url)) book.covers.push(url)
-    }
+    book.covers = cleanCovers([...book.covers, ...lent])
   }
 
   return results
