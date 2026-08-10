@@ -84,11 +84,20 @@ function Settings() {
               not it: "You" stays at the top, and the ask comes after the
               reader, not before them. Everything about the journey, syncing,
               the tour, installing and the small print now follows. */}
-          {TIP_JAR && (
-            <Group label="Support the maker">
-              <Tip />
-            </Group>
-          )}
+          <Group label="Support the maker">
+            {TIP_JAR && <Tip />}
+            <a
+              href="https://simplypheyie.is-a.dev/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={card.link}
+            >
+              Maker’s portfolio
+              <span className={card.linkHint} aria-hidden="true">
+                ↗
+              </span>
+            </a>
+          </Group>
 
           {/* Erase sits in this group and last in it, not in a group of its
               own. It is the same subject as the rows above — where the journey
