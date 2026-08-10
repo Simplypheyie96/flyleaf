@@ -473,7 +473,7 @@ function Home() {
                   reader's own books; this one is not about their library at
                   all, and that is the point — Home ends somewhere to sit
                   rather than with another thing to read. See home/nook/. */}
-              <Nook reading={book} />
+              <Nook open={open} />
             </>
           )
         )}

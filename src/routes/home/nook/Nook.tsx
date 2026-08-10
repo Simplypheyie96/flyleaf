@@ -67,10 +67,11 @@ const GLYPH: Record<Layer, React.ReactNode> = {
   ),
 }
 
-/** The book the clock will time — whatever Home already worked out the reader
-    is in the middle of. Passed in rather than queried here, so the room and the
-    "Currently reading" card above can never disagree about which book that is. */
-export default function Nook({ reading }: { reading?: Book }) {
+/** Every book the reader still has open, in Home's own order — the same list
+    the "Currently reading" card pages through, so the room and the card above
+    can never disagree about which books those are. The clock takes the head of
+    it by default and lets the reader say otherwise; see Timer.tsx. */
+export default function Nook({ open }: { open: Book[] }) {
   const [lit, setLit] = useState(false)
   const [playing, setPlaying] = useState<Layer[]>([])
 
@@ -180,7 +181,7 @@ export default function Nook({ reading }: { reading?: Book }) {
           is a mood and the clock is a record; a reader who wants to time a
           sitting in silence should not have to turn a light on in a drawing
           first. */}
-      <Timer book={reading} />
+      <Timer books={open} />
     </section>
   )
 }

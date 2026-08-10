@@ -98,6 +98,9 @@
   -webkit-line-clamp: 3;
   line-clamp: 3;
   overflow: hidden;
+  /* See timer.module.css `.book`: a clamped `-webkit-box` cuts at the content
+     edge, and serif descenders at tight leading sit below it. */
+  padding-block-end: 0.14em;
 }
 
 /* One line. A wrapped byline reads as two authors rather than one. */

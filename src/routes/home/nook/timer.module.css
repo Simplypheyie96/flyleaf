@@ -127,6 +127,155 @@
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
+  /* AND THE DESCENDERS SURVIVE IT. `-webkit-box` clips at the CONTENT edge, and
+     at snug leading the tail of a g or y in the last line sits below that edge —
+     "Born Trilogy" came back shaved off along the bottom. The padding moves the
+     clip line down without touching the leading or the clamp count. */
+  padding-block-end: 0.14em;
+}
+
+/* THE TITLE, WHEN IT IS A CHOICE.
+
+   A reader with two books going has to be able to say which one the clock is
+   counting, and the honest place to say it is on the title itself. So with
+   more than one book open the title becomes a button — but a button that still
+   looks like the title, because nothing about the card's hierarchy has changed:
+   no fill, no border, no pill. The only tells are the small chevron after it
+   and the ink it takes when touched. */
+.pick {
+  display: block;
+  min-block-size: var(--tap-min);
+  /* Pulled back out to the text edge, so the title still starts exactly where
+     the eyebrow above it does. */
+  margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-2));
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  text-align: start;
+  cursor: pointer;
+}
+
+/* IN THE TEXT, NOT BESIDE IT.
+
+   It was a flex child of the button, which aligns it to the BLOCK rather than
+   to the words: a title that wraps sets the block's width from its longest
+   line, so the chevron parked out at that edge with a ragged gap between it and
+   the last word, floating loose in the middle of the card next to the bookmark.
+   The owner's read was that it looked badly placed, and it was — it belonged to
+   the box, not to the sentence.
+
+   So it goes inside the title span and rides the text: it now sits one space
+   after the final word wherever that word happens to fall, at every title
+   length, and moves with the type instead of with the layout. `inline-block`
+   only so the open-state rotation has something to turn. */
+.pickHint {
+  display: inline-block;
+  margin-inline-start: 0.32em;
+  /* Smaller than the title it trails — a chevron at full title size reads as a
+     second character in the name. */
+  inline-size: 0.58em;
+  block-size: 0.58em;
+  /* Centred on the x-height rather than parked on the baseline. */
+  vertical-align: 0.06em;
+  color: var(--color-ink-faint);
+  transition: transform var(--dur-quick) var(--ease-out);
+}
+
+.pick[aria-expanded='true'] .pickHint {
+  transform: rotate(180deg);
+}
+
+.pick:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 0;
+}
+
+@media (hover: hover) {
+  .pick:hover .pickHint {
+    color: var(--color-ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pickHint {
+    transition-duration: 1ms;
+  }
+}
+
+/* The open shelf. A plain list on the card, seamed off from the face above it
+   with the same dashed stitch the log row wears, so the two things this card
+   can unfold are unmistakably the same kind of thing. */
+.shelf {
+  margin: 0;
+  padding: var(--space-2) 0 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  border-block-start: 1px dashed color-mix(in oklab, var(--color-accent-text) 40%, transparent);
+}
+
+.choice {
+  min-block-size: var(--tap-min);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* Full-bleed to the card's inner edge, so the touched row reads as a row of
+     the card rather than a tile floating inside it. */
+  margin-inline: calc(-1 * var(--space-3));
+  inline-size: calc(100% + var(--space-3) * 2);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  text-align: start;
+  cursor: pointer;
+  transition: background var(--dur-quick) var(--ease-out);
+}
+
+.choiceTitle {
+  font-family: var(--font-read);
+  font-size: var(--text-base);
+  font-weight: var(--weight-card);
+  line-height: var(--leading-snug);
+  color: var(--color-ink);
+}
+
+.choiceWho {
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* The one being timed. Marked by the ink rather than by a tick in the margin:
+   a checkmark column would indent every other row to make space for a mark
+   only one of them ever wears. */
+.choice[aria-current] {
+  background: color-mix(in oklab, var(--color-accent-text) 10%, transparent);
+}
+
+.choice[aria-current] .choiceTitle {
+  color: var(--color-accent-text);
+}
+
+@media (hover: hover) {
+  .choice:hover {
+    background: color-mix(in oklab, var(--color-ink) 7%, transparent);
+  }
+}
+
+.choice:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choice {
+    transition-duration: 1ms;
+  }
 }
 
 /* THE DIGITS ARE THE BOOK FACE. Everything else on this card is interface,
