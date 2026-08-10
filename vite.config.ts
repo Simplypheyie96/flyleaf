@@ -138,6 +138,20 @@ export default defineConfig({
               rangeRequests: true,
             },
           },
+          {
+            urlPattern: /^https:\/\/.*(covers\.openlibrary\.org|books\.google|mzstatic\.com|googleusercontent\.com).*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'flyleaf-book-covers',
+              expiration: {
+                maxEntries: 300,
+                maxAgeSeconds: 60 * 60 * 24 * 90, // 90 days local storage
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
         ],
       },
     }),
