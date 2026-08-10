@@ -24,6 +24,25 @@ import db from '../data/db'
 /** The reader asked for Flyleaf's own drawn cover, not a photographed one. */
 export const DRAWN = -1
 
+/** Clean and deduplicate cover URLs.
+    Removes empty/invalid strings, normalizes protocol, and strips duplicates. */
+export function cleanCovers(covers?: string[]): string[] {
+  if (!covers || !Array.isArray(covers)) return []
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const raw of covers) {
+    if (typeof raw !== 'string') continue
+    const trimmed = raw.trim()
+    if (!trimmed || !trimmed.startsWith('http')) continue
+    // Normalize http to https and strip trailing slashes for comparison
+    const normalized = trimmed.replace(/^http:/, 'https:').replace(/\/+$/, '')
+    if (seen.has(normalized)) continue
+    seen.add(normalized)
+    result.push(trimmed)
+  }
+  return result
+}
+
 /** The covers to try, in order, honouring the reader's pick.
 
     Rotated rather than filtered: the pick goes first and the rest stay behind
@@ -31,10 +50,11 @@ export const DRAWN = -1
     to go if the chosen file 404s on the day. Every stored book renders
     through this — never `book.covers` directly. */
 export function coversOf(book: Pick<Book, 'covers' | 'coverPick'>): string[] {
+  const list = cleanCovers(book.covers)
   const pick = book.coverPick
   if (pick === DRAWN) return []
-  if (pick === undefined || pick < 0 || pick >= book.covers.length) return book.covers
-  return [book.covers[pick], ...book.covers.filter((_, i) => i !== pick)]
+  if (pick === undefined || pick < 0 || pick >= list.length) return list
+  return [list[pick], ...list.filter((_, i) => i !== pick)]
 }
 
 /** Remember the jacket. `DRAWN` for our own. */

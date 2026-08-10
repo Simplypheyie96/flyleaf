@@ -28,7 +28,7 @@ import LeafButton from './LeafButton'
 import Sheet from './Sheet'
 import { CloseIcon } from './TabIcons'
 import CoverStrip from './CoverChoice'
-import { DRAWN } from '../books/covers'
+import { DRAWN, cleanCovers } from '../books/covers'
 import { useBookSearch } from '../books/useBookSearch'
 import { AlreadyShelved, reshelve } from '../data/reshelve'
 import type { Book } from '../data/db'
@@ -116,16 +116,16 @@ function EditBookSheet({ book, open, onClose, onSaved }: EditBookSheetProps) {
   /* The book's own jackets first, so a stored `coverPick` still points at the
      jacket it was chosen for however many the search adds behind it. */
   const covers = useMemo(() => {
-    const all = [...book.covers]
+    const all = cleanCovers(book.covers)
     if (found.status === 'done') {
       for (const result of found.results) {
-        for (const url of result.covers) {
+        for (const url of cleanCovers(result.covers)) {
           if (all.length >= MOST) break
           if (!all.includes(url)) all.push(url)
         }
       }
     }
-    return all
+    return cleanCovers(all)
   }, [book.covers, found])
 
   async function save() {
