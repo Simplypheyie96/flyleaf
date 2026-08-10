@@ -164,6 +164,21 @@ export async function dropJourney(token: string, id: string): Promise<void> {
   await ask(token, `${FILES}/${id}`, { method: 'DELETE' })
 }
 
+/** Take all journey files back out of Drive.
+    Finds every file named `journey.json` in `appDataFolder` and deletes it. */
+export async function dropAllJourneys(token: string): Promise<number> {
+  const url = `${FILES}?spaces=appDataFolder&pageSize=100&q=${encodeURIComponent(`name = '${FILE_NAME}'`)}`
+  const { files } = (await (await ask(token, url)).json()) as {
+    files?: { id: string }[]
+  }
+  if (!files || files.length === 0) return 0
+  for (const file of files) {
+    await ask(token, `${FILES}/${file.id}`, { method: 'DELETE' })
+  }
+  return files.length
+}
+
+
 /** Which Google account this is, for the settings row to name. Best-effort:
     the scope we hold does not include the reader's profile, and Drive's own
     `about` endpoint is allowed to decline it. A row that says "Signed in" is a
