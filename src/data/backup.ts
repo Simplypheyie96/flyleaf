@@ -314,6 +314,20 @@ export async function importJourney(file: File, how: Restoring = {}): Promise<Re
       graves.delete(key)
       raised.push(key)
     }
+
+    /* Restoring/exhuming a file is an explicit reader action occurring RIGHT NOW.
+       Stamp all imported books & entries with the current timestamp so past deletion
+       graves (from Drive or local history) cannot bury these restored items. */
+    const now = Date.now()
+    for (const book of journey.books) {
+      book.addedAt = Math.max(book.addedAt ?? 0, now)
+      book.editedAt = Math.max(book.editedAt ?? 0, now)
+    }
+    for (const entry of journey.entries) {
+      const e = entry as Entry
+      e.createdAt = Math.max(e.createdAt ?? 0, now)
+      e.editedAt = Math.max(e.editedAt ?? 0, now)
+    }
   }
 
   const existing = await db.entries.toArray()
@@ -407,12 +421,12 @@ export async function importJourney(file: File, how: Restoring = {}): Promise<Re
       await db.entries.bulkAdd(incoming.map(({ id: _id, ...rest }) => rest as Entry))
     }
     if (sittings.length) await db.sittings.bulkAdd(sittings as Sitting[])
-    if (arriving.length) await db.graves.bulkPut(arriving)
+    const raisedSet = new Set(raised)
+    const cleanArriving = arriving.filter((grave) => !raisedSet.has(grave.key))
+    if (cleanArriving.length) await db.graves.bulkPut(cleanArriving)
     /* The raised stones leave for good, not just for this import — a headstone
        still standing would take the books back off the shelf on the very next
-       sync, which is the same silence in a slower form. `raised` and
-       `arriving` cannot overlap: a key is only raised if the file does not
-       bury it. */
+       sync, which is the same silence in a slower form. */
     if (raised.length) await db.graves.bulkDelete(raised)
 
     /* AND THEN THE DIGGING, last, over rows that were already here.
@@ -422,13 +436,13 @@ export async function importJourney(file: File, how: Restoring = {}): Promise<Re
        holding it all along with nothing to prompt it to let go. The file
        arriving is that prompt. Last, so it also takes back out anything a
        stale copy in the same file smuggled in. */
-    if (arriving.length) {
+    if (cleanArriving.length) {
       /* AND EVERY ONE OF THESE IS DATED. A headstone can only take down a row
          that was already there when it was raised — see graves.ts/isBuried. The
          set alone deleted a book the reader had deliberately added back after
          deleting it, on every sync, forever, because a book's id is a hash of
          its title and author and so the old grave fits the new row perfectly. */
-      const dead = new Map(arriving.map((grave) => [grave.key, grave.at]))
+      const dead = new Map(cleanArriving.map((grave) => [grave.key, grave.at]))
       const goners = (await db.books.toArray()).filter((book) =>
         isBuried(dead, bookGrave(book.id), bookMadeAt(book)),
       )
