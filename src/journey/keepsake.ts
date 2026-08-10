@@ -26,17 +26,16 @@
 import type { Book, Entry } from '../data/db'
 import { IMPRINT } from '../brand/imprint'
 import { MARK } from '../brand/Wordmark'
-import { KIND, KINDS } from './kinds'
 import { colophon } from './lexicon'
 
 /* ── The two axes ──────────────────────────────────────────────────────── */
 
-export type Shape = 'colophon' | 'line' | 'tally'
+export type Shape = 'colophon' | 'arc' | 'line'
 
 export const SHAPES: { id: Shape; label: string; hint: string }[] = [
-  { id: 'colophon', label: 'The colophon', hint: 'the line you kept, and the whole reading under it' },
-  { id: 'line', label: 'One line', hint: 'a single thing the book said, set large' },
-  { id: 'tally', label: 'The tally', hint: 'what you kept, counted' },
+  { id: 'colophon', label: 'The Reading', hint: 'your reading journey, key reflection, and facts' },
+  { id: 'arc', label: "Reader's Arc", hint: 'how you felt and key highlights throughout the book' },
+  { id: 'line', label: 'Featured Line', hint: 'a favorite quote or central reflection, set large' },
 ]
 
 export interface Palette {
@@ -46,28 +45,9 @@ export interface Palette {
   ink: string
   soft: string
   accent: string
-  /** What the paper is laid ON, when it is laid on anything.
-
-      The whole reading fills its plate and never needs this. One keep is
-      mounted on it — see the top of plate.ts — so the fifth colour arrived
-      with that picture rather than with these four. It is the deep relative of
-      each palette's own character, never a fifth hue: Flyleaf's is its teal,
-      Bloom's its clay, Fern's a step past its green, and Dusk goes the other
-      way and lightens, because a night palette whose mat is darker than its
-      paper has nowhere left to put the shadow. */
   field: string
 }
 
-/* Fixed sRGB rather than the app's live tokens. An exported picture has to look
-   the same in a message thread as it did in the sheet, and a reader who picked
-   a pale card at midnight must not be sent a dark one because their phone had
-   turned the app over.
-
-   Every colour here is set as TEXT somewhere — `soft` carries the date and the
-   author's name, `accent` carries the provenance under a quote — so all three
-   clear 4.5:1 on their own paper. Bloom's two and Fern's accent were the pale
-   ones (3.7–4.4) and are a step deeper for it; the hue is the one that was
-   chosen, only the ink is stronger. */
 export const PALETTES: Palette[] = [
   { id: 'flyleaf', label: 'Flyleaf', paper: '#f4f7fb', ink: '#161d29', soft: '#5c6674', accent: '#2f6f6a', field: '#2f6f6a' },
   { id: 'dusk', label: 'Dusk', paper: '#1b2230', ink: '#eef1f6', soft: '#96a1b3', accent: '#e0b25f', field: '#39435c' },
@@ -75,11 +55,6 @@ export const PALETTES: Palette[] = [
   { id: 'fern', label: 'Fern', paper: '#eef3ec', ink: '#1e2c22', soft: '#5c6e5e', accent: '#37704b', field: '#2b5a3c' },
 ]
 
-/* The relative luminance of one of the palette's own hex strings. Small, and
-   here rather than in a helpers file, because its only job is to keep the
-   promise made just above the palettes: everything set as text clears 4.5:1 on
-   what it is set on. A promise checked by a function cannot rot the way one
-   checked by hand in a comment does. */
 function lum(hex: string) {
   const n = parseInt(hex.slice(1), 16)
   const parts = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
@@ -94,13 +69,6 @@ function ratio(a: string, b: string) {
   return (hi + 0.05) / (lo + 0.05)
 }
 
-/** Whichever of a palette's two inks its field can actually carry.
-
-    Three of the four fields are deep and take the pale paper; Dusk's is a
-    slate the pale ink shows on and the dark paper does not. Choosing by
-    measurement rather than by a per-palette fifth string means a palette
-    retuned later cannot quietly go unreadable — the worst it can do is change
-    its mind about which ink it wants. */
 export function onField(p: Palette) {
   return ratio(p.paper, p.field) >= ratio(p.ink, p.field) ? p.paper : p.ink
 }
@@ -115,23 +83,50 @@ export interface Look {
 export interface Keepsake {
   title: string
   author: string
-  /** The colophon's term/detail pairs, already assembled from the keeps. */
   lines: { term: string; detail: string }[]
-  /** One thing the book said, if the reader kept one. */
   line: { text: string; where: string } | null
-  /** Counts by kind, in the registry's order. */
-  tally: { label: string; count: number }[]
+  impression: string | null
+  highlights: { label: string; text: string }[]
   kept: number
 }
 
 export function keepsakeOf(book: Book, keeps: Entry[]): Keepsake {
-  const counts = new Map<Entry['type'], number>()
-  for (const e of keeps) counts.set(e.type, (counts.get(e.type) ?? 0) + 1)
-
-  /* The longest quote rather than the first. A reader who kept six lines
-     chose one of them because it was worth the length; the two-word one was
-     kept for the page number. */
   const quotes = keeps.filter((e) => e.type === 'quote' && e.text?.trim())
+  const notes = keeps.filter((e) => e.type === 'note' && e.text?.trim())
+  const characters = keeps.filter((e) => e.type === 'character' && (e.name || e.text))
+  const places = keeps.filter((e) => e.type === 'place' && (e.name || e.text))
+  const threads = keeps.filter((e) => e.type === 'thread' && (e.name || e.text))
+
+  const impressionEntry =
+    notes[0] ??
+    threads[0] ??
+    quotes.sort((a, b) => (b.text?.length ?? 0) - (a.text?.length ?? 0))[0]
+
+  const impression = impressionEntry?.text?.trim() ?? null
+
+  const highlights: { label: string; text: string }[] = []
+  if (quotes[0] && quotes[0].id !== impressionEntry?.id) {
+    highlights.push({ label: 'Quote', text: `“${quotes[0].text!.trim()}”` })
+  }
+  if (characters[0] && characters[0].id !== impressionEntry?.id) {
+    const name = characters[0].name ? `Character: ${characters[0].name}` : ''
+    const body = characters[0].text?.trim() ?? ''
+    highlights.push({ label: 'Character', text: [name, body].filter(Boolean).join(' — ') })
+  }
+  if (places[0] && places[0].id !== impressionEntry?.id) {
+    const name = places[0].name ? `Setting: ${places[0].name}` : ''
+    const body = places[0].text?.trim() ?? ''
+    highlights.push({ label: 'Setting', text: [name, body].filter(Boolean).join(' — ') })
+  }
+  if (threads[0] && threads[0].id !== impressionEntry?.id) {
+    const name = threads[0].name ? `Theory: ${threads[0].name}` : ''
+    const body = threads[0].text?.trim() ?? ''
+    highlights.push({ label: 'Theory', text: [name, body].filter(Boolean).join(' — ') })
+  }
+  if (notes[1] && notes[1].id !== impressionEntry?.id && highlights.length < 3) {
+    highlights.push({ label: 'Note', text: notes[1].text!.trim() })
+  }
+
   const pick =
     quotes.sort((a, b) => (b.text?.length ?? 0) - (a.text?.length ?? 0))[0] ??
     keeps.find((e) => e.type === 'note' && e.text?.trim())
@@ -148,10 +143,8 @@ export function keepsakeOf(book: Book, keeps: Entry[]): Keepsake {
             .join(', '),
         }
       : null,
-    tally: KINDS.filter((t) => counts.has(t)).map((t) => ({
-      label: counts.get(t)! === 1 ? KIND[t].one : KIND[t].many,
-      count: counts.get(t)!,
-    })),
+    impression,
+    highlights,
     kept: keeps.length,
   }
 }
@@ -159,7 +152,7 @@ export function keepsakeOf(book: Book, keeps: Entry[]): Keepsake {
 /** A shape with nothing to put in it is not offered. */
 export function shapeWorks(k: Keepsake, shape: Shape) {
   if (shape === 'line') return Boolean(k.line)
-  if (shape === 'tally') return k.tally.length > 0
+  if (shape === 'arc') return Boolean(k.impression || k.highlights.length > 0 || k.line)
   return k.lines.length > 0
 }
 
@@ -730,44 +723,62 @@ function drawLine(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   foot(ctx, k, look.palette)
 }
 
-function drawTally(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
+function drawArc(ctx: CanvasRenderingContext2D, k: Keepsake, look: Look) {
   let y = PAD + 84
 
   ctx.textAlign = 'left'
   ctx.fillStyle = look.palette.soft
-  stamp(ctx, 'WHAT I KEPT', PAD, y)
-  y += 100
+  stamp(ctx, "THE READER'S ARC", PAD, y)
+  y += 92
 
   ctx.fillStyle = look.palette.ink
-  ctx.font = `700 150px ${FACE}`
-  ctx.fillText(String(k.kept), PAD, y + 40)
-  const runOn = ctx.measureText(String(k.kept)).width
-  ctx.fillStyle = look.palette.soft
-  ctx.font = `400 36px ${FACE}`
-  ctx.fillText(k.kept === 1 ? 'thing' : 'things', PAD + runOn + 24, y + 40)
-  y += 130
+  ctx.font = `600 ${read(64)}px ${FACE_READ}`
+  for (const line of wrap(ctx, k.title, W - PAD * 2).slice(0, 2)) {
+    ctx.fillText(line, PAD, y)
+    y += Math.round(read(64) * 1.1)
+  }
 
+  y += 12
   ctx.strokeStyle = look.palette.accent
   ctx.lineWidth = 3
   ctx.beginPath()
   ctx.moveTo(PAD, y)
   ctx.lineTo(PAD + 120, y)
   ctx.stroke()
-  y += 90
+  y += 54
 
-  const stop = FLOOR
-  for (const { label, count } of k.tally) {
-    if (y > stop) break
-    ctx.fillStyle = look.palette.ink
-    ctx.font = `700 64px ${FACE}`
-    ctx.fillText(String(count), PAD, y)
-
+  if (k.impression) {
     ctx.fillStyle = look.palette.soft
-    ctx.font = `400 34px ${FACE}`
-    ctx.fillText(label, PAD + 110, y)
-    y += 84
+    stamp(ctx, 'HOW I FELT', PAD, y)
+    y += 44
+
+    ctx.fillStyle = look.palette.ink
+    ctx.font = `500 ${read(42)}px ${FACE_READ}`
+    const impLines = wrap(ctx, `“${k.impression}”`, W - PAD * 2).slice(0, 3)
+    for (const l of impLines) {
+      ctx.fillText(l, PAD, y)
+      y += Math.round(read(42) * 1.25)
+    }
+    y += 40
   }
 
+  if (k.highlights.length > 0) {
+    for (const h of k.highlights.slice(0, 2)) {
+      if (y > FLOOR - 100) break
+      ctx.fillStyle = look.palette.soft
+      stamp(ctx, h.label.toUpperCase(), PAD, y)
+      y += 42
+
+      ctx.fillStyle = look.palette.ink
+      ctx.font = `400 ${read(36)}px ${FACE_READ}`
+      const hLines = wrap(ctx, h.text, W - PAD * 2).slice(0, 2)
+      for (const l of hLines) {
+        ctx.fillText(l, PAD, y)
+        y += Math.round(read(36) * 1.25)
+      }
+      y += 36
+    }
+  }
 
   foot(ctx, k, look.palette)
 }
@@ -780,7 +791,7 @@ export function drawKeepsake(canvas: HTMLCanvasElement, k: Keepsake, look: Look)
   ctx.textBaseline = 'alphabetic'
   ground(ctx, look.palette)
   if (look.shape === 'line') drawLine(ctx, k, look)
-  else if (look.shape === 'tally') drawTally(ctx, k, look)
+  else if (look.shape === 'arc') drawArc(ctx, k, look)
   else drawColophon(ctx, k, look)
 
   /* Last, and here rather than in each shape, because all three end on the

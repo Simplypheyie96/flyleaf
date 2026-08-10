@@ -56,10 +56,20 @@
   background: var(--field-fill);
   color: var(--color-ink-soft);
   cursor: pointer;
+  outline: none;
 }
 
 .close:hover {
   color: var(--color-ink);
+}
+
+.close:focus {
+  outline: none;
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -2px;
 }
 
 .lede {
