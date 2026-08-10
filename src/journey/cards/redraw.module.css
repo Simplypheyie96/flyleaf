@@ -459,6 +459,9 @@
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
+  /* See timer.module.css `.book`: a clamped `-webkit-box` cuts at the content
+     edge, and serif descenders at snug leading sit below it. */
+  padding-block-end: 0.14em;
 }
 
 /* The working note. Sans, secondary, capped at the measure — the same voice

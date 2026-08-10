@@ -1,0 +1,234 @@
+/* Variant-only styles for the book-picker placement exploration.
+
+   Everything structural — the card, the face, the digits, the button, the
+   existing `.shelf`/`.choice` rows — comes from the real timer.module.css, so
+   what is being compared here is placement and nothing else. */
+
+/* ── the stage ──────────────────────────────────────────────────────────── */
+
+.stage {
+  min-block-size: 100dvh;
+  /* 5rem of top clearance for the picker, which now sits up there. */
+  padding: 5rem var(--space-4) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+/* Home's own column, so the card is judged at the width it really gets. */
+.column {
+  inline-size: 100%;
+  max-inline-size: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Stand-ins for the card's real neighbours: the room sits above it and the
+   section heading beside it, and a dropdown that covers either of them is a
+   dropdown that fails in place rather than in isolation. */
+.room {
+  block-size: 180px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-fill);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-ink-faint);
+}
+
+.after {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+}
+
+/* ── 1 · Anchored ───────────────────────────────────────────────────────── */
+
+/* The list leaves the flow entirely and hangs off the title as its own layer,
+   so pressing the chevron moves nothing else on the card. `.what` becomes the
+   positioning context; the card itself never clips, so no overflow change. */
+.anchor {
+  position: relative;
+}
+
+.pop {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-2));
+  inset-inline-start: calc(-1 * var(--space-2));
+  z-index: 5;
+  min-inline-size: 15rem;
+  max-inline-size: min(20rem, 78vw);
+  margin: 0;
+  padding: var(--space-2);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-md);
+  /* OPAQUE, not glass. Translucency here let the button and the tally beneath
+     read straight through the list — measured on the first pass and it was
+     unreadable. A layer that floats over the card has to occlude it; two sheets
+     of glass stacked is not a material, it is a smear. */
+  background: var(--color-paper);
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--shadow-tint) 12%, transparent),
+    0 12px 28px color-mix(in oklab, var(--shadow-tint) 16%, transparent);
+  /* Grows from the corner it is pinned to. */
+  transform-origin: top left;
+  animation: pop var(--dur-quick) var(--ease-out) both;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+}
+
+.popRow {
+  margin-inline: 0;
+  inline-size: 100%;
+}
+
+/* ── 2 · Shelf row ──────────────────────────────────────────────────────── */
+
+/* No open state at all: every open book is a chip under the face, and the one
+   being timed is filled. Nothing to discover, nothing to dismiss. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  min-block-size: 34px;
+  max-inline-size: 100%;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pill);
+  background: var(--control-fill);
+  font-family: var(--font-read);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-card);
+  line-height: var(--leading-snug);
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition:
+    color var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out),
+    background var(--dur-quick) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
+}
+
+.chip[aria-pressed='true'] {
+  border-color: color-mix(in oklab, var(--color-accent-text) 50%, transparent);
+  background: color-mix(in oklab, var(--color-accent-text) 12%, transparent);
+  color: var(--color-accent-text);
+}
+
+.chip:active {
+  transform: translateY(var(--press));
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .chip:hover {
+    color: var(--color-ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip {
+    transition-duration: 1ms;
+  }
+}
+
+/* ── 3 · Sheet ──────────────────────────────────────────────────────────── */
+
+.sheetHead {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.sheetList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* ── unused: the in-flow fold, kept only until a direction is chosen ─────── */
+
+/* The list stays in the flow — the card really does get taller — but it is
+   staged as an unfolding rather than an appearance: the row height is animated
+   from nothing with a grid track, so the button below is pushed down smoothly
+   instead of jumping. */
+.fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-base) var(--ease-out);
+}
+
+.fold[data-open] {
+  grid-template-rows: 1fr;
+}
+
+.foldInner {
+  overflow: hidden;
+  min-block-size: 0;
+}
+
+/* The seam bleeds to the card's edges, like the log row at the foot — and it
+   has to, because this is the scroll container: rows that bleed sideways INSIDE
+   an `overflow-y` box push it horizontally and it grows a scrollbar. So the
+   bleed moves out here and the rows sit square inside it. */
+.foldList {
+  margin: 0 calc(-1 * var(--space-5));
+  padding: var(--space-2) var(--space-5) 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  max-block-size: 15rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-block-start: 1px dashed color-mix(in oklab, var(--color-accent-text) 40%, transparent);
+  opacity: 0;
+  transition: opacity var(--dur-quick) var(--ease-out);
+}
+
+.fold[data-open] .foldList {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fold,
+  .foldList {
+    transition-duration: 1ms;
+  }
+  .pop {
+    animation-duration: 1ms;
+  }
+}
