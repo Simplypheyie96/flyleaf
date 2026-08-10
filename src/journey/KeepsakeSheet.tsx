@@ -62,6 +62,7 @@ interface Props {
     is set. */
 function asText(k: Keepsake) {
   const parts = [`${k.title}\n${k.author}`]
+  if (k.impression) parts.push(`HOW I FELT:\n${k.impression}`)
   if (k.line) parts.push(`“${k.line.text}”`)
   parts.push(...k.lines.map(({ term, detail }) => `${term.toUpperCase()}\n${detail}`))
   return parts.join('\n\n')
@@ -89,7 +90,7 @@ function KeepsakeSheet({ open, onClose, book, keeps }: Props) {
   )
 
   const shapes = SHAPES.filter((s) => shapeWorks(made, s.id))
-  const empty = made.lines.length === 0 && !made.line && made.tally.length === 0
+  const empty = made.lines.length === 0 && !made.line && !made.impression
   const hint = SHAPES.find((s) => s.id === shape)?.hint ?? ''
 
   useEffect(() => {
