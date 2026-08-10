@@ -271,7 +271,7 @@ function SyncCard() {
     setBusy('drop')
     setNote(null)
     try {
-      await forgetDrive()
+      const count = await forgetDrive(true)
       /* Signed out as part of the same press: still signed in, this device
          would write the journey straight back up and the removal would last
          about four seconds. */
@@ -281,7 +281,10 @@ function SyncCard() {
       setSure(false)
       setNote({
         tone: 'good',
-        text: 'Removed from Google Drive, and this device has stopped syncing. Everything you have written is still here.',
+        text:
+          count > 0
+            ? `Removed ${count} journey ${count === 1 ? 'file' : 'files'} from Google Drive. Sync is turned off, and everything written on this device remains here.`
+            : 'No journey backup files were found in Google Drive. Sync is turned off.',
       })
     } catch (error) {
       setNote({ tone: 'bad', text: error instanceof Error ? error.message : 'That could not be removed.' })
@@ -399,12 +402,32 @@ function SyncCard() {
               </button>
             </>
           ) : !on ? (
-            <button type="button" className={styles.action} disabled={busy !== null} onClick={connect}>
-              {busy === 'in' ? 'Connecting…' : 'Sign in with Google'}
-              <span className={styles.mark}>
-                <Cloud />
-              </span>
-            </button>
+            <>
+              <button type="button" className={styles.action} disabled={busy !== null} onClick={connect}>
+                {busy === 'in' ? 'Connecting…' : 'Sign in with Google'}
+                <span className={styles.mark}>
+                  <Cloud />
+                </span>
+              </button>
+
+              {sure && (
+                <p className={styles.note} data-tone="bad">
+                  This opens Google Sign-In to confirm your account, then deletes the copy in your Google Drive and stops sync. Everything on this device remains here.
+                </p>
+              )}
+              <button
+                type="button"
+                className={styles.action}
+                disabled={busy !== null}
+                onClick={() => (sure ? void drop() : setSure(true))}
+              >
+                {busy === 'drop'
+                  ? 'Removing from Drive…'
+                  : sure
+                    ? 'Yes, remove it from Drive'
+                    : 'Remove my journey from Drive'}
+              </button>
+            </>
           ) : (
             <>
               {/* "SYNC NOW" IS GONE, and its absence is the feature. Syncing

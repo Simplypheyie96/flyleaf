@@ -23,8 +23,8 @@
 import { exportJourney, importJourney } from './backup'
 import db from './db'
 import { deviceName } from './device'
-import { dropJourney, findJourney, readJourney, writeJourney } from './drive'
-import { optedIn, silentToken } from './google'
+import { dropAllJourneys, findJourney, readJourney, writeJourney } from './drive'
+import { optedIn, signIn, silentToken, tokenHeld } from './google'
 import { getHandle, setHandle } from './reader'
 import { unseed } from './seed'
 
@@ -278,14 +278,25 @@ export async function otherJourney(): Promise<{ device: string; at: number } | n
     the reader would have pressed a button that did nothing they could see. So
     syncing pauses first, the copy goes, and the caller signs out.
 
+    Interactive mode requests a token from Google's sign-in popup if no live token
+    is held, allowing a reader to delete their Drive copy even when signed out or
+    when their token expired, without running auto-sync/merge.
+
     Nothing on the device is touched. Every book, every keep, every recording
     stays exactly where it is — this removes the copy, not the reading. */
-export async function forgetDrive(): Promise<void> {
+export async function forgetDrive(interactive = false): Promise<number> {
   pauseAutoSync()
   try {
-    const token = await silentToken()
-    const remote = await findJourney(token)
-    if (remote) await dropJourney(token, remote.id)
+    let token: string
+    if (tokenHeld()) {
+      token = await silentToken()
+    } else if (interactive) {
+      await signIn()
+      token = await silentToken()
+    } else {
+      token = await silentToken()
+    }
+    const count = await dropAllJourneys(token)
     /* The mark described a file that no longer exists. Left behind, a later
        sign-in could match it and skip the round trip that would have written
        the journey up again. */
@@ -296,10 +307,12 @@ export async function forgetDrive(): Promise<void> {
     /* Everything on this device is now unshared by definition, so signing in
        again is a first meeting and should ask like one. */
     write(OFFLINE_KEY, '1')
+    return count
   } finally {
     resumeAutoSync()
   }
 }
+
 
 let paused = false
 
