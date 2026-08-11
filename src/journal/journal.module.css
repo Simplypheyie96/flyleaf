@@ -533,6 +533,49 @@
   color: var(--color-ink-faint);
 }
 
+.contentsMore {
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+  padding-block: var(--space-2);
+  justify-content: center !important;
+  border-block-end: 0 !important;
+}
+
+.contentsPrint {
+  display: none;
+}
+
+/* On screen in the web app, show ONLY the small document card preview (.plate).
+   The entire library / chapters list (.chaptersList) is hidden on screen so the
+   UI stays clean and compact as a single document preview card, and is revealed
+   only to the browser's PDF writer in @media print. */
+.chaptersList {
+  display: none;
+}
+
+.documentCardMeta {
+  margin-block-start: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklch, var(--color-ink-faint) 7%, transparent);
+  border: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  color: var(--color-ink-soft);
+}
+
+.metaBadge {
+  font-weight: var(--weight-strong);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
 /* ---- the actual print ---- */
 
 @page {
@@ -586,6 +629,22 @@
     border-radius: 0;
     background: none;
     box-shadow: none;
+  }
+
+  .chaptersList {
+    display: block;
+  }
+
+  .contentsScreen {
+    display: none;
+  }
+
+  .contentsPrint {
+    display: block;
+  }
+
+  .documentCardMeta {
+    display: none;
   }
 
   /* Each book opens a page, the way a chapter does. The bookplate closes the

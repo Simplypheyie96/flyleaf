@@ -350,21 +350,44 @@ function Journal() {
             {shelf?.keeps === 1 ? 'memory' : 'memories'}
           </p>
 
-          {/* Table of contents overview */}
+          {/* Table of contents overview: compact preview on screen, full list when printing */}
           {shelf && shelf.chapters.length > 0 && (
-            <ol className={styles.contents}>
-              {shelf.chapters.map(({ book }) => (
-                <li key={book.id}>
-                  <span className={styles.contentsTitle}>{book.title}</span>
-                  <span className={styles.contentsAuthor}>{book.author}</span>
-                </li>
-              ))}
-            </ol>
+            <>
+              <ol className={`${styles.contents} ${styles.contentsScreen}`}>
+                {shelf.chapters.slice(0, 4).map(({ book }) => (
+                  <li key={book.id}>
+                    <span className={styles.contentsTitle}>{book.title}</span>
+                    <span className={styles.contentsAuthor}>{book.author}</span>
+                  </li>
+                ))}
+                {shelf.chapters.length > 4 && (
+                  <li className={styles.contentsMore}>
+                    <span>+ {shelf.chapters.length - 4} more {shelf.chapters.length - 4 === 1 ? 'book' : 'books'} in full PDF</span>
+                  </li>
+                )}
+              </ol>
+
+              <ol className={`${styles.contents} ${styles.contentsPrint}`}>
+                {shelf.chapters.map(({ book }) => (
+                  <li key={book.id}>
+                    <span className={styles.contentsTitle}>{book.title}</span>
+                    <span className={styles.contentsAuthor}>{book.author}</span>
+                  </li>
+                ))}
+              </ol>
+            </>
           )}
 
           <p className={styles.printed}>Printed {longDate(todayISO())}</p>
           <p className={styles.imprint}>{IMPRINT}</p>
         </section>
+
+        {!empty && (
+          <div className={styles.documentCardMeta}>
+            <span className={styles.metaBadge}>PDF Document Export</span>
+            <span>Includes all {shelf?.books} {shelf?.books === 1 ? 'book' : 'books'}, memories, &amp; voice note transcriptions</span>
+          </div>
+        )}
 
         {empty ? (
           <p className={styles.nothing}>
