@@ -297,7 +297,9 @@ function Journal() {
     try {
       await document.fonts.ready
       const images = sheet.current ? [...sheet.current.querySelectorAll('img')] : []
-      await Promise.all(images.map((img) => img.decode().catch(() => undefined)))
+      const decodeTask = Promise.all(images.map((img) => img.decode().catch(() => undefined)))
+      const timeoutTask = new Promise((resolve) => setTimeout(resolve, 500))
+      await Promise.race([decodeTask, timeoutTask])
     } catch {
       /* Print anyway — a journal set in the fallback face beats no journal. */
     } finally {
