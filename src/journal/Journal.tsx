@@ -9,10 +9,7 @@ import { longDate, shortDate, spanPair, todayISO } from '../components/date/date
 import db, { formatsOf, type Book, type Entry } from '../data/db'
 import { getHandle } from '../data/reader'
 import { KIND } from '../journey/kinds'
-import { fairCopy } from '../journey/lexicon'
 import styles from './journal.module.css'
-
-export type ExportViewMode = 'summary' | 'full'
 
 /* THE JOURNAL — everything kept, laid out as a book you can hold.
 
@@ -165,12 +162,7 @@ function Keep({ keep, picture }: { keep: Entry; picture?: string }) {
   )
 }
 
-function Chapter({
-  book,
-  keeps,
-  pictures,
-  mode,
-}: Grouped & { pictures: Record<number, string>; mode: ExportViewMode }) {
+function Chapter({ book, keeps, pictures }: Grouped & { pictures: Record<number, string> }) {
   const span = spanPair(book.startedOn, book.finishedOn)
   const formats = formatsOf(book)
   const facts = [
@@ -178,25 +170,6 @@ function Chapter({
     book.pages ? `${book.pages} pages` : undefined,
     formats.length ? formats.join(', ') : undefined,
   ].filter(Boolean)
-
-  const review = useMemo(() => fairCopy(book, keeps), [book, keeps])
-
-  /* Summary mode: select a balanced set of highlights (top 3 quotes, voice notes with transcription, key notes/threads) */
-  const highlights = useMemo(() => {
-    if (mode === 'full') return keeps
-    const quotes = keeps.filter((k) => k.type === 'quote').slice(0, 3)
-    const voices = keeps.filter((k) => k.type === 'voice').slice(0, 2)
-    const notes = keeps
-      .filter((k) => k.type === 'note' || k.type === 'character' || k.type === 'thread' || k.type === 'place')
-      .slice(0, 3)
-    const combined = [...quotes, ...voices, ...notes]
-    const seen = new Set<number>()
-    return combined.filter((k) => {
-      if (seen.has(k.id)) return false
-      seen.add(k.id)
-      return true
-    })
-  }, [keeps, mode])
 
   return (
     <section className={styles.chapter}>
@@ -218,19 +191,8 @@ function Chapter({
         </div>
       </header>
 
-      {mode === 'summary' && review.text && (
-        <div className={styles.summaryReview}>
-          <h3 className={styles.summaryTitle}>Reading Impression & Review</h3>
-          {review.text.split('\n\n').map((paragraph, idx) => (
-            <p key={idx} className={styles.summaryParagraph}>
-              {paragraph}
-            </p>
-          ))}
-        </div>
-      )}
-
       <div className={styles.thread}>
-        {highlights.map((keep) => (
+        {keeps.map((keep) => (
           <Keep key={keep.id} keep={keep} picture={pictures[keep.id]} />
         ))}
       </div>
@@ -271,7 +233,6 @@ function AlsoRead({ books }: { books: Book[] }) {
 function Journal() {
   const sheet = useRef<HTMLDivElement>(null)
   const [readying, setReadying] = useState(false)
-  const [mode, setMode] = useState<ExportViewMode>('summary')
   const handle = getHandle()
 
   const shelf = useLiveQuery(async () => {
@@ -351,8 +312,7 @@ function Journal() {
 
   return (
     <div className={styles.journal}>
-      {/* Screen only. It is the one piece of app furniture on the page, and it
-          is gone from every printed copy — see @media print. */}
+      {/* Screen only header bar */}
       <div className={styles.bar}>
         <Link to="/settings" className={styles.back}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -361,23 +321,6 @@ function Journal() {
           Settings
         </Link>
 
-        <div className={styles.modes} role="radiogroup" aria-label="PDF export mode">
-          <button
-            type="button"
-            className={`${styles.modeBtn} ${mode === 'summary' ? styles.modeActive : ''}`}
-            onClick={() => setMode('summary')}
-          >
-            Summary Preview
-          </button>
-          <button
-            type="button"
-            className={`${styles.modeBtn} ${mode === 'full' ? styles.modeActive : ''}`}
-            onClick={() => setMode('full')}
-          >
-            Full Journal
-          </button>
-        </div>
-
         <button type="button" className={styles.print} onClick={toPaper} disabled={empty || readying}>
           {readying ? 'Getting it ready…' : 'Print or save as PDF'}
         </button>
@@ -385,9 +328,12 @@ function Journal() {
 
       <p className={styles.how}>
         Your browser&rsquo;s print window is where the PDF is made — choose
-        <strong> Save as PDF</strong> as the destination ({mode === 'summary' ? 'Exporting Condensed Summary' : 'Exporting Full Journal archive'}).
+        <strong> Save as PDF</strong> as the destination, or
+        <strong> Share &rarr; Print</strong> on an iPhone, then pinch the preview
+        and save it to Files.
       </p>
 
+      {/* The journal document: shows a clean document preview card representing the PDF as a whole */}
       <div className={styles.sheet} ref={sheet}>
         <section className={styles.plate}>
           <Mark size={54} className={styles.plateMark} />
@@ -404,9 +350,7 @@ function Journal() {
             {shelf?.keeps === 1 ? 'memory' : 'memories'}
           </p>
 
-          {/* The chapters only. The books with nothing kept from them are at
-              the back under their own heading, and a contents page listing
-              pages that do not exist is worse than a short one. */}
+          {/* Table of contents overview */}
           {shelf && shelf.chapters.length > 0 && (
             <ol className={styles.contents}>
               {shelf.chapters.map(({ book }) => (
@@ -418,14 +362,7 @@ function Journal() {
             </ol>
           )}
 
-          {/* todayISO, not toISOString — that one is UTC, and a journal printed
-              at nine in the evening in Lagos would be dated tomorrow. */}
           <p className={styles.printed}>Printed {longDate(todayISO())}</p>
-          {/* On the bookplate rather than in a running footer, because a
-              browser's print dialog owns headers and footers and a reader who
-              turns them off would print a whole journal with nothing on it
-              saying where it came from. Page one always prints — including
-              the empty case, where the plate is very nearly the only page. */}
           <p className={styles.imprint}>{IMPRINT}</p>
         </section>
 
@@ -434,12 +371,12 @@ function Journal() {
             There is nothing on the shelf yet. Keep a line from a book and it will be here.
           </p>
         ) : (
-          <>
+          <div className={styles.chaptersList}>
             {shelf?.chapters.map((chapter) => (
-              <Chapter key={chapter.book.id} {...chapter} pictures={pictures} mode={mode} />
+              <Chapter key={chapter.book.id} {...chapter} pictures={pictures} />
             ))}
             {shelf && shelf.bare.length > 0 && <AlsoRead books={shelf.bare} />}
-          </>
+          </div>
         )}
       </div>
     </div>
