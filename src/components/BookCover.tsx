@@ -93,9 +93,8 @@ function BookCover({
     .join(' ')
 
   const typeset = size !== 'thumb' && !bare
-  // Render custom drawn needlework CoverArt ONLY when there is no real photo source
-  // (e.g. when user picked DRAWN or when no photo URL exists/all photo URLs failed).
-  const showDrawnArt = !src
+  // Render custom drawn needlework CoverArt when there is no photo source, or while photo source is loading
+  const showDrawnArt = !src || !loaded
 
   const handleLoad = (url: string) => {
     LOADED_COVERS.add(url)
@@ -134,7 +133,7 @@ function BookCover({
           className={styles.image}
           src={src}
           alt={`${title} by ${author}`}
-          loading="lazy"
+          loading="eager"
           decoding="async"
           onLoad={() => handleLoad(src)}
           onError={handleError}
