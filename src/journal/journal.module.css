@@ -647,6 +647,21 @@
     display: none;
   }
 
+  /* Ensure book cover photos, drawn needlework art, background gradients, and text print in full color and 100% opacity */
+  .cover,
+  .chapterHead,
+  .chapterHead * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  .cover img,
+  .cover svg,
+  .picture {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
   /* Each book opens a page, the way a chapter does. The bookplate closes the
      one it is on. `break-before` on the first chapter would leave a blank
      sheet after the plate, so the plate's own break-after is the only one that
