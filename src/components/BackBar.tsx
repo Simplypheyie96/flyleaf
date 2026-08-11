@@ -35,6 +35,14 @@ import styles from './BackBar.module.css'
 export function useCollapse() {
   const [mark, setMark] = useState<HTMLDivElement | null>(null)
   const [collapsed, setCollapsed] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   useEffect(() => {
     if (!mark) return
@@ -49,7 +57,7 @@ export function useCollapse() {
     return () => watch.disconnect()
   }, [mark])
 
-  return { sentinel: setMark, collapsed }
+  return { sentinel: setMark, collapsed, scrolled }
 }
 
 interface Props {
@@ -60,13 +68,30 @@ interface Props {
   /** What this screen is, for the bar to take over once the page title goes. */
   title: string
   collapsed: boolean
+  scrolled?: boolean
   /** The one thing you can do to the whole screen, at the trailing edge. */
   action?: React.ReactNode
 }
 
-function BackBar({ to, from, title, collapsed, action }: Props) {
+function BackBar({ to, from, title, collapsed, scrolled: customScrolled, action }: Props) {
+  const [internalScrolled, setInternalScrolled] = useState(false)
+
+  useEffect(() => {
+    if (customScrolled !== undefined) return
+    const onScroll = () => setInternalScrolled(window.scrollY > 4)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [customScrolled])
+
+  const isScrolled = customScrolled ?? internalScrolled
+
   return (
-    <div className={styles.bar} data-collapsed={collapsed || undefined}>
+    <div
+      className={styles.bar}
+      data-collapsed={collapsed || undefined}
+      data-scrolled={(isScrolled || collapsed) || undefined}
+    >
       <div className={styles.inner}>
         <Link to={to} className={styles.back}>
           {/* The chevron is not the control: the whole link is, and it is the
