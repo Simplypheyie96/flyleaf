@@ -397,10 +397,10 @@
   outline-offset: 1px;
 }
 
-/* Fields on one line — page beside chapter beside percent. */
+/* Three location fields on one line — page beside chapter beside percent. */
 .pair {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-3);
 }
 

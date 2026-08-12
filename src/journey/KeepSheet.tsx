@@ -433,46 +433,47 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
         )}
 
         {/* Per keep, never per book: location can be page, chapter, or percentage progress. */}
-        <div className={styles.pair}>
-          <label className={styles.label}>
+        <fieldset className={styles.group}>
+          <legend className={styles.label}>
             <span className={styles.labelLine}>
-              Page <span className={styles.optional}>optional</span>
+              Where in the book <span className={styles.optional}>optional</span>
             </span>
-            <input
-              className={styles.input}
-              inputMode="numeric"
-              placeholder="e.g. 142"
-              value={page}
-              onChange={(e) => setPage(e.target.value.replace(/\D/g, ''))}
-            />
-          </label>
-          <label className={styles.label}>
-            <span className={styles.labelLine}>
-              Chapter <span className={styles.optional}>optional</span>
-            </span>
-            <input
-              className={styles.input}
-              placeholder="e.g. 4"
-              value={chapter}
-              onChange={(e) => setChapter(e.target.value)}
-            />
-          </label>
-          <label className={styles.label}>
-            <span className={styles.labelLine}>
-              Progress <span className={styles.optional}>%</span>
-            </span>
-            <input
-              className={styles.input}
-              inputMode="numeric"
-              placeholder="e.g. 45"
-              value={percent}
-              onChange={(e) => {
-                const val = e.target.value.replace(/\D/g, '')
-                if (!val || Number(val) <= 100) setPercent(val)
-              }}
-            />
-          </label>
-        </div>
+          </legend>
+          <div className={styles.pair}>
+            <label className={styles.label}>
+              <span className={styles.labelLine}>Page</span>
+              <input
+                className={styles.input}
+                inputMode="numeric"
+                placeholder="e.g. 142"
+                value={page}
+                onChange={(e) => setPage(e.target.value.replace(/\D/g, ''))}
+              />
+            </label>
+            <label className={styles.label}>
+              <span className={styles.labelLine}>Chapter</span>
+              <input
+                className={styles.input}
+                placeholder="e.g. 4"
+                value={chapter}
+                onChange={(e) => setChapter(e.target.value)}
+              />
+            </label>
+            <label className={styles.label}>
+              <span className={styles.labelLine}>Progress %</span>
+              <input
+                className={styles.input}
+                inputMode="numeric"
+                placeholder="e.g. 45"
+                value={percent}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '')
+                  if (!val || Number(val) <= 100) setPercent(val)
+                }}
+              />
+            </label>
+          </div>
+        </fieldset>
 
         <DateField label="Kept on" value={keptOn} onChange={setKeptOn} seed={book.id} />
       </div>
