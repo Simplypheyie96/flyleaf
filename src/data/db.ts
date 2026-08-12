@@ -111,6 +111,7 @@ export interface Entry {
       that sets it, not as a field hoping to be filled. */
   page?: number
   chapter?: string
+  percent?: number
   /** Recording or picture, held on the device. Never a URL: an entry that
       needed the network to be looked at would not be a kept thing.
 

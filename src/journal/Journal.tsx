@@ -113,6 +113,7 @@ function Meta({ keep }: { keep: Entry }) {
   const where = [
     keep.chapter,
     keep.page !== undefined ? `p. ${keep.page}` : undefined,
+    keep.percent !== undefined ? `${keep.percent}%` : undefined,
   ].filter(Boolean)
 
   return (

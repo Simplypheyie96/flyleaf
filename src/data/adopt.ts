@@ -326,6 +326,7 @@ function firstFlyleaf(root: Bag): Adopted | null {
       // "p. 42" as often as 42 — the old field took whatever was typed.
       page: count(pick(keep, ['page', 'pageNumber'])),
       chapter: text(pick(keep, ['chapter'])),
+      percent: count(pick(keep, ['percent', 'progress', 'percentage'])),
       media,
       // Its own weakest stance, never a confidence the reader never claimed.
       stance: kind === 'thread' ? 'hunch' : undefined,

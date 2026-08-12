@@ -129,6 +129,7 @@ export function plateOf(
       dayPhrase(keep.keptOn),
       keep.chapter?.trim() || null,
       keep.page !== undefined ? `p. ${keep.page}` : null,
+      keep.percent !== undefined ? `${keep.percent}%` : null,
     ]
       .filter(Boolean)
       .join(' · '),

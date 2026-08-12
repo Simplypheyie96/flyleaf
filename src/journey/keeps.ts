@@ -41,6 +41,7 @@ export interface Draft {
   text?: string
   page?: number
   chapter?: string
+  percent?: number
   media?: Blob
   duration?: number
   keptOn: string

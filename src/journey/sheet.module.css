@@ -397,11 +397,11 @@
   outline-offset: 1px;
 }
 
-/* Two fields on one line — page beside chapter, from beside to. */
+/* Fields on one line — page beside chapter beside percent. */
 .pair {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
+  gap: var(--space-3);
 }
 
 /* A fieldset is the right element for a group of controls answering one

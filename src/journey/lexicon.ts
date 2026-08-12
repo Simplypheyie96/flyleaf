@@ -755,7 +755,13 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
     const best = sized.find((e) => (e.text?.trim().length ?? 0) <= 240) ?? sized[0]
     spent.add(best.id)
     const body = best.text!.trim().replace(/^[“"']+/, '').replace(/[”"']+$/, '')
-    const where = best.page ? ` (page ${best.page})` : best.chapter ? ` (${best.chapter})` : ''
+    const where = best.page
+      ? ` (page ${best.page})`
+      : best.percent !== undefined
+        ? ` (${best.percent}%)`
+        : best.chapter
+          ? ` (${best.chapter})`
+          : ''
     say(
       quotes.length === 1
         ? `There is one line I copied out word for word${where}:`
