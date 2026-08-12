@@ -16,7 +16,11 @@ import { IMPRINT } from '../brand/imprint'
 import { STANCE } from './kinds'
 
 export function shareText(keep: Entry, book: Book) {
-  const where = [keep.chapter, keep.page !== undefined ? `p. ${keep.page}` : null]
+  const where = [
+    keep.chapter,
+    keep.page !== undefined ? `p. ${keep.page}` : null,
+    keep.percent !== undefined ? `${keep.percent}%` : null,
+  ]
     .filter(Boolean)
     .join(', ')
   const said = keep.text?.trim() ?? ''

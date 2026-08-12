@@ -99,13 +99,11 @@ export function arrange(keeps: Entry[], sift: Sift): Row[] {
       break
 
     case 'book':
-      /* Keeps with no page cannot be placed in the book, so they follow the
-         ones that can, still in the order they were kept. Sorting them to the
-         front on a page of 0 would put every voice memo before chapter one. */
+      /* Keeps with no page or percent cannot be placed in the book, so they follow the
+         ones that can, still in the order they were kept. */
+      const pos = (e: Entry) => e.page ?? (e.percent !== undefined ? e.percent * 10 : Infinity)
       rows = plain(
-        [...chrono].sort(
-          (a, b) => (a.page ?? Infinity) - (b.page ?? Infinity) || a.createdAt - b.createdAt,
-        ),
+        [...chrono].sort((a, b) => pos(a) - pos(b) || a.createdAt - b.createdAt),
       )
       break
   }

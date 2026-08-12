@@ -195,6 +195,7 @@ function Notch({ keep, tie, showSide, onEdit, onShare, onDelete }: NotchProps) {
             {keptLabel(keep.keptOn)}
             {keep.chapter?.trim() ? ` · ${keep.chapter.trim()}` : ''}
             {keep.page !== undefined && ` · p. ${keep.page}`}
+            {keep.percent !== undefined && ` · ${keep.percent}%`}
           </span>
           {showSide && <em className={styles.whenSide}>{SIDE[side].word}</em>}
         </p>

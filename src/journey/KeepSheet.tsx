@@ -62,6 +62,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
   const [stance, setStance] = useState<Stance>('hunch')
   const [page, setPage] = useState('')
   const [chapter, setChapter] = useState('')
+  const [percent, setPercent] = useState('')
   const [keptOn, setKeptOn] = useState(todayISO())
   const [media, setMedia] = useState<Blob>()
   const [duration, setDuration] = useState<number>()
@@ -105,6 +106,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       setStance(editing.stance ?? 'hunch')
       setPage(editing.page !== undefined ? `${editing.page}` : '')
       setChapter(editing.chapter ?? '')
+      setPercent(editing.percent !== undefined ? `${editing.percent}` : '')
       setKeptOn(editing.keptOn)
       setMedia(editing.media)
       setDuration(editing.duration)
@@ -118,6 +120,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
     setStance('hunch')
     setPage('')
     setChapter('')
+    setPercent('')
     setKeptOn(todayISO())
     setMedia(undefined)
     setDuration(undefined)
@@ -155,6 +158,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
         text: text.trim() || undefined,
         page: page ? Number(page) : undefined,
         chapter: chapter.trim() || undefined,
+        percent: percent ? Math.min(100, Math.max(0, Number(percent))) : undefined,
         keptOn,
         media: asks.media === 'none' ? undefined : media,
         duration: asks.media === 'audio' ? duration : undefined,
@@ -428,8 +432,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
           </fieldset>
         )}
 
-        {/* Per keep, never per book: the page a quote is on has nothing to do
-            with the page a voice memo was recorded beside. */}
+        {/* Per keep, never per book: location can be page, chapter, or percentage progress. */}
         <div className={styles.pair}>
           <label className={styles.label}>
             <span className={styles.labelLine}>
@@ -438,6 +441,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
             <input
               className={styles.input}
               inputMode="numeric"
+              placeholder="e.g. 142"
               value={page}
               onChange={(e) => setPage(e.target.value.replace(/\D/g, ''))}
             />
@@ -448,8 +452,24 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
             </span>
             <input
               className={styles.input}
+              placeholder="e.g. 4"
               value={chapter}
               onChange={(e) => setChapter(e.target.value)}
+            />
+          </label>
+          <label className={styles.label}>
+            <span className={styles.labelLine}>
+              Progress <span className={styles.optional}>%</span>
+            </span>
+            <input
+              className={styles.input}
+              inputMode="numeric"
+              placeholder="e.g. 45"
+              value={percent}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '')
+                if (!val || Number(val) <= 100) setPercent(val)
+              }}
             />
           </label>
         </div>

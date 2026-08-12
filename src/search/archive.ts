@@ -34,6 +34,7 @@ export interface Found {
   keptOn: string
   page?: number
   chapter?: string
+  percent?: number
   hasMedia: boolean
 }
 
@@ -114,6 +115,7 @@ async function run(query: string): Promise<Archive> {
       keptOn: entry.keptOn,
       page: entry.page,
       chapter: entry.chapter,
+      percent: entry.percent,
       hasMedia: Boolean(entry.media),
     }
     ;(exact ? keeps : near).push(found)

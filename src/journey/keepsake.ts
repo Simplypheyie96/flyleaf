@@ -138,7 +138,11 @@ export function keepsakeOf(book: Book, keeps: Entry[]): Keepsake {
     line: pick
       ? {
           text: pick.text!.trim(),
-          where: [pick.chapter, pick.page !== undefined ? `p. ${pick.page}` : null]
+          where: [
+            pick.chapter,
+            pick.page !== undefined ? `p. ${pick.page}` : null,
+            pick.percent !== undefined ? `${pick.percent}%` : null,
+          ]
             .filter(Boolean)
             .join(', '),
         }

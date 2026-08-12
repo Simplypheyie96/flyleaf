@@ -79,7 +79,7 @@ function day(iso: string) {
 function KeepRow({ keep, book, words }: { keep: Found; book?: Book; words: string[] }) {
   const kind = KIND[keep.type]
   const line = keep.text ? excerptAround(keep.text, words) : ''
-  const where = [keep.chapter, keep.page ? `p. ${keep.page}` : null].filter(Boolean).join(' · ')
+  const where = [keep.chapter, keep.page ? `p. ${keep.page}` : null, keep.percent ? `${keep.percent}%` : null].filter(Boolean).join(' · ')
 
   return (
     <li>
