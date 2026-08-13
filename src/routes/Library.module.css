@@ -61,6 +61,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  padding-inline: var(--space-2);
 }
 
 /* The view tabs sit beside the masthead name; sort and filter sit beside
@@ -205,7 +206,7 @@
      proportion to it. It is a max, not a width, so every narrower screen is
      untouched: the field goes on flexing to fill the row exactly as before
      until the row is wider than a search field has any use for. */
-  max-width: 440px;
+  max-width: none;
 }
 
 .searchInner {
