@@ -34,12 +34,7 @@
    column of covers, the feed's jacket steps up, the shelf wraps a longer row.
    Nothing per-view needed a new breakpoint. */
 @media (min-width: 1024px) {
-  .shelfColumn[data-view='Shelf'],
-  .shelfColumn[data-view='Grid'] {
-    --column-max: min(1120px, 100%);
-  }
-
-  .shelfColumn[data-view='Feed'] {
+  .shelfColumn {
     --column-max: 760px;
   }
 }
