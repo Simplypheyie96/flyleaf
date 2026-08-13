@@ -198,7 +198,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       aria-pressed={speech.listening}
     >
       <VoiceIcon size={15} />
-      {speech.listening ? 'Listening' : 'Dictate'}
+      {speech.listening ? 'Listening' : (speech.snag ?? 'Dictate')}
     </button>
   )
 
