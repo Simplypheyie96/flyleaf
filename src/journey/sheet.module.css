@@ -492,13 +492,11 @@
 
 .dictate {
   margin-inline-start: auto;
-  /* The full tap target, taken back out of the layout so an accessible hit
-     area does not push the label away from its field. */
-  min-height: var(--tap-min);
-  margin-block: calc(var(--space-3) * -1);
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  padding-block: var(--space-1);
   padding-inline: var(--space-3);
   border: none;
   border-radius: var(--radius-pill);
@@ -510,6 +508,19 @@
   color: var(--color-accent-text);
   cursor: pointer;
   transition: color var(--dur-quick) var(--ease-out);
+}
+
+/* The full tap target, drawn as nothing. The visible pill stays the height of
+   its own text — a 44px pill hung off a baseline row used to spill over the
+   field below it, and filled while listening the spill showed — while the
+   invisible band centred on it still gives a thumb the whole --tap-min. */
+.dictate::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: max(var(--tap-min), 100%);
+  translate: 0 -50%;
 }
 
 /* Listening is a state the reader needs to be sure of — the microphone is

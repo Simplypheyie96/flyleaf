@@ -33,7 +33,7 @@ interface SpeechRecogniser {
   start(): void
   stop(): void
   onresult: ((event: SpeechResultEvent) => void) | null
-  onerror: (() => void) | null
+  onerror: ((event: { error?: string }) => void) | null
   onend: (() => void) | null
 }
 
@@ -48,9 +48,35 @@ function ctor(): SpeechCtor | undefined {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition
 }
 
+/* The few failures worth a word. Silence after silence is normal — a reader
+   who opened the mic and said nothing does not need to be told so — but a
+   blocked microphone or an unreachable service looks identical to "it heard
+   me and wrote nothing" unless the button says otherwise. */
+function explain(error: string | undefined): string | undefined {
+  switch (error) {
+    case 'not-allowed':
+    case 'service-not-allowed':
+      return 'Mic blocked'
+    case 'network':
+      /* A "network" failure while the browser says it is online is not the
+         reader's connection — it is a Chromium fork (Arc, Dia, Brave) that
+         exposes the speech API without shipping the speech service behind
+         it. Telling that reader to check their wifi sends them chasing a
+         problem they do not have. */
+      return navigator.onLine ? 'Not in this browser' : 'No connection'
+    case 'audio-capture':
+      return 'No microphone'
+    default:
+      return undefined
+  }
+}
+
 export interface Dictation {
   supported: boolean
   listening: boolean
+  /** A short reason the last session failed, for the button to show in place
+      of "Dictate". Cleared the next time the reader toggles the mic. */
+  snag: string | undefined
   toggle: () => void
   stop: () => void
 }
@@ -60,6 +86,7 @@ export interface Dictation {
     the caller knows whether the field is empty or already half written. */
 export function useDictation(onWords: (words: string) => void): Dictation {
   const [listening, setListening] = useState(false)
+  const [snag, setSnag] = useState<string | undefined>(undefined)
   const engine = useRef<SpeechRecogniser | null>(null)
 
   /* The callback lives in a ref so a parent re-rendering on every keystroke —
@@ -77,6 +104,7 @@ export function useDictation(onWords: (words: string) => void): Dictation {
   }, [])
 
   const toggle = useCallback(() => {
+    setSnag(undefined)
     if (engine.current) {
       stop()
       return
@@ -89,25 +117,67 @@ export function useDictation(onWords: (words: string) => void): Dictation {
        novel should not have to dictate it in English. */
     it.lang = document.documentElement.lang || navigator.language
     it.continuous = true
-    /* Finished phrases only. Interim results flicker half-heard words into the
-       field and then correct them, which is unpleasant to watch and worse to
-       edit around. */
-    it.interimResults = false
+    /* Interim results are requested but never shown. On paper only the final
+       results matter; in practice iOS Safari — the platform most Flyleaf
+       readers hold — often never marks anything final at all, so a session
+       that ignores interim text listens attentively and writes nothing.
+       Instead the freshest interim reading waits in `pending`, finals replace
+       it as they arrive, and whatever is still pending when the session ends
+       is written then. Chrome's flicker never reaches the field; Safari's
+       words never get lost. */
+    it.interimResults = true
 
-    it.onresult = (event) => {
-      let said = ''
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const result = event.results[i]
-        if (result.isFinal) said += result[0].transcript
-      }
-      const words = said.trim()
+    /* Everything already written into the field, counted by result index.
+       Safari has a habit of replaying final results it has sent before; the
+       count is what keeps a replay from writing the same phrase twice. */
+    let committed = 0
+    let pending = ''
+
+    const flush = () => {
+      const words = pending.trim()
+      pending = ''
       if (words) sink.current(words)
     }
-    /* Any failure — no permission, no network, no service — ends the session
-       quietly. The button goes back to its resting state, which is the honest
-       report: it is not listening. */
-    it.onerror = () => stop()
+
+    it.onresult = (event) => {
+      let interim = ''
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const result = event.results[i]
+        if (result.isFinal) {
+          if (i >= committed) {
+            committed = i + 1
+            const words = result[0].transcript.trim()
+            if (words) sink.current(words)
+          }
+        } else {
+          interim += result[0].transcript
+        }
+      }
+      pending = interim
+    }
+    /* A failure ends the session, but not silently: words already heard are
+       written rather than dropped, and failures the reader can act on get a
+       word on the button. The button going back to rest is still the honest
+       report — it is not listening. */
+    it.onerror = (event) => {
+      flush()
+      if (engine.current !== it) return
+      setSnag(explain(event?.error))
+      stop()
+    }
+    /* The recogniser ends itself after enough silence, on some platforms
+       within a few seconds. Whatever it was still holding belongs in the
+       field before the button lets go.
+
+       Both closing handlers check they still speak for the CURRENT session
+       before touching shared state. A recogniser winds down asynchronously
+       after stop(), so a reader who stops and starts again is holding a new
+       session when the old one's `onend` finally arrives — and an unguarded
+       handler would tear the new session's state down with the old one's,
+       leaving the mic listening behind a button that says it is not. */
     it.onend = () => {
+      flush()
+      if (engine.current !== it) return
       engine.current = null
       setListening(false)
     }
@@ -121,5 +191,5 @@ export function useDictation(onWords: (words: string) => void): Dictation {
      indicator lit, which reads as the app listening in on the reader. */
   useEffect(() => stop, [stop])
 
-  return { supported, listening, toggle, stop }
+  return { supported, listening, snag, toggle, stop }
 }
