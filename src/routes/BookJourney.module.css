@@ -69,7 +69,7 @@
      one. Branching the thread — knots alternating either side of a centred
      spine — was considered for the same reason and left alone: a journal is
      read in order, and a zig-zag makes the eye hunt for which side is next. */
-  --column-max: clamp(420px, 90vw, 560px);
+  --column-max: clamp(420px, 72vw, 760px);
 
   /* 24, down from 32. What this gap has to hold is one drawn thing: the verb
      circles hang 18 below the card, so the gap is really 18 of circle plus
@@ -2057,6 +2057,6 @@
    the thread under it would be two pages stacked. */
 @media (min-width: 1024px) {
   .page {
-    --column-max: 640px;
+    --column-max: 760px;
   }
 }
