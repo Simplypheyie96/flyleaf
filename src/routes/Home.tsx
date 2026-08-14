@@ -279,9 +279,15 @@ function Idle() {
         Whatever you start next will sit here, with everything you keep from it
         one tap behind the cover.
       </p>
-      <Link to="/library" className={styles.idleAct}>
+      <button
+        type="button"
+        className={styles.idleAct}
+        onClick={() => {
+          window.dispatchEvent(new CustomEvent("flyleaf-find-book", { detail: "" }));
+        }}
+      >
         Pick the next one
-      </Link>
+      </button>
     </PaperSurface>
   );
 }
