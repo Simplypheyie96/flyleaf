@@ -29,37 +29,29 @@
     />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#c2e4f8" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c2338" />
-
-    <!-- The name first, then what it is. A tab, a bookmark and a search result
-         all show this line, and "Flyleaf" alone tells a stranger nothing. -->
-    <title>Flyleaf — a private journal for the books you read</title>
+    <!-- The name first, then what it is. Optimized for search queries like:
+         "private reading journal", "goodreads alternative", "book tracker", "export reading log". -->
+    <title>Flyleaf — Private Reading Journal, Book Tracker & Goodreads Alternative</title>
     <meta
       name="description"
-      content="Keep quotes, notes, voice memos and photographs from every book you read. Private by default, works offline, and everything stays on your own device."
+      content="Flyleaf is a private reading journal and book tracker app. Keep quotes, notes, voice memos, and photos from every book you read. 100% offline, private, and exportable as PDF."
+    />
+    <meta
+      name="keywords"
+      content="reading journal, book tracker, goodreads alternative, private reading log, book notes app, readwise alternative, offline book journal, voice notes book tracker, pdf reading log export"
     />
 
-    <!-- EVERY ABSOLUTE URL BELOW POINTS AT ONE HOST, AND THE HOST IS THE APEX.
-         Link previews and canonical tags cannot be relative — a scraper has no
-         page to resolve them against — so it is written out. flyleaf.cc and
-         www.flyleaf.cc both reach the app, and www redirects here, which is
-         what makes one of them the address and the other a doorway. If that
-         ever changes it changes HERE, in robots.txt and in sitemap.xml
-         together: two hosts serving the same pages with no agreement about
-         which is real is how a site competes with itself in search. -->
+    <!-- EVERY ABSOLUTE URL BELOW POINTS AT ONE HOST, AND THE HOST IS THE APEX. -->
     <link rel="canonical" href="https://flyleaf.cc/" />
 
-    <!-- The picture a pasted link shows. Built in src/routes/OgLab.tsx and
-         screenshotted to /og.jpg at exactly 1200×630 — see that file's header
-         for how to regenerate it when the mark, the type or the palette move.
-         JPEG rather than PNG: the same picture is 108 KB instead of 712 KB,
-         and WhatsApp quietly refuses to render a preview much past 600 KB. -->
+    <!-- Open Graph for Facebook, WhatsApp, iMessage, and Twitter -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Flyleaf" />
     <meta property="og:url" content="https://flyleaf.cc/" />
-    <meta property="og:title" content="Flyleaf — a private journal for the books you read" />
+    <meta property="og:title" content="Flyleaf — Private Reading Journal & Book Tracker" />
     <meta
       property="og:description"
-      content="Keep quotes, notes, voice memos and photographs from every book you read. Private by default, works offline, and everything stays on your own device."
+      content="Keep quotes, notes, voice memos, and photographs from every book you read. Private by default, works offline, and exports complete paginated journals to PDF."
     />
     <meta property="og:image" content="https://flyleaf.cc/og.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
@@ -67,31 +59,36 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Three keepsake cards on a pale sky — a handwritten quote, a photograph and a voice memo — beside the words: a private journal for the books you read."
+      content="Flyleaf reading journal cards — handwritten quotes, photos, and voice notes beside the words: a private journal for the books you read."
     />
     <meta property="og:locale" content="en_GB" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Flyleaf — a private journal for the books you read" />
+    <meta name="twitter:title" content="Flyleaf — Private Reading Journal & Book Tracker" />
     <meta
       name="twitter:description"
-      content="Keep quotes, notes, voice memos and photographs from every book you read. Private by default, works offline, and everything stays on your own device."
+      content="Keep quotes, notes, voice memos, and photographs from every book you read. Private by default, works offline, and exports to PDF."
     />
     <meta name="twitter:image" content="https://flyleaf.cc/og.jpg" />
 
-    <!-- Flyleaf renders entirely in the browser, so a crawler that does not run
-         JavaScript sees an empty <div id="root">. This block is the one thing
-         it can read: it names the app, says what it does and what it costs,
-         without depending on the bundle having run. -->
+    <!-- Googlebot & Search Engine Structured Data (Schema.org) -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "Flyleaf",
+        "alternateName": "Flyleaf Reading Journal",
         "url": "https://flyleaf.cc/",
         "applicationCategory": "LifestyleApplication",
         "operatingSystem": "Any",
-        "description": "A private journal for the books you read. Keep quotes, notes, voice memos and photographs from every book, stored on your own device.",
+        "description": "A private reading journal and book tracker app. Keep quotes, notes, voice note transcriptions, and photographs from every book, stored 100% offline on your own device.",
+        "featureList": [
+          "Private book tracking",
+          "Voice note transcriptions",
+          "Offline first storage",
+          "PDF journal export",
+          "Keepsake quote generator"
+        ],
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
       }
     </script>
@@ -108,6 +105,25 @@
     </script>
   </head>
   <body>
+    <!-- Fallback content for search engine crawlers (Googlebot / Bingbot) that index static HTML before JS executes -->
+    <noscript>
+      <main style="padding: 2rem; max-width: 680px; margin: 0 auto; font-family: sans-serif; line-height: 1.6; color: #1c2338;">
+        <h1>Flyleaf — Private Reading Journal &amp; Book Tracker</h1>
+        <p>
+          Flyleaf is a private reading journal app designed for book lovers, readers, and thinkers.
+          Keep quotes, personal notes, voice note recordings with transcriptions, and photographs from every book you read.
+        </p>
+        <h2>Key Features:</h2>
+        <ul>
+          <li><strong>Private &amp; Offline First:</strong> All your reading memories stay strictly on your device.</li>
+          <li><strong>Goodreads &amp; Readwise Alternative:</strong> Track your books without public feeds or algorithmic noise.</li>
+          <li><strong>Voice Note Transcriptions:</strong> Speak your reflections out loud and get them transcribed automatically.</li>
+          <li><strong>PDF Journal Export:</strong> Print or save your complete paginated reading journal as a PDF.</li>
+          <li><strong>Keepsake Generator:</strong> Turn memorable quotes into beautiful shareable cards.</li>
+        </ul>
+        <p><a href="https://flyleaf.cc/">Open Flyleaf App</a></p>
+      </main>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
