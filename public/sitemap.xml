@@ -7,22 +7,22 @@
      it changes here, in robots.txt and in index.html together. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://flyleaf.cc/</loc>
+    <loc>https://simplypheyie.is-a-dev/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://flyleaf.cc/legal/privacy</loc>
+    <loc>https://simplypheyie.is-a-dev/legal/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://flyleaf.cc/legal/terms</loc>
+    <loc>https://simplypheyie.is-a-dev/legal/terms</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://flyleaf.cc/legal/licences</loc>
+    <loc>https://simplypheyie.is-a-dev/legal/licences</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>

@@ -8,4 +8,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://flyleaf.cc/sitemap.xml
+Sitemap: https://simplypheyie.is-a-dev/sitemap.xml
