@@ -43,6 +43,7 @@ import FormatRow from '../components/FormatRow'
 import GlassSurface from '../components/GlassSurface'
 import Bunny from '../rabbit/Bunny'
 import Sheet from '../components/Sheet'
+import LeafButton from '../components/LeafButton'
 import Sparkle from '../components/Sparkle'
 import CalendarPicker from '../components/date/CalendarPicker'
 import { EditBookTab } from '../components/CoverChoice'
@@ -1471,21 +1472,10 @@ function BookJourney() {
               }}
               value={exportAllEntriesAsText(book, keeps)}
             />
-            <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end' }}>
-              <button
+            <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end', marginTop: 'var(--space-2)' }}>
+              <LeafButton
                 type="button"
-                style={{
-                  padding: 'var(--space-2) var(--space-4)',
-                  borderRadius: 'var(--radius-pill)',
-                  border: 'none',
-                  background: textCopied ? 'var(--color-sage, #4e9a6f)' : 'var(--color-ink-main)',
-                  color: '#ffffff',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--space-2)',
-                }}
+                style={textCopied ? { background: 'var(--color-sage, #4e9a6f)' } : undefined}
                 onClick={async () => {
                   try {
                     await navigator.clipboard.writeText(exportAllEntriesAsText(book, keeps))
@@ -1495,7 +1485,7 @@ function BookJourney() {
               >
                 {textCopied ? <CheckIcon size={16} /> : <ShareIcon size={16} />}
                 <span>{textCopied ? 'Copied to clipboard!' : 'Copy to clipboard'}</span>
-              </button>
+              </LeafButton>
             </div>
           </div>
         </Sheet>
