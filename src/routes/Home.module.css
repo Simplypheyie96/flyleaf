@@ -254,6 +254,8 @@
 .idleAct {
   display: inline-flex;
   align-items: center;
+  border: none;
+  cursor: pointer;
   min-block-size: var(--tap-min);
   margin-block-start: var(--space-3);
   padding-inline: var(--space-6);
