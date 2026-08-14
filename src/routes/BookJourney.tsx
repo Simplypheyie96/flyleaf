@@ -72,7 +72,7 @@ import PlateSheet from '../journey/PlateSheet'
 import FairCopySheet from '../journey/FairCopySheet'
 import BookMenu from '../journey/BookMenu'
 import { KIND, KINDS, SIDE } from '../journey/kinds'
-import { colophonTail, epigraph, finis, keptLabel, tally } from '../journey/lexicon'
+import { colophonTail, epigraph, exportAllEntriesAsText, finis, keptLabel, tally } from '../journey/lexicon'
 import { finish, removeKeep, setDates, setFormats } from '../journey/keeps'
 import {
   ALL,
@@ -232,6 +232,8 @@ function BookJourney() {
   const [shareOpen, setShareOpen] = useState(false)
   const [keepsakeOpen, setKeepsakeOpen] = useState(false)
   const [fairOpen, setFairOpen] = useState(false)
+  const [exportTextOpen, setExportTextOpen] = useState(false)
+  const [textCopied, setTextCopied] = useState(false)
   const [bookOpen, setBookOpen] = useState(false)
   /* Whether the book's own edit sheet is open — the details and the jacket,
      not a keep. (`editing` above is a keep.) */
@@ -418,6 +420,8 @@ function BookJourney() {
     [rows],
   )
 
+  const [deleteTarget, setDeleteTarget] = useState<Entry | null>(null)
+
   /* The undo clears itself. Kept in an effect rather than a timeout set at the
      call site, so that deleting a second keep before the first bar expires
      restarts the clock instead of leaving a stale one to fire early. */
@@ -427,7 +431,10 @@ function BookJourney() {
     return () => clearTimeout(t)
   }, [undo])
 
-  async function deleteKeep(keep: Entry) {
+  async function confirmDeleteKeep() {
+    if (!deleteTarget) return
+    const keep = deleteTarget
+    setDeleteTarget(null)
     const restore = await removeKeep(keep)
     setUndo({ what: `That ${KIND[keep.type].one} is gone.`, restore })
   }
@@ -968,7 +975,7 @@ function BookJourney() {
                 showSide={showSide}
                 onEdit={setEditing}
                 onShare={setSharing}
-                onDelete={(k) => void deleteKeep(k)}
+                onDelete={(k) => setDeleteTarget(k)}
               />
             ))}
             {forward ? closing : seal}
@@ -1134,11 +1141,71 @@ function BookJourney() {
         onClose={() => {
           setAdding(null)
           setEditing(null)
+          if (sift.types.length) setSift(ALL)
         }}
         book={book}
         editing={editing ?? undefined}
         start={adding ?? 'quote'}
       />
+
+      {/* Delete Confirmation Gate Modal */}
+      {deleteTarget && (
+        <Sheet
+          open={!!deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          label="Delete confirmation"
+          name="confirm-delete"
+        >
+          <header className={sheet.head}>
+            <h2 className={sheet.title}>Delete this {KIND[deleteTarget.type].one}?</h2>
+            <button
+              type="button"
+              className={sheet.iconButton}
+              onClick={() => setDeleteTarget(null)}
+              aria-label="Close"
+            >
+              <CloseIcon size={20} />
+            </button>
+          </header>
+          <div style={{ padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            <p style={{ margin: 0, color: 'var(--color-ink-soft)', fontSize: 'var(--text-md)', lineHeight: 1.5 }}>
+              Are you sure you want to delete this memory from your reading journal? This cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end', marginTop: 'var(--space-2)' }}>
+              <button
+                type="button"
+                style={{
+                  padding: 'var(--space-2) var(--space-4)',
+                  borderRadius: 'var(--radius-pill)',
+                  border: '1px solid var(--color-edge-soft)',
+                  background: 'none',
+                  color: 'var(--color-ink-soft)',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+                onClick={() => setDeleteTarget(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                style={{
+                  padding: 'var(--space-2) var(--space-4)',
+                  borderRadius: 'var(--radius-pill)',
+                  border: 'none',
+                  background: 'var(--color-crimson, #d9534f)',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+                onClick={confirmDeleteKeep}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </Sheet>
+      )}
 
       {/* The four orders, named.
 
@@ -1324,6 +1391,22 @@ function BookJourney() {
                 </span>
               </span>
             </button>
+            <button
+              type="button"
+              className={sheet.row}
+              onClick={() => {
+                setShareOpen(false)
+                setExportTextOpen(true)
+              }}
+            >
+              <KeepIcon size={19} />
+              <span className={sheet.rowText}>
+                <span>Copy all entries as text</span>
+                <span className={sheet.rowHint}>
+                  Copy a complete text archive of every quote, note, voice transcript, and reflection kept for this book.
+                </span>
+              </span>
+            </button>
           </div>
         </div>
       </Sheet>
@@ -1344,6 +1427,79 @@ function BookJourney() {
       />
 
       <FairCopySheet open={fairOpen} onClose={() => setFairOpen(false)} book={book} keeps={keeps} />
+
+      {/* Complete Plain Text Archive Modal */}
+      {exportTextOpen && (
+        <Sheet
+          open={exportTextOpen}
+          onClose={() => {
+            setExportTextOpen(false)
+            setTextCopied(false)
+          }}
+          label="Copy all entries as text"
+          name="export-text"
+        >
+          <header className={sheet.head}>
+            <h2 className={sheet.title}>Copy all entries as text</h2>
+            <button
+              type="button"
+              className={sheet.iconButton}
+              onClick={() => {
+                setExportTextOpen(false)
+                setTextCopied(false)
+              }}
+              aria-label="Close"
+            >
+              <CloseIcon size={20} />
+            </button>
+          </header>
+          <div style={{ padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            <textarea
+              readOnly
+              rows={12}
+              style={{
+                width: '100%',
+                padding: 'var(--space-3)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-edge-soft)',
+                background: 'var(--color-paper-soft, rgba(255,255,255,0.05))',
+                color: 'var(--color-ink-main)',
+                fontFamily: 'var(--font-mono, monospace)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 1.5,
+                resize: 'none',
+              }}
+              value={exportAllEntriesAsText(book, keeps)}
+            />
+            <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                style={{
+                  padding: 'var(--space-2) var(--space-4)',
+                  borderRadius: 'var(--radius-pill)',
+                  border: 'none',
+                  background: textCopied ? 'var(--color-sage, #4e9a6f)' : 'var(--color-ink-main)',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-2)',
+                }}
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(exportAllEntriesAsText(book, keeps))
+                    setTextCopied(true)
+                  } catch {}
+                }}
+              >
+                {textCopied ? <CheckIcon size={16} /> : <ShareIcon size={16} />}
+                <span>{textCopied ? 'Copied to clipboard!' : 'Copy to clipboard'}</span>
+              </button>
+            </div>
+          </div>
+        </Sheet>
+      )}
 
       <BookMenu
         open={bookOpen}

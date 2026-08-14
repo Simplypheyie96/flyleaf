@@ -770,12 +770,12 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
     )
   }
 
-  /* ── 5. Unspent Reader Notes / Reactions ─────────────────────────────── */
+  /* ── 5. Detailed Journey Reflections ────────────────────────────────── */
   const remaining = written.filter((e) => !spent.has(e.id) && e.text?.trim())
   if (remaining.length) {
-    const extraSentences = remaining.slice(0, 2).map((e) => spend(e)).filter(Boolean)
+    const extraSentences = remaining.map((e) => spend(e)).filter(Boolean)
     if (extraSentences.length) {
-      say('Other thoughts I noted along the way:', ...extraSentences)
+      say('Reflecting further on my reading notes throughout the book:', extraSentences.join(' '))
     }
   }
 
@@ -800,4 +800,45 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
 export function countWords(text: string) {
   const t = text.trim()
   return t ? t.split(/\s+/).length : 0
+}
+
+/** Formats every single kept entry into a structured, itemized plain-text archive.
+    Unlike `fairCopy` (which synthesizes notes into an editorial book review essay),
+    this generates a raw, complete notebook export for Notion, Obsidian, or backup. */
+export function exportAllEntriesAsText(book: Book, keeps: Entry[]): string {
+  const lines: string[] = []
+  lines.push(`READING JOURNAL ARCHIVE: ${book.title}${book.author ? ` by ${book.author}` : ''}`)
+  if (book.startedOn || book.finishedOn) {
+    const dates = [
+      book.startedOn ? `Started: ${book.startedOn}` : '',
+      book.finishedOn ? `Finished: ${book.finishedOn}` : '',
+    ].filter(Boolean).join(' · ')
+    lines.push(dates)
+  }
+  lines.push(`Total Kept Items: ${keeps.length}`)
+  lines.push('==================================================\n')
+
+  const sorted = [...keeps].sort((a, b) => a.createdAt - b.createdAt)
+  sorted.forEach((e, i) => {
+    const typeLabel = KIND[e.type].one.toUpperCase()
+    const locParts: string[] = []
+    if (e.chapter?.trim()) locParts.push(e.chapter.trim())
+    if (e.page !== undefined) locParts.push(`p. ${e.page}`)
+    if (e.percent !== undefined) locParts.push(`${e.percent}%`)
+    const locStr = locParts.length ? ` (${locParts.join(' · ')})` : ''
+
+    lines.push(`[ENTRY #${i + 1}] ${typeLabel}${locStr} — ${e.keptOn}`)
+    if (e.name?.trim()) lines.push(`Subject / Name: ${e.name.trim()}`)
+    if (e.text?.trim()) {
+      if (e.type === 'quote') {
+        lines.push(`"${e.text.trim()}"`)
+      } else {
+        lines.push(e.text.trim())
+      }
+    }
+    lines.push('')
+  })
+
+  lines.push(`---\nExported from Flyleaf (https://flyleaf.cc)`)
+  return lines.join('\n')
 }

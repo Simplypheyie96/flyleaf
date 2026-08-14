@@ -84,16 +84,25 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
   const nameId = useId()
   const textId = useId()
 
-  /* Dictation drops finished phrases at the end of whatever is already there,
-     with a space in front unless the field is empty — so a reader can type
-     half a sentence, speak the rest, and not have to go back and fix the
-     join. */
-  const speech = useDictation((words) =>
-    setText((had) => (had.trim() ? `${had.replace(/\s+$/, '')} ${words}` : words)),
-  )
+  const baseTextRef = useRef('')
+
+  const speech = useDictation((sessionTranscript) => {
+    const base = baseTextRef.current.trim()
+    setText(base ? `${base} ${sessionTranscript}` : sessionTranscript)
+  })
+
+  const toggleDictation = () => {
+    if (!speech.listening) {
+      baseTextRef.current = text.trim()
+    }
+    speech.toggle()
+  }
+
+  const draftKey = `flyleaf-draft-${book.id}`
 
   /* Reset on open rather than on close: a sheet that empties itself while it
-     is still sliding away does it in front of the reader. */
+     is still sliding away does it in front of the reader. Restores auto-saved
+     draft if one exists. */
   useEffect(() => {
     if (!open) return
     setBusy(false)
@@ -112,6 +121,25 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       setDuration(editing.duration)
       return
     }
+    const saved = localStorage.getItem(draftKey)
+    if (saved) {
+      try {
+        const d = JSON.parse(saved)
+        setType(d.type ?? start)
+        setText(d.text ?? '')
+        setName(d.name ?? '')
+        setPage(d.page ?? '')
+        setChapter(d.chapter ?? '')
+        setPercent(d.percent ?? '')
+        setKeptOn(d.keptOn ?? todayISO())
+        setStance(d.stance ?? 'hunch')
+        setFace(0)
+        setFacing(false)
+        setMedia(undefined)
+        setDuration(undefined)
+        return
+      } catch {}
+    }
     setType(start)
     setText('')
     setName('')
@@ -124,7 +152,19 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
     setKeptOn(todayISO())
     setMedia(undefined)
     setDuration(undefined)
-  }, [open, editing, start])
+  }, [open, editing, start, draftKey])
+
+  /* Auto-save unsaved draft to localStorage so no words are ever lost */
+  useEffect(() => {
+    if (!editing && (text.trim() || name.trim() || page || chapter || percent)) {
+      try {
+        localStorage.setItem(
+          draftKey,
+          JSON.stringify({ type, text, name, page, chapter, percent, keptOn, stance }),
+        )
+      } catch {}
+    }
+  }, [draftKey, editing, type, text, name, page, chapter, percent, keptOn, stance])
 
   /* Listening into a sheet that has closed is listening into the room. */
   useEffect(() => {
@@ -171,6 +211,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       }
       if (editing) await editKeep(editing.id, shared)
       else await addKeep({ bookId: book.id, ...shared })
+      localStorage.removeItem(draftKey)
       onClose()
     } catch {
       /* A write can fail — the device is out of room, or the browser is in a
@@ -194,7 +235,7 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       type="button"
       className={styles.dictate}
       data-on={speech.listening ? '' : undefined}
-      onClick={speech.toggle}
+      onClick={toggleDictation}
       aria-pressed={speech.listening}
     >
       <VoiceIcon size={15} />

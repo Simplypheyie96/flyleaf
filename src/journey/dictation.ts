@@ -127,56 +127,22 @@ export function useDictation(onWords: (words: string) => void): Dictation {
        words never get lost. */
     it.interimResults = true
 
-    /* Everything already written into the field, counted by result index.
-       Safari has a habit of replaying final results it has sent before; the
-       count is what keeps a replay from writing the same phrase twice. */
-    let committed = 0
-    let pending = ''
-
-    const flush = () => {
-      const words = pending.trim()
-      pending = ''
+    it.onresult = (event) => {
+      let sessionTranscript = ''
+      for (let i = 0; i < event.results.length; i += 1) {
+        sessionTranscript += event.results[i][0].transcript + ' '
+      }
+      const words = sessionTranscript.trim()
       if (words) sink.current(words)
     }
 
-    it.onresult = (event) => {
-      let interim = ''
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const result = event.results[i]
-        if (result.isFinal) {
-          if (i >= committed) {
-            committed = i + 1
-            const words = result[0].transcript.trim()
-            if (words) sink.current(words)
-          }
-        } else {
-          interim += result[0].transcript
-        }
-      }
-      pending = interim
-    }
-    /* A failure ends the session, but not silently: words already heard are
-       written rather than dropped, and failures the reader can act on get a
-       word on the button. The button going back to rest is still the honest
-       report — it is not listening. */
     it.onerror = (event) => {
-      flush()
       if (engine.current !== it) return
       setSnag(explain(event?.error))
       stop()
     }
-    /* The recogniser ends itself after enough silence, on some platforms
-       within a few seconds. Whatever it was still holding belongs in the
-       field before the button lets go.
 
-       Both closing handlers check they still speak for the CURRENT session
-       before touching shared state. A recogniser winds down asynchronously
-       after stop(), so a reader who stops and starts again is holding a new
-       session when the old one's `onend` finally arrives — and an unguarded
-       handler would tear the new session's state down with the old one's,
-       leaving the mic listening behind a button that says it is not. */
     it.onend = () => {
-      flush()
       if (engine.current !== it) return
       engine.current = null
       setListening(false)
