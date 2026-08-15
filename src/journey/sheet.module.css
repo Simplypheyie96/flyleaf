@@ -256,6 +256,10 @@
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
+  /* The vocabulary field carries two buttons on this line, and on a narrow
+     phone the three pieces cannot all fit — so the line breaks between the
+     pieces, never inside one. Lines that fit are unaffected. */
+  flex-wrap: wrap;
 }
 
 /* An aside about the field, not a second label for it. Bracketed, because a
@@ -506,6 +510,8 @@
   letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--color-accent-text);
+  /* A pill is one word to the eye — it wraps as a piece or not at all. */
+  white-space: nowrap;
   cursor: pointer;
   transition: color var(--dur-quick) var(--ease-out);
 }
@@ -528,6 +534,89 @@
 .dictate[data-on] {
   background: color-mix(in oklch, var(--color-voice), transparent 80%);
   color: var(--color-ink);
+}
+
+/* ---- Look it up ----
+
+   Vocabulary's one alternative to typing the meaning, alone on its label
+   line — Dictate stands down on this field, so this no longer needs to match
+   a bare text pill beside it. It is drawn as a real button: the accent tint
+   fills it, a hairline of the same ink edges it, and the fill is what says
+   "this one acts" where the label around it only names. Disabled — before a
+   word has been typed — the fill drains and the hairline fades, so the
+   affordance stays legible while clearly not yet live. */
+
+.lookUp {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  border: 1px solid color-mix(in oklch, var(--color-accent-text), transparent 60%);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-tint);
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+  /* A button is one word to the eye — it wraps as a piece or not at all. */
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
+}
+
+/* The same invisible 44px tap band Dictate wears: the visible capsule stays
+   text-height so it cannot spill over the field below, while the thumb still
+   gets the whole --tap-min. */
+.lookUp::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: max(var(--tap-min), 100%);
+  translate: 0 -50%;
+}
+
+.lookUp:disabled {
+  background: transparent;
+  border-color: var(--control-border);
+  color: var(--color-ink-faint);
+  cursor: default;
+}
+
+/* The buttons travel as one piece: the wrapper takes the push to the trailing
+   end, so when the label line has to break on a narrow phone they land
+   together on their own line, still trailing, rather than stacking one above
+   the other down the leading edge. The pills' own auto margins are surrendered
+   to it — two pushes inside one line would strand the first pill mid-air. */
+.labelActs {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+.labelActs .dictate,
+.labelActs .lookUp {
+  margin-inline-start: 0;
+}
+
+/* The look-up's one line under the meaning box. It lives inside the field's
+   label column, which speaks uppercase — this is a sentence, so it takes its
+   own voice back. */
+.lookHint {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-body);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-ink-faint);
+  text-wrap: pretty;
 }
 
 /* ---- Capture: the microphone and the camera roll ----
@@ -1020,6 +1109,47 @@
   .meterBar {
     transition: none;
   }
+}
+
+/* ── What the dictionary heard ──────────────────────────────────────────────
+
+   The pronunciation and part of speech a look-up returned, sitting under the
+   word they belong to. Set in the reading serif rather than the app sans, and
+   in sentence case rather than the label's caps: this is the dictionary's own
+   line of type, not another label the sheet is putting on the field, and it
+   should read as something that arrived rather than as chrome.
+
+   `text-transform: none` and the explicit letter-spacing are undoing `.label`,
+   whose caps and tracking every child inherits. Without them "/sʌsərəs/"
+   arrives uppercased and spaced out like a nav item. */
+.saying {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.said {
+  font-family: var(--font-read);
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+  color: var(--color-ink);
+}
+
+/* The abbreviation the card carries too, and the same chip it wears there, so
+   the reader recognises the piece when they meet it again on the keep. */
+.part {
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+  background: var(--color-accent-tint);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-2);
+  white-space: nowrap;
 }
 
 /* ── The character's face ───────────────────────────────────────────────────

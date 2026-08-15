@@ -507,8 +507,14 @@ const licences: Doc = {
           <ul>
             <li>
               Character portraits use the{' '}
-              <Out href="https://avataaars.com/">Avataaars</Out> set by Pablo
-              Stanley, free for personal and commercial use.
+              <Out href="https://www.dicebear.com/styles/toon-head/">
+                Toon Head
+              </Out>{' '}
+              set by Johan Melin, licensed{' '}
+              <Out href="https://creativecommons.org/licenses/by/4.0/">
+                CC BY 4.0
+              </Out>
+              .
             </li>
             <li>
               The face you pick for yourself uses the{' '}

@@ -408,6 +408,22 @@ function glyph(
     ctx.lineTo(at(11), at(12.5))
     ctx.lineTo(at(19), at(18))
     ctx.stroke()
+  } else if (type === 'vocabulary') {
+    /* The same mark the chrome uses: a letterform on its baseline with the two
+       short rules of a definition beside it. Redrawn rather than shared because
+       the icon is JSX and this is a canvas, and the pair are checked by eye —
+       see the note over `glyph`. */
+    ctx.beginPath()
+    ctx.moveTo(at(3), at(18))
+    ctx.lineTo(at(7), at(6.5))
+    ctx.lineTo(at(11), at(18))
+    ctx.moveTo(at(4.6), at(14))
+    ctx.lineTo(at(9.4), at(14))
+    ctx.moveTo(at(14), at(11))
+    ctx.lineTo(at(21), at(11))
+    ctx.moveTo(at(14), at(15.5))
+    ctx.lineTo(at(19), at(15.5))
+    ctx.stroke()
   } else if (type === 'character') {
     ctx.beginPath()
     ctx.arc(at(12), at(8.5), at(4), 0, Math.PI * 2)
@@ -747,6 +763,16 @@ function device(ctx: CanvasRenderingContext2D, p: Plate, palette: Palette, at: S
     ctx.fillText(p.name.trim().charAt(0).toUpperCase(), cx, cy + 15)
     ctx.textAlign = 'left'
     ctx.restore()
+    return
+  }
+
+  if (p.type === 'vocabulary' && p.name) {
+    /* The same disc the cameo and the pin get, so the three kinds that lead
+       with a name read as siblings on the shelf of shared pictures — which is
+       what they are, since all three are a keep about a something rather than
+       about a sentence. */
+    disc(ctx, palette, IN_X + 44, from - 46, 44)
+    glyph(ctx, 'vocabulary', palette.accent, IN_X + 44 - GLYPH / 2, from - 46)
     return
   }
 
