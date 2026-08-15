@@ -71,6 +71,12 @@
   --color-quote: var(--tint-quote);
 }
 
+.toneVocabulary {
+  --paper-tone: var(--card-vocabulary);
+  --paper-tone-solid: var(--card-vocabulary-solid);
+  --color-vocabulary: var(--tint-vocabulary);
+}
+
 .toneNote {
   --paper-tone: var(--card-note);
   --paper-tone-solid: var(--card-note-solid);

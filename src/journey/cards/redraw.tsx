@@ -1,10 +1,12 @@
-/* DRAWN TO ORDER — the three cards that are not drawn from a set
-   ═══════════════════════════════════════════════════════════════
+/* DRAWN TO ORDER — the four cards that are not drawn from a set
+   ══════════════════════════════════════════════════════════════
 
-   Four of the seven types are drawn from one of the three sets. These three
-   are not, and each one got here the same way: every set drawing of it was
-   turned down, and the reason was always that the drawing had a *device* in it
-   rather than a shape.
+   Four of the eight types are drawn from one of the three sets. These four are
+   not. Three of them got here the same way: every set drawing was turned down,
+   and the reason was always that the drawing had a *device* in it rather than
+   a shape. The fourth, vocabulary, arrived after the sets had been judged and
+   was drawn to order from the start rather than back-ported into three sheets
+   nothing would read again.
 
    CHARACTERS — an avatar, the words underneath, and no clever spacing
    anywhere. Six versions before this one all had a device: a baseline grid, an
@@ -27,6 +29,8 @@
    it only worked for someone who already knew, and it sat where the card's own
    name should be. The word says the thing. The tab is the shape.
 
+   VOCABULARY — a size, and nothing else at all. See its own note below.
+
    VOICE — an instrument. It is the only keep on the page you *operate* rather
    than read, and the drawing has to say so before anything else does: a filled
    disc big enough to be the first thing your thumb finds, the recording's own
@@ -47,9 +51,15 @@ import s from './redraw.module.css'
 
    The cameo used to sit alone on its own line with the name beneath it, and
    that left two thirds of the top of the card as empty paper. It also left the
-   name and the account as two paragraphs three points apart, which is a size
+   name and the account as two paragraphs a size apart, which is a size
    difference rather than a hierarchy. One row does both jobs: it fills, and it
-   pairs. */
+   pairs.
+
+   The markup has not changed since; the drawing in the plate has. The portraits
+   are filled colour art now rather than a pen line, so the plate is set larger
+   — a face is only a few pixels of a portrait and it was too small to have an
+   expression at all — and the name takes the step above the account it was
+   always described as taking. Both live in the stylesheet. */
 
 export function Character({ keep }: CardProps) {
   return (
@@ -61,6 +71,68 @@ export function Character({ keep }: CardProps) {
         <h3 className={s.name}>{keep.name}</h3>
       </div>
       {keep.text && <p className={s.about}>{keep.text}</p>}
+    </article>
+  )
+}
+
+/* ══ VOCABULARY ═══════════════════════════════════════════════════════════
+
+   A type specimen, set flush left. The headword in small caps with the
+   tracking opened out, the way it is said on the line under it beside the
+   part of speech, a short rust rule, then the sense.
+
+   This is the third drawing and the second one shipped. The first was a
+   dictionary column with a hanging dash. The second was an index card: the
+   headword and chip on a header row closed by a two-pixel rust rule, with the
+   gloss written on faint ruling. The ruling was the good part of it and the
+   rule was not — a full-width two-pixel line under a single word is heavier
+   than anything else in the journey, and it read as an underline rather than
+   as a card's own furniture, which is what the owner said when they saw it on
+   a real page. Thinning it would only have made a quieter version of the same
+   idea. So the header comes apart instead.
+
+   What replaces it is the specimen's own logic: nothing on this card is
+   framed, and the hierarchy is carried by *the letters* rather than by lines
+   drawn around them. Small caps do the work the 2px rule was doing — a word
+   in caps at the top of a card is unmistakably the thing the card is about,
+   and it needs no line to close it. The rule survives at a fifth of the
+   weight and a fifth of the width: 1px, 32 wide, held at the leading edge. At
+   that size it is a printer's mark separating the entry from its definition,
+   not an underline under a word.
+
+   Flush left, though the specimen it is named after was centred. Centred was
+   the better label and the wrong card: every other keep in the journey — the
+   quote, the note, the character, the thread — starts on the same vertical,
+   and one card centred in a scrolling column reads as a card that has come
+   loose. The owner called that in the round it was picked. Left-aligned, the
+   whole set still shares an edge and this card is still the only one in small
+   caps.
+
+   The ruled gloss goes with the index card it belonged to. A specimen is
+   printed on clean stock; ruling it would be two devices arguing.
+
+   Everything under the headword is conditional on being true. The phonetic
+   and the part of speech only exist when the look-up fetched them — a
+   hand-written entry never grows a pronunciation the reader did not hear —
+   and the rule belongs to the gloss rather than to the header, so a card with
+   only a word and a meaning has exactly two pieces and one mark between them,
+   with nothing left dangling in either honest state.
+
+   `overflow-wrap` is the one defensive line: German and Latin arrive in this
+   card at eighteen characters and there is no sensible break in them, and a
+   headword that runs off the trailing edge is worse than one that breaks. */
+
+export function Vocabulary({ keep }: CardProps) {
+  return (
+    <article className={`${s.card} ${s.lexicon}`}>
+      <h3 className={s.word}>{keep.name}</h3>
+      {(keep.phonetic || keep.pos) && (
+        <p className={s.saying}>
+          {keep.phonetic && <span className={s.phonetic}>{keep.phonetic}</span>}
+          {keep.pos && <i className={s.pos}>{keep.pos}</i>}
+        </p>
+      )}
+      {keep.text && <p className={s.gloss}>{keep.text}</p>}
     </article>
   )
 }

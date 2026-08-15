@@ -477,6 +477,18 @@ export function colophon(book: Book, keeps: Entry[]): ColophonLine[] {
     ...new Set(keeps.filter((e) => e.type === type && e.name).map((e) => e.name!)),
   ]
 
+  /* No "Looked up" line, though every other kind that has names lists them just
+     below. Vocabulary is kept out of the shared summary entirely — the prose
+     above does not draw on it and neither does this — because a word you had to
+     look up is the one keep that is a fact about the reader rather than about
+     the book. Everything else here is what the book contained: who was in it,
+     where it went, what it left open. A list of the words you did not know is
+     what *you* brought to it, and handing that to whoever the summary is being
+     sent to is a different thing from sharing a reading.
+
+     The `Kept` tally above still counts them, and should: "3 words" is a true
+     measure of how closely the book was read and names nothing. */
+
   const people = named('character')
   if (people.length) lines.push({ term: 'Followed', detail: people.join(', ') })
 
@@ -650,8 +662,25 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
 
   /* Only keeps with words in them. A journey of eight recordings has nothing
      to draft from, and the sheet's own empty state says so better than four
-     paragraphs of dates would. */
+     paragraphs of dates would.
+
+     Vocabulary is out of the draft entirely — not spent later, never here at
+     all. A gloss is the dictionary's sentence, not the reader's: whatever
+     paragraph it lands in, it arrives with nobody's voice behind it. The words
+     are still kept and still on their cards; they are simply not in anything
+     the reader hands to somebody else. The colophon leaves them out for its
+     own reason — see the note where its "Looked up" line used to be — and
+     counts them without naming them.
+
+     This list is what the draft is WRITTEN FROM, and it is no longer what the
+     draft COUNTS. The two came apart the moment vocabulary left: the opening
+     line says how often the reader stopped, and a reader who stopped nine
+     times was told they stopped six, because three of the nine had been
+     dropped from a pool that exists for a different purpose. Both halves can
+     be true at once — count everything, draw on what has the reader's own
+     voice in it — and §1 now counts off `keeps` for exactly that reason. */
   const written = keeps
+    .filter((e) => e.type !== 'vocabulary')
     .filter((e) => e.text?.trim() || e.name?.trim())
     .sort((a, b) => a.createdAt - b.createdAt)
   if (!written.length) return { text: '', words: 0, omitted }
@@ -686,7 +715,14 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
     opening += `, starting on ${dayPhrase(book.startedOn)}`
   }
 
-  const marks = written.length
+  /* Everything the reader kept from this book, not everything the draft can
+     quote. A word looked up is a stop; so is a photograph of a page and so is
+     a voice memo recorded in the car, and none of the three can carry a
+     paragraph in somebody's own prose. The sheet already says separately how
+     many keeps could not be drafted from, so counting them here overstates
+     nothing — it just stops the opening line from quietly shrinking the
+     journey down to the part of it that happened to be typed. */
+  const marks = keeps.length
   const pace =
     days > 1 && marks / days >= 1.5
       ? 'That is not a book I was getting through. That is one I was living in.'
@@ -708,6 +744,11 @@ export function fairCopy(book: Book, keeps: Entry[]): FairCopy {
 
   /* ── 2. Emotional Arc & Overall Impression ───────────────────────────── */
   const mood = feeling(
+    /* A quote is not the reader's own feeling — it is the author's sentence,
+       and a page copied out in anger is not a reader in anger. (Glosses used
+       to be excluded here too, for the same reason a dictionary's `wretched`
+       is a word being defined rather than a reader being unhappy; they no
+       longer reach the draft at all.) */
     written.filter((e) => e.type !== 'quote').map((e) => `${e.name ?? ''} ${e.text ?? ''}`),
   )
   let verdict =

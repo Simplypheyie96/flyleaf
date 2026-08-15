@@ -1,10 +1,11 @@
-/* The seven kinds of keep, in one place.
+/* The eight kinds of keep, in one place.
 
    Everything the app needs to know about a type that is not the type itself:
    what to call it, what glyph stands for it, what paper it is printed on, what
    the capture sheet has to ask for. One registry rather than seven switch
-   statements scattered across the journey, so adding an eighth kind is a block
-   of text here and nothing else.
+   statements scattered across the journey, so adding a ninth kind is a block
+   of text here and nothing else. Vocabulary was the eighth, and it was: this
+   block, a hue, an icon, and a drawing.
 
    What this file deliberately does *not* hold is the card. A quote card and a
    voice card differ by structure — a rail, a black bar, a ruled sheet, a
@@ -23,6 +24,7 @@ import {
   PlaceIcon,
   QuoteIcon,
   ThreadIcon,
+  VocabularyIcon,
   VoiceIcon,
 } from '../components/TabIcons'
 
@@ -77,12 +79,18 @@ export interface Kind {
   asks: Asks
 }
 
-/* Order matters and is not alphabetical. The first four are things lifted out
+/* Order matters and is not alphabetical. The first five are things lifted out
    of the book; the last three are things the reader builds about it while
    reading. The filter row, the capture menu and the colophon all walk this
-   list, so they agree with each other without trying. */
+   list, so they agree with each other without trying.
+
+   Vocabulary sits second rather than last, next to the quote, because those
+   two are the only kinds taken off the page verbatim — one is the author's
+   sentence, the other is the author's word. Appended at the end it would have
+   sat among the three the reader invents, which is the one thing it is not. */
 export const KINDS: readonly EntryType[] = [
   'quote',
+  'vocabulary',
   'note',
   'voice',
   'image',
@@ -104,6 +112,29 @@ export const KIND: Record<EntryType, Kind> = {
     asks: {
       text: { label: 'The line', placeholder: 'Copy it out exactly as it is written…' },
       name: null,
+      stance: false,
+      media: 'none',
+    },
+  },
+  vocabulary: {
+    one: 'word',
+    many: 'words',
+    /* "Vocabulary" on the control, "word" in a sentence. Every other keep on
+       the page is also made of words, so the chip cannot be the plural — a
+       filter row reading Quotes · Words · Notes asks the reader to work out
+       which words. The label names the collection; the noun names the thing. */
+    label: 'Vocabulary',
+    side: 'whisper',
+    invite: 'Keep a word',
+    tone: 'vocabulary',
+    Icon: VocabularyIcon,
+    hue: '--color-vocabulary',
+    asks: {
+      text: {
+        label: 'What it means',
+        placeholder: 'The meaning, and where you met it…',
+      },
+      name: { label: 'Word', placeholder: 'The word itself' },
       stance: false,
       media: 'none',
     },

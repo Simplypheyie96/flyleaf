@@ -94,6 +94,10 @@ function CardLab() {
 
             <div className={styles.lanes}>
               {DIRECTIONS.map(({ id, name, blurb }) => {
+                /* A type that arrived after the sets were judged has no set
+                   drawing at all — see the note above `setOf`. The lane says
+                   so rather than disappearing, so the gallery keeps reading as
+                   three sets side by side. */
                 const Card = SETS[id][kind]
                 return (
                   <article key={id} className={styles.lane}>
@@ -102,11 +106,17 @@ function CardLab() {
                       <p className={styles.laneBlurb}>{blurb}</p>
                     </header>
                     <div className={styles.samples}>
-                      {samples[kind].map((keep) => (
-                        <div key={keep.id} className={styles.slot}>
-                          <Card keep={keep} />
-                        </div>
-                      ))}
+                      {Card ? (
+                        samples[kind].map((keep) => (
+                          <div key={keep.id} className={styles.slot}>
+                            <Card keep={keep} />
+                          </div>
+                        ))
+                      ) : (
+                        <p className={styles.laneBlurb}>
+                          Never drawn in this set — drawn to order instead.
+                        </p>
+                      )}
                     </div>
                   </article>
                 )

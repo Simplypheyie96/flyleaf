@@ -4,6 +4,7 @@ import styles from './PaperSurface.module.css'
 export type PaperTone =
   | 'default'
   | 'quote'
+  | 'vocabulary'
   | 'note'
   | 'voice'
   | 'image'
@@ -35,6 +36,7 @@ interface PaperSurfaceProps {
 const TONE_CLASS: Record<PaperTone, string | undefined> = {
   default: undefined,
   quote: styles.toneQuote,
+  vocabulary: styles.toneVocabulary,
   note: styles.toneNote,
   voice: styles.toneVoice,
   image: styles.toneImage,

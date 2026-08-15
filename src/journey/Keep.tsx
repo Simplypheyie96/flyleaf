@@ -1,7 +1,8 @@
 /* One keep — the drawing, and the three verbs that ride it.
 
-   The drawings themselves live in `cards/`, three complete sets of seven, and
-   `cardFor` decides which set a given type is drawn from. This file is
+   The drawings themselves live in `cards/`, three sets of the kinds that were
+   drawn as sets plus the four drawn to order, and `cardFor` decides which a
+   given type comes from. This file is
    deliberately thin: it knows nothing about what a quote looks like, which is
    why swapping a whole direction is one word in `cards/index.ts` rather than a
    rewrite here.

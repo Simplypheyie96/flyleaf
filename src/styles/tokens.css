@@ -131,12 +131,21 @@
   --chip-track-on-paper: oklch(0.962 0.014 240);
 
   /* ---- Entry-type identities (muted, airy) ----
-     Seven now, and spaced far enough apart around the wheel that two of them
-     never read as the same colour at chip size: 45, 85, 140, 195, 265, 300,
-     350. Colour is the *last* thing that tells these types apart — each card
-     is a different object — but a filter chip has no structure to differ by,
-     so the hues still have to hold on their own. */
+     Eight now, and spaced far enough apart around the wheel that two of them
+     never read as the same colour at chip size: 20, 45, 85, 140, 195, 265,
+     300, 350. Colour is the *last* thing that tells these types apart — each
+     card is a different object — but a filter chip has no structure to differ
+     by, so the hues still have to hold on their own.
+
+     Vocabulary took 20 rather than the two other slots that were free. Sea
+     green at 170 sat thirty either side of quote and place and read as a third
+     green in the filter row; plum at 325 sat twenty-five from both thread and
+     character and was the one candidate you could not name without checking
+     the label. Rust is the only remaining hue a reader identifies at dot size
+     — warm, but earthy where note is honey and clay is orange, and clearly not
+     the cool pink of character. */
   --color-quote: oklch(0.55 0.06 140); /* sage */
+  --color-vocabulary: oklch(0.56 0.085 20); /* rust — a word looked up */
   --color-note: oklch(0.58 0.09 85); /* honey */
   --color-voice: oklch(0.55 0.07 265); /* periwinkle — the orb's hue */
   --color-image: oklch(0.58 0.08 45); /* clay */
@@ -286,6 +295,14 @@
   /* Tints are whispers over the sky, not opaque paper — enough hue to tell
      a quote from a note, never enough to go muddy against the blue. */
   --card-quote: oklch(0.985 0.042 72 / 0.55); /* warm tan */
+  /* Hue 32 and not the ink's 20, and the lowest chroma of the warm papers.
+     At 25 the solid below rendered #ffebe9 — the only card paper in the set
+     to clip the red channel, which made vocabulary the most saturated sheet
+     on the thread and read as pink beside the rose character card. Pulled
+     warm and pale, it sits where it belongs: the plainest paper here, a
+     dictionary column, carrying its identity in the rust dot and not in the
+     sheet. */
+  --card-vocabulary: oklch(0.982 0.026 32 / 0.52); /* faint rust */
   --card-note: oklch(0.98 0.05 100 / 0.52); /* sticky yellow */
   --card-voice: oklch(0.975 0.024 275 / 0.52); /* pale periwinkle */
   /* An image card is a mount board, so it is barely tinted — whatever is
@@ -302,6 +319,7 @@
   --card-character: oklch(0.978 0.024 350 / 0.5); /* rose */
   /* Opaque twins, used where transparency is unavailable or unwanted */
   --card-quote-solid: oklch(0.955 0.022 70);
+  --card-vocabulary-solid: oklch(0.955 0.018 32);
   --card-note-solid: oklch(0.968 0.042 100);
   --card-voice-solid: oklch(0.955 0.02 265);
   --card-image-solid: oklch(0.958 0.018 45);
@@ -375,6 +393,11 @@
   --tint-tape: var(--tape-fill);
   --tint-tape-edge: var(--tape-edge);
   --tint-quote: var(--color-quote);
+  /* The one tint that departs from its room hue by day, because it alone
+     sets running text: the vocabulary card's part-of-speech italic. The room
+     rust at 0.56 measures 4.26:1 on the card's own solid paper — under the
+     4.5 small type needs. Two steps deeper clears it and still reads rust. */
+  --tint-vocabulary: oklch(0.52 0.09 20);
   --tint-note: var(--color-note);
   --tint-voice: var(--color-voice);
   --tint-image: var(--color-image);
@@ -948,6 +971,11 @@
      opaque alpha is deliberate: at 0.58 the night sky came up through the
      paper and pulled all three back toward the slate they came from. */
   --card-quote: oklch(0.87 0.045 168 / 0.96);
+  /* Pulled to 0.026 rather than the 0.03 character takes. Warm hues read
+     stronger at equal chroma — the same correction the image and place cards
+     get above — and at 350 that fraction is invisible where at 25 it is the
+     difference between pale rust paper and a terracotta tile. */
+  --card-vocabulary: oklch(0.88 0.026 32 / 0.96);
   --card-note: oklch(0.885 0.05 95 / 0.96);
   --card-voice: oklch(0.87 0.042 285 / 0.96);
   /* Both of these sit lower in chroma than the three above them, and for the
@@ -962,6 +990,7 @@
   --card-thread: oklch(0.875 0.038 300 / 0.96);
   --card-character: oklch(0.88 0.03 350 / 0.96);
   --card-quote-solid: oklch(0.87 0.045 168);
+  --card-vocabulary-solid: oklch(0.88 0.026 32);
   --card-note-solid: oklch(0.885 0.05 95);
   --card-voice-solid: oklch(0.87 0.042 285);
   --card-image-solid: oklch(0.885 0.022 45);
@@ -1037,6 +1066,11 @@
      fine. All seven are stated now, at the daylight weight, because a pale
      card wants a dark hue whatever the room is doing. */
   --tint-quote: oklch(0.5 0.07 140);
+  /* A step below its six siblings, because it alone carries running text:
+     the vocabulary card's part-of-speech italic is set in this ink, and at
+     0.5 it measured 4.33:1 on the night sheet — under the 4.5 small type
+     needs. 0.47 clears it with the hue intact. */
+  --tint-vocabulary: oklch(0.47 0.09 20);
   --tint-note: oklch(0.52 0.1 85);
   --tint-voice: oklch(0.5 0.08 265);
   --tint-image: oklch(0.5 0.09 45);
@@ -1110,6 +1144,7 @@
   --chip-track-on-paper: oklch(0.3 0.028 265);
 
   --color-quote: oklch(0.7 0.06 140);
+  --color-vocabulary: oklch(0.73 0.085 20);
   --color-note: oklch(0.75 0.09 85);
   --color-voice: oklch(0.72 0.07 268);
   /* The one surface that does not turn — but it does have to stay a recess,
