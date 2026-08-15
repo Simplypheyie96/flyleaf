@@ -21,7 +21,18 @@ import styles from './search.module.css'
 
    EVERY ROW GOES SOMEWHERE. Tapping a keep lands on that keep in its book's
    journey, not merely on the book — the hash is what BookJourney scrolls to
-   and lights briefly. */
+   and lights briefly.
+
+   AND THE GROUPS CAN BE SIFTED. Grouping alone stops being enough the moment a
+   common word hits forty keeps across six kinds: the reader still has to scroll
+   past five headings to reach the pictures. The rail below the query narrows to
+   one kind, across every book at once, which is the one thing the shelf's own
+   filters cannot do — they filter books.
+
+   It is deliberately not a permanent control. It is drawn from the results
+   themselves, so it only ever offers kinds that are actually there, it never
+   appears when there is nothing to sift, and it leaves with the results. There
+   is no fourth Library view and no new destination behind it. */
 
 interface ResultsProps {
   archive: Archive
@@ -139,13 +150,76 @@ function Results({ archive, query, onFindBook }: ResultsProps) {
 
   const nothing = archive.books.length === 0 && archive.keeps.length === 0
 
+  /* Which kind the rail is narrowed to, or null for all of them.
+     'books' is a member of the same axis rather than a special case: to the
+     reader the shelf hits are one more sort of thing the word turned up.
+
+     Held here and not lifted, and NOT reset by an effect. A new query rebuilds
+     `byKind`, and the guard below simply drops a choice the new results cannot
+     honour — so typing another word always lands on everything, without a
+     render that shows the stale filter first. */
+  const [only, setOnly] = useState<string | null>(null)
+  const offered = [
+    ...(archive.books.length > 0
+      ? [{ id: 'books', label: archive.books.length === 1 ? 'Book' : 'Books', tally: archive.books.length, hue: '' }]
+      : []),
+    ...byKind.map(({ type, keeps }) => ({
+      id: type,
+      label: KIND[type].label,
+      tally: keeps.length,
+      hue: KIND[type].hue,
+    })),
+  ]
+  /* One kind is not a choice, it is a label — and a rail of one chip is chrome
+     charging rent. The whole control stays away until there is something to
+     narrow. */
+  const siftable = offered.length > 1
+  const picked = siftable && offered.some((one) => one.id === only) ? only : null
+
   return (
     <div className={styles.results}>
+      {/* What is being searched, said once and quietly. This was a pill in a
+          segmented control that could not be deselected — a label pretending
+          to be a choice. As a line of type it does the same job, tells no lie
+          about being tappable, and gives back a whole row of the phone. */}
+      {!nothing && <p className={styles.scope}>Everything you kept</p>}
+
       {archive.loose && !nothing && (
         <p className={styles.approx}>Nothing said that exactly. The nearest things you have kept:</p>
       )}
 
-      {archive.books.length > 0 && (
+      {siftable && (
+        <div className={styles.sift} role="group" aria-label="Narrow these results to one kind">
+          <button
+            type="button"
+            className={styles.sieve}
+            aria-pressed={picked === null}
+            onClick={() => setOnly(null)}
+          >
+            {/* "All", not "Everything". The scope row directly above this one
+                already reads "Everything you kept", and two stacked pill rows
+                whose first pill says almost the same word is the sort of thing
+                a reader has to stop and parse. */}
+            All
+          </button>
+          {offered.map((one) => (
+            <button
+              key={one.id}
+              type="button"
+              className={styles.sieve}
+              data-hue={one.hue ? '' : undefined}
+              style={one.hue ? ({ '--kind': `var(${one.hue})` } as CSSProperties) : undefined}
+              aria-pressed={picked === one.id}
+              onClick={() => setOnly(picked === one.id ? null : one.id)}
+            >
+              {one.label}
+              <span className={styles.sieveTally}>{one.tally}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {archive.books.length > 0 && (picked === null || picked === 'books') && (
         <section className={styles.group}>
           <h2 className={styles.groupTitle}>
             <span className={styles.groupCount}>{archive.books.length}</span>
@@ -169,19 +243,25 @@ function Results({ archive, query, onFindBook }: ResultsProps) {
         </section>
       )}
 
-      {byKind.map(({ type, keeps }) => (
-        <section key={type} className={styles.group} style={{ '--kind': `var(${KIND[type].hue})` } as CSSProperties}>
-          <h2 className={styles.groupTitle} data-kind="">
-            <span className={styles.groupCount}>{keeps.length}</span>
-            {KIND[type].label}
-          </h2>
-          <ul className={styles.list}>
-            {keeps.map((keep) => (
-              <KeepRow key={keep.id} keep={keep} book={shelf[keep.bookId]} words={words} />
-            ))}
-          </ul>
-        </section>
-      ))}
+      {byKind
+        .filter(({ type }) => picked === null || picked === type)
+        .map(({ type, keeps }) => (
+          <section
+            key={type}
+            className={styles.group}
+            style={{ '--kind': `var(${KIND[type].hue})` } as CSSProperties}
+          >
+            <h2 className={styles.groupTitle} data-kind="">
+              <span className={styles.groupCount}>{keeps.length}</span>
+              {KIND[type].label}
+            </h2>
+            <ul className={styles.list}>
+              {keeps.map((keep) => (
+                <KeepRow key={keep.id} keep={keep} book={shelf[keep.bookId]} words={words} />
+              ))}
+            </ul>
+          </section>
+        ))}
 
       {nothing && (
         <PaperSurface className={styles.blank}>

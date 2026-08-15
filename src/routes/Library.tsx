@@ -14,7 +14,6 @@ import Bunny from '../rabbit/Bunny'
 import { PREVIEW_BARE } from './home/Draw'
 import Results from '../search/Results'
 import { useArchive } from '../search/archive'
-import search from '../search/search.module.css'
 import Sparkle from '../components/Sparkle'
 import PaperSurface from '../components/PaperSurface'
 import Sheet from '../components/Sheet'
@@ -564,11 +563,19 @@ function Library() {
      with what it found rather than opening a second screen to hold the
      answer.
 
-     Two scopes, said in words rather than implied: everything you have kept,
-     and the catalogue of books you do not have yet. The second hands off to
-     the add sheet with the words already typed, because the catalogue search
-     and the add flow are the same act — you do not look a book up in order to
-     read about it, you look it up in order to shelve it. */
+     ONE SCOPE, NOT TWO. There used to be a pair of pills under the field —
+     "Everything you kept" and "Find a book" — and the pair was wrong twice
+     over. It was a segmented control whose first half could not be turned off,
+     which is a label wearing a button's clothes; and its second half was a
+     third route to the add sheet, sitting two inches above the "+" in the tab
+     bar that already does exactly that. So the field searches what you kept,
+     full stop, and it says so in one small line over the results. Finding a
+     book you do NOT have is the add button's job, and only its job.
+
+     The catalogue hand-off below still exists, because there is one moment
+     that genuinely needs it: a search that turns up nothing at all, where the
+     honest next move is to look the words up in the catalogue rather than make
+     the reader retype them into the sheet. */
   const [query, setQuery] = useState('')
   const found = useArchive(query)
   const asking = query.trim().length >= 2
@@ -816,25 +823,6 @@ function Library() {
               </div>
             </GlassSurface>
           </div>
-        )}
-
-        {/* The two scopes. They arrive with the words rather than sitting
-            over an empty field, because until something is typed there is no
-            question for them to answer. */}
-        {asking && (
-          <GlassSurface className={search.scopes}>
-            <button type="button" className={search.scope} aria-pressed={true}>
-              Everything you kept
-            </button>
-            <button
-              type="button"
-              className={search.scope}
-              aria-pressed={false}
-              onClick={() => findBook(query)}
-            >
-              Find a book
-            </button>
-          </GlassSurface>
         )}
 
         {asking && found.status === 'done' && (
