@@ -84,6 +84,32 @@ export function QuoteIcon({ size = 22 }: IconProps) {
   )
 }
 
+/* A word, and its sense set beside it.
+
+   Everything obvious was taken or wrong. A book is what half the app already
+   is. A magnifier is search, four pixels away in the same chrome. Quotation
+   marks belong to quotes. What is left is the thing itself: a letterform on
+   its baseline with the two short rules of a definition run out to its right,
+   which is the shape of a dictionary column and is not the shape of anything
+   else in this set.
+
+   The letter is an A rather than a lowercase a because a stroked single-storey
+   a at 22px is a circle with a tick on it, and a two-storey one is a blob. The
+   second rule stops short of the first: a definition is a ragged paragraph,
+   and two rules of equal length read as a list. */
+export function VocabularyIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M4 17 L 8 6.5 L 12 17" />
+        <path d="M5.6 13 L 10.4 13" />
+        <path d="M15 11 L 20 11" />
+        <path d="M15 15 L 18.5 15" />
+      </g>
+    </svg>
+  )
+}
+
 export function NoteIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">

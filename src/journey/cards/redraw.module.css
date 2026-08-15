@@ -40,6 +40,147 @@
   color: var(--color-ink);
 }
 
+/* ══ VOCABULARY ═══════════════════════════════════════════════════════════
+
+   A type specimen on rust paper, set flush left. Headword in small caps with
+   the tracking opened out, the saying-line under it, a short rust rule, then
+   the sense. See the long note over `Vocabulary` in redraw.tsx for why the
+   index card's full-width 2px rule and its ruled gloss both went.
+
+   Same 24-at-the-foot budget every card ending in prose takes: --card-pad less
+   the leading slack under the gloss's last line, so the verb circles' 44px
+   targets reaching back up into the card never paint over it. */
+.lexicon {
+  --paper-tone: var(--card-vocabulary-solid);
+  padding-block-end: calc(var(--card-pad) - var(--leading-slack));
+}
+
+/* The headword, and the one piece of type in the journey set in small caps.
+
+   That is the whole device now that the rule under it is gone, and it is
+   enough: nothing else in the app is drawn this way, so the card announces
+   its kind from further off than a coloured line ever did.
+
+   `all-small-caps` rather than `small-caps`, so the initial letter is drawn to
+   the same height as the rest. A word kept as "Susurrus" and a word kept as
+   "susurrus" are the same word, and plain small-caps would set them at
+   visibly different weights on the page depending on which way the reader
+   happened to type it. All-small-caps makes the card indifferent to that.
+
+   --track-caps, and --text-xl held from the index card even though the letters
+   are now shorter: small caps at 20 stand about as tall as 15 of lowercase, so
+   the size that was a headword before is a comfortable one now rather than a
+   shout. Letters spaced this far apart need the room back.
+
+   --leading-tight because this is one line at cap height, with no descenders
+   under it to lead against. */
+.word {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  font-variant-caps: all-small-caps;
+  letter-spacing: var(--track-caps);
+  color: var(--color-ink);
+  text-wrap: balance;
+  /* A headword is a single word; hyphenating it would invent a syllable break
+     the reader then has to un-read. Break it only when it genuinely will not
+     fit, and break it without adding a mark. */
+  hyphens: none;
+  overflow-wrap: anywhere;
+}
+
+/* How it is said, and what part of speech it is — one line, because they are
+   one fact about the word rather than two, and because they arrive together
+   or not at all. Baseline-aligned so the chip sits on the phonetic's line
+   rather than beside its box; wrapping, so a long IPA string on a 375 phone
+   drops the chip to the next line instead of squeezing it. */
+.saying {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+}
+
+/* Faint and small because it is an annotation, not content — the reader
+   already knows how they read it in their head — and only ever present when
+   the dictionary was asked, so a hand-written card never grows a line the
+   reader did not write. */
+.phonetic {
+  font-family: var(--font-app);
+  font-weight: var(--weight-body);
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+  /* Free to shrink so the chip beside it keeps its own width. */
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The part of speech, a small chip on the saying line — the one piece of type
+   in any kind wearing its kind's hue. The TINT token, not the room's: this ink
+   sits on the card's pale rust paper in both themes, and after dark the room
+   hue lifts to L 0.73 for the night page — 1.7:1 on a 0.88 sheet, invisible.
+   The tint stays a deep rust whatever the room is doing (5.05:1 by day, 4.97:1
+   by night), which is the whole reason the tint set exists.
+
+   It no longer takes `margin-inline-start: auto`. On the index card it was
+   pushed to the trailing end to close a header row that ran the card's full
+   width; there is no such row now, and a chip flung to the far edge of a
+   flush-left specimen would be the one thing on the card not starting where
+   everything else starts. It follows the phonetic. nowrap keeps a two-letter
+   abbreviation from ever folding. */
+.pos {
+  font-family: var(--font-app);
+  font-style: normal;
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--tint-vocabulary);
+  background: color-mix(in oklch, var(--tint-vocabulary), transparent 88%);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-2);
+  white-space: nowrap;
+}
+
+/* The sense, on clean stock. The index card wrote it on faint ruling; a
+   specimen is printed rather than written on, and the small caps above are
+   already carrying the card's identity, so ruling it too would be two devices
+   arguing over one card.
+
+   The rule belongs to this element rather than to the header above it, which
+   is what makes both honest states hold: no gloss, no mark left hanging under
+   a lone word. 32 × 1px of the vocabulary tint at the leading edge — a fifth
+   of the width and half the weight of the line it replaces, which is the
+   difference between a printer's mark and an underline.
+
+   --space-4 above the mark and --space-3 under it. The mark is a separator, so
+   it belongs to neither side, and a separator sitting dead centre between two
+   blocks reads as attached to the one whose type is heavier — here the small
+   caps. Slightly nearer the gloss is optically centred. */
+.gloss {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-app);
+  font-weight: var(--weight-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink);
+  text-wrap: pretty;
+  /* Meets the card's trailing padding — same reasoning as `.about` below. */
+  max-inline-size: max(var(--measure), 100%);
+}
+
+.gloss::before {
+  content: '';
+  display: block;
+  inline-size: 32px;
+  block-size: 1px;
+  margin-block-end: var(--space-3);
+  background: var(--tint-vocabulary);
+}
+
 /* ══ CHARACTER ════════════════════════════════════════════════════════════
 
    Rose paper, and the 32px bottom every card that ends in prose takes: 21 for
@@ -65,7 +206,27 @@
    recognisable from across the room without anything being added to it.
 
    The account then runs the full width of the card, both ends, with nothing
-   indented under the portrait. */
+   indented under the portrait.
+
+   Redrawn once more when the portraits changed. They used to be a pen figure —
+   a few dark strokes on a pale plate — and a drawing made of strokes has to be
+   kept small or the strokes go thin and lonely. What is in the plate now is
+   filled colour art with a heavy outline, and that is a different object: it
+   holds together at any size and it stops being readable when it is made
+   small, because the whole face is only a few pixels of it. So the plate grew,
+   and once the plate was the size of a real cameo the band around it had two
+   things wrong that had been invisible while the portrait was a dot.
+
+   The name was set at the app's UI size — the *same* size as the account
+   underneath it — and only the serif and the weight told them apart. That is
+   the exact fault this card's own history says it fixed and did not: a size
+   difference of nothing is not a hierarchy. The name now takes a real step up.
+
+   And the rule sat high. Body text carries about four pixels of half-leading
+   above its first cap, so twelve above the rule and twelve below it is twelve
+   against sixteen on the eye. The band's foot is now sixteen and the account's
+   head is twelve, which is what the note under `.about` has claimed all along
+   and what the numbers now actually do. */
 
 .person {
   --paper-tone: var(--card-character-solid);
@@ -76,40 +237,71 @@
   padding-block-end: calc(var(--card-pad) - var(--leading-slack));
 }
 
+/* The slack goes back on when the card does not end in prose. A character kept
+   as a name and a face ends on the plate, and a plate has no half-leading
+   underneath it to borrow those four pixels from — take them anyway and the
+   foot is simply four short of every other card's. */
+.person:has(.who:last-child) {
+  padding-block-end: var(--card-pad);
+}
+
 /* The band. Ruled underneath in the character's own hue rather than the
    neutral border, so the line belongs to the card instead of looking like the
    edge of something. */
 .who {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding-block-end: var(--space-3);
+  gap: var(--space-4);
+}
+
+/* The rule is drawn only when there is a second thing for it to be between.
+
+   A character can be kept as a name and a face with nothing written down yet —
+   somebody you have met and not yet made up your mind about — and on that card
+   the band is the last child. A rule under it then closes nothing: it is a line
+   ruled across the foot of the card with the paper running out underneath it,
+   which reads as an account that failed to load rather than as one that was
+   never written. Hung off `:not(:last-child)` rather than off a second class,
+   because the condition genuinely is "is anything following me". */
+.who:not(:last-child) {
+  /* 16, against the account's 12 on the other side. See the note on `.about`:
+     the two are the same distance once the account's half-leading is counted,
+     and matching the raw numbers puts the rule visibly high. */
+  padding-block-end: var(--space-4);
   border-block-end: 1px solid color-mix(in oklab, var(--color-character) 24%, transparent);
 }
 
 /* The plate the person is drawn into. `Avatar` draws a figure and no ground at
    all, so the whole of the mount is here.
 
-   46 × 56, which is the one measurement doing real work. A circle at this size
-   is a profile picture no matter what is inside it — every app on the phone has
-   one in its top corner. An oval standing taller than it is wide is a cameo
-   mount, and nothing else on a screen is that shape, so the card is legible as
-   *a portrait plate* before the drawing in it is read. It is also the ratio the
-   figure is cut to, so the head sits where a head sits and the bust runs off
-   the bottom edge the way a bust does.
+   52 × 62, and the shape is the measurement doing the real work. A circle at
+   this size is a profile picture no matter what is inside it — every app on the
+   phone has one in its top corner. An oval standing taller than it is wide is a
+   cameo mount, and nothing else on a screen is that shape, so the card is
+   legible as *a portrait plate* before the drawing in it is read. It is also
+   the ratio the figure is cut to, so the head sits where a head sits and the
+   bust runs off the bottom edge the way a bust does.
 
-   Inked on a pale ground, not reversed out of a filled one. That was right for
-   a stamped letter — a letter cut out of a fill is a stamp — and it is wrong
-   for a drawing: a pen line reversed out of solid rose at 46px is a white
-   scratch, and every stroke thinner than the fill's own edge disappears into
-   it. The plate is near-white and the figure is drawn on it, which is what the
-   location card does with its map and what a portrait does on paper. */
+   The size is set by the face and not by the row. A portrait's whole job is the
+   expression, and the expression is a handful of pixels near the top of the
+   drawing: a brow, two eyes, a mouth. At the 40 this used to be, the eyes were
+   under two pixels apart and every character on the shelf had the same blank
+   look, which makes the cue table upstream — stern, grieving, sly — an
+   expensive way to draw nothing. At 52 the face is the size of a face on a
+   stamp, which is the smallest a face has ever been printed and still meant to
+   be looked at. Past about 60 the plate starts to out-weigh the name beside it
+   and the card becomes a contact row.
+
+   Near-white ground, with the figure drawn on it rather than cut out of a fill,
+   the way the location card mounts its map. The plate keeps its own daylight
+   after dark: `--tint-reverse` is a tint name, so the room dims around a
+   portrait that does not. */
 .cameo {
   display: grid;
   place-items: center;
   flex: none;
-  inline-size: 40px;
-  block-size: 48px;
+  inline-size: 52px;
+  block-size: 62px;
   border-radius: 50%;
   /* The bust is drawn past the foot of its own sheet, so the mount has to be
      the thing that ends it. Without this the shoulders run out over the card. */
@@ -121,34 +313,35 @@
   box-shadow:
     0 0 0 3px var(--paper-tone),
     0 0 0 4px color-mix(in oklab, var(--color-character) 34%, transparent);
-  /* Rose taken most of the way to ink. The card's own rose is a *label* colour
-     — it has to stay light enough to fill chips and rules — and a drawing made
-     of 1.6px strokes in it is a pink smudge. Pulling it toward the tint set's
-     ink keeps the hue, so the figure still reads as the character colour, and
-     buys the line the density it needs to be a line. Both ends are tint names,
-     so the plate keeps its daylight weight after dark: the room dims around it,
-     the pressed plate does not. */
-  color: color-mix(in oklab, var(--tint-character), var(--tint-ink) 32%);
+  /* No `color` here on purpose. There used to be one — rose pulled most of the
+     way to ink — because the figure was a pen drawing that took its stroke from
+     `currentColor`, and the card's own rose is a label colour that goes to a
+     smudge at 1.6px. The portraits are their own palette now and inherit
+     nothing, so setting a colour would only be a rule that looks like it does
+     something. */
 }
 
-/* 16 over the account's 13, and BOTH ends moved. The pair used to be 18 over
-   14 — one step apart on the old scale and legible enough, but the name was
-   sitting a step above the app's own reading size for no reason a reader could
-   name, and on a phone a long one took three lines before the card had said
-   anything.
+/* 18 over the account's 15, in the reading serif against the app's grotesk.
 
-   Size and weight now split the work rather than size doing all of it: 16/700
-   against 13/450 is a step you see instantly, and it is the same step every
-   other card in the app makes between its heading and its body. That
-   consistency is the point — a person's name should not be the one heading in
-   the app drawn to a private scale. */
+   This sat at 15 for a long time, which is the size the account underneath it
+   is set at — so the two differed by the face and the weight and by nothing
+   else. The note that used to be here claimed 16 over 13 and argued at length
+   that size and weight were splitting the work between them; the second half
+   was true and the first was not, and what was on screen was a name and a
+   paragraph the same height with a rule between them.
+
+   --text-lg is the app's section-heading step, which is the right claim to
+   make: on a card whose entire subject is one proper noun, the name *is* the
+   heading. It is one step, not a leap — the card is still a keep in a column of
+   keeps and not a title page — and `text-wrap: balance` keeps a long one from
+   breaking to a lonely last word beside the plate. */
 .name {
   margin: 0;
   min-inline-size: 0;
   font-family: var(--font-read);
   font-size-adjust: var(--font-adjust-cap);
   font-weight: var(--weight-display-read);
-  font-size: var(--text-base);
+  font-size: var(--text-lg);
   line-height: var(--leading-snug);
   letter-spacing: var(--track-title);
   color: var(--color-ink);
@@ -161,7 +354,8 @@
    12 against the band's 16, so the rule sits centred between them: body text
    at 1.6 carries about four pixels of half-leading above its first cap, and
    12 + 4 is the 16 on the other side. Matching the numbers would have put the
-   rule visibly high. */
+   rule visibly high — which for a while it did, because the band was set to 12
+   as well and only this note knew otherwise. */
 .about {
   margin: var(--space-3) 0 0;
   font-family: var(--font-app);

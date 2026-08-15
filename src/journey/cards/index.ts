@@ -43,7 +43,14 @@ export const DIRECTIONS: { id: Direction; name: string; blurb: string }[] = [
 ]
 
 /* The module namespaces line up one-to-one, so this is a mapping rather than a
-   list of seven imports three times over. */
+   list of seven imports three times over.
+
+   Seven, not eight. The three sets were a comparison exercise and it ended
+   when the last choice was made; vocabulary arrived afterwards and was drawn
+   straight to order, so back-porting it into Pressed, Marginalia and Plates
+   would be three drawings made for a table that is already spent. The map it
+   returns is therefore partial, and `cardFor` reads `DRAWN` first — see the
+   note there. */
 function setOf(mod: {
   Quote: ComponentType<CardProps>
   Note: ComponentType<CardProps>
@@ -52,7 +59,7 @@ function setOf(mod: {
   Character: ComponentType<CardProps>
   Location: ComponentType<CardProps>
   Thread: ComponentType<CardProps>
-}): Record<EntryType, ComponentType<CardProps>> {
+}): Partial<Record<EntryType, ComponentType<CardProps>>> {
   return {
     quote: mod.Quote,
     note: mod.Note,
@@ -64,7 +71,7 @@ function setOf(mod: {
   }
 }
 
-export const SETS: Record<Direction, Record<EntryType, ComponentType<CardProps>>> = {
+export const SETS: Record<Direction, Partial<Record<EntryType, ComponentType<CardProps>>>> = {
   pressed: setOf(pressed),
   marginalia: setOf(marginalia),
   plates: setOf(plates),
@@ -72,13 +79,15 @@ export const SETS: Record<Direction, Record<EntryType, ComponentType<CardProps>>
 
 /* Which set each type is drawn from.
 
-   Four of the seven are settled here. The other three — characters, plot
-   threads and voice — had every set drawing turned down and were drawn to
-   order instead, so their lines below are read by nothing but `?dir=`; see
-   `DRAWN`. They are kept at their nearest neighbour rather than deleted, so
-   that switching the whole journey to one set still renders seven cards. */
+   Four of the eight are settled here. The other four — characters, plot
+   threads, voice and vocabulary — had every set drawing turned down or never
+   had one, and were drawn to order instead, so their lines below are read by
+   nothing but `?dir=`; see `DRAWN`. They are kept at their nearest neighbour
+   rather than deleted, so that switching the whole journey to one set still
+   renders every card. */
 export const CHOSEN: Record<EntryType, Direction> = {
   quote: 'plates',
+  vocabulary: 'plates', // no set drawing exists — only `?dir=` reads this
   note: 'pressed',
   voice: 'plates', // superseded by DRAWN — only `?dir=` still reads this
   image: 'plates',
@@ -96,6 +105,7 @@ export const CHOSEN: Record<EntryType, Direction> = {
    wins over `CHOSEN` for the types it lists. */
 const DRAWN: Partial<Record<EntryType, ComponentType<CardProps>>> = {
   character: redraw.Character,
+  vocabulary: redraw.Vocabulary,
   thread: redraw.Thread,
   voice: redraw.Voice,
 }
@@ -116,6 +126,9 @@ export function cardFor(
   preview?: URLSearchParams | null,
 ): ComponentType<CardProps> {
   const dir = preview?.get('dir')
-  if (dir && dir in SETS) return SETS[dir as Direction][type]
-  return DRAWN[type] ?? SETS[CHOSEN[type]][type]
+  /* `?? DRAWN[type]` rather than a bare index: a set that has no drawing of a
+     type falls back to the one the journey really uses, so the handle stays a
+     preview of what differs instead of a hole where vocabulary should be. */
+  if (dir && dir in SETS) return SETS[dir as Direction][type] ?? DRAWN[type]!
+  return DRAWN[type] ?? SETS[CHOSEN[type]][type]!
 }

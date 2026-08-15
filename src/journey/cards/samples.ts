@@ -3,7 +3,8 @@
    Three keeps per type, invented for the purpose and belonging to no real book
    — the point is to judge a drawing against writing of a realistic length,
    including the awkward ones: a quote that runs four lines, a character with no
-   name to give, a thread whose title is a whole sentence. */
+   name to give, a thread whose title is a whole sentence, a headword seventeen
+   letters long with nowhere sensible to break. */
 
 import type { Entry, EntryType } from '../../data/db'
 
@@ -33,6 +34,37 @@ export const SAMPLES: Record<EntryType, Entry[]> = {
       keptOn: '2026-07-02',
       page: 7,
       text: 'Rain on the skylight, and the long argument of the pipes.',
+    }),
+  ],
+  vocabulary: [
+    keep({
+      type: 'vocabulary',
+      keptOn: '2026-06-16',
+      page: 63,
+      name: 'susurrus',
+      text: 'A whispering or rustling sound. Used here of the orchard, twice in one page.',
+      /* The looked-up state: phonetic and part of speech as the dictionary
+         hands them back, so the gallery shows the full column. */
+      phonetic: '/suˈsʌr.əs/',
+      pos: 'n.',
+    }),
+    /* The stress case: a compound with no break a reader would accept, and a
+       gloss short enough that the card is almost entirely headword. If the
+       drawing survives this one it survives everything. Deliberately left
+       hand-written — no phonetic, no part of speech — so the gallery always
+       shows both honest states of the card. */
+    keep({
+      type: 'vocabulary',
+      keptOn: '2026-06-29',
+      name: 'verschlimmbessern',
+      text: 'To make something worse by trying to improve it.',
+    }),
+    keep({
+      type: 'vocabulary',
+      keptOn: '2026-07-11',
+      page: 204,
+      name: 'apricity',
+      text: 'The warmth of the sun in winter. Apparently obsolete, which seems like a waste of a good word — I have wanted it for years without knowing it existed.',
     }),
   ],
   note: [

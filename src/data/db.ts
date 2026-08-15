@@ -62,21 +62,34 @@ export function formatsOf(book: Pick<Book, 'format' | 'formats'>): BookFormat[] 
   return book.format ? [book.format] : []
 }
 
-/** The seven things a reader keeps.
+/** The eight things a reader keeps.
 
-    Four of them are things taken out of the book — a line, a thought, thirty
-    seconds of your own voice, a picture. Three are things you build *about*
-    the book while you read it: a person you are following, a place you want
-    to remember, and a suspicion you are testing. All seven live in one table
-    because they all hang on the same thread on the same day, and because the
-    journey's only real question — everything kept from this book, in order —
-    should stay one query.
+    Five of them are things taken out of the book — a line, a word you had to
+    look up, a thought, thirty seconds of your own voice, a picture. Three are
+    things you build *about* the book while you read it: a person you are
+    following, a place you want to remember, and a suspicion you are testing.
+    All eight live in one table because they all hang on the same thread on the
+    same day, and because the journey's only real question — everything kept
+    from this book, in order — should stay one query.
+
+    `vocabulary` was added last and cost no migration, which is the point of
+    storing the type as a plain indexed string: a word goes in `name` and its
+    meaning in `text`, exactly the shape `character` and `thread` already use,
+    so no reader's stored journal is touched by its arrival.
 
     `highlight` is gone: a highlight was a quote with a weaker claim on the
     page, and two ways to keep a line is one too many. `strand` is gone too,
     replaced by `thread`, which is an ordinary keep with a stance rather than
     a second table with a lifespan. */
-export type EntryType = 'quote' | 'note' | 'voice' | 'image' | 'character' | 'place' | 'thread'
+export type EntryType =
+  | 'quote'
+  | 'vocabulary'
+  | 'note'
+  | 'voice'
+  | 'image'
+  | 'character'
+  | 'place'
+  | 'thread'
 
 /** How sure the reader is, on a plot thread. The whole point of the type: a
     hunch that hardens into a certainty is the shape of reading a novel, and
@@ -159,6 +172,16 @@ export interface Entry {
       button is "not that one", which is a thing they can know without being
       able to describe what they want instead. */
   face?: number
+  /** `vocabulary` only — how the word is said, as the dictionary writes it:
+      /suˈsʌr.əs/. Only ever set by the look-up button; a hand-written entry
+      never has one, because inventing a pronunciation the reader did not hear
+      would be the app putting sounds in their mouth. Additive and unindexed —
+      rows kept before it existed simply have none. */
+  phonetic?: string
+  /** `vocabulary` only — the part of speech, abbreviated the way a dictionary
+      column abbreviates it: `n.`, `v.`, `adj.` Same provenance rule as
+      `phonetic`: the look-up sets it, a hand never does. */
+  pos?: string
 }
 
 /** One stretch of time spent reading one book.

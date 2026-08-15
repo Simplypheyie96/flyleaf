@@ -21,10 +21,11 @@ import LeafButton from '../components/LeafButton'
 import DateField from './DateField'
 import Recorder from './Recorder'
 import { Avatar } from './avatars'
-import { CloseIcon, CycleIcon, ImageIcon, VoiceIcon } from '../components/TabIcons'
+import { CloseIcon, CycleIcon, ImageIcon, SearchIcon, VoiceIcon } from '../components/TabIcons'
 import { todayISO } from '../components/date/dates'
 import type { Book, Entry, EntryType, Stance } from '../data/db'
 import { KIND, KINDS, STANCE, STANCES } from './kinds'
+import { lookUp, remembered, warm, type Sense } from './dictionary'
 import { useDictation } from './dictation'
 import { addKeep, editKeep } from './keeps'
 import { shrink, tooBig } from './shrink'
@@ -69,6 +70,15 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
   const [busy, setBusy] = useState(false)
   /* The one thing that went wrong, said in the sheet rather than swallowed. */
   const [snag, setSnag] = useState<string>()
+  /* The two facts the look-up brings back beside the definition. They ride
+     along invisibly — the sheet never shows them — and land on the card.
+     Cleared the moment the word changes, so a reworded headword can never
+     keep another word's pronunciation. */
+  const [phonetic, setPhonetic] = useState<string>()
+  const [pos, setPos] = useState<string>()
+  const [looking, setLooking] = useState(false)
+  /* Said under the meaning box, not as a blocker: the pen always works. */
+  const [lookSnag, setLookSnag] = useState<string>()
   const photo = useRef<HTMLInputElement>(null)
 
   /* Two fields on this sheet carry a button on their label line — the face
@@ -106,6 +116,8 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
   useEffect(() => {
     if (!open) return
     setBusy(false)
+    setLooking(false)
+    setLookSnag(undefined)
     if (editing) {
       setType(editing.type)
       setText(editing.text ?? '')
@@ -119,6 +131,8 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       setKeptOn(editing.keptOn)
       setMedia(editing.media)
       setDuration(editing.duration)
+      setPhonetic(editing.phonetic)
+      setPos(editing.pos)
       return
     }
     const saved = localStorage.getItem(draftKey)
@@ -137,6 +151,8 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
         setFacing(false)
         setMedia(undefined)
         setDuration(undefined)
+        setPhonetic(d.phonetic)
+        setPos(d.pos)
         return
       } catch {}
     }
@@ -152,6 +168,8 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
     setKeptOn(todayISO())
     setMedia(undefined)
     setDuration(undefined)
+    setPhonetic(undefined)
+    setPos(undefined)
   }, [open, editing, start, draftKey])
 
   /* Auto-save unsaved draft to localStorage so no words are ever lost */
@@ -160,11 +178,11 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       try {
         localStorage.setItem(
           draftKey,
-          JSON.stringify({ type, text, name, page, chapter, percent, keptOn, stance }),
+          JSON.stringify({ type, text, name, page, chapter, percent, keptOn, stance, phonetic, pos }),
         )
       } catch {}
     }
-  }, [draftKey, editing, type, text, name, page, chapter, percent, keptOn, stance])
+  }, [draftKey, editing, type, text, name, page, chapter, percent, keptOn, stance, phonetic, pos])
 
   /* Listening into a sheet that has closed is listening into the room. */
   useEffect(() => {
@@ -182,6 +200,69 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
     : asks.media === 'image' || asks.media === 'audio'
       ? media !== undefined
       : text.trim().length > 0
+
+  /* The button beside Dictate on a vocabulary keep. One fetch, no queue: the
+     reader pressed it, so the sheet either fills the box in a moment or says
+     in one line that the pen still works. The definition lands in the meaning
+     box as ordinary text — fully theirs to rewrite — and the pronunciation and
+     part of speech appear under the word, which is where they will sit on the
+     card. Nothing the look-up learns is hidden from the person who asked. */
+  function fill(sense: Sense | undefined) {
+    if (sense) {
+      setText(sense.meaning)
+      setPhonetic(sense.phonetic)
+      setPos(sense.pos)
+    } else {
+      setLookSnag('The dictionary has not heard of it — write it in your own words.')
+    }
+  }
+
+  async function lookItUp() {
+    const word = name.trim()
+    if (!word || looking) return
+    setLookSnag(undefined)
+
+    /* The usual case, once the warm-up below has done its job: the answer is
+       already here and the boxes fill in this very click, with the button never
+       having said "Looking…" at all. Deliberately not routed through the
+       promise — awaiting one that has already settled still costs a render, and
+       a spinner that appears and vanishes between two frames is worse than no
+       spinner, because the eye catches the flicker and not the word. */
+    const here = remembered(word)
+    if (here) {
+      fill(here.sense)
+      return
+    }
+
+    setLooking(true)
+    try {
+      fill(await lookUp(word))
+    } catch {
+      setLookSnag('Couldn’t reach the dictionary — write it in your own words.')
+    } finally {
+      setLooking(false)
+    }
+  }
+
+  /* Fetch the word before anybody asks for it. A reader who has finished
+     typing a headword is a beat away from either writing the meaning
+     themselves or pressing the button, and the second of those is the one that
+     used to cost a second of staring — so the sheet spends that beat on the
+     network instead of on nothing. If they write their own meaning, the answer
+     is simply never collected and the only thing spent is one request the free
+     shelf would have served anyway.
+
+     Half a second of stillness, not a keystroke: this fires when the typing
+     stops, so "susurrus" is one request rather than eight. Vocabulary only —
+     no other kind has a word to look up — and never while an answer is already
+     on the card, since that word has plainly been asked about already. */
+  useEffect(() => {
+    if (!open || type !== 'vocabulary') return
+    const word = name.trim()
+    if (word.length < 2 || phonetic || pos) return
+    const t = setTimeout(() => warm(word), 500)
+    return () => clearTimeout(t)
+  }, [open, type, name, phonetic, pos])
 
   async function submit() {
     if (!ready || busy) return
@@ -208,6 +289,10 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
            nothing at all — the field only exists on the characters whose
            reader pressed the button. */
         face: type === 'character' && face ? face : undefined,
+        /* Only ever set by the look-up, and cleared the moment the word is
+           retyped, so what lands here always belongs to the headword above. */
+        phonetic: type === 'vocabulary' ? phonetic || undefined : undefined,
+        pos: type === 'vocabulary' ? pos || undefined : undefined,
       }
       if (editing) await editKeep(editing.id, shared)
       else await addKeep({ bookId: book.id, ...shared })
@@ -230,7 +315,25 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
      of lore are paragraphs. */
   const longhand = asks.media === 'none' || asks.media === 'optional-image'
 
-  const dictateButton = speech.supported && asks.text && (
+  /* Vocabulary's second way to answer the meaning field. It sits with Dictate
+     on the label line because the two are the same offer — "you don't have to
+     type this" — and disables rather than hides while there is no word yet,
+     so the affordance is learnable before it is usable. */
+  const lookUpButton = type === 'vocabulary' && asks.text && (
+    <button
+      type="button"
+      className={styles.lookUp}
+      onClick={lookItUp}
+      disabled={!name.trim() || looking}
+    >
+      <SearchIcon size={15} />
+      {looking ? 'Looking…' : 'Look it up'}
+    </button>
+  )
+
+  /* Not on vocabulary: its meaning field already has Look it up, and two ways
+     to not-type one field is one offer too many. */
+  const dictateButton = type !== 'vocabulary' && speech.supported && asks.text && (
     <button
       type="button"
       className={styles.dictate}
@@ -326,7 +429,16 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
                 id={nameId}
                 className={styles.input}
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value)
+                  /* A retyped headword keeps nothing of the old one's look-up:
+                     a card must never say another word's pronunciation. */
+                  if (type === 'vocabulary') {
+                    setPhonetic(undefined)
+                    setPos(undefined)
+                    setLookSnag(undefined)
+                  }
+                }}
                 placeholder={asks.name.placeholder}
                 maxLength={60}
                 autoFocus
@@ -341,6 +453,24 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
                 </span>
               )}
             </span>
+            {/* What the dictionary said the word sounds like, under the word
+                itself. It used to ride along invisibly and only appear once
+                the card was drawn, which meant the reader pressed Look it up,
+                watched one box fill, and had no way of knowing the sheet had
+                also learned how to say it. Shown here it is both a receipt —
+                the look-up found *this* word — and the more useful half of
+                what a dictionary is for. Under the word rather than under the
+                meaning, because a pronunciation belongs to the headword.
+
+                Read-only on purpose: it is the dictionary's own notation, and
+                a text field would invite a reader to correct IPA they did not
+                write. Retyping the word clears it, above. */}
+            {type === 'vocabulary' && (phonetic || pos) && (
+              <span className={styles.saying}>
+                {phonetic && <span className={styles.said}>{phonetic}</span>}
+                {pos && <span className={styles.part}>{pos}</span>}
+              </span>
+            )}
             {type === 'character' && name.trim() && facing && (
               <span className={styles.faceRow} role="group" aria-label="Pick a face">
                 {FACES.map((n) => (
@@ -414,7 +544,15 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
             <span className={styles.labelLine}>
               <label htmlFor={textId}>{asks.text.label}</label>
               {!ready || asks.name ? null : <span className={styles.optional}>required</span>}
-              {dictateButton}
+              {/* The two other ways to answer travel as one piece, so that on
+                  a phone too narrow for the whole line they land together on
+                  their own line rather than one above the other. */}
+              {(lookUpButton || dictateButton) && (
+                <span className={styles.labelActs}>
+                  {lookUpButton}
+                  {dictateButton}
+                </span>
+              )}
             </span>
             {longhand ? (
               /* THE FIELD IS SET IN THE FACE THE KEEP WILL BE READ BACK IN.
@@ -446,6 +584,13 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
                 onChange={(e) => setText(e.target.value)}
                 placeholder={asks.text.placeholder}
               />
+            )}
+            {/* The look-up failing is a shrug, not an error: one quiet line
+                that hands the job back to the pen, never a blocker. */}
+            {lookSnag && (
+              <p className={styles.lookHint} role="status">
+                {lookSnag}
+              </p>
             )}
           </div>
         )}

@@ -7,8 +7,8 @@
    the words" hands over underneath it, for the places a picture cannot go.
 
    The shape follows the kind, because the kinds are not interchangeable. A
-   quote is set in quotation marks and attributed; a character or a place leads
-   with its name; a plot thread carries how sure the reader was, since without
+   quote is set in quotation marks and attributed; a word, a character or a
+   place leads with its name; a plot thread carries how sure the reader was, since without
    it a hunch reads as a claim. */
 
 import type { Book, Entry } from '../data/db'
@@ -34,6 +34,7 @@ export function shareText(keep: Entry, book: Book) {
       body = [keep.name, said].filter(Boolean).join(' — ')
       body = keep.stance ? `${body}\n(${STANCE[keep.stance].label})` : body
       break
+    case 'vocabulary':
     case 'character':
     case 'place':
       body = [keep.name, said].filter(Boolean).join(' — ')
