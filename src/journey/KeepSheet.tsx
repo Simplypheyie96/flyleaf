@@ -43,13 +43,6 @@ import styles from './sheet.module.css'
    the scrolling made visible. */
 const FACES = Array.from({ length: 12 }, (_, n) => n)
 
-/** Which build wrote an auto-saved draft. It exists to tell a draft the reader
-    actually left behind from one the pre-fix code wrote by accident; see the
-    restore path and the auto-save effect. Bump it only if a future change makes
-    old drafts genuinely unsafe to restore — every bump discards, unseen, work a
-    reader may have left in a sheet she never came back to. */
-const DRAFT_V = 2
-
 interface Props {
   open: boolean
   onClose: () => void
@@ -59,9 +52,40 @@ interface Props {
   /** Which kind a new keep starts as — the reader has usually already said, by
       choosing from the capture menu, and being asked twice is being ignored. */
   start?: EntryType
+  /** Everything this book already holds. Used for one thing only: refusing to
+      restore a draft that is a word-for-word copy of a keep the reader has
+      already made. See `held` below. */
+  kept?: Entry[]
 }
 
-function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
+/** IS THIS DRAFT JUST A COPY OF SOMETHING THE BOOK ALREADY HAS?
+
+    The draft exists to catch words on their way to being lost. Words that are
+    already safe in the book are not that, and handing them back is not rescuing
+    anything — it is showing the reader a second copy of a thing she finished
+    with and asking her to deal with it.
+
+    It is also the sturdy half of the stale-draft fix. The other half stops the
+    sheet WRITING a phantom; this stops one ever being RESTORED, whatever wrote
+    it and however old it is. A reader carrying a phantom from an older build
+    does not have to sit through it once before it goes, and any future variant
+    of the same mistake dies here rather than reaching her.
+
+    Strict on purpose: same kind, same words, same name, all three. Two keeps
+    that merely resemble each other are two keeps. */
+function held(d: { type?: string; text?: string; name?: string }, kept: Entry[]) {
+  const text = (d.text ?? '').trim()
+  const name = (d.name ?? '').trim()
+  if (!text && !name) return false
+  return kept.some(
+    (e) =>
+      e.type === d.type &&
+      (e.text ?? '').trim() === text &&
+      (e.name ?? '').trim() === name,
+  )
+}
+
+function KeepSheet({ open, onClose, book, editing, start = 'quote', kept = [] }: Props) {
   const [type, setType] = useState<EntryType>(start)
   const [text, setText] = useState('')
   const [name, setName] = useState('')
@@ -142,37 +166,48 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
       setPos(editing.pos)
       return
     }
+    /* WHAT, IF ANYTHING, IS WORTH RESTORING.
+
+       A stored draft is only handed back if it survives two questions: is it
+       readable at all, and is it actually unsaved work? Anything that fails
+       either one is deleted here and now — not shown once, not kept for next
+       time — and the sheet falls through to blank, which is what the reader
+       reached for. `held` answers the second question; see the note on it.
+
+       `kept` is read here but is deliberately not a dependency of this effect.
+       It is a new array on every render of the journey, so listing it would
+       reset the sheet — wiping whatever the reader is in the middle of typing —
+       every time anything in the book changed. The effect only runs when the
+       sheet opens, and on that render `kept` is already current. */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let draft: any = null
     const saved = localStorage.getItem(draftKey)
     if (saved) {
       try {
         const d = JSON.parse(saved)
-        setType(d.type ?? start)
-        setText(d.text ?? '')
-        setName(d.name ?? '')
-        setPage(d.page ?? '')
-        setChapter(d.chapter ?? '')
-        setPercent(d.percent ?? '')
-        setKeptOn(d.keptOn ?? todayISO())
-        setStance(d.stance ?? 'hunch')
-        setFace(0)
-        setFacing(false)
-        setMedia(undefined)
-        setDuration(undefined)
-        setPhonetic(d.phonetic)
-        setPos(d.pos)
-        /* RETIRE A DRAFT THE OLD CODE WROTE BY MISTAKE.
-           Before the `open` guard below existed, closing an edit sheet wrote the
-           entry that had just been saved back out as a draft, and nothing ever
-           took it away again — a restored draft is only deleted by keeping it,
-           so a reader who dismissed the phantom got it back every single time.
-           Every draft written from here on carries `v`, so one without it is
-           from the broken build and is shown to the reader ONCE and then let go.
-           Nothing is lost that she cannot see: the words are in the sheet in
-           front of her, and the moment she touches a field the auto-save puts
-           them back — stamped this time. */
-        if (d.v !== DRAFT_V) localStorage.removeItem(draftKey)
-        return
-      } catch {}
+        if (held(d, kept)) localStorage.removeItem(draftKey)
+        else draft = d
+      } catch {
+        localStorage.removeItem(draftKey)
+      }
+    }
+    if (draft) {
+      const d = draft as Record<string, string | undefined>
+      setType((d.type as EntryType) ?? start)
+      setText(d.text ?? '')
+      setName(d.name ?? '')
+      setPage(d.page ?? '')
+      setChapter(d.chapter ?? '')
+      setPercent(d.percent ?? '')
+      setKeptOn(d.keptOn ?? todayISO())
+      setStance((d.stance as Stance) ?? 'hunch')
+      setFace(0)
+      setFacing(false)
+      setMedia(undefined)
+      setDuration(undefined)
+      setPhonetic(d.phonetic)
+      setPos(d.pos)
+      return
     }
     setType(start)
     setText('')
@@ -218,11 +253,24 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
      which is all the guard needs. */
   useEffect(() => {
     if (!open || editing) return
-    if (!(text.trim() || name.trim() || page || chapter || percent)) return
+    /* AN EMPTIED SHEET IS AN INSTRUCTION.
+
+       A reader who selects her words and deletes them has said, as plainly as
+       the interface allows, that she does not want them. Leaving the last
+       draft sitting in storage because there is nothing new to overwrite it
+       with turns that into the opposite: she clears the sheet, closes it,
+       comes back, and the words she just deleted are waiting for her. Empty
+       does not mean "nothing to save", it means "throw away what was there". */
+    if (!(text.trim() || name.trim() || page || chapter || percent)) {
+      try {
+        localStorage.removeItem(draftKey)
+      } catch {}
+      return
+    }
     try {
       localStorage.setItem(
         draftKey,
-        JSON.stringify({ v: DRAFT_V, type, text, name, page, chapter, percent, keptOn, stance, phonetic, pos }),
+        JSON.stringify({ type, text, name, page, chapter, percent, keptOn, stance, phonetic, pos }),
       )
     } catch {}
   }, [draftKey, editing, type, text, name, page, chapter, percent, keptOn, stance, phonetic, pos])
