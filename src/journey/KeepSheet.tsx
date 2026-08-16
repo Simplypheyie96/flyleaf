@@ -43,6 +43,13 @@ import styles from './sheet.module.css'
    the scrolling made visible. */
 const FACES = Array.from({ length: 12 }, (_, n) => n)
 
+/** Which build wrote an auto-saved draft. It exists to tell a draft the reader
+    actually left behind from one the pre-fix code wrote by accident; see the
+    restore path and the auto-save effect. Bump it only if a future change makes
+    old drafts genuinely unsafe to restore — every bump discards, unseen, work a
+    reader may have left in a sheet she never came back to. */
+const DRAFT_V = 2
+
 interface Props {
   open: boolean
   onClose: () => void
@@ -153,6 +160,17 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
         setDuration(undefined)
         setPhonetic(d.phonetic)
         setPos(d.pos)
+        /* RETIRE A DRAFT THE OLD CODE WROTE BY MISTAKE.
+           Before the `open` guard below existed, closing an edit sheet wrote the
+           entry that had just been saved back out as a draft, and nothing ever
+           took it away again — a restored draft is only deleted by keeping it,
+           so a reader who dismissed the phantom got it back every single time.
+           Every draft written from here on carries `v`, so one without it is
+           from the broken build and is shown to the reader ONCE and then let go.
+           Nothing is lost that she cannot see: the words are in the sheet in
+           front of her, and the moment she touches a field the auto-save puts
+           them back — stamped this time. */
+        if (d.v !== DRAFT_V) localStorage.removeItem(draftKey)
         return
       } catch {}
     }
@@ -172,16 +190,41 @@ function KeepSheet({ open, onClose, book, editing, start = 'quote' }: Props) {
     setPos(undefined)
   }, [open, editing, start, draftKey])
 
-  /* Auto-save unsaved draft to localStorage so no words are ever lost */
+  /* Auto-save unsaved draft to localStorage so no words are ever lost.
+
+     A CLOSED SHEET MUST NEVER WRITE ONE, and that guard is the whole of this
+     fix. The fields are not emptied when the sheet closes — see the note above,
+     a sheet that empties itself while it is still sliding away does it in front
+     of the reader — so for the entire time the sheet is shut, this component is
+     still holding the last entry's words. Every other effect in the file is
+     already gated on `open` for exactly that reason; this one was not.
+
+     What that cost, in the order it happened: a reader changes an entry and
+     presses Save. `submit` writes it to the book and deletes the draft, then
+     calls `onClose`, which sets `editing` back to null. `editing` is a
+     dependency here, so this effect fired one beat after the draft was deleted,
+     found `!editing` newly true and `text` still full of the entry she had just
+     finished with, and wrote it all straight back. The next time she reached for
+     a blank sheet she got that entry again, looking for all the world like she
+     was still editing it. Dismissing an edit without saving did the same thing.
+
+     `open` is deliberately NOT in the dependency list, and removing it is not a
+     tidy-up — it is the difference between the fix working and not. Listed, this
+     effect would also run on the commit where the sheet OPENS, and on that one
+     commit reset-on-open has only QUEUED its clears: the fields still hold the
+     last entry. It would read those, call them unsaved work, and write the very
+     draft we are here to prevent. Unlisted, the effect only ever runs when a
+     field actually changes, and it reads whatever `open` is at that moment —
+     which is all the guard needs. */
   useEffect(() => {
-    if (!editing && (text.trim() || name.trim() || page || chapter || percent)) {
-      try {
-        localStorage.setItem(
-          draftKey,
-          JSON.stringify({ type, text, name, page, chapter, percent, keptOn, stance, phonetic, pos }),
-        )
-      } catch {}
-    }
+    if (!open || editing) return
+    if (!(text.trim() || name.trim() || page || chapter || percent)) return
+    try {
+      localStorage.setItem(
+        draftKey,
+        JSON.stringify({ v: DRAFT_V, type, text, name, page, chapter, percent, keptOn, stance, phonetic, pos }),
+      )
+    } catch {}
   }, [draftKey, editing, type, text, name, page, chapter, percent, keptOn, stance, phonetic, pos])
 
   /* Listening into a sheet that has closed is listening into the room. */
