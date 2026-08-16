@@ -1147,6 +1147,7 @@ function BookJourney() {
         book={book}
         editing={editing ?? undefined}
         start={adding ?? 'quote'}
+        kept={keeps}
       />
 
       {/* Delete Confirmation Gate Modal */}
