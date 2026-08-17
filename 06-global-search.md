@@ -24,7 +24,6 @@ adding new books (book search from 03 lives alongside).
 
 ## Animation (step 3)
 - Results settle in with a soft stagger. Scope switch cross-fades.
-  Reduced-motion: instant. 
 
 ## Constraints
 - Fast + forgiving: partial matches, typo tolerance where cheap.

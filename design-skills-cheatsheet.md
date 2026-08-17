@@ -505,7 +505,6 @@ There is also a shadcn MCP (`npx shadcn@latest mcp init --client claude`) that l
 | `/60fps-animation` | Fix janky CSS animation, hit 60fps. |
 | `/fixing-motion-performance` | Layout thrashing, compositor properties, scroll-linked perf. |
 | `/optimize-web-animations` | Page perf profiling with focus on animation and memory leaks. |
-| `/accessible-animation` | `prefers-reduced-motion` and motion a11y. |
 
 ---
 

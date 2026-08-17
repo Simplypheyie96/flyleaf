@@ -11,7 +11,7 @@
 | Question | Read | Status |
 |---|---|---|
 | Every colour, surface, material, shadow, radius | **`src/styles/tokens.css`** (772 lines) | **Single source of truth.** Declared as such in `CLAUDE.md`. Already OKLCH. No hard-coded colour may exist outside it. |
-| Motion values and reduced-motion behaviour | **`src/styles/motion.css`** + `src/motion/` | Authority for timing/easing |
+| Motion values | **`src/styles/motion.css`** + `src/motion/` | Authority for timing/easing |
 | Typefaces, type scale, tracking | **`src/styles/tokens.css`** (the `---- Type ----` block) and **`src/main.tsx`** for what is actually loaded | Single source of truth. **Two families**, plus one decorative face used in exactly one place: serif (Instrument Serif) / sans (Instrument Sans) / hand (Patrick Hand, note cards only). A monospace was retired — see the `---- Type ----` comment for why. |
 | Direction, guardrails, negative prompt, IA, per-screen skill routing | **`CLAUDE.md`** (212 lines) | Standing brief for the whole project |
 | Texture, rhythm, chrome polish — **qualities only** | **`refs/inspirations/`**, `refs/journey-references.md` | Strictly scoped; see the guardrail below |
@@ -50,14 +50,13 @@ at the cost of contrast.
 - **AA+ in both themes, always.** The token sheet's comments record the measurements
   behind specific values — read the comment before changing a number, because several
   were tuned to clear a measured failure.
-- **Motion is never skipped, never unguarded.** Every interaction ships with a
-  `prefers-reduced-motion` fallback.
+- **Motion is never skipped.** It is specified up front, not bolted on after.
 
 ## Build order (from CLAUDE.md — applies to every screen)
 
 1. Static layout, light mode, mobile, no motion — approve the look first
 2. Secondary states and variants
-3. Motion, one interaction at a time, each with reduced-motion fallback
+3. Motion, one interaction at a time
 4. Dark mode, derived as one variable change from light
 5. iPad and desktop — first-class, not stretched phones
 
