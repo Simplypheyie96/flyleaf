@@ -43,7 +43,7 @@ matching Flyleaf's warm nostalgic aesthetic. No book is ever coverless.
 
 ## Animation (step 3)
 - Result appears, tap to add → book flies/settles onto the shelf with a soft
-  physical motion. Reduced-motion: simple fade.
+  physical motion.
 
 ## Constraints
 - FONT: app serif for all cover typesetting.

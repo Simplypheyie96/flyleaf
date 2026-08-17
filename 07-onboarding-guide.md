@@ -27,7 +27,7 @@ full of text.
 
 ## Animation (step 3)
 - Coach marks fade/point softly; the guiding thread draws forward as steps
-  complete; celebratory but subtle motion at the end. Reduced-motion fallbacks.
+  complete; celebratory but subtle motion at the end.
 
 ## Constraints
 - Welcoming, not instructional: minimal words, lots of showing.

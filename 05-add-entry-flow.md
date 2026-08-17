@@ -24,7 +24,7 @@ a blank-form chore.
 - Sheet: glass slide-up with blur bloom; dismiss drags down.
 - Type switch: gentle cross-fade between capture modes.
 - Voice orb: pulse on record, glow on save.
-- Save: entry flies to its place on the thread. Reduced-motion fallbacks for all.
+- Save: entry flies to its place on the thread.
 
 ## Constraints
 - Chrome = glass; the entry preview = paper. Encourage, don't interrogate:

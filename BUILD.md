@@ -56,14 +56,14 @@
 ## Per-step checklist (Claude runs this each time)
 - [ ] Named the skills + scope, got my yes.
 - [ ] Built the static screen first; I approved the look.
-- [ ] Added motion (reduced-motion fallback), then dark mode, then desktop/iPad.
+- [ ] Added motion, then dark mode, then desktop/iPad.
 - [ ] Ran the QA skills (design-guidelines + accessibility); fixed flags.
 - [ ] Opened a PR with preview link + skills used; waited for my approval.
 - [ ] Merged only after sign-off.
 
 ## Definition of done (per screen)
 Premium in light AND dark, works at 360px through desktop, real hover/press/focus
-+ loading/empty/error states, AA+ contrast, reduced-motion honored, and it looks
++ loading/empty/error states, AA+ contrast, and it looks
 like an expensive, considered app. Not "plausible" — actually polished.
 
 ## Final launch (only after all steps approved)

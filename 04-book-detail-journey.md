@@ -40,7 +40,6 @@ memory of that book together.
 - Book open: a page-turn / cover-open transition from the library into detail.
 - Thread stitches on scroll; entries settle in with a gentle tape-down motion.
 - Orb pulse (record) + glow (playback).
-- ALL with `prefers-reduced-motion` fallbacks.
 
 ## Constraints
 - MATERIAL: entries = aged paper/tactile; add-entry sheet + orb chrome = glass.
