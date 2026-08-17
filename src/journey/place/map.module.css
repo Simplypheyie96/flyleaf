@@ -1,0 +1,327 @@
+/* The map, dressed as paper.
+
+   Tiles arrive as photographs of the world, which is a different material from
+   everything else Flyleaf draws. Left alone they sit on the page like a
+   screenshot pasted into a notebook. The frame, the inset edge and the faint
+   warmth over the tiles are all there to make the map read as something
+   *printed on* the card rather than something floating above it. */
+
+.map {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  /* The ground under an unmeasured or half-loaded map. Never white: a white
+     rectangle flashing before the tiles land reads as a broken image. */
+  background: var(--card-fallback, var(--color-paper));
+  isolation: isolate;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.tile {
+  position: absolute;
+  width: 256px;
+  height: 256px;
+  max-width: none;
+  opacity: 0;
+  transition: opacity 220ms ease-out;
+  pointer-events: none;
+}
+
+.tile[data-here] {
+  opacity: 1;
+}
+
+/* ── The pin ────────────────────────────────────────────────────────────────
+   A cross, not a teardrop. A teardrop marker has its point at the bottom and
+   its mass above it, so the thing you are aiming with is the part you are least
+   looking at. A cross has its target where your eye already is — dead centre —
+   and the ring keeps it legible over both a pale field and a dark one. */
+
+.pin {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  translate: -50% -50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--color-paper);
+  background: var(--color-place, var(--color-accent-text));
+  box-shadow: 0 1px 4px oklch(0 0 0 / 0.35);
+  pointer-events: none;
+}
+
+/* On the picker, the same mark grows a crosshair so the exact point being
+   pinned is not hidden under the dot itself. */
+.pin[data-live]::before,
+.pin[data-live]::after {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  translate: -50% -50%;
+  background: var(--color-paper);
+}
+
+.pin[data-live]::before {
+  width: 2px;
+  height: 34px;
+}
+
+.pin[data-live]::after {
+  width: 34px;
+  height: 2px;
+}
+
+.credit {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 2px 6px;
+  border-start-start-radius: var(--radius-xs, 4px);
+  background: color-mix(in oklch, var(--color-paper), transparent 12%);
+  font-family: var(--font-app);
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--color-ink-soft);
+  pointer-events: none;
+}
+
+/* ── The picker ─────────────────────────────────────────────────────────── */
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.seek {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.seekBox {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+}
+
+.seekBox::placeholder {
+  color: var(--color-ink-faint);
+}
+
+.seekBox:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+.seekGo {
+  composes: pressable from '../../components/pressable.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  background: var(--color-accent-tint);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-strong);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.seekGo:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.seekGo:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+.seekWord {
+  white-space: nowrap;
+}
+
+/* Capped at about three and a half rows, so the fourth is visibly cut and the
+   list reads as scrollable. Five answers at full height would be 200px of
+   list pushed in above the map inside a sheet with roughly 400 to give — the
+   map would go under the fold every time a search came back with options. */
+.hits {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  max-block-size: 150px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-2);
+  list-style: none;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+}
+
+.hit {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  inline-size: 100%;
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  text-align: start;
+  cursor: pointer;
+}
+
+.hitName {
+  font-weight: var(--weight-strong);
+}
+
+/* The gloss is support, not a second line of the name — a step down in size and
+   a step back in colour, so the eye still reads one row per answer. */
+.hitAbout {
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  color: var(--color-ink-soft);
+}
+
+.hit:hover,
+.hit:focus-visible {
+  background: color-mix(in oklch, var(--color-ink), transparent 92%);
+}
+
+.hit:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -2px;
+}
+
+.canvas {
+  position: relative;
+  block-size: 240px;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--card-fallback, var(--color-paper));
+  isolation: isolate;
+  cursor: grab;
+  /* The map takes the horizontal drag; the sheet keeps the vertical scroll, so
+     a reader panning east never fights the page underneath. */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.canvas:active {
+  cursor: grabbing;
+}
+
+.zooms {
+  position: absolute;
+  inset: var(--space-3) var(--space-3) auto auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: 0 1px 4px oklch(0 0 0 / 0.25);
+}
+
+.zoom {
+  inline-size: 34px;
+  block-size: 34px;
+  border: 0;
+  background: color-mix(in oklch, var(--color-paper), transparent 6%);
+  font-family: var(--font-app);
+  font-size: 17px;
+  line-height: 1;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.zoom:disabled {
+  color: var(--color-ink-faint);
+  cursor: default;
+}
+
+.zoom:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -2px;
+}
+
+.aim,
+.mapSnag {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  text-wrap: pretty;
+}
+
+.aim {
+  color: var(--color-ink-soft);
+}
+
+.mapSnag {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in oklch, var(--color-danger), transparent 70%);
+  background: color-mix(in oklab, var(--color-danger), var(--color-paper) 92%);
+  color: var(--color-ink);
+}
+
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.act {
+  composes: pressable from '../../components/pressable.module.css';
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-strong);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.act[data-lead='true'] {
+  background: var(--color-accent-tint);
+  border-color: transparent;
+}
+
+.act:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.act:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    transition: none;
+  }
+}

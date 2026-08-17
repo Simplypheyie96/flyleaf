@@ -276,11 +276,11 @@
 }
 
 .optional::before {
-  content: '(';
+  content: "(";
 }
 
 .optional::after {
-  content: ')';
+  content: ")";
 }
 
 .input,
@@ -322,12 +322,41 @@
   display: block;
 }
 
+/* A textarea is inline-level, so a block wrapper hangs a line-box descender
+   under it — four-odd pixels in which `.penned`'s bottom edge is not the
+   field's bottom edge, and every measurement taken off the corner below is
+   wrong by that much. */
+.penned .area {
+  display: block;
+}
+
+/* The corner the handle stands in, bought from the field.
+
+   Asked for by the handle itself rather than set on every `.penned`, because
+   `.penned` is also what Longhand.tsx wraps the full-screen box in, and that
+   page has no handle and nothing to reserve for. `:has` keeps the two apart
+   without either file having to know the other's specificity.
+
+   The end padding is inside the scroll box, which is exactly why it works —
+   the last line of a long entry stops above the mark instead of running under
+   it at every length, not only while the box is short enough not to scroll.
+   40px against a mark that reaches 31px off the bottom leaves 9 clear.
+
+   And no native grabber: `resize: vertical` puts one in this same corner, and
+   two handles in one corner is a coin toss over which one a thumb gets. The
+   one that opens the whole screen is worth more than the one that adds a line
+   and a half, so it takes the corner outright. */
+.penned:has(.room) .area {
+  resize: none;
+  padding-block-end: calc(var(--space-3) + 1.75rem);
+}
+
 /* The open quote, hung in a gutter of its own the way a pull-quote hangs it.
    Not typed by the reader and not stored — the mark belongs to the form, and a
    reader who copies out their own opening quotation mark should get theirs on
    top of this one without either looking wrong. */
-.penned[data-kind='quote']::before {
-  content: '“';
+.penned[data-kind="quote"]::before {
+  content: "“";
   position: absolute;
   /* Measured, not eyeballed. The field sets 16px Garamond held to the caps
      regime, so it renders near 17.7 on a 26.4 line with 12 of padding above
@@ -345,7 +374,7 @@
   pointer-events: none;
 }
 
-.area[data-kind='quote'] {
+.area[data-kind="quote"] {
   font-family: var(--font-read);
   /* Held to the caps regime, not the x-height one: a copied-out line is read
      as a piece of set type rather than as running interface prose, and the
@@ -366,7 +395,7 @@
    roughly the x-height of 16 of Quicksand — the same apparent size as every
    other field on the sheet — while staying clear of the 16px floor that makes
    iOS zoom the whole sheet on focus. */
-.area[data-kind='note'] {
+.area[data-kind="note"] {
   font-family: var(--font-hand);
   font-size-adjust: none;
   font-size: 1.25rem;
@@ -392,7 +421,8 @@
   line-height: var(--leading-body);
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklch, var(--color-ink), transparent 70%) transparent;
+  scrollbar-color: color-mix(in oklch, var(--color-ink), transparent 70%)
+    transparent;
 }
 
 .input:focus-visible,
@@ -465,8 +495,8 @@
   color: var(--color-ink);
 }
 
-.chip[aria-pressed='true'],
-.chip[aria-checked='true'] {
+.chip[aria-pressed="true"],
+.chip[aria-checked="true"] {
   background: var(--color-chip-active);
   border-color: var(--border-hairline);
   color: var(--color-ink);
@@ -477,12 +507,12 @@
    and finding the place notch on the thread is one recognition and not two.
    Only when chosen: seven tinted pills sitting side by side would be a paint
    chart, and the card itself is told apart by its shape, not its tint. */
-.chip[data-kind][aria-checked='true'] {
+.chip[data-kind][aria-checked="true"] {
   background: color-mix(in oklch, var(--kind), transparent 84%);
   border-color: color-mix(in oklch, var(--kind), transparent 50%);
 }
 
-.chip[data-kind][aria-checked='true'] svg {
+.chip[data-kind][aria-checked="true"] svg {
   color: var(--kind);
 }
 
@@ -521,7 +551,7 @@
    field below it, and filled while listening the spill showed — while the
    invisible band centred on it still gives a thumb the whole --tap-min. */
 .dictate::before {
-  content: '';
+  content: "";
   position: absolute;
   inset-inline: 0;
   top: 50%;
@@ -553,7 +583,8 @@
   gap: var(--space-2);
   padding-block: var(--space-2);
   padding-inline: var(--space-4);
-  border: 1px solid color-mix(in oklch, var(--color-accent-text), transparent 60%);
+  border: 1px solid
+    color-mix(in oklch, var(--color-accent-text), transparent 60%);
   border-radius: var(--radius-pill);
   background: var(--color-accent-tint);
   font-family: var(--font-app);
@@ -574,7 +605,7 @@
    text-height so it cannot spill over the field below, while the thumb still
    gets the whole --tap-min. */
 .lookUp::before {
-  content: '';
+  content: "";
   position: absolute;
   inset-inline: 0;
   top: 50%;
@@ -606,17 +637,250 @@
   margin-inline-start: 0;
 }
 
-/* The look-up's one line under the meaning box. It lives inside the field's
-   label column, which speaks uppercase — this is a sentence, so it takes its
-   own voice back. */
-.lookHint {
+/* ---- More room ----
+
+   The handle in the field's own trailing bottom corner that hands the writing
+   the whole screen. See Longhand.tsx.
+
+   It is INSIDE the box, and that is the correction. It used to sit on the
+   label row beside Dictate and Look it up, in a line with 83.5px to spare at
+   375px, and the moment it grew its word the row wrapped and pushed the field
+   34px down the screen — mid-sentence. A control that is out of the flow
+   cannot push anything, whatever it says, so the width problem stops being a
+   problem instead of being budgeted around. It also now sits on the thing it
+   acts on, in the corner a box is grabbed by, rather than in a row of ways to
+   ANSWER the field.
+
+   Quieter than those two pills, and that is still the point: they are ways of
+   answering, which is what the reader came to do, and this only changes how
+   big the same field is. So it is drawn in the faint ink the field's asides
+   use rather than the accent, and at rest it is a mark and nothing else. */
+.room {
+  position: absolute;
+  /* Inside the border, clear of both edges. The mark's own box is 23px tall
+     (a 15px glyph on 4px of padding), so from 8 it reaches 31 off the bottom —
+     the number `.penned .area` reserves its end padding against. */
+  inset-block-end: var(--space-2);
+  inset-inline-end: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-1);
+  padding-inline: var(--space-2);
+  border: none;
+  border-radius: var(--radius-pill);
+  /* The field's own fill, not `none`. The end padding below is inside the
+     textarea's scroll box, so a long entry's text travels THROUGH that strip
+     on its way out of view; without a fill the writing would slide under the
+     mark and the two would overlap for the length of a scroll. */
+  background: var(--field-fill);
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-display);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  /* Flat, so the word costs no height. The glyph beside it is 15px and the
+     label is 11px; left at the inherited leading the text's line box would be
+     the taller of the two, and the button would grow 3px the moment the word
+     appeared — a nudge to everything below it, delivered while someone is
+     mid-sentence. */
+  line-height: 1;
+  color: var(--color-ink-faint);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-quick) var(--ease-out);
+}
+
+/* The same invisible 44px band Dictate and Look it up wear, so a 15px glyph on
+   a baseline row is still a thumb-sized target without the visible mark
+   growing tall enough to spill over the field below it. */
+.room::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: max(var(--tap-min), 100%);
+  translate: 0 -50%;
+}
+
+.room:hover,
+.room:focus-visible {
+  color: var(--color-ink-soft);
+}
+
+/* Its own ring. On the label row the mark stood in open space and a colour
+   shift was enough to find it by; sitting on the field it is one of two
+   focusable things inside the same rectangle, and "which of these is focused"
+   is not a question a keyboard user should have to answer by comparing greys.
+   The field's own ring is drawn on the outside of the box, this one on the
+   inside, so the two never trace the same line. */
+.room:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 1px;
+}
+
+/* Clipped rather than removed, so the button keeps one name.
+   Both halves say "More room" now. They did not always: on the label row the
+   visible half was shortened to "Room" to fit 83.5px, which left a control a
+   screen reader announced differently from the one on the page. Out of the
+   flow there is nothing to fit, so the two agree again — and the text is still
+   clipped rather than dropped, because the accessible name is built from this
+   element and a name that appears only at length is a control met twice. */
+.roomWord {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Past about four lines the offer is finally worth something, so it says what
+   it is. It also stops being faint: at this point the box the reader is typing
+   into has begun to scroll, and the way out should read as available rather
+   than as another piece of grey furniture. */
+.room[data-loud] {
+  color: var(--color-ink-soft);
+}
+
+.room[data-loud] .roomWord {
+  position: static;
+  inline-size: auto;
+  block-size: auto;
+  clip-path: none;
+  animation: roomSaidSo var(--dur-base) var(--ease-out);
+}
+
+@keyframes roomSaidSo {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room,
+  .room[data-loud] .roomWord {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ---- What the look-up came back with ----
+
+   THIS USED TO BE SET IN THE SAME FAINT GREY AS EVERY FIELD LABEL ON THE
+   SHEET, at the same size, inside the same label column — a sentence with
+   nothing about it saying it was new, sitting under a box that had not
+   changed. Readers pressed Look it up, saw no visible difference, and decided
+   the button was broken. It is still not an error and it still never blocks
+   the pen; it just has to be legible as an answer to something pressed a
+   second ago. A tinted ground and a mark of its own do that. Red and an alarm
+   icon would overshoot it, so neither is used for the two ordinary outcomes.
+
+   It also has to sit outside the label column's voice: that column speaks in
+   small uppercase, and this is a sentence. */
+.lookNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  /* The global `p { max-width: var(--measure) }` is for running prose. This is
+     a drawn box tied to the field above it, and on a wide sheet the cap stopped
+     it 47px short of that field's right edge — which reads as misalignment, not
+     as a comfortable measure. */
+  max-inline-size: none;
   margin: 0;
+  margin-block-start: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--tone-edge);
+  background: var(--tone-fill);
   font-size: var(--text-xs);
   font-weight: var(--weight-body);
   letter-spacing: 0;
+  line-height: var(--leading-body);
   text-transform: none;
-  color: var(--color-ink-faint);
+  color: var(--color-ink);
   text-wrap: pretty;
+}
+
+/* Three outcomes, three grounds. A meaning that arrived under a different
+   headword is good news with a caveat and takes the sage the app already uses
+   for a thing successfully kept. A word the shelves simply do not have is the
+   app shrugging, in the accent it uses to mean "here is something". Nothing
+   answering at all is a fault, and wears the danger tint — "try again in a
+   moment" is only worth saying if the reader can see it is the advice. */
+.lookNote[data-tone="found"] {
+  --tone-edge: color-mix(in oklch, var(--color-quote), transparent 55%);
+  --tone-fill: color-mix(in oklab, var(--color-quote), var(--color-paper) 88%);
+  --tone-mark: color-mix(in oklab, var(--color-quote), var(--color-ink) 45%);
+}
+
+.lookNote[data-tone="miss"] {
+  --tone-edge: color-mix(in oklch, var(--color-accent-text), transparent 72%);
+  --tone-fill: color-mix(
+    in oklab,
+    var(--color-accent-text),
+    var(--color-paper) 92%
+  );
+  --tone-mark: var(--color-accent-text);
+}
+
+.lookNote[data-tone="gone"] {
+  --tone-edge: color-mix(in oklch, var(--color-danger), transparent 70%);
+  --tone-fill: color-mix(in oklab, var(--color-danger), var(--color-paper) 92%);
+  --tone-mark: var(--color-danger);
+}
+
+.lookMark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 16px;
+  block-size: 16px;
+  /* The mark is a circle and the text is a line of type: aligning their boxes
+     leaves the disc sitting a hair high against the first line's x-height. */
+  margin-block-start: 1px;
+  border-radius: 50%;
+  background: var(--tone-mark);
+  font-family: var(--font-app);
+  font-size: 11px;
+  font-weight: var(--weight-strong);
+  line-height: 1;
+  color: var(--color-paper);
+}
+
+/* The ring that turns while a word is being asked after. It goes IN the
+   button, in place of the magnifier, so the movement is where the finger just
+   was — "Looking…" on its own was a word-swap on a control the eye had already
+   left, which is feedback nobody receives. */
+.lookSpin {
+  flex: none;
+  inline-size: 14px;
+  block-size: 14px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in oklch, var(--color-ink), transparent 78%);
+  border-block-start-color: var(--color-ink);
+  animation: lookTurn 620ms linear infinite;
+}
+
+@keyframes lookTurn {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* Reduced motion still needs to say "working". The ring stops turning and
+   breathes instead — no rotation, no travel, only the opacity change, which is
+   what the setting is actually asking for. */
+@media (prefers-reduced-motion: reduce) {
+  .lookSpin {
+    animation: lookBreathe 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes lookBreathe {
+  50% {
+    opacity: 0.35;
+  }
 }
 
 /* ---- Capture: the microphone and the camera roll ----
@@ -671,7 +935,7 @@
      The grain is dialled back from the shared step because that step was tuned
      against the ink pill, where a dark ground swallows most of it. On this pale
      fill the same opacity reads as speckle rather than surface. */
-  composes: pressable from '../components/pressable.module.css';
+  composes: pressable from "../components/pressable.module.css";
   --grain-action-opacity: 0.055;
   display: inline-flex;
   align-items: center;
@@ -689,7 +953,7 @@
 }
 
 /* The one that starts the act, rather than the one that repeats it. */
-.capture[data-lead='true'] {
+.capture[data-lead="true"] {
   background: var(--color-accent-tint);
   border-color: transparent;
 }
@@ -715,6 +979,44 @@
   align-items: center;
   gap: var(--space-4);
   padding-block: var(--space-5);
+}
+
+/* ── Two ways to say where ──────────────────────────────────────────────────
+
+   A place can be kept as a pin or as a picture, and neither is the fallback
+   for the other, so both offers sit at the same weight in one column.
+
+   Stacked rather than side by side because they do not fit beside each other:
+   the panel's inner width at 375px is about 279px once the sheet's gutters and
+   the recorder's own padding are taken off, against two pills that want ~150px
+   each. Laid in a row they would each wrap their label onto a second line —
+   two ragged two-line buttons instead of two clean ones. */
+.recorder .offers {
+  /* Full width of the panel, so the hint below it starts a new line rather
+     than fighting the buttons for the remainder. Sized by `inline-size` and
+     not by a 100% flex-basis, because the panel turns into a column once
+     something is mounted and a basis of 100% would then be read as a height. */
+  inline-size: 100%;
+  flex: none;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.recorder .offers .capture {
+  /* Centred, because a left-aligned icon and label in a full-width pill puts
+     all the weight on one end and leaves a hole at the other. */
+  justify-content: center;
+}
+
+/* The pin, proved. Same height as a mounted print is allowed, so switching
+   between a picture and a map does not resize the sheet under the reader's
+   thumb — and short enough that the Keep button stays on screen. */
+.pinned {
+  inline-size: 100%;
+  flex: none;
+  block-size: 150px;
+  border: 1px solid var(--card-border);
+  box-shadow: inset 0 1px 0 var(--card-edge-light);
 }
 
 .mount {
@@ -744,6 +1046,113 @@
   border-radius: 2px;
 }
 
+/* ── The picture row, unframed ──────────────────────────────────────────────
+
+   `.recorder` above is a bordered, padded panel, and around the picture
+   chooser that was a field's worth of chrome wrapped around one pill — the
+   smallest job on the sheet given the largest object on it. A column of a
+   label, a button and a hint is what this always was; the label does the
+   grouping the border was doing badly, and nothing here draws a box until
+   there is actually something to put in one. */
+.media {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Side by side where they fit, stacked where they do not. Unlike the place
+   row's two offers — which are full-width alternatives — this row is usually
+   one button, and a button stretched across the sheet to hold two words reads
+   as a submit. */
+.media .offers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.media .rowHint {
+  margin: 0;
+}
+
+/* ── The receipt ────────────────────────────────────────────────────────────
+
+   Once there is something to show, the row becomes a column: the thing itself
+   under its corners, the file's own name saying which thing it is, then the
+   two things you might want next. Neither of those two is the lead action —
+   the loud button must never be the one that discards what was just chosen. */
+.kept {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+}
+
+.keptWord {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  /* The name can be longer than the sheet is wide, and a phone camera's is
+     nearly always long. It wraps inside the column rather than pushing the
+     panel out from under the tick. */
+  max-inline-size: 100%;
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-strong);
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+
+/* A filename is not prose and will not break at a space, because it has none.
+   Allowed to break anywhere, or "photo-2026-08-17-at-14.22.31.heic" would set
+   the minimum width of the whole sheet. */
+.keptName {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Drawn rather than typed: a check glyph is one missing font away from being
+   a box. */
+.tick {
+  position: relative;
+  flex: none;
+  inline-size: 18px;
+  block-size: 18px;
+  border-radius: 50%;
+  background: var(--color-accent-text);
+}
+
+.tick::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 5px;
+  inset-inline-start: 5px;
+  inline-size: 7px;
+  block-size: 3.5px;
+  border-inline-start: 1.8px solid var(--color-paper);
+  border-block-end: 1.8px solid var(--color-paper);
+  rotate: -45deg;
+}
+
+.keptActs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+/* Standing on the field fill, these cannot BE the field fill — that is one
+   flat rectangle with hairlines drawn across it. Raised to the level a chip
+   uses when it is on: a token that already means "a control on a control". */
+.kept .capture {
+  background: var(--color-chip-active);
+  border-color: var(--color-chip-active-border);
+}
+
 .corner {
   position: absolute;
   width: 20px;
@@ -752,24 +1161,24 @@
   clip-path: polygon(0 0, 100% 0, 0 100%);
 }
 
-.corner[data-at='tl'] {
+.corner[data-at="tl"] {
   inset-block-start: 0;
   inset-inline-start: 0;
 }
 
-.corner[data-at='tr'] {
+.corner[data-at="tr"] {
   inset-block-start: 0;
   inset-inline-end: 0;
   rotate: 90deg;
 }
 
-.corner[data-at='br'] {
+.corner[data-at="br"] {
   inset-block-end: 0;
   inset-inline-end: 0;
   rotate: 180deg;
 }
 
-.corner[data-at='bl'] {
+.corner[data-at="bl"] {
   inset-block-end: 0;
   inset-inline-start: 0;
   rotate: 270deg;
@@ -891,7 +1300,7 @@
    Under the canvas in paint order without being told to be — a ::before paints
    before its element's children, and nothing here claims a z-index. */
 .well::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -30px;
   border-radius: 50%;
@@ -927,7 +1336,7 @@
    a 64px object — well past the 44 floor, and taken out of the bloom's own air
    rather than out of the column's height. */
 .recOrb::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: -16px;
   border-radius: 50%;
@@ -959,7 +1368,7 @@
 }
 
 .recStop {
-  composes: pressable from '../components/pressable.module.css';
+  composes: pressable from "../components/pressable.module.css";
   /* The shared 0.1 was tuned against the dark ink pill. This pill is a pale
      film on a dark slab, and grain on a translucent surface reads as noise in
      the surface behind it. */
@@ -1186,7 +1595,8 @@
   /* The bust is drawn past the foot of its own sheet; the mount ends it. */
   overflow: hidden;
   background: var(--tint-reverse);
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-character) 32%, transparent);
+  box-shadow: 0 0 0 2px
+    color-mix(in oklab, var(--color-character) 32%, transparent);
   color: color-mix(in oklab, var(--tint-character), var(--tint-ink) 32%);
 }
 
@@ -1233,7 +1643,8 @@
 }
 
 .facePick:hover {
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-character) 40%, transparent);
+  box-shadow: 0 0 0 2px
+    color-mix(in oklab, var(--color-character) 40%, transparent);
 }
 
 .facePick:active {
@@ -1245,7 +1656,7 @@
    against twelve competing faces, it disappears. So the chosen face takes the
    character's own colour at full strength and a soft halo outside it: the ring
    says which, the halo says that a choice has been made at all. */
-.facePick[aria-pressed='true'] {
+.facePick[aria-pressed="true"] {
   box-shadow:
     0 0 0 2px var(--color-character),
     0 0 0 6px color-mix(in oklab, var(--color-character) 22%, transparent);
@@ -1334,8 +1745,22 @@
   white-space: nowrap;
 }
 
-.dateBox[aria-expanded='true'] {
+.dateBox[aria-expanded="true"] {
   border-color: var(--color-accent-text);
+}
+
+/* The caret says which way the calendar went. Without it the only sign the
+   press did anything is 388px of calendar arriving below the fold, which is
+   exactly the thing the reader cannot see. Named property rather than `all`:
+   `all` on an icon that also inherits colour means a hover repaint gets a
+   140ms fade it never asked for. */
+.dateBox > svg {
+  flex: none;
+  transition: rotate 180ms var(--ease-out);
+}
+
+.dateBox[aria-expanded="true"] > svg {
+  rotate: 180deg;
 }
 
 .datePicker {
@@ -1344,6 +1769,39 @@
   border-radius: var(--radius-md);
   border: 1px solid var(--field-border);
   background: var(--field-fill);
+  /* It unfolds out of the field rather than appearing whole, so the eye has
+     something to follow down to it — and `grid-template-rows` on the wrapper
+     is the one way to animate to a height nobody has measured. The overflow
+     clip is what makes the fold read as a fold instead of a slide. */
+  animation: dateUnfold 220ms var(--ease-out) both;
+  transform-origin: top center;
+}
+
+@keyframes dateUnfold {
+  from {
+    opacity: 0;
+    scale: 1 0.94;
+    translate: 0 -6px;
+  }
+}
+
+/* Reduced motion still needs the animation to RUN — `onAnimationEnd` is what
+   scrolls the calendar into view, and a picker that never fires it is a picker
+   that opens off-screen. So the movement goes and the event stays. */
+@media (prefers-reduced-motion: reduce) {
+  .dateBox > svg {
+    transition: none;
+  }
+
+  .datePicker {
+    animation: dateArrive 1ms linear both;
+  }
+}
+
+@keyframes dateArrive {
+  from {
+    opacity: 1;
+  }
 }
 
 /* ---- Sharing: a stage, a band of controls, and two ways out ----
@@ -1395,7 +1853,8 @@
      keepsake's plate is fitted to the stage and never asks for it, and one
      hairline track is a long way from the four the old sheet had. */
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklch, var(--color-ink), transparent 72%) transparent;
+  scrollbar-color: color-mix(in oklch, var(--color-ink), transparent 72%)
+    transparent;
   /* Room for a focus ring, taken back off the outside. Same pair as `.body`,
      and the same reason: a vertical scroller computes `overflow-x: auto` with
      it, so without this the stage clips its own children's outlines. */
@@ -1486,7 +1945,7 @@
   transition: background-color var(--dur-quick) var(--ease-out);
 }
 
-.swatchPick[aria-checked='true'] {
+.swatchPick[aria-checked="true"] {
   background: var(--color-chip-active);
   border-color: var(--border-hairline);
   box-shadow: var(--elevation-1);
@@ -1601,6 +2060,280 @@
   text-wrap: pretty;
 }
 
-[data-theme='dark'] .snag {
+[data-theme="dark"] .snag {
   color: oklch(0.82 0.08 32);
+}
+
+/* ── The chooser: what are you keeping? ─────────────────────────────────────
+
+   The sheet's first step. What stood here before was a row of eight small
+   chips at the top of the form — the most consequential question on the sheet
+   asked in its smallest type, above four other questions. Given its own step
+   it gets the room to be answered once, properly, and the form underneath only
+   ever has to ask about one kind. */
+
+.ask {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+  color: var(--color-ink-soft);
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Named `kindGroup` rather than `group`: this sheet already has a `.group` for
+   its fieldsets, and the two are nothing alike. */
+.kindGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Name and blurb on one line where there is room, wrapping to two where there
+   is not — this is a label for the four tiles under it, not a section of the
+   sheet, and giving it two guaranteed lines would make it read like one. */
+.groupHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.groupLabel {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
+  font-size: var(--text-md);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+.groupBlurb {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  color: var(--color-ink-faint);
+}
+
+/* Four across, and four is the whole group — so each half is exactly one row
+   and the eight stay on one screen with no scroll. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+}
+
+/* Four across at 390px leaves ~78px a tile, which holds a 22px glyph and a
+   two-line label with air — but only if the label is allowed to wrap. Fixing
+   the tile square would cut "Locations & Lore" off; a min-height with room to
+   grow keeps all eight the same height as whichever needs the most. */
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-2);
+  min-height: 84px;
+  padding: var(--space-3) 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-strong);
+  line-height: 1.25;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out),
+    scale var(--dur-press) var(--ease-out);
+}
+
+.tile svg {
+  color: var(--kind);
+}
+
+.tile:hover,
+.tile:focus-visible {
+  border-color: color-mix(in oklch, var(--kind), transparent 55%);
+  background: color-mix(in oklch, var(--kind), transparent 90%);
+  color: var(--color-ink);
+}
+
+.tile:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+.tile:active {
+  scale: 0.96;
+}
+
+/* The one already chosen, when the grid is being used as the band's menu. It
+   wears its own colour at the weight the hover state only borrows, so the
+   reader's eye lands on where they are before it starts reading the other
+   seven. */
+.tile[data-on] {
+  border-color: color-mix(in oklch, var(--kind), transparent 35%);
+  background: color-mix(in oklch, var(--kind), transparent 84%);
+  color: var(--color-ink);
+}
+
+/* ── The band ───────────────────────────────────────────────────────────────
+
+   `kindBand`, not `band`: this file already has a `.band` further up, on the
+   cover-maker's fixed row, and two unrelated things under one class name is a
+   change to one of them quietly landing on the other. */
+
+/* What the tile becomes. Same tint, same glyph, full width — the FLIP in the
+   component animates this from the tapped tile's own rectangle, so the colour
+   under the reader's thumb is the colour that arrives at the top. */
+.kindBand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  /* No inset of its own. The sheet already gutters its children, and the band
+     sits between the header and the form — a second margin here put it 24px
+     inside the two things it is meant to line up with. */
+  margin-inline: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklch, var(--kind), transparent 60%);
+  background: color-mix(in oklch, var(--kind), transparent 88%);
+  transform-origin: top left;
+}
+
+.kindBand > svg {
+  flex: none;
+  color: var(--kind);
+}
+
+.bandText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+/* The control, wearing the kind's name.
+
+   `align-self: flex-start` so the hit area is only as wide as the words — a
+   control stretched across the band would swallow taps aimed at the empty
+   space beside it, which on a sheet this size is most of the row.
+
+   The negative block margin is the touch target. The words are 21px tall and
+   the minimum is 44, and the two ways to find the other 23 are padding, which
+   would push the name off the glyph beside it and off the invite below it, or
+   this — which grows the target into the band's own padding, where there was
+   nothing to hit anyway. */
+.bandPick {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-block: -12px;
+  padding-block: 12px;
+  border: 0;
+  background: none;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.bandName {
+  font-family: var(--font-read);
+  font-size-adjust: var(--font-adjust-cap);
+  font-weight: var(--weight-display-read);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+/* Down when the eight are showing, so the chevron is reporting the state of
+   the thing below it rather than only advertising that it can be pressed. */
+.bandPick > svg {
+  flex: none;
+  color: var(--color-ink-soft);
+  transition: rotate var(--dur-quick) var(--ease-out);
+}
+
+.bandPick[aria-expanded="true"] > svg {
+  rotate: 180deg;
+}
+
+.bandPick:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 3px;
+}
+
+.bandInvite {
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  color: var(--color-ink-soft);
+}
+
+/* The form, still mounted underneath the open menu and holding whatever was
+   typed into it. `hidden` alone would be enough today, but a `display` rule
+   added to this element later would silently beat the UA's — so the guard is
+   written down rather than assumed. */
+.formHost[hidden] {
+  display: none;
+}
+
+/* The form's own children keep the sheet's rhythm now that a wrapper sits
+   between them and the body. */
+.formHost {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ── Entrances ──────────────────────────────────────────────────────────────
+
+   Rise-and-fade, transform and opacity only, short. The chooser gets it on
+   open; the band animates itself, out of the tile that was tapped. */
+@keyframes kindRise {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+}
+
+/* Eight objects arriving at once reads as a page loading; eight arriving in
+   sequence reads as a hand laying them out. 30ms apart, so the whole set is
+   settled inside a quarter of a second. The step comes from `--at`, set
+   inline, rather than from nth-child: the eight are four and four under two
+   headings, and nth-child would restart the count under the second one. */
+.enter {
+  animation: kindRise var(--dur-base) var(--ease-out) both;
+  animation-delay: calc(var(--at, 0) * 30ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter {
+    animation: none;
+  }
+
+  .tile,
+  .bandPick > svg {
+    transition: none;
+  }
+
+  .tile:active {
+    scale: 1;
+  }
 }

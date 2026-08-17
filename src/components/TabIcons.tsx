@@ -717,6 +717,24 @@ export function FilterIcon({ size = 22 }: IconProps) {
   )
 }
 
+/** Two arrows pushing apart into opposite corners: give this box the screen.
+    Deliberately the diagonal pair rather than a square-with-arrows — a frame
+    glyph beside a text field reads as "crop" or "picture", and this control
+    does neither. The corners it points at are the corners the writing is about
+    to reach. */
+export function ExpandIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <g {...strokeProps}>
+        <path d="M14 10 L 19.5 4.5" />
+        <path d="M14.5 4.5 H 19.5 V 9.5" />
+        <path d="M10 14 L 4.5 19.5" />
+        <path d="M9.5 19.5 H 4.5 V 14.5" />
+      </g>
+    </svg>
+  )
+}
+
 /* A real pin, seen from the side — head, shaft, point. The pushpin-at-an-
    angle every interface draws is a map marker's cousin and reads as "place";
    this reads as "held down", which is what it does to a book on the shelf. */
