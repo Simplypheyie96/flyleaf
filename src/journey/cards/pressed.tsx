@@ -19,6 +19,7 @@ import { keptLabel } from '../lexicon'
 import { STANCE } from '../kinds'
 import { PlaceIcon } from '../../components/TabIcons'
 import { Place } from './art'
+import MapView from '../place/MapView'
 import { Stance, clock, useObjectUrl, usePlayback, useWave, type CardProps } from './shared'
 import s from './pressed.module.css'
 
@@ -178,8 +179,21 @@ export function Location({ keep }: CardProps) {
         </h3>
       )}
       <div className={s.field}>
+        {/* A picture the reader chose outranks a map they pinned: the
+            photograph is theirs and the map is everybody's. The pin is the
+            next best answer, and the drawn field is what a keep gets when it
+            was given neither — see the hint under the chooser, which says so
+            in those words. */}
         {url ? (
           <img className={s.terrain} src={url} alt={`A map of ${keep.name ?? 'this location'}`} />
+        ) : keep.pin ? (
+          <MapView
+            className={s.terrain}
+            lat={keep.pin.lat}
+            lon={keep.pin.lon}
+            zoom={keep.pin.zoom}
+            label={keep.pin.label ?? keep.name}
+          />
         ) : (
           <Place seed={keep.id} className={s.terrain} />
         )}

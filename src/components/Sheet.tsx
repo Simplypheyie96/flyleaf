@@ -114,10 +114,16 @@ function Sheet({ open, onClose, label, name, fill = false, children }: SheetProp
    collapsing URL bar, which is a ~60px change that must not be mistaken for
    one — hence the floor. Below it every property is removed rather than set to
    zero, so a sheet with no keyboard in front of it renders through exactly the
-   rules it always did. */
+   rules it always did.
+
+   Exported, because the sheet is no longer the only thing in the app that has
+   to survive a keyboard: Longhand.tsx is a full-screen writing page in the same
+   top layer with the same problem, and a second copy of this reasoning is a
+   second copy to get wrong. Anything using it writes `--sheet-room` and
+   `--sheet-shift` into its own stylesheet the way Sheet.module.css does. */
 const KEYBOARD_AT = 120
 
-function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open: boolean) {
+export function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open: boolean) {
   useEffect(() => {
     const el = dialog.current
     const view = window.visualViewport

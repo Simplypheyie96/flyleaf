@@ -1,0 +1,210 @@
+/* The full-screen writing page. See Longhand.tsx for why it exists.
+
+   Paper, not glass. Every other overlay in Flyleaf is chrome hovering over a
+   page that is still there, and is translucent to say so. This one is not
+   chrome — it is the writing itself, taken out of the form and laid flat — so
+   it is opaque paper edge to edge, and there is nothing behind it to look at
+   through a blur. */
+
+.page {
+  /* The top layer inherits no layout, so the page positions itself. */
+  margin: 0;
+  padding: 0;
+  border: none;
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 100%;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+/* Only when open: an author-origin `display` beats the UA's
+   `dialog:not([open]) { display: none }`, so a bare `display: flex` here would
+   leave the closed page in the flow at full height. */
+.page[open] {
+  display: flex;
+  flex-direction: column;
+
+  /* The keyboard, measured by useKeyboardFit in Sheet.tsx and written onto
+     this element as two custom properties. Both are absent until a keyboard is
+     actually covering the screen, so the fallbacks — full height, no offset —
+     are the ordinary case. `inset-block-end: auto` matters: the UA pins a
+     modal dialog top and bottom, and a box told to be 0-to-0 and also 400px
+     tall is over-constrained. */
+  block-size: var(--sheet-room, 100%);
+  inset-block-start: var(--sheet-shift, 0px);
+  inset-block-end: auto;
+
+  animation: rise var(--dur-base) var(--ease-out);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+}
+
+.page::backdrop {
+  background: oklch(from var(--shadow-tint) l c h / 0.28);
+}
+
+/* ── The bar ──────────────────────────────────────────────────────────────
+   Thin on purpose. Everything that is not the writing is a tax on the room
+   this screen was opened to provide, so the bar carries exactly two things:
+   what is being written, and the way back. */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-inline: var(--space-5);
+  /* The notch, when there is one. `max` rather than a sum, so a phone without
+     an inset does not get a bar with three-quarters of an inch of nothing
+     above the title. */
+  padding-block-start: max(var(--space-3), env(safe-area-inset-top));
+  padding-block-end: var(--space-3);
+  border-block-end: 1px solid var(--border-hairline);
+}
+
+/* The same small uppercase the field's own label wears on the sheet, so the
+   reader arrives at a screen that is labelled the way the box was. */
+.what {
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-display);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  /* A long label gives up its own room before it pushes Done off the edge. */
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.done {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  border: 1px solid color-mix(in oklch, var(--color-accent-text), transparent 60%);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-tint);
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-display);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--dur-quick) var(--ease-out);
+}
+
+/* The full 44px tap band, drawn as nothing — the visible capsule stays the
+   height of its own text so the bar can be thin, while a thumb still gets the
+   whole target. The same trick Dictate and Look it up use on the sheet. */
+.done::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: max(var(--tap-min), 100%);
+  translate: 0 -50%;
+}
+
+.done:active {
+  background: color-mix(in oklch, var(--color-accent-text), transparent 78%);
+}
+
+/* ── The paper ────────────────────────────────────────────────────────────
+   Everything the bar did not take. The gutters are here and not on the box
+   itself; Longhand.tsx says why. */
+.leaf {
+  flex: 1;
+  min-block-size: 0;
+  padding-inline: var(--space-4);
+  padding-block-start: var(--space-2);
+  padding-block-end: max(var(--space-4), env(safe-area-inset-bottom));
+}
+
+.held {
+  block-size: 100%;
+}
+
+/* The field's own box, given the page.
+   Doubled deliberately: `.area` and `.stage` are both single classes, from two
+   different CSS-module files, and the order those files land in the bundle is
+   not something this rule may depend on. The extra class buys a specificity
+   that settles it either way. */
+.stage.stage {
+  block-size: 100%;
+  min-block-size: 0;
+  resize: none;
+  /* The chrome of a form field is what says "this is one row of eight". On a
+     page of its own there is no row and nothing to edge. The leading padding
+     is left exactly as it was — it is the gutter the hung quotation mark was
+     measured against. */
+  border-color: transparent;
+  background: none;
+}
+
+/* The trailing gutter, for the one kind that needs its own.
+   A quote's leading padding is a hanging indent — the writing sits 3rem in so
+   the quotation mark can hang beside its first line — which means the mark,
+   0.625rem inside `.penned`, is the leftmost ink on the page and the thing the
+   right edge has to answer to. Matching that inset here ends the last character
+   exactly as far from its edge as the mark begins from its own, and the block
+   sits square. Every other kind is padded evenly already and is left alone;
+   giving them this would pull their text 6px off centre.
+   The leading padding is untouched in both cases: it is the indent the card
+   will use, and this page promises the writing looks the way the card will. */
+.stage.stage[data-kind='quote'] {
+  padding-inline-end: 0.625rem;
+}
+
+/* No focus ring. The box is the page: an outline around the entire screen says
+   only that the one focusable writing surface is focused, which the caret has
+   already said. Done keeps its own ring — it is the one place a keyboard can
+   move to, and it needs to be findable. */
+.stage.stage:focus-visible {
+  outline: none;
+}
+
+.done:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+/* ── Wider than a phone ───────────────────────────────────────────────────
+   The point of this screen is room to write, and on an iPad or a laptop a line
+   that runs the whole width is room the eye cannot use — past about 70
+   characters it starts losing its place on the way back to the left. So the
+   paper stops growing and centres. */
+@media (min-width: 40rem) {
+  .bar {
+    padding-inline: var(--space-6);
+  }
+
+  .leaf {
+    inline-size: min(42rem, 100%);
+    margin-inline: auto;
+    padding-inline: var(--space-6);
+    padding-block-start: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page[open] {
+    animation: none;
+  }
+
+  .done {
+    transition: none;
+  }
+}

@@ -47,6 +47,7 @@ export interface Draft {
   keptOn: string
   name?: string
   stance?: Stance
+  pin?: Entry['pin']
 }
 
 /** A new keep, at the end of the thread. */
