@@ -6,7 +6,7 @@
    second dismissable layer on top of a dismissable layer is one gesture too
    many to keep straight. */
 
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import CalendarPicker from '../components/date/CalendarPicker'
 import { longDate, todayISO } from '../components/date/dates'
 import { CaretIcon } from '../components/TabIcons'
@@ -27,6 +27,26 @@ interface Props {
 function DateField({ label, value, onChange, max, seed }: Props) {
   const [open, setOpen] = useState(false)
   const id = useId()
+  const picker = useRef<HTMLDivElement>(null)
+
+  /* THE CALENDAR HAS TO BE LOOKED AT.
+
+     "Kept on" is the last field on the sheet, so a calendar unfolding under it
+     opens almost entirely below the fold — measured at 375px, 30 of its 388
+     pixels were on screen and the rest was somewhere past the bottom of the
+     scroller. A control that appears where you cannot see it has not appeared.
+
+     So the sheet is brought to it. Deliberately after the unfold has finished
+     rather than on the click: scrolling to a box that is still growing scrolls
+     to the height it had halfway through, and lands short. `onAnimationEnd`
+     is the only moment the real height is known. `nearest` rather than
+     `center`: it scrolls the least distance that gets the calendar wholly on
+     screen, so on a tall viewport the pressed field stays in sight above it.
+     On a short one it does not — a 388px calendar cannot share a 400px
+     scroller with its trigger — and the calendar is the right thing to keep. */
+  const reveal = () => {
+    picker.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }
 
   return (
     <div>
@@ -44,7 +64,7 @@ function DateField({ label, value, onChange, max, seed }: Props) {
         <CaretIcon size={16} />
       </button>
       {open && (
-        <div className={styles.datePicker}>
+        <div className={styles.datePicker} ref={picker} onAnimationEnd={reveal}>
           <CalendarPicker
             value={value}
             max={max ?? todayISO()}

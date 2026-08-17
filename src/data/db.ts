@@ -182,6 +182,22 @@ export interface Entry {
       column abbreviates it: `n.`, `v.`, `adj.` Same provenance rule as
       `phonetic`: the look-up sets it, a hand never does. */
   pos?: string
+  /** `place` only — a spot on the real world the reader dropped a pin on.
+
+      Six numbers and a word, not a picture: the map is redrawn from tiles
+      wherever it is shown, so the same pin can be a thumbnail on a card and a
+      full-width map on a plate without either of them being stored twice. It
+      also means a keep costs nothing to hold — a screenshot of a map is a
+      quarter of a megabyte per location, and this is about forty bytes.
+
+      `zoom` is part of the pin and not a constant, because how far out a place
+      should be drawn IS information the reader gave: an island is pinned at
+      the scale where it is an island, a doorway at the scale where it is a
+      doorway. `label` is whatever the search called the spot, kept so the map
+      can be described to somebody who cannot see it — dropped when the reader
+      drags the pin by hand, since the name no longer describes what is under
+      it. */
+  pin?: { lat: number; lon: number; zoom: number; label?: string }
 }
 
 /** One stretch of time spent reading one book.

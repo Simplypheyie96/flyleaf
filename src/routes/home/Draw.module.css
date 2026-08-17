@@ -307,7 +307,6 @@
    `.area[data-kind='quote']`): a reader copying a line out is watching it
    become set type, and a 16px field is looked at, not read at length. */
 .quote {
-  position: relative;
   font-family: var(--font-read);
   font-size-adjust: var(--font-adjust);
   font-size: var(--text-md);
@@ -319,13 +318,38 @@
   text-wrap: pretty;
 }
 
+/* AND IT HAS TO LOOK QUOTED.
+
+   The mark used to hang outside the text column — absolutely placed at
+   -0.42em, at 22% ink, opening only. Three things wrong with that at once: it
+   was faint enough to read as a smudge rather than a glyph, it sat in the
+   card's padding where a rotated paper edge crops it, and a single opening
+   mark with nothing closing it does not say "quotation", it says "stray
+   punctuation". Set in the same reading face as everything else on the card,
+   four lines of somebody else's prose simply read as prose.
+
+   So the marks flow with the text instead of hanging beside it: a matched
+   pair, in the sage this app already gives quotes everywhere else, sized just
+   above the words so the eye catches the shape before it reads the sentence.
+   In flow they also wrap correctly and can never be cropped by the card.
+   `line-height: 0` keeps a 1.2em glyph from opening up the first and last
+   lines and breaking the reading rhythm the block is set to. */
+.quote::before,
+.quote::after {
+  font-size: 1.2em;
+  line-height: 0;
+  vertical-align: -0.06em;
+  color: var(--color-quote);
+}
+
 .quote::before {
   content: '“';
-  position: absolute;
-  inset-inline-start: -0.42em;
-  font-size: 1.6em;
-  line-height: 1;
-  color: color-mix(in oklab, var(--color-ink) 22%, transparent);
+  margin-inline-end: 0.04em;
+}
+
+.quote::after {
+  content: '”';
+  margin-inline-start: 0.04em;
 }
 
 /* Everything the reader wrote themselves — notes, threads, lore. Their hand,
