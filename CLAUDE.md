@@ -29,8 +29,7 @@ message of the screen? hierarchy? style lane? must-keep constraints?
 ## Build order discipline (applies to every screen)
 1. Static layout, light mode, mobile, no motion — approve the look first.
 2. Add secondary states / variants.
-3. Add motion, each interaction one at a time, every one with a
-   `prefers-reduced-motion` fallback.
+3. Add motion, each interaction one at a time.
 4. Derive dark mode as one variable change from light.
 5. Extend to iPad/desktop.
 Motion is never skipped — it is specified up front and applied in step 3.
@@ -183,8 +182,7 @@ NAME the 1–3 skills you'll use with their scope, and wait for my yes. Stack th
 one process skill → ONE look/system approach → scoped technique skills → a QA
 skill. Likely picks for Flyleaf: `glassmorphism`/`glass-dark-ui` (chrome ONLY),
 `thinking-orbs` (voice orb), `gsap`/`gsap-scrolltrigger` (per-interaction motion,
-scoped), `accessible-animation` (reduced-motion), `web-design-guidelines` +
-`fixing-accessibility` (QA before "done"). Scrapbook texture is mostly custom,
+scoped), `web-design-guidelines` + `fixing-accessibility` (QA before "done"). Scrapbook texture is mostly custom,
 guided by refs/. Never stack two whole look packs.
 
 ## Reference scope (STRICT)

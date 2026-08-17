@@ -38,7 +38,6 @@ does not pass this section.
 
 ### Motion
 - [ ] Smooth, subtle transitions; never flashy.
-- [ ] prefers-reduced-motion honored.
 - [ ] Voice orb feels premium (scoped to that component only).
 
 ### Accessibility

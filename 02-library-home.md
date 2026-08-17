@@ -62,7 +62,6 @@ cherished bookshelf.
   eased transition — never a hard cut.
 - Book tap: gentle lift + soft shadow bloom before navigating into detail.
 - Currently-reading carousel: soft momentum scroll.
-- ALL with `prefers-reduced-motion` fallback (cross-fade instead of movement).
 
 ## Constraints (change 1–2 things only)
 - FONT: literary serif titles / grotesk labels.
@@ -83,7 +82,7 @@ collection, larger currently-reading hero. Never a stretched phone UI.
 ## Build order + gates
 1. Light, mobile, STACK, static → STOP, approve look.
 2. Add Shelf + Grid + animated switching → STOP.
-3. Add remaining motion (book lift, carousel) + reduced-motion → STOP.
+3. Add remaining motion (book lift, carousel) → STOP.
 4. Derive dark mode → STOP.
 5. iPad/desktop layout → STOP.
 
