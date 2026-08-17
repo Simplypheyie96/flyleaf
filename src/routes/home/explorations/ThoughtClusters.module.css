@@ -1,0 +1,91 @@
+.clusterSection {
+  margin-top: 32px;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tab {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-ink-faint);
+  align-self: flex-start;
+  padding-left: 8px;
+}
+
+.subtitle {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  color: var(--color-ink-soft);
+  align-self: flex-start;
+  padding-left: 8px;
+  margin-bottom: 24px;
+  margin-top: 4px;
+}
+
+.cluster {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.thread {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: var(--tape-edge);
+  transform: translateX(-50%);
+  z-index: -1;
+  /* Dotted effect to look like stitching */
+  background-image: linear-gradient(var(--color-ink-faint) 40%, transparent 40%);
+  background-position: left;
+  background-size: 2px 8px;
+  background-repeat: repeat-y;
+}
+
+.knot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-ink-soft);
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.note {
+  width: 85%;
+  max-width: 340px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.quote {
+  font-family: var(--font-hand);
+  font-size: 18px;
+  line-height: 1.25;
+  color: var(--color-ink);
+}
+
+.source {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink-faint);
+  align-self: flex-end;
+}

@@ -319,6 +319,19 @@ function KeepSheet({
      `undefined` for a picture that came back out of the database on an edit,
      where there is no filename to have kept. */
   const [mediaName, setMediaName] = useState<string>();
+  /* DID THE READER ACTUALLY TOUCH THE PICTURE?
+
+     On an edit the stored blob is read out of the database into `media` and,
+     if nothing guards it, written straight back on save. On WebKit that round
+     trip is not free: a blob handed out of IndexedDB and put back can leave
+     the stored one dead, and the keep comes back a broken image — a reader who
+     only fixed a typo loses the photograph.
+
+     So a picture is only ever written when this says the reader changed it.
+     Untouched, the `media` key is left off the patch entirely, and `editKeep`
+     leaves what is already stored alone. A ref, not state: nothing on screen
+     depends on it, and it must not cause a render mid-edit. */
+  const touchedMedia = useRef(false);
   const [duration, setDuration] = useState<number>();
   const [busy, setBusy] = useState(false);
   /* The one thing that went wrong, said in the sheet rather than swallowed. */
@@ -429,6 +442,8 @@ function KeepSheet({
     setChoosing(false);
     setCame(false);
     from.current = null;
+    /* Every opening starts untouched, whatever the last one did. */
+    touchedMedia.current = false;
     if (editing) {
       /* The kind of a keep cannot change after it is kept, so an edit is never
          asked the question and never gets the band. */
@@ -823,7 +838,17 @@ function KeepSheet({
         /* Only a place can hold one, and only the map can set it. */
         pin: asks.media === "optional-image" ? pin : undefined,
       };
-      if (editing) await editKeep(editing.id, shared);
+      if (editing) {
+        /* The picture is left out of the patch unless the reader changed it.
+           See `touchedMedia`: writing back a blob that came out of the
+           database is what breaks the stored one on WebKit, and an edit that
+           never went near the picture has no business rewriting it. Deleting
+           the key rather than passing undefined, because to `editKeep`
+           undefined means "clear this", which is the opposite. */
+        const patch = { ...shared };
+        if (!touchedMedia.current) delete (patch as { media?: Blob }).media;
+        await editKeep(editing.id, patch);
+      }
       else await addKeep({ bookId: book.id, ...shared });
       localStorage.removeItem(draftKey);
       onClose();
@@ -1148,6 +1173,7 @@ function KeepSheet({
                     duration={duration}
                     seed={editing?.id ?? book.id}
                     onCapture={(blob, secs) => {
+                      touchedMedia.current = true;
                       setMedia(blob);
                       setDuration(secs);
                     }}
@@ -1174,6 +1200,7 @@ function KeepSheet({
                         );
                         return;
                       }
+                      touchedMedia.current = true;
                       setMedia(await shrink(file));
                       setMediaName(file.name);
                     }}
@@ -1234,6 +1261,7 @@ function KeepSheet({
                             type="button"
                             className={styles.capture}
                             onClick={() => {
+                              touchedMedia.current = true;
                               setMedia(undefined);
                               setMediaName(undefined);
                             }}
