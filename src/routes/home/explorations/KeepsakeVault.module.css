@@ -1,0 +1,70 @@
+.vaultSection {
+  margin-top: 32px;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tab {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-ink-faint);
+  margin-bottom: 24px;
+  align-self: flex-start;
+  padding-left: 8px;
+}
+
+.shelf {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  padding-bottom: 24px;
+  padding-top: 8px;
+}
+
+.volume {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ribbonWrapper {
+  position: absolute;
+  top: -8px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ribbon {
+  width: 14px;
+  height: 40px;
+  background: var(--color-accent);
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.seal {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-danger); /* Mocking a red wax seal */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  margin-top: -10px;
+}
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--color-ink-soft);
+}
