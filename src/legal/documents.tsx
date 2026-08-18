@@ -88,12 +88,12 @@ export interface Doc {
 const privacy: Doc = {
   slug: 'privacy',
   title: 'Privacy',
-  lede: 'What Flyleaf knows about you, which is nothing.',
+  lede: 'What Flyleaf knows about you, which is next to nothing.',
   short: [
-    'There is no Flyleaf account, no server of ours holding your reading, and no analytics of any kind.',
+    'There is no Flyleaf account and no server of ours holding your reading. One plain counter records that a page was opened — no cookie, no identifier, and never which book.',
     'Everything you write, record and keep stays in this browser, on this device.',
     'If you turn on syncing, your journey is copied into your OWN Google Drive, into a hidden folder no other app can open. We never receive a copy and we cannot read it.',
-    'Flyleaf reaches the internet for four things only: to load itself, to look up a book you searched for, to sync if you asked it to, and to take a tip if you offer one.',
+    'Flyleaf reaches the internet for five things only: to load itself, to count that it was opened, to look up a book you searched for, to sync if you asked it to, and to take a tip if you offer one.',
     'Because nothing is held on our side, clearing this browser clears your journey. Saving a copy — or syncing — is how you keep it.',
   ],
   body: [
@@ -102,9 +102,19 @@ const privacy: Doc = {
       content: (
         <>
           <p>
-            Nothing. There is no sign-up, no password, no profile, and no server
-            with your name on it. We could not tell you what is in your library
-            if you asked us, because we have never had it.
+            No sign-up, no password, no profile, and no server with your name on
+            it. We could not tell you what is in your library if you asked us,
+            because we have never had it.
+          </p>
+          <p>
+            There is one exception, and it is worth being exact about. Flyleaf
+            counts page views: that a page was opened, when, and which country
+            it was opened from. No cookie is set, nothing is stored on your
+            device, and there is no identifier joining one visit to the next
+            into a person. The address is stripped before it is sent, so
+            opening a book is counted as <em>a book</em> and never as which
+            one. It exists so we can tell whether anyone is using Flyleaf at
+            all.
           </p>
           <p>
             That stays true if you turn on syncing. Signing in with Google does
@@ -160,7 +170,7 @@ const privacy: Doc = {
       heading: 'When Flyleaf talks to the internet',
       content: (
         <>
-          <p>Four times, and you can see each one coming.</p>
+          <p>Five times, and you can see each one coming.</p>
           <p>
             <strong>Loading the app.</strong> Flyleaf is served by Vercel. Like
             every web host, its servers record ordinary request information —
@@ -169,6 +179,16 @@ const privacy: Doc = {
             <Out href="https://vercel.com/legal/privacy-policy">their privacy policy</Out>.
             After the first visit the app is cached on your device and can open
             with no request at all.
+          </p>
+          <p>
+            <strong>Counting the visit.</strong> Flyleaf uses Vercel's own web
+            analytics, which sets no cookie and stores nothing on your device.
+            It reports the page, where you came from, and your country — never
+            the address of a particular book, which is removed in your browser
+            before anything is sent. Because an installed Flyleaf usually opens
+            from its own cache without touching the network, a great many
+            visits are never counted at all. Same{' '}
+            <Out href="https://vercel.com/legal/privacy-policy">Vercel privacy policy</Out>.
           </p>
           <p>
             <strong>Searching for a book.</strong> When you look up a title, the
@@ -222,10 +242,12 @@ const privacy: Doc = {
       content: (
         <>
           <p>
-            No analytics. No tracking pixels, no session recording, no
-            fingerprinting, no advertising, and no third parties watching you use
-            the app. The type is served from Flyleaf's own files rather than a
-            font network, so even reading a page does not announce you to anyone.
+            No tracking pixels, no session recording, no fingerprinting, no
+            advertising, and no third parties watching you use the app. The
+            counting described above is the whole of it — a tally of page
+            views with nothing attached that could point back at you. The type
+            is served from Flyleaf's own files rather than a font network, so
+            even reading a page does not announce you to anyone.
           </p>
           <p>
             There are no cookies used for tracking. The app stores what it needs

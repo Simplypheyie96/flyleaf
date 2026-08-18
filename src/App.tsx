@@ -18,6 +18,7 @@ import SplashScreen from "./components/SplashScreen";
 import FlowerField from "./brand/FlowerField";
 import { BookIcon, HomeIcon, SettingsIcon } from "./components/TabIcons";
 import UpdateToast from "./components/UpdateToast";
+import Visits from "./components/Visits";
 import Welcome from "./onboarding/Welcome";
 import Legal from "./legal/Legal";
 import Journal from "./journal/Journal";
@@ -228,6 +229,9 @@ function App() {
       {/* Behind every page, before anything: the faint flowers in the sky.
           Fixed and z-indexed under the routes, so no page has to know. */}
       <FlowerField />
+      {/* Draws nothing. Inside the router so a move between pages counts as a
+          page; see components/Visits.tsx for what it will and will not send. */}
+      <Visits />
       <SplashScreen />
       {/* Outside the routes on purpose: the welcome is the app's front door,
           not a page, and it must cover whichever screen a fresh install lands
