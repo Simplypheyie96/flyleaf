@@ -254,3 +254,67 @@
   .day:active:not(:disabled),
   .turn:active:not(:disabled) { transform: none; }
 }
+
+/* ---- The foot: what is proposed, and the check that hands it back ---- */
+
+/* A hairline above it rather than a filled bar. The grid is the thing being
+   used and a solid footer would pull rank on it; a rule is enough to say the
+   calendar ends here. Twelve above and twelve below, which measures equal and
+   reads as slightly more above: the grid's last row carries six pixels of its
+   own air inside the cell (see .day::before), so the rule ends up nearer the
+   foot than the grid — the right way round, since the rule belongs to what it
+   introduces. */
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--border-hairline);
+}
+
+/* The proposal in words. Soft rather than faint: it is the sentence the check
+   is agreeing to, so it has to be readable at a glance, and the faint token is
+   marked large-or-decorative in tokens.css. `min-inline-size: 0` so a long
+   date ellipses instead of shoving the check off the edge. */
+.pending {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+/* The one filled control in the calendar, and deliberately so: everything else
+   here is borderless because it moves you around, and this is the only thing
+   that ends the exchange. Round rather than a pill with a word in it — the
+   frame is 310px at its narrowest and a labelled button would either crowd the
+   date beside it or push it to a second line. */
+.confirm {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-text);
+  color: var(--color-paper);
+  cursor: pointer;
+  transition: filter var(--dur-press) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
+}
+
+.confirm:hover { filter: brightness(1.1); }
+.confirm:active { transform: scale(0.94); }
+
+.confirm:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm:active { transform: none; }
+}

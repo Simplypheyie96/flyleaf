@@ -554,7 +554,13 @@ function ConfirmStage({
             <div ref={picker} className={styles.datePicker}>
               <CalendarPicker
                 value={startedOn}
-                onChange={setStartedOn}
+                /* The check closes the picker as well as setting the date:
+                   confirming is the end of the errand, and a calendar that
+                   stayed open after it would look like it had not heard. */
+                onChange={(iso) => {
+                  setStartedOn(iso)
+                  setPicking(false)
+                }}
                 // Nobody starts a book after today, and a stray year in the
                 // future would sort the shelf wrong forever.
                 max={todayISO()}
