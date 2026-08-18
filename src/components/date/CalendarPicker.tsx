@@ -21,7 +21,24 @@
    retrofit. Only one cell is tabbable at a time (a roving tabindex), so Tab
    moves past the whole grid in one press rather than through forty-two
    buttons; the arrows move within it, and crossing an edge turns the month.
-   That is the standard grid pattern and it is what a screen reader expects. */
+   That is the standard grid pattern and it is what a screen reader expects.
+
+   TAPPING A DAY NO LONGER COMMITS IT. A day sets the draft — the bloom moves
+   there and the foot writes the date out in full — and the check at the foot
+   is what hands it back. Two taps instead of one, and the second is the
+   reason: a single tap on a 44px cell in a seven-column grid puts the 5th and
+   the 12th a thumb's width apart, and the old behaviour spent that misfire
+   immediately, closing the sheet on a date nobody chose. The only way to find
+   out was to reopen the field and read it. Now the wrong day is visibly the
+   wrong day while there is still a chance to fix it, and the foot says which
+   day in words rather than as a numeral in a grid — "Sat 14 February 2026"
+   cannot be misread the way a 14 sitting under a column head can.
+
+   The check is never disabled, including when the draft is the date already
+   stored. Confirming an unchanged date is a real answer — it is the whole of
+   what "still reading, and yes, that is when I started" amounts to — and a
+   greyed control there would strand a reader who opened the sheet only to
+   agree with it. */
 
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
@@ -32,13 +49,14 @@ import {
   daysInMonth,
   fromISO,
   leadingBlanks,
+  longDate,
   monthYear,
   sameDay,
   toISO,
   weekdayHeads,
 } from './dates'
 import Bloom from './Bloom'
-import { CaretIcon, ChevronIcon } from '../TabIcons'
+import { CaretIcon, CheckIcon, ChevronIcon } from '../TabIcons'
 import { Column, Drum } from './Wheel'
 import styles from './CalendarPicker.module.css'
 
@@ -63,7 +81,15 @@ interface Props {
 }
 
 function CalendarPicker({ value, onChange, max, seed }: Props) {
-  const selected = fromISO(value)
+  /* The day the grid is showing as chosen, which until the check is pressed is
+     only a proposal. It starts as the stored date so the calendar opens on the
+     answer it already has, and re-seeds whenever that answer changes from
+     outside — a reader who closes the sheet on a half-made choice and opens it
+     again should find the stored date, not the abandoned one. */
+  const [draft, setDraft] = useState(value)
+  useEffect(() => setDraft(value), [value])
+
+  const selected = fromISO(draft)
   const ceiling = fromISO(max)
   const today = new Date()
 
@@ -241,7 +267,13 @@ function CalendarPicker({ value, onChange, max, seed }: Props) {
                 disabled={off}
                 aria-pressed={isSelected}
                 aria-label={dayLabel(d)}
-                onClick={() => onChange(iso)}
+                /* Proposes, does not commit. The cursor comes along so the
+                   arrows carry on from the day just tapped rather than from
+                   wherever Tab last left them. */
+                onClick={() => {
+                  setDraft(iso)
+                  setCursor(iso)
+                }}
               >
                 {isSelected && <Bloom seed={seed} className={styles.bloom} />}
                 <span className={styles.numeral}>{n}</span>
@@ -250,6 +282,24 @@ function CalendarPicker({ value, onChange, max, seed }: Props) {
           })}
         </div>
       )}
+
+      {/* The closing line of the frame, and it stays put across both panes —
+          the drum changes which month you are looking at, never which day is
+          proposed, so a foot that vanished under it would read as the proposal
+          being lost. The date is written out because that is the check being
+          offered: not "a cell is highlighted somewhere above" but this day, in
+          words, with its weekday. */}
+      <div className={styles.foot}>
+        <span className={styles.pending}>{longDate(draft)}</span>
+        <button
+          type="button"
+          className={styles.confirm}
+          onClick={() => onChange(draft)}
+          aria-label={`Use ${longDate(draft)}`}
+        >
+          <CheckIcon size={18} />
+        </button>
+      </div>
     </div>
   )
 }
