@@ -99,6 +99,31 @@ function Settings() {
             </a>
           </Group>
 
+          {/* A second app, not a second brand. The name alone tells a reader
+              nothing, so this row carries a line saying what it is — the one
+              place on this page a row is allowed two lines, because the
+              destination is outside Flyleaf and nobody arrives already
+              knowing it. */}
+          <Group label="Also from Flyleaf">
+            <a
+              href="https://press.flyleaf.cc/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={card.link}
+            >
+              <span className={card.linkBody}>
+                Flyleaf Press
+                <span className={card.linkNote}>
+                  Publish your full reviews, and every month’s reading as
+                  one collage.
+                </span>
+              </span>
+              <span className={card.linkHint} aria-hidden="true">
+                ↗
+              </span>
+            </a>
+          </Group>
+
           {/* Erase sits in this group and last in it, not in a group of its
               own. It is the same subject as the rows above — where the journey
               is and what the reader can do with it — and the honest end of that
