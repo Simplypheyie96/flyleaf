@@ -175,7 +175,9 @@
   font-size: var(--text-xs);
   line-height: var(--leading-body);
   color: var(--color-ink-soft);
-  text-wrap: pretty;
+  /* Balance rather than pretty: this is two lines, and pretty only protects
+     the last one — it left a full line beside a three-word orphan. */
+  text-wrap: balance;
 }
 
 /* ---- The erase row ----
@@ -239,4 +241,28 @@
   .field {
     transition-duration: 0.01ms;
   }
+}
+
+/* A link row that has to say what it is leading to, because the name alone
+   does not carry it. Only for a destination outside the app: every row that
+   goes somewhere in Flyleaf is a word a reader already knows, and adding a
+   line under those would be the footnote this page threw out. */
+.linkBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* So a long note wraps inside the row instead of pushing the glyph off the
+     card's right edge. */
+  min-inline-size: 0;
+}
+
+.linkNote {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-body);
+  /* Soft, not faint: this is the whole reason the row is legible to somebody
+     who has never heard of the thing it names. */
+  color: var(--color-ink-soft);
+  /* Balance rather than pretty: this note is two lines, and pretty only
+     protects the last one — it left a full line beside a three-word orphan. */
+  text-wrap: balance;
 }
