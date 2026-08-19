@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import BookCover from '../components/BookCover'
 import { coversOf } from '../books/covers'
 import { floatPins, isPinned } from '../data/pins'
-import { monthYear } from '../components/date/dates'
+import { fromISO, monthYear } from '../components/date/dates'
 import { floss, palette } from '../books/CoverArt'
 import SpineArt from '../books/SpineArt'
 import SpineMark from '../books/SpineMark'
@@ -69,13 +69,13 @@ type ShelfSort =
   | 'memories'
 const SORT_KEY = 'flyleaf-shelf-sort'
 
-/* The shelf opens as a record of when you got each book, month by month, and
-   that is the default because it is the one date every book has. Nothing has
-   to be filled in for it to work, and no pile of "not started yet" collects at
-   the bottom waiting for a date that may never be given. */
+/* The shelf opens as a record of your reading, month by month. Every book
+   lands in a month whether or not you have dated it, so nothing has to be
+   filled in for this to work and no pile of "not started yet" collects at the
+   bottom waiting for a date that may never be given. */
 const SORTS: { id: ShelfSort; label: string; hint: string }[] = [
-  { id: 'added', label: 'Recently added', hint: 'by month, newest shelved first' },
-  { id: 'oldest', label: 'Oldest first', hint: 'by month, first shelved first' },
+  { id: 'added', label: 'Recently added', hint: 'by month, newest added first' },
+  { id: 'oldest', label: 'Oldest first', hint: 'by month, oldest added first' },
   { id: 'title', label: 'Title', hint: 'A to Z' },
   { id: 'author', label: 'Author', hint: 'A to Z, then by title' },
   { id: 'started', label: 'Recently started', hint: 'the book you began last, first' },
@@ -91,10 +91,30 @@ const BY_MONTH: ShelfSort[] = ['added', 'oldest']
 /* This month stays at the top in both, because a shelf that opens on a month
    from years ago is a shelf you have to scroll to use. "Oldest first" turns
    over the books inside each month, not the run of months itself. */
-function monthKey(at: number): string {
+function monthOfStamp(at: number): string {
   const d = new Date(at)
   const m = `${d.getMonth() + 1}`.padStart(2, '0')
   return `${d.getFullYear()}-${m}`
+}
+
+/* Which month a book belongs to, in the order a reader would answer it: the
+   month you closed it, else the month you opened it, else the month you put it
+   on the shelf. A book read in July and typed up in August belongs to July —
+   the heading is about the reading, not the paperwork.
+
+   The shelved date is the last resort rather than the first, and it is why
+   there is no "undated" pile: a book you have not opened yet still has a real
+   month, the one you brought it home in. */
+function monthOf(book: Book): string {
+  const read = book.finishedOn ?? book.startedOn
+  return read ? read.slice(0, 7) : monthOfStamp(book.addedAt)
+}
+
+/* The ISO dates are yyyy-mm-dd, so a heading is built from the slice rather
+   than a Date — no timezone can pull a book back into the month before it. */
+function monthLabel(book: Book): string {
+  const read = book.finishedOn ?? book.startedOn
+  return read ? monthYear(fromISO(read)) : monthYear(new Date(book.addedAt))
 }
 
 type ShelfSieve =
@@ -133,9 +153,7 @@ function arrange(books: Book[], sort: ShelfSort, counts: Record<number, number>)
   switch (sort) {
     case 'oldest':
       // Months descending, books ascending inside them.
-      return by.sort(
-        (a, b) => monthKey(b.addedAt).localeCompare(monthKey(a.addedAt)) || a.addedAt - b.addedAt,
-      )
+      return by.sort((a, b) => monthOf(b).localeCompare(monthOf(a)) || a.addedAt - b.addedAt)
     case 'title':
       return by.sort((a, b) => a.title.localeCompare(b.title))
     case 'author':
@@ -147,7 +165,8 @@ function arrange(books: Book[], sort: ShelfSort, counts: Record<number, number>)
     case 'memories':
       return by.sort((a, b) => (counts[b.id] ?? 0) - (counts[a.id] ?? 0))
     default:
-      return by.sort((a, b) => b.addedAt - a.addedAt)
+      // Months descending, and the newest arrival first inside each one.
+      return by.sort((a, b) => monthOf(b).localeCompare(monthOf(a)) || b.addedAt - a.addedAt)
   }
 }
 
@@ -173,13 +192,13 @@ function inMonths(books: Book[]): MonthRun[] {
   books
     .filter((b) => !isPinned(b))
     .forEach((book) => {
-      const key = monthKey(book.addedAt)
+      const key = monthOf(book)
       const last = runs[runs.length - 1]
       if (last?.key === key) {
         last.books.push(book)
         return
       }
-      runs.push({ key, label: monthYear(new Date(book.addedAt)), books: [book] })
+      runs.push({ key, label: monthLabel(book), books: [book] })
     })
   return runs
 }
