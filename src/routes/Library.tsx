@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import BookCover from '../components/BookCover'
 import { coversOf } from '../books/covers'
 import { floatPins, isPinned } from '../data/pins'
+import { monthYear } from '../components/date/dates'
 import { floss, palette } from '../books/CoverArt'
 import SpineArt from '../books/SpineArt'
 import SpineMark from '../books/SpineMark'
@@ -58,17 +59,43 @@ const VIEWS: { id: ShelfView; Icon: typeof ShelfIcon; hint: string }[] = [
    sliding to its sorted place says what happened better than a list
    repainting ever could. */
 
-type ShelfSort = 'added' | 'title' | 'author' | 'started' | 'finished' | 'memories'
+type ShelfSort =
+  | 'added'
+  | 'oldest'
+  | 'title'
+  | 'author'
+  | 'started'
+  | 'finished'
+  | 'memories'
 const SORT_KEY = 'flyleaf-shelf-sort'
 
+/* The shelf opens as a record of when you got each book, month by month, and
+   that is the default because it is the one date every book has. Nothing has
+   to be filled in for it to work, and no pile of "not started yet" collects at
+   the bottom waiting for a date that may never be given. */
 const SORTS: { id: ShelfSort; label: string; hint: string }[] = [
-  { id: 'added', label: 'Recently added', hint: 'newest on the shelf first' },
+  { id: 'added', label: 'Recently added', hint: 'by month, newest shelved first' },
+  { id: 'oldest', label: 'Oldest first', hint: 'by month, first shelved first' },
   { id: 'title', label: 'Title', hint: 'A to Z' },
   { id: 'author', label: 'Author', hint: 'A to Z, then by title' },
   { id: 'started', label: 'Recently started', hint: 'the book you began last, first' },
   { id: 'finished', label: 'Recently finished', hint: 'the book you closed last, first' },
   { id: 'memories', label: 'Most memories', hint: 'the books you have kept the most from' },
 ]
+
+/* Only the two "when did this arrive" sorts carry months. A month heading over
+   an A-to-Z shelf, or over a shelf ranked by how much is kept in it, would
+   claim an order the books are not actually in. */
+const BY_MONTH: ShelfSort[] = ['added', 'oldest']
+
+/* This month stays at the top in both, because a shelf that opens on a month
+   from years ago is a shelf you have to scroll to use. "Oldest first" turns
+   over the books inside each month, not the run of months itself. */
+function monthKey(at: number): string {
+  const d = new Date(at)
+  const m = `${d.getMonth() + 1}`.padStart(2, '0')
+  return `${d.getFullYear()}-${m}`
+}
 
 type ShelfSieve =
   | 'all'
@@ -92,26 +119,69 @@ const SIEVES: { id: ShelfSieve; label: string; hint: string }[] = [
   { id: 'audio', label: 'Audiobooks', hint: 'the ones you listen to' },
 ]
 
-/* Missing dates sort to the back, not to 1970. `??`-ing an absent ISO date to
-   the empty string and comparing descending does exactly that. */
+/* Missing dates sort to the back, never to 1970: an absent date is unknown,
+   not old, and floating those books to the top of a timeline would lie. */
+function byDate(books: Book[], field: 'startedOn' | 'finishedOn'): Book[] {
+  const dated = books.filter((b) => b[field])
+  const undated = books.filter((b) => !b[field])
+  dated.sort((a, b) => (b[field] ?? '').localeCompare(a[field] ?? ''))
+  return [...dated, ...undated]
+}
+
 function arrange(books: Book[], sort: ShelfSort, counts: Record<number, number>): Book[] {
   const by = [...books]
   switch (sort) {
+    case 'oldest':
+      // Months descending, books ascending inside them.
+      return by.sort(
+        (a, b) => monthKey(b.addedAt).localeCompare(monthKey(a.addedAt)) || a.addedAt - b.addedAt,
+      )
     case 'title':
       return by.sort((a, b) => a.title.localeCompare(b.title))
     case 'author':
-      return by.sort(
-        (a, b) => a.author.localeCompare(b.author) || a.title.localeCompare(b.title),
-      )
+      return by.sort((a, b) => a.author.localeCompare(b.author) || a.title.localeCompare(b.title))
     case 'started':
-      return by.sort((a, b) => (b.startedOn ?? '').localeCompare(a.startedOn ?? ''))
+      return byDate(by, 'startedOn')
     case 'finished':
-      return by.sort((a, b) => (b.finishedOn ?? '').localeCompare(a.finishedOn ?? ''))
+      return byDate(by, 'finishedOn')
     case 'memories':
       return by.sort((a, b) => (counts[b.id] ?? 0) - (counts[a.id] ?? 0))
     default:
-      return by // useLibrary already answers newest-added first
+      return by.sort((a, b) => b.addedAt - a.addedAt)
   }
+}
+
+/* ---- The shelf as months ----
+
+   The sort already puts the books in the right order; what it does not do is
+   say out loud where one month ended and the next began, and that sentence is
+   the whole difference between a list of books and a record of a year.
+
+   One pass, no bucketing: the books arrive ordered by the very month being
+   grouped on, so every month is already contiguous and a new heading is simply
+   the point where the year-and-month stops matching the last one.
+
+   Pins come first, in their own run. A pinned book held under a heading that
+   says March when it was shelved in January would be a plain lie about the
+   month, so the two or three a reader is holding onto get lifted clear of the
+   timeline rather than dropped into the wrong part of it. */
+type MonthRun = { key: string; label: string; books: Book[] }
+
+function inMonths(books: Book[]): MonthRun[] {
+  const held = floatPins(books.filter(isPinned))
+  const runs: MonthRun[] = held.length ? [{ key: 'pinned', label: 'Pinned', books: held }] : []
+  books
+    .filter((b) => !isPinned(b))
+    .forEach((book) => {
+      const key = monthKey(book.addedAt)
+      const last = runs[runs.length - 1]
+      if (last?.key === key) {
+        last.books.push(book)
+        return
+      }
+      runs.push({ key, label: monthYear(new Date(book.addedAt)), books: [book] })
+    })
+  return runs
 }
 
 function sift(books: Book[], sieve: ShelfSieve, counts: Record<number, number>): Book[] {
@@ -531,16 +601,27 @@ function Library() {
   /* The shelf as the reader has asked to see it. Sift first, then arrange —
      order-of-operations matters only for work, not results, and sorting the
      survivors is less work. */
-  const shown = useMemo(
-    /* Pins float last, on top of whatever the reader asked for. A pin is not
-       a seventh sort — it says "these two or three stay where I can see
-       them", and that has to hold true whether the shelf is by title, by
-       date, or by how much is kept in it. A pinned book that a sieve has
-       ruled out stays ruled out: the reader asked to see only finished books
-       and a pin is not an exemption from the question. */
-    () => floatPins(arrange(sift(libraryBooks, sieve, counts ?? {}), sort, counts ?? {})),
-    [libraryBooks, sieve, sort, counts],
-  )
+  /* Months are drawn only over the two sorts that mean a chronology. Named
+     once and read in four places — this memo, both grouped views, and the
+     reverse row — so nothing can disagree about whether this shelf is a
+     timeline. */
+  const grouped = BY_MONTH.includes(sort)
+
+  const shown = useMemo(() => {
+    const arranged = arrange(sift(libraryBooks, sieve, counts ?? {}), sort, counts ?? {})
+    /* Pins float on top of whatever the reader asked for. A pin is not an
+       eighth sort — it says "these two or three stay where I can see them",
+       and that holds whether the shelf is by title, by author, or by how much
+       is kept in it. A pinned book a sieve has ruled out stays ruled out: the
+       reader asked to see only finished books, and a pin is not an exemption
+       from the question.
+
+       Under months, inMonths lifts them into a run of their own instead, so a
+       pin never has to sit under a heading naming the wrong month. */
+    return grouped ? arranged : floatPins(arranged)
+  }, [libraryBooks, sieve, sort, counts, grouped])
+
+  const months = useMemo(() => (grouped ? inMonths(shown) : []), [grouped, shown])
 
   /* Asked for unconditionally rather than only in the Feed view: it is one
      indexed row per book, and running it here means switching into the Feed
@@ -687,6 +768,16 @@ function Library() {
   /* Sorting and sifting ride the same morph as the view switch: every book
      carries a view-transition name, so re-ordering the array slides each one
      to its new place instead of repainting the list. */
+  /* One row, two answers. Choosing a different sort answers "in what order";
+     choosing the one already running answers "from which end" and turns it
+     over. The direction therefore lives on the sort it belongs to rather than
+     in a control of its own, and the shelf never has a seventh row explaining
+     the other six.
+
+     Picking a new sort resets to its stated direction. Every row says what it
+     gives you — "A to Z", "the book you closed last, first" — and a direction
+     silently carried over from the last sort would make that sentence a lie
+     the moment it was tapped. */
   function orderBy(next: ShelfSort) {
     setTool(null)
     if (next === sort) return
@@ -710,6 +801,101 @@ function Library() {
      that centres it must not be able to disagree about whether the shelf is
      empty. */
   const shelfBare = Boolean(books) && (PREVIEW_BARE || libraryBooks.length === 0)
+
+  /* ---- The two vertical views, drawn once ----
+
+     Both of these render the same books whether or not months are switched on,
+     so the list is a function of "which books, starting at which index" and the
+     grouping is a wrapper around it. Writing them twice — once bare, once under
+     a heading — is how the pinned badge ends up on one branch and not the
+     other.
+
+     `offset` exists because the entrance stagger is a delay per book, and a
+     reader watching a shelf arrive sees one wave down the page, not a fresh
+     wave restarting at every month. */
+  const gridList = (list: Book[], offset: number) => (
+    <div className={styles.grid}>
+      {list.map((book, n) => (
+        <div
+          key={book.id}
+          className={styles.book}
+          style={
+            {
+              viewTransitionName: `book-${book.id}`,
+              '--enter-delay': `calc(${offset + n} * var(--stagger))`,
+            } as CSSProperties
+          }
+        >
+          <BookCover
+            title={book.title}
+            author={book.author}
+            covers={coversOf(book)}
+            size="small"
+          />
+          {/* Why this one is at the front. Without it a pinned shelf just
+              looks like a shelf sorted wrong — the reader can see the order
+              but not the reason for it. Small, on the jacket's corner, and
+              silent to screen readers because the row's own label already
+              says it. Under a timeline a pin no longer moves the book, and
+              this is then the only thing still saying it is pinned — which is
+              reason enough to keep drawing it. */}
+          {isPinned(book) && (
+            <span className={styles.pinned} aria-hidden="true">
+              <PinIcon size={12} filled />
+            </span>
+          )}
+          <OpenJourney book={book} />
+        </div>
+      ))}
+    </div>
+  )
+
+  const feedList = (list: Book[], offset: number) => (
+    <ol className={styles.feed}>
+      {list.map((book, n) => (
+        <FeedRow
+          key={book.id}
+          book={book}
+          keep={latest?.[book.id]}
+          /* The stagger and the shared name are on the row rather than inside
+             it, so the cover that flies here from the add sheet lands in the
+             same place it does in the Grid. */
+          style={
+            {
+              viewTransitionName: `book-${book.id}`,
+              '--enter-delay': `calc(${offset + n} * var(--stagger))`,
+            } as CSSProperties
+          }
+        />
+      ))}
+    </ol>
+  )
+
+  /* One section per month, each holding its own list, so a heading is never a
+     sibling of the items it introduces — which matters for the Feed, where the
+     items are `<li>` and the only legal parent is the `<ol>` they belong to.
+
+     The count sits beside the month rather than under it: a reader scanning a
+     year wants to know that April was four books and May was one, and that is
+     the number the shelf exists to show. */
+  const asMonths = (render: (list: Book[], offset: number) => ReactNode) => {
+    let offset = 0
+    return months.map((month) => {
+      const at = offset
+      offset += month.books.length
+      return (
+        <section className={styles.month} key={month.key}>
+          <h3 className={styles.monthName}>
+            {month.label}
+            <span className={styles.monthCount}>
+              {month.books.length} {month.books.length === 1 ? 'book' : 'books'}
+            </span>
+          </h3>
+          {render(month.books, at)}
+        </section>
+      )
+    })
+  }
 
   return (
     <main className={pageStyles.page}>
@@ -919,61 +1105,9 @@ function Library() {
             </p>
           )}
 
-          {hasBooks && view === 'Feed' && (
-            <ol className={styles.feed}>
-              {shown.map((book, i) => (
-                <FeedRow
-                  key={book.id}
-                  book={book}
-                  keep={latest?.[book.id]}
-                  /* The stagger and the shared name are on the row rather
-                     than inside it, so the cover that flies here from the
-                     add sheet lands in the same place it does in the Grid. */
-                  style={
-                    {
-                      viewTransitionName: `book-${book.id}`,
-                      '--enter-delay': `calc(${i} * var(--stagger))`,
-                    } as CSSProperties
-                  }
-                />
-              ))}
-            </ol>
-          )}
+          {hasBooks && view === 'Feed' && (grouped ? asMonths(feedList) : feedList(shown, 0))}
 
-          {hasBooks && view === 'Grid' && (
-            <div className={styles.grid}>
-              {shown.map((book, i) => (
-                <div
-                  key={book.id}
-                  className={styles.book}
-                  style={
-                    {
-                      viewTransitionName: `book-${book.id}`,
-                      '--enter-delay': `calc(${i} * var(--stagger))`,
-                    } as CSSProperties
-                  }
-                >
-                  <BookCover
-                    title={book.title}
-                    author={book.author}
-                    covers={coversOf(book)}
-                    size="small"
-                  />
-                  {/* Why this one is at the front. Without it a pinned shelf
-                      just looks like a shelf sorted wrong — the reader can
-                      see the order but not the reason for it. Small, on the
-                      jacket's corner, and silent to screen readers because
-                      the row's own label already says it. */}
-                  {isPinned(book) && (
-                    <span className={styles.pinned} aria-hidden="true">
-                      <PinIcon size={12} filled />
-                    </span>
-                  )}
-                  <OpenJourney book={book} />
-                </div>
-              ))}
-            </div>
-          )}
+          {hasBooks && view === 'Grid' && (grouped ? asMonths(gridList) : gridList(shown, 0))}
         </div>
 
         {hasBooks && (
@@ -999,6 +1133,9 @@ function Library() {
         >
           <h2 className={styles.sheetTitle}>In what order</h2>
           <div className={styles.viewList} role="group" aria-label="Sort the shelf">
+            {/* Each row says what the order gives you, so choosing is reading a
+                sentence rather than decoding a label. The two chronological
+                rows are the ones that draw month headings. */}
             {SORTS.map(({ id, label, hint }) => (
               <button
                 key={id}

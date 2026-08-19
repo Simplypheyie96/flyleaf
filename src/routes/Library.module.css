@@ -944,3 +944,45 @@
 [data-theme='dark'] .pinned {
   box-shadow: 0 0 0 1.5px oklch(0.285 0.022 262 / 0.9);
 }
+
+/* ---- Months over a chronological shelf ----
+
+   A date sort already puts the books in the right order. These headings say
+   where one month ended and the next began, which is the whole difference
+   between a list of books and a record of a year's reading.
+
+   Deliberately not sticky. The page already has a toolbar holding the top of
+   the screen, and a second thing pinning itself under it turns a quiet shelf
+   into a stack of bars. A month is a landmark to scroll past, not a status. */
+.month + .month {
+  margin-block-start: var(--space-6);
+}
+
+/* Baseline-aligned rather than centred, so the month and its count sit on one
+   line of type however differently sized they are. */
+.monthName {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-3);
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--border-hairline);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+/* The number a reader scanning a year actually wants: that April was four
+   books and May was one. Faint, because the month is the heading and this is
+   a footnote to it. */
+.monthCount {
+  flex: none;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-body);
+  letter-spacing: var(--track-label);
+  color: var(--color-ink-faint);
+}
