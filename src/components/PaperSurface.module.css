@@ -35,6 +35,11 @@
    the surface they happen to be printed on, and nothing downstream has to
    know there are two lamps in the room. */
 .toneQuote,
+/* Vocabulary was missing from this list, and it is the reason a specimen card
+   after dark printed a near-white ink on a pale blush sheet at 1.14:1. The
+   tone class below it set the paper and nothing set the ink, so the card took
+   the ROOM's ink — right for a night slate, invisible on paper. */
+.toneVocabulary,
 .toneNote,
 .toneVoice,
 .toneImage,
