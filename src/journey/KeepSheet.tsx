@@ -43,7 +43,15 @@ import MapView from "./place/MapView";
 import { useObjectUrl } from "./cards/shared";
 import { todayISO } from "../components/date/dates";
 import type { Book, Entry, EntryType, Stance } from "../data/db";
-import { KIND, KINDS, SIDE, STANCE, STANCES, type Side } from "./kinds";
+import {
+  KIND,
+  KINDS,
+  SIDE,
+  STANCE,
+  STANCES,
+  type Asks,
+  type Side,
+} from "./kinds";
 import { lookUp, remembered, unreachable, warm, type Sense } from "./dictionary";
 import { useDictation } from "./dictation";
 import { addKeep, editKeep } from "./keeps";
@@ -127,6 +135,49 @@ const GROUPS: { side: Side; kinds: EntryType[] }[] = (
 }));
 
 const ASK = "What are you keeping?";
+
+/** "the recording", "the name and the pronunciation", "a, b and c". */
+function listed(parts: string[]) {
+  if (parts.length < 3) return parts.join(" and ");
+  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+}
+
+/** What a change of kind has nowhere to put.
+
+    The kind of a keep is no longer fixed once it is kept — a quote that was
+    really a note is two taps from being one. But a note has nowhere to keep a
+    recording and a quote has nowhere to keep a headword, so some of what is on
+    the keep genuinely goes when the kind does.
+
+    Said before the save rather than discovered after it. The reader is one tap
+    from putting the old kind back, and the only thing that makes that tap
+    findable is knowing there was something to put back. */
+function letGo(
+  was: EntryType,
+  asks: Asks,
+  has: {
+    media?: Blob;
+    name: string;
+    phonetic?: string;
+    pos?: string;
+    pin?: Entry["pin"];
+    stance: boolean;
+  },
+): string[] {
+  const gone: string[] = [];
+  if (has.media && asks.media === "none")
+    gone.push(was === "voice" ? "the recording" : "the picture");
+  if (has.name.trim() && !asks.name)
+    gone.push(was === "vocabulary" ? "the word itself" : "the name");
+  /* Only worth its own clause when the name it belongs to is staying — a
+     dropped headword takes its pronunciation with it without being told. */
+  if ((has.phonetic || has.pos) && asks.name)
+    gone.push("the pronunciation");
+  if (has.pin && asks.media !== "optional-image")
+    gone.push("its place on the map");
+  if (has.stance && !asks.stance) gone.push("how sure you were");
+  return gone;
+}
 
 /** The kind's colour, as a custom property the whole subtree can mix against. */
 function hue(type: EntryType) {
@@ -262,12 +313,17 @@ function Band({
   onToggle,
   bandRef,
   pickRef,
+  sub,
 }: {
   type: EntryType;
   open: boolean;
   onToggle: () => void;
   bandRef: React.RefObject<HTMLDivElement | null>;
   pickRef: React.RefObject<HTMLButtonElement | null>;
+  /* The line under the name. On a new keep it is the kind's invitation; on an
+     edit the reader is not being invited to keep anything, so it says what the
+     control above it is for instead. */
+  sub?: string;
 }) {
   const kind = KIND[type];
   return (
@@ -285,7 +341,7 @@ function Band({
           <span className={styles.bandName}>{kind.label}</span>
           <Chevron />
         </button>
-        <span className={styles.bandInvite}>{kind.invite}</span>
+        <span className={styles.bandInvite}>{sub ?? kind.invite}</span>
       </span>
     </div>
   );
@@ -445,8 +501,10 @@ function KeepSheet({
     /* Every opening starts untouched, whatever the last one did. */
     touchedMedia.current = false;
     if (editing) {
-      /* The kind of a keep cannot change after it is kept, so an edit is never
-         asked the question and never gets the band. */
+      /* An edit is never asked the question — the answer is already on the
+         keep — but it does get the band, because the answer can be wrong. A
+         line typed into the quote box that was really a note used to be a
+         retyping job; now it is the same two taps a new keep would take. */
       setSettled(true);
       setType(editing.type);
       setText(editing.text ?? "");
@@ -719,6 +777,20 @@ function KeepSheet({
       ? media !== undefined
       : text.trim().length > 0;
 
+  /* Only on an edit, and only once the kind has actually been changed: a new
+     keep has nothing saved to lose. */
+  const gone =
+    editing && type !== editing.type
+      ? letGo(editing.type, asks, {
+          media,
+          name,
+          phonetic,
+          pos,
+          pin,
+          stance: editing.stance !== undefined,
+        })
+      : [];
+
   /* The button beside Dictate on a vocabulary keep. One fetch, no queue: the
      reader pressed it, so the sheet either fills the box in a moment or says
      in one line that the pen still works. The definition lands in the meaning
@@ -846,7 +918,10 @@ function KeepSheet({
            the key rather than passing undefined, because to `editKeep`
            undefined means "clear this", which is the opposite. */
         const patch = { ...shared };
-        if (!touchedMedia.current) delete (patch as { media?: Blob }).media;
+        /* Unless the kind changed to one with nowhere to keep it, in which
+           case `undefined` is exactly what is meant and the blob goes. */
+        if (!touchedMedia.current && asks.media !== "none")
+          delete (patch as { media?: Blob }).media;
         await editKeep(editing.id, patch);
       }
       else await addKeep({ bookId: book.id, ...shared });
@@ -865,9 +940,10 @@ function KeepSheet({
     }
   }
 
-  const title = editing
-    ? `Change this ${KIND[editing.type].one}`
-    : KIND[type].invite;
+  /* `type`, not `editing.type`: once the reader has changed the kind, the
+     header names the thing they are about to save rather than the thing it
+     used to be. */
+  const title = editing ? `Change this ${KIND[type].one}` : KIND[type].invite;
 
   /* A label and a caption are one line; a quote, a note, a dossier and a piece
      of lore are paragraphs. */
@@ -972,8 +1048,10 @@ function KeepSheet({
      form for that one kind, with the answer carried across as the band at the
      top — which is also where it gets changed, so nothing is one-way.
 
-     An edit skips step one entirely: the kind of a keep cannot change after it
-     is kept, since a name would be left with nowhere to have come from. */
+     An edit skips step one — the answer is already on the keep — and opens
+     on the form. It still gets the band, so a misfiled keep is corrected where
+     it is read rather than deleted and written again. What the new kind has no
+     room for is said out loud first; see `gone` below. */
   const closeButton = (
     <button
       type="button"
@@ -1028,15 +1106,14 @@ function KeepSheet({
               {closeButton}
             </header>
 
-            {!editing && (
-              <Band
-                type={type}
-                open={choosing}
-                onToggle={() => (choosing ? shut() : setChoosing(true))}
-                bandRef={band}
-                pickRef={pick}
-              />
-            )}
+            <Band
+              type={type}
+              open={choosing}
+              onToggle={() => (choosing ? shut() : setChoosing(true))}
+              bandRef={band}
+              pickRef={pick}
+              sub={editing ? "Change what this is" : undefined}
+            />
 
             <div className={styles.body}>
               {/* Changing kind from the band. The form is HIDDEN rather than
@@ -1054,6 +1131,15 @@ function KeepSheet({
               )}
 
               <div hidden={choosing} className={styles.formHost}>
+                {/* What this change costs, before it is paid. `status` rather
+              than `alert`: it is the consequence of something the reader just
+              did on purpose, not an error, and it reads out after the field
+              they are on rather than interrupting it. */}
+                {gone.length > 0 && (
+                  <p className={styles.letGo} role="status">
+                    Saved as a {KIND[type].one}, this lets go of {listed(gone)}.
+                  </p>
+                )}
                 {/* The name, and — for a character — the face that name drew, standing
               beside it.
 
