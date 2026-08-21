@@ -2337,3 +2337,27 @@
     scale: 1;
   }
 }
+
+/* ── Changing the kind of a keep already saved ───────────────────────────────
+
+   Some of what is on a keep has nowhere to go in the kind it is becoming — a
+   note cannot hold a recording, a quote cannot hold a headword — so the sheet
+   says which before the save rather than after it. Clay, the app's own colour
+   for a thing about to be lost, over a tint of itself so the line reads as a
+   consequence rather than as a failure. */
+.letGo {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: oklch(0.45 0.11 32 / 0.07);
+  color: oklch(0.45 0.11 32);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+[data-theme="dark"] .letGo {
+  background: oklch(0.82 0.08 32 / 0.1);
+  color: oklch(0.82 0.08 32);
+}
