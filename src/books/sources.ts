@@ -199,12 +199,44 @@ interface OpenLibraryDoc {
    not the book the reader pictured; each one is also another 404 to wait
    through before the drawn cover appears. */
 function openLibraryCovers(doc: OpenLibraryDoc) {
+  const isbns = (doc.isbn ?? []).slice(0, 2)
   const urls = [
     doc.cover_i && coverUrl('id', doc.cover_i),
     doc.cover_edition_key && coverUrl('olid', doc.cover_edition_key),
-    ...(doc.isbn ?? []).slice(0, 2).map((isbn) => coverUrl('isbn', isbn)),
+    ...isbns.map((isbn) => coverUrl('isbn', isbn)),
+    /* Amazon last: Open Library's art is cleaner when it exists, but for an
+       Amazon-imprint book (Lake Union, Montlake, 47North…) it is the only
+       host that answers at all — those books are never sold on Apple Books
+       and sit in Open Library with no cover. See amazonCover for why a miss
+       here needs BookCover's own guard rather than an onError. */
+    ...isbns.map((isbn) => isbn10Of(isbn)).filter((ten): ten is string => Boolean(ten))
+      .slice(0, 1)
+      .map(amazonCover),
   ]
   return cleanCovers(urls.filter((url): url is string => typeof url === 'string'))
+}
+
+/* Amazon's static cover host. No API, no key, no quota — addressed by ISBN-10
+   ONLY: a 13 answers the miss shape even for a book it holds. The catch is
+   that a miss is not a 404 but a 200 carrying a 43-byte 1×1 GIF (measured),
+   which decodes without error — so an <img> onError never fires for it, and
+   BookCover rejects it by its dimensions instead. */
+function amazonCover(isbn10: string) {
+  return `https://images-na.ssl-images-amazon.com/images/P/${encodeURIComponent(isbn10)}.01.LZZ.jpg`
+}
+
+/* The 10-digit form of an ISBN, which is the only key Amazon's host takes.
+   A 978-prefixed 13 converts (drop the prefix, recompute the check digit);
+   a 979 book has no 10-digit form at all. */
+function isbn10Of(isbn: string): string | undefined {
+  const n = isbn.replace(/[^0-9Xx]/g, '')
+  if (n.length === 10) return n.toUpperCase()
+  if (n.length !== 13 || !n.startsWith('978')) return undefined
+  const core = n.slice(3, 12)
+  let sum = 0
+  for (let i = 0; i < 9; i++) sum += (10 - i) * Number(core[i])
+  const check = (11 - (sum % 11)) % 11
+  return core + (check === 10 ? 'X' : String(check))
 }
 
 /* `default=false` is the important part: without it a missing cover returns a
