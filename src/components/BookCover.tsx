@@ -96,7 +96,15 @@ function BookCover({
   // Render custom drawn needlework CoverArt when there is no photo source, or while photo source is loading
   const showDrawnArt = !src || !loaded
 
-  const handleLoad = (url: string) => {
+  const handleLoad = (url: string, el: HTMLImageElement) => {
+    // A load event is not proof of a cover: Amazon's cover host answers a
+    // miss with a 200 carrying a 1×1 GIF, which decodes without error. An
+    // image one pixel wide is a miss wearing a success — treat it as the
+    // 404 it stands in for and move to the next candidate.
+    if (el.naturalWidth <= 1 || el.naturalHeight <= 1) {
+      handleError()
+      return
+    }
     LOADED_COVERS.add(url)
     setLoaded(true)
   }
@@ -127,7 +135,7 @@ function BookCover({
           key={src}
           ref={(el) => {
             if (el?.complete && el.naturalWidth > 0) {
-              handleLoad(src)
+              handleLoad(src, el)
             }
           }}
           className={styles.image}
@@ -135,7 +143,7 @@ function BookCover({
           alt={`${title} by ${author}`}
           loading="eager"
           decoding="async"
-          onLoad={() => handleLoad(src)}
+          onLoad={(e) => handleLoad(src, e.currentTarget)}
           onError={handleError}
         />
       )}
