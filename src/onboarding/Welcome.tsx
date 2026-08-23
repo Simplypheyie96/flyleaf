@@ -18,7 +18,7 @@ import styles from './onboarding.module.css'
    what this is, one that asks what to call you, and Skip on the second. No
    account, no email, no password, nothing sent anywhere.
 
-   SIGNING IN IS ON THE FIRST PANEL, AND ONLY FOR PEOPLE COMING BACK. It is
+   THE DRIVE DOOR IS ON BOTH PANELS, AND ONLY FOR PEOPLE COMING BACK. It is
    not a second way to start — it is the way a reader who already keeps a
    journal on their phone opens it on a laptop. Without it, that reader has to
    invent a name they already have, pick a face they already picked, sit
@@ -26,11 +26,16 @@ import styles from './onboarding.module.css'
    Settings — where the name arriving from Drive overwrites the one they just
    typed. The whole ceremony was for a stranger who was not there.
 
-   So it is worded for the returning reader ("Already have a journal?"),
-   ranked below Begin, and hidden entirely when no client ID was built in. A
-   new reader reads past it. Nobody is stopped by it: the panel behind it
-   still starts a journal with no account of any kind, which is the promise
-   the fine print on the next panel makes.
+   NOTHING HERE SAYS "SIGN IN". There is no Flyleaf account to sign into —
+   the legal page says so in as many words — and a button that implies one
+   asks the reader to hand over something they never had. What actually
+   happens is that their own Google Drive is connected and the journey in it
+   comes down. So the door says that: bring it back.
+
+   It is worded for the returning reader, ranked below Begin, and hidden
+   entirely when no client ID was built in. A new reader reads past it. Nobody
+   is stopped by it: the panel behind it still starts a journal with no account
+   of any kind, which is the promise the fine print on the next panel makes.
 
    IT SHOWS ONCE. `hasMet` is written on the way out whichever door is used,
    so a reader who skips is not asked again on the next launch. */
@@ -86,7 +91,7 @@ function Welcome() {
       markMet()
       setOpen(false)
     } catch {
-      setTrouble('That did not connect. You can start here and sign in from Settings.')
+      setTrouble('That did not connect. You can start here and bring it back from Settings.')
     } finally {
       setBusy(false)
     }
@@ -130,11 +135,11 @@ function Welcome() {
               {SYNC_AVAILABLE && (
                 <button
                   type="button"
-                  className={styles.skip}
+                  className={`${styles.skip} ${styles.door}`}
                   disabled={busy}
                   onClick={() => void comeBack()}
                 >
-                  {busy ? 'Finding your journal…' : 'Already have one? Sign in'}
+                  {busy ? 'Finding your journal…' : 'Already have one? Bring it back'}
                 </button>
               )}
             </div>
@@ -178,11 +183,48 @@ function Welcome() {
               on this device unless you save a copy of them yourself.
             </p>
             <div className={styles.acts}>
-              <LeafButton onClick={() => begin(name)}>Begin</LeafButton>
-              <button type="button" className={styles.skip} onClick={() => leave('')}>
+              <LeafButton disabled={busy} onClick={() => begin(name)}>
+                Begin
+              </LeafButton>
+              <button
+                type="button"
+                className={styles.skip}
+                disabled={busy}
+                onClick={() => leave('')}
+              >
                 Skip
               </button>
             </div>
+
+            {/* THE SAME DOOR, ON THE PANEL WHERE IT IS ACTUALLY NEEDED. It is
+                on the first panel too, but there it sits beside a much louder
+                Begin, and a reader who already keeps this journal walks
+                straight past it — and is then asked to invent a name and pick
+                a face that are already sitting in their Drive. Nobody should
+                have to answer a question the answer to which is being synced
+                down. Under a rule, so it reads as the other way in rather than
+                a third thing to do here. */}
+            {SYNC_AVAILABLE && (
+              <div className={styles.alt}>
+                <p className={styles.fine}>
+                  Already keep this journal? Bring it down from your Google
+                  Drive — your name and face come with it.
+                </p>
+                <button
+                  type="button"
+                  className={`${styles.skip} ${styles.door}`}
+                  disabled={busy}
+                  onClick={() => void comeBack()}
+                >
+                  {busy ? 'Finding your journal…' : 'Bring my journal back'}
+                </button>
+                {trouble && (
+                  <p className={styles.fine} data-tone="bad" role="status">
+                    {trouble}
+                  </p>
+                )}
+              </div>
+            )}
           </PaperSurface>
         )}
       </div>

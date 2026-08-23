@@ -117,9 +117,10 @@ const privacy: Doc = {
             all.
           </p>
           <p>
-            That stays true if you turn on syncing. Signing in with Google does
-            not create a Flyleaf account: it gives this app permission to write
-            into your own Google Drive and nothing else. We are not told your
+            That stays true if you turn on syncing. Connecting your Google
+            Drive does not create a Flyleaf account — there is no such thing:
+            it gives this app permission to write into your own Drive and
+            nothing else. We are not told your
             name, we do not keep your email address, and no record of you exists
             on our side afterwards — there is no side for it to exist on.
           </p>

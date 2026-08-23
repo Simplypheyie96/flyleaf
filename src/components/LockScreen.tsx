@@ -277,7 +277,7 @@ function LockScreen() {
                   disabled={busy}
                   onClick={proveWithGoogle}
                 >
-                  Forgot it? Sign in with Google
+                  Forgot it? Unlock with Google
                 </button>
               ) : pending > 0 ? null : asking ? (
                 <div className={styles.ask}>
