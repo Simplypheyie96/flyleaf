@@ -309,7 +309,7 @@ function SyncCard() {
         title="Sync across devices"
         control={
           <span className={styles.value}>
-            {!on ? 'Off' : stale ? 'Sign in again' : at ? when(at) : 'Not yet'}
+            {!on ? 'Off' : stale ? 'Reconnect' : at ? when(at) : 'Not yet'}
           </span>
         }
         open={open}
@@ -334,24 +334,24 @@ function SyncCard() {
               <p className={styles.note}>
                 {who ? (
                   <>
-                    Signed in as <strong>{who}</strong>.
+                    Connected to <strong>{who}</strong>.
                   </>
                 ) : (
-                  'Signed in to Google.'
+                  'Connected to Google Drive.'
                 )}
               </p>
               <p className={styles.note}>
                 {stale
-                  ? 'Google has stopped letting this device refresh quietly, so syncing has paused. Sign in again to start it up.'
+                  ? 'Google has stopped letting this device refresh quietly, so syncing has paused. Reconnect to start it up.'
                   : 'This device syncs on its own — when you write something, when you open Flyleaf, and while it is in front of you. There is nothing to press.'}
               </p>
             </>
           ) : (
             <p className={styles.note}>
-              Sign in with Google and this journal appears on your other
-              devices, and keeps up with them by itself. The copy goes into
-              your own Google Drive, in a hidden folder only Flyleaf can open —
-              never onto our servers.
+              Connect your Google Drive and this journal appears on your
+              other devices, and keeps up with them by itself. There is no
+              Flyleaf account: the copy goes into your own Drive, in a hidden
+              folder only Flyleaf can open — never onto our servers.
             </p>
           )}
 
@@ -404,7 +404,7 @@ function SyncCard() {
           ) : !on ? (
             <>
               <button type="button" className={styles.action} disabled={busy !== null} onClick={connect}>
-                {busy === 'in' ? 'Connecting…' : 'Sign in with Google'}
+                {busy === 'in' ? 'Connecting…' : 'Connect Google Drive'}
                 <span className={styles.mark}>
                   <Cloud />
                 </span>
@@ -412,7 +412,7 @@ function SyncCard() {
 
               {sure && (
                 <p className={styles.note} data-tone="bad">
-                  This opens Google Sign-In to confirm your account, then deletes the copy in your Google Drive and stops sync. Everything on this device remains here.
+                  This opens Google to confirm the account, then deletes the copy in your Google Drive and stops sync. Everything on this device remains here.
                 </p>
               )}
               <button
@@ -439,7 +439,7 @@ function SyncCard() {
                   quietly and needs a human to say so again. */}
               {stale && (
                 <button type="button" className={styles.action} disabled={busy !== null} onClick={now}>
-                  {busy === 'now' ? 'Signing in…' : 'Sign in to Google again'}
+                  {busy === 'now' ? 'Reconnecting…' : 'Reconnect Google Drive'}
                   <span className={styles.mark}>
                     <Cloud />
                   </span>

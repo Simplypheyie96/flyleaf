@@ -97,10 +97,10 @@ function SyncNudge() {
         <div className={styles.body}>
           <p className={styles.message}>
             {meeting
-              ? `Signed in. That Drive already holds a journey, last changed on your ${meeting} — nothing has been merged yet. Settings will ask you first.`
+              ? `Connected. That Drive already holds a journey, last changed on your ${meeting} — nothing has been merged yet. Settings will ask you first.`
               : failed
                 ? 'That did not connect. You can try again from Settings whenever you like.'
-                : 'Your journal lives on this phone only. Sign in with Google and it waits for you on your other devices too.'}
+                : 'Your journal lives on this phone only. Connect your Google Drive and it waits for you on your other devices too.'}
           </p>
           <div className={styles.actions}>
             <button type="button" className={styles.quiet} onClick={dismiss}>
@@ -112,7 +112,7 @@ function SyncNudge() {
                 disabled={busy}
                 onClick={() => void connect()}
               >
-                {busy ? 'Connecting…' : 'Sign in'}
+                {busy ? 'Connecting…' : 'Connect Drive'}
               </LeafButton>
             )}
           </div>

@@ -120,6 +120,22 @@
 
 /* The way out, and it is not a white slab. Text on glass at the tap minimum:
    present, reachable, and quieter than the thing it stands beside. */
+/* The returning reader's way out of the name panel. A hairline and a full
+   line of breathing room above it, so it reads as an alternative to the whole
+   panel rather than a fourth control in the row of buttons.
+
+   The button below it keeps its own left edge rather than being pulled back
+   to align its text with the paragraph: it carries a visible outline (.door),
+   so the pill IS the edge, and it lines up with the Begin pill above. */
+.alt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--card-border);
+}
+
 .skip {
   min-block-size: var(--tap-min);
   padding: 0 var(--space-3);
@@ -147,6 +163,13 @@
 .skip:disabled {
   opacity: 0.55;
   cursor: default;
+}
+/* The two sign-in buttons carry their outline at rest. Plain .skip earns its
+   border on hover, which is right for Skip — a way out should not compete —
+   and wrong for the only door a returning reader wants, on a phone where
+   hover never happens. */
+.door {
+  border-color: var(--control-border);
 }
 
 /* Said only when a sign-in fails, in the same fine print that carries the
