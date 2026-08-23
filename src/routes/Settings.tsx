@@ -122,6 +122,22 @@ function Settings() {
                 ↗
               </span>
             </a>
+            <a
+              href="https://ereader.flyleaf.cc/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={card.link}
+            >
+              <span className={card.linkBody}>
+                Flyleaf Ereader
+                <span className={card.linkNote}>
+                  Read your EPUB books in a clean, distraction-free web reader.
+                </span>
+              </span>
+              <span className={card.linkHint} aria-hidden="true">
+                ↗
+              </span>
+            </a>
           </Group>
 
           {/* Erase sits in this group and last in it, not in a group of its
