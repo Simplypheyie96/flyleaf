@@ -46,7 +46,7 @@ import PaperSurface from '../../components/PaperSurface'
 import { KIND } from '../../journey/kinds'
 import { usePlayback } from '../../journey/cards/shared'
 import type { Book, Entry } from '../../data/db'
-import { useKeep, useKeepIds } from '../../data/useLibrary'
+import { useKeep, useKeepTotal, useQuoteIds } from '../../data/useLibrary'
 import styles from './Draw.module.css'
 
 /** A different one from the one on screen. Never the same twice running, so
@@ -278,7 +278,12 @@ interface Props {
 }
 
 function Draw({ books, reading, opening }: Props) {
-  const ids = useKeepIds()
+  const ids = useQuoteIds()
+  /* Every keep, of every type — read for one comparison only, and never to
+     draw from. It is how this tells "nothing has been kept yet" apart from
+     "plenty has been kept, none of it a quote", which are the same empty pool
+     and want opposite screens. A count on the table, so no row is read. */
+  const total = useKeepTotal()
 
   /* The id on screen, and the counter that replays the drop.
 
@@ -435,9 +440,19 @@ function Draw({ books, reading, opening }: Props) {
   /* Dexie still opening. Nothing is truer than nothing here — a first-run card
      that flashes for 80ms and is replaced by a memory is worse than a beat of
      empty space. */
-  if (!ids) return null
-  if (PREVIEW_FIRST || ids.length === 0)
+  if (!ids || total === undefined) return null
+  if (PREVIEW_FIRST || total === 0)
     return <FirstDraw reading={reading} opening={opening} onStart={startWriting} />
+  /* KEEPS ON THE SHELF, BUT NOT ONE QUOTE AMONG THEM: the section is simply
+     not here today.
+
+     It must not fall through to `FirstDraw`, which asks for the first line
+     someone ever keeps — said to a reader holding forty notes it is the app
+     failing to recognise its own user. And it must not grow an empty state
+     either: "keep a quote and this will fill up" turns the one part of Home
+     that asks nothing of anybody into a chore with a progress bar. The draw
+     is a gift. A gift that isn't ready doesn't announce itself. */
+  if (ids.length === 0) return null
   if (!keep) return null
 
   const kind = KIND[keep.type]
@@ -462,7 +477,12 @@ function Draw({ books, reading, opening }: Props) {
         <h2 id="draw-head" className={styles.kicker}>
           Look what fell out
         </h2>
-        <p className={styles.what}>One memory, drawn at random from everything you’ve kept.</p>
+        {/* It says QUOTES, not "everything you've kept", because that is what
+            the pool is now (useQuoteIds) and a subhead describing a wider
+            draw than the one running is the app misdescribing itself. It also
+            quietly answers the question a reader would otherwise ask on
+            noticing their notes never appear here. */}
+        <p className={styles.what}>One line, drawn at random from the quotes you’ve kept.</p>
       </div>
 
       <div className={styles.pile}>

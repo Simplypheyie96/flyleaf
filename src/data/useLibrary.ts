@@ -65,18 +65,38 @@ export function useRecentKeeps(count = 6): Entry[] | undefined {
   )
 }
 
-/** Every keep's id — the pool Home's draw pulls one out of.
+/** Every kept QUOTE's id — the pool Home's draw pulls one out of.
 
     A shuffle whose pool is the last six entries is a feed with extra steps:
     the whole point is that the line you kept in March, out of a book you
-    finished, can surface. So the pool is the WHOLE table.
+    finished, can surface. So the pool is the whole table, back to the
+    beginning — but quotes only, and that restriction is the point of the
+    hook rather than an optimisation.
 
-    Affordable because it never touches a row: `primaryKeys()` walks the id
-    index and returns numbers. A reader with two thousand memories — recordings
-    and all — costs about sixteen kilobytes of integers here, and not one blob
-    is read until a card is actually drawn. */
-export function useKeepIds(): number[] | undefined {
-  return useLiveQuery(() => db.entries.orderBy('id').primaryKeys() as Promise<number[]>, [])
+    QUOTES ONLY, BECAUSE AN UNANNOUNCED RETURN IS NOT NEUTRAL.
+
+    A quote is someone else's sentence, chosen because it was worth keeping,
+    and a reader who meets it again on a Tuesday morning meets a good line
+    twice. A note is not that. A note is the reader's own voice, often written
+    in the middle of a book that was upsetting them — a grief, a diagnosis, an
+    argument they were having with the author or with themselves. Resurfacing
+    that unbidden, on the home screen, with a moth flying in beside it, is the
+    app cheerfully handing someone their own bad afternoon back. The reader
+    asked for it once, when they wrote it. They did not ask for it today.
+
+    So the other seven types stay where they were put, reachable from the book
+    they belong to, in the order and context the reader chose. Only quotes
+    volunteer themselves.
+
+    Affordable because it never touches a row: `primaryKeys()` walks the
+    `type` index and returns numbers. A reader with two thousand memories —
+    recordings and all — costs a few kilobytes of integers here, and not one
+    blob is read until a card is actually drawn. */
+export function useQuoteIds(): number[] | undefined {
+  return useLiveQuery(
+    () => db.entries.where('type').equals('quote').primaryKeys() as Promise<number[]>,
+    [],
+  )
 }
 
 /** The one keep a draw landed on. Keyed by id, so a re-render that did not
