@@ -250,6 +250,59 @@ function Heard({ keep }: { keep: Entry }) {
   )
 }
 
+/** The draw is a glimpse, and a glimpse has a length.
+
+    Nothing bounded this card's height, so it was exactly as tall as whatever
+    had been kept. Measured at 375px with a 508-character quote: the words ran
+    425px over SIXTEEN lines, the card came out 563px, and the provenance line
+    under it landed at y=856 — off the bottom of an 812px phone. The heading
+    three inches above says "One line, drawn at random", and the screen was
+    answering with a page of one. A short quote is two lines and 183px, so the
+    whole proportion of the section — card, moth, the room they sit in — was
+    being set by the length of one row in the database.
+
+    CUT THE TEXT, NOT THE BOX, and the closing quote mark is the reason. The
+    obvious fix is `-webkit-line-clamp` on `.quote`, which the search rows and
+    the journey cards already use, and it works: six lines, ellipsis, done. But
+    the marks around a quote are `::before`/`::after` on that same block, so
+    clipping the block throws the closing one away — the card renders an
+    opening mark, six lines, and no close. That is precisely the "stray
+    punctuation" the note over `.quote::before` was written to get rid of, and
+    a quotation that never closes reads as a rendering fault rather than a
+    trim. Trimming the string instead puts the ellipsis INSIDE the pair, where
+    it says what it means: this is the start of something longer.
+
+    Cut on a word, never mid-word. 190 measured out at six lines of Garamond
+    on a 375px phone, which puts the whole card at 319px and the bottom of the
+    provenance line under it at 667 — comfortably inside the fold, where the
+    508-character version had pushed it to 856. Fewer lines than six on a wide
+    card, which is the right direction for something only meant to be a taste.
+
+    SLACK, because the last few words are not worth an ellipsis. Trimming a
+    194-character quote saves four characters and spends a "…" to do it, which
+    tells the reader something was withheld when practically nothing was. So
+    the budget carries about a line of tolerance: a quote a little over its
+    length arrives whole, and only one that is properly long gets cut.
+
+    There is no way off this card and that is deliberate (see the note at the
+    end of Draw), so the rest of a long quote lives where it was put, in the
+    book's own timeline. The honest trade: a glimpse that fills the screen has
+    stopped being one. */
+const GLIMPSE = 190
+const SLACK = 24
+
+function glimpse(text: string) {
+  if (text.length <= GLIMPSE + SLACK) return text
+  const cut = text.slice(0, GLIMPSE)
+  const space = cut.lastIndexOf(' ')
+  /* Only honour the word break if it is near the end. A pasted URL has no
+     spaces in it, so `lastIndexOf` can land at character 12 and hand back a
+     twelve-character glimpse of a 500-character quote; below that threshold,
+     cutting mid-word is the smaller lie. */
+  const kept = space > GLIMPSE * 0.6 ? cut.slice(0, space) : cut
+  return `${kept.replace(/[\s,;:.\u2014-]+$/, '')}…`
+}
+
 function Body({ keep }: { keep: Entry }) {
   if (keep.type === 'voice') return <Heard keep={keep} />
 
@@ -257,7 +310,9 @@ function Body({ keep }: { keep: Entry }) {
     <>
       {keep.name && <p className={styles.name}>{keep.name}</p>}
       {keep.text && (
-        <p className={keep.type === 'quote' ? styles.quote : styles.said}>{keep.text}</p>
+        <p className={keep.type === 'quote' ? styles.quote : styles.said}>
+          {glimpse(keep.text)}
+        </p>
       )}
     </>
   )
