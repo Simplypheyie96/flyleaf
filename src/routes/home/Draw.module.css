@@ -13,10 +13,35 @@
    section in one cell auto-placed the kicker into an implicit second row, so
    the label printed under the card it was labelling. */
 
+/* AND THE SECTION IS A PAGE, NOT A PANEL — which is a measure decision, so
+   see the note under `.said` for the numbers it comes from. In short: Home's
+   column runs to 760px, the card was taking all of it, and 735px of Garamond
+   is 98 characters a line. That is half again the top of a comfortable
+   measure, and it is why the card read as a letterboxed banner at desktop
+   instead of a piece of paper — three very long lines, edge to edge, with the
+   heading above it describing "one line".
+
+   The cap goes HERE, on the whole section, rather than on the text. Capping
+   the words alone is what the `.said` note is a post-mortem of: the paper, the
+   hairline and the provenance line all kept the card's full width, the
+   sentence stopped short of them, and the leftover strip beside it read as a
+   truncation rather than a margin. Capping the section takes the deck, the
+   tape, the moth's perch and the heading with it, so there is no leftover
+   strip anywhere and every edge on the object still lines up with every
+   other.
+
+   560 leaves the card 510px of interior, which measures 67 characters of the
+   reading face and 75 of the hand — a page. It is a plain length and not `ch`
+   for the reason the `.said` note gives at length, and it needs no media query:
+   the column is 72vw between its own two bounds, so this cap only bites above
+   about 778px of viewport and every narrower screen is already narrower than
+   it. Measured: 277px of text at 375, 503 at 768, 510 from 800 up. */
+
 .stage {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  max-inline-size: 560px;
   border-radius: var(--radius-md);
 }
 
@@ -384,11 +409,32 @@
    wrapped early, which costs extra lines and therefore extra height, and a
    too-tall block of too-short lines is what produced the gap she saw.
 
-   So the cap comes off, because the card ALREADY IS one. Home's column is
-   capped at 560px, which leaves the text a hard ceiling of about 517px — 60-odd
-   characters of Kalam, the top of a comfortable reading measure and well short
-   of a paragraph. A second cap on top of that was not protecting the measure,
-   it was just guessing at it in a unit that cannot see the font. */
+   So the cap comes off, because the card ALREADY IS one. A second cap on top
+   of the card was not protecting the measure, it was just guessing at it in a
+   unit that cannot see the font.
+
+   THE PART OF THIS THAT WAS WRONG, AND WHAT IT COST.
+
+   That conclusion rested on "Home's column is capped at 560px, which leaves
+   the text about 517px". The column is not 560. It is
+   `clamp(420px, 72vw, 760px)` — see `.column` in page.module.css — so on any
+   desktop it is 760, the card took all of it, and the text ran 735. Taking a
+   cap off is the right move only if something underneath is holding the line,
+   and nothing was: at 1080 the quote was measured at 98 characters a line and
+   the handwriting at 108, against a comfortable 45–75. The card had stopped
+   being a piece of paper and become a letterboxed banner.
+
+   The fix is the section cap on `.stage` at the top of this file, not a cap
+   back on the text — putting one there is what produced the stranded-writing
+   bug this note is a post-mortem of. With the section at 560 the card is 560
+   and the text is 510, which measures 67 characters of Garamond and 75 of
+   Kalam. So the sentence above is finally true, and it is true because
+   something makes it true rather than because it was assumed.
+
+   Measured with a hidden span copying the element's own computed font, never
+   with canvas `measureText` — that ignores `font-size-adjust`, and Garamond
+   here sets 0.516, so it reports 5.89px an average character where the real
+   advance is 7.59. */
 
 /* Voice: the words on top, the recording underneath.
    ═════════════════════════════════════════════════
