@@ -13,36 +13,47 @@
    section in one cell auto-placed the kicker into an implicit second row, so
    the label printed under the card it was labelling. */
 
-/* AND THE SECTION IS A PAGE, NOT A PANEL — which is a measure decision, so
-   see the note under `.said` for the numbers it comes from. In short: Home's
-   column runs to 760px, the card was taking all of it, and 735px of Garamond
-   is 98 characters a line. That is half again the top of a comfortable
-   measure, and it is why the card read as a letterboxed banner at desktop
-   instead of a piece of paper — three very long lines, edge to edge, with the
-   heading above it describing "one line".
-
-   The cap goes HERE, on the whole section, rather than on the text. Capping
-   the words alone is what the `.said` note is a post-mortem of: the paper, the
-   hairline and the provenance line all kept the card's full width, the
-   sentence stopped short of them, and the leftover strip beside it read as a
-   truncation rather than a margin. Capping the section takes the deck, the
-   tape, the moth's perch and the heading with it, so there is no leftover
-   strip anywhere and every edge on the object still lines up with every
-   other.
-
-   560 leaves the card 510px of interior, which measures 67 characters of the
-   reading face and 75 of the hand — a page. It is a plain length and not `ch`
-   for the reason the `.said` note gives at length, and it needs no media query:
-   the column is 72vw between its own two bounds, so this cap only bites above
-   about 778px of viewport and every narrower screen is already narrower than
-   it. Measured: 277px of text at 375, 503 at 768, 510 from 800 up. */
-
 .stage {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  max-inline-size: 560px;
   border-radius: var(--radius-md);
+}
+
+/* THE PAPER IS NOT THE TYPE AREA.
+
+   The card keeps the column's full width, because it is one of three objects
+   stacked down Home and the other two take all of it — Currently Reading
+   above, the reading-place panel below. An object that stops 200px short
+   between two that do not does not read as a smaller thing deliberately
+   placed, it reads as a thing that failed to load. That was tried and it was
+   wrong.
+
+   So the measure comes from the type area instead. 500px is 66 characters of
+   the reading face, which is the top of a comfortable line; the paper carries
+   whatever is left over as margin. On a 760px column that measures 130px a
+   side, and a page with wide margins is the single most ordinary thing paper
+   does — a flyleaf inscription sits in the middle of a lot of blank sheet.
+
+   CENTRED, AND THAT IS THE WHOLE DIFFERENCE FROM THE BUG.
+
+   The note under `.said` is a post-mortem of capping the words alone: the
+   sentence stopped short while the paper, the hairline and the provenance
+   line kept the full width, so the leftover strip sat on ONE side of a block
+   of text with a rule running past it, and it read as truncation. Every one
+   of those is inside this wrapper now. They share both edges, the leftover is
+   equal on either side, and equal leftover is a margin.
+
+   The extra block padding is proportion, not rhythm. A glimpse is three lines,
+   and three lines across 500px on a card with 24px of padding is a 5:1 letter
+   slot. Paper is not that shape. */
+.leaf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-inline-size: 500px;
+  margin-inline: auto;
+  padding-block: var(--space-4);
 }
 
 /* The section takes a tab stop because focusing it is how a keyboard holds the
@@ -424,11 +435,14 @@
    the handwriting at 108, against a comfortable 45–75. The card had stopped
    being a piece of paper and become a letterboxed banner.
 
-   The fix is the section cap on `.stage` at the top of this file, not a cap
-   back on the text — putting one there is what produced the stranded-writing
-   bug this note is a post-mortem of. With the section at 560 the card is 560
-   and the text is 510, which measures 67 characters of Garamond and 75 of
-   Kalam. So the sentence above is finally true, and it is true because
+   Shrinking the section was tried next and was also wrong for its own
+   reasons — see `.leaf` at the top of this file, which is where the measure
+   actually lives now. The cap is on the type area, not on the sentence: the
+   kicker, the words, the hairline and the provenance are all inside one 500px
+   wrapper, centred, so the leftover paper is equal on both edges instead of
+   stranding the writing against one of them. The card still takes the full
+   760, the text runs 500, and that measures 66 characters of Garamond — and
+   about 73 of Kalam, at the 6.83px advance measured for the hand. So the sentence above is finally true, and it is true because
    something makes it true rather than because it was assumed.
 
    Measured with a hidden span copying the element's own computed font, never

@@ -560,23 +560,29 @@ function Draw({ books, reading, opening }: Props) {
           rotate={-1.1}
           className={going ? `${styles.card} ${styles.leaving}` : styles.card}
         >
-          <p className={styles.mark}>
-            <span className={styles.markIcon} aria-hidden="true">
-              <kind.Icon size={14} />
-            </span>
-            {kind.label}
-          </p>
+          {/* The type area, which is not the paper — see `.leaf` in the
+              stylesheet. Everything printed on the card lives inside it so
+              that the kicker, the sentence, the hairline and the provenance
+              all share one pair of edges. */}
+          <div className={styles.leaf}>
+            <p className={styles.mark}>
+              <span className={styles.markIcon} aria-hidden="true">
+                <kind.Icon size={14} />
+              </span>
+              {kind.label}
+            </p>
 
-          <Body keep={keep} />
+            <Body keep={keep} />
 
-          <p className={styles.from}>
-            from <span className={styles.fromBook}>{from?.title ?? 'a book you kept'}</span>
-            <span className={styles.sep} aria-hidden="true">·</span>
-            {/* One unbreakable unit. "4 weeks ago" was wrapping after the
-                number, which left a stray digit at the end of the title's
-                line and read as part of the title. */}
-            <span className={styles.when}>{whenWords(keep)}</span>
-          </p>
+            <p className={styles.from}>
+              from <span className={styles.fromBook}>{from?.title ?? 'a book you kept'}</span>
+              <span className={styles.sep} aria-hidden="true">·</span>
+              {/* One unbreakable unit. "4 weeks ago" was wrapping after the
+                  number, which left a stray digit at the end of the title's
+                  line and read as part of the title. */}
+              <span className={styles.when}>{whenWords(keep)}</span>
+            </p>
+          </div>
         </PaperSurface>
 
         {/* It lands with the card and on the card's clock — same key, so it
