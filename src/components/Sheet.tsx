@@ -156,6 +156,28 @@ export function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open
          on viewport numbers left over from somewhere the sheet had never
          been. */
       const field = document.activeElement
+
+      /* A DIALOG STACKED OVER THIS ONE FREEZES IT WHERE IT STANDS.
+         Longhand is a second dialog in the same top layer, opened from inside
+         the sheet and covering it completely. Its field is not inside this
+         element, so the test below reads "nothing is being typed into me",
+         clears every property, and hands the sheet back its full height —
+         behind a keyboard that is still up, under a page nobody can see it
+         through. Then Done uncovers it and it fits itself again in the frame
+         it is revealed in: the snap the owner called the glitch. While
+         something else holds the caret in its own open dialog, the last good
+         fit is the right fit — this sheet is neither the surface being typed
+         into nor the surface being looked at, and it has no business
+         resizing. Focus sitting nowhere at all still falls through to the
+         clear below, which is what keeps a sheet with no keyboard in front of
+         it from believing it has one. */
+      if (
+        field instanceof HTMLElement &&
+        !el.contains(field) &&
+        field.closest('dialog[open]')
+      )
+        return
+
       const typing =
         field instanceof HTMLElement &&
         el.contains(field) &&

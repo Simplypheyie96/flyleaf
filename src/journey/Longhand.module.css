@@ -4,7 +4,12 @@
    page that is still there, and is translucent to say so. This one is not
    chrome — it is the writing itself, taken out of the form and laid flat — so
    it is opaque paper edge to edge, and there is nothing behind it to look at
-   through a blur. */
+   through a blur.
+
+   Paper, and on it the field. The page is the sheet's own ground; the box
+   keeps its border and its fill and grows to fill the page inside even
+   gutters. That is the whole difference between a field that was expanded and
+   a screen that merely appeared. */
 
 .page {
   /* The top layer inherits no layout, so the page positions itself. */
@@ -35,7 +40,17 @@
   block-size: var(--sheet-room, 100%);
   inset-block-start: var(--sheet-shift, 0px);
   inset-block-end: auto;
+}
 
+/* THE RISE RUNS ON THE CONTENTS, NEVER ON `.page` ITSELF.
+   The two properties above are rewritten by useKeyboardFit in the same frame
+   this page opens — the caret is put in the field immediately, which raises the
+   keyboard immediately — and an element being animated while its own height and
+   offset are reassigned under it does not animate, it jumps. That jump is what
+   the owner saw as the glitch. A transform on the children is not layout, so
+   the keyboard and the entrance never touch each other. */
+.page[open] > .bar,
+.page[open] > .leaf {
   animation: rise var(--dur-base) var(--ease-out);
 }
 
@@ -59,7 +74,12 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding-inline: var(--space-5);
+  /* Aligned to the box below it, not to the screen. The label and Done are
+     what the writing is called and the way back FROM it, so they belong over
+     its edges — and with the box drawn again, a label floating 8px outside it
+     reads as two things that missed each other. Matches `.leaf`'s gutter
+     exactly, at both sizes. */
+  padding-inline: var(--space-4);
   /* The notch, when there is one. `max` rather than a sum, so a phone without
      an inset does not get a bar with three-quarters of an inch of nothing
      above the title. */
@@ -128,9 +148,12 @@
 .leaf {
   flex: 1;
   min-block-size: 0;
-  padding-inline: var(--space-4);
-  padding-block-start: var(--space-2);
-  padding-block-end: max(var(--space-4), env(safe-area-inset-bottom));
+  /* Even, all four sides. It was 8px above the box and 16px below it, which
+     sits the writing low in its own frame and is the imbalance the owner
+     asked about. `max` and not a sum on the trailing side, so a phone with no
+     home-bar inset gets the same 16px as the other three. */
+  padding: var(--space-4) var(--space-4)
+    max(var(--space-4), env(safe-area-inset-bottom));
 }
 
 .held {
@@ -146,19 +169,25 @@
   block-size: 100%;
   min-block-size: 0;
   resize: none;
-  /* The chrome of a form field is what says "this is one row of eight". On a
-     page of its own there is no row and nothing to edge. The leading padding
-     is left exactly as it was — it is the gutter the hung quotation mark was
-     measured against. */
-  border-color: transparent;
-  background: none;
+  /* AND IT KEEPS ITS BORDER AND ITS FILL. This used to strip both, reasoning
+     that field chrome only ever says "this is one row of eight" and a page of
+     its own has no row to be one of. What it produced was a bare screen the
+     same colour as the sheet it came from, with nothing anywhere saying the
+     field had been made bigger rather than swapped for something else — the
+     owner's "it doesn't really feel like it was expanded" was exactly that.
+     Drawn, it is unmistakably the same box given the whole page: same edge,
+     same fill, same radius, more room. Flyleaf Press's expand keeps its
+     field's border and card ground for the same reason, and is the reference
+     this was measured against. The leading padding is untouched — it is the
+     gutter the hung quotation mark was measured to. */
 }
 
 /* The trailing gutter, for the one kind that needs its own.
    A quote's leading padding is a hanging indent — the writing sits 3rem in so
    the quotation mark can hang beside its first line — which means the mark,
-   0.625rem inside `.penned`, is the leftmost ink on the page and the thing the
-   right edge has to answer to. Matching that inset here ends the last character
+   0.625rem inside `.penned`, is the leftmost ink in the box and the thing the
+   right edge has to answer to — the box's own edge is drawn now, but what has
+   to sit square inside it is the ink, and the ink starts at the mark. Matching that inset here ends the last character
    exactly as far from its edge as the mark begins from its own, and the block
    sits square. Every other kind is padded evenly already and is left alone;
    giving them this would pull their text 6px off centre.
@@ -168,10 +197,10 @@
   padding-inline-end: 0.625rem;
 }
 
-/* No focus ring. The box is the page: an outline around the entire screen says
-   only that the one focusable writing surface is focused, which the caret has
-   already said. Done keeps its own ring — it is the one place a keyboard can
-   move to, and it needs to be findable. */
+/* No focus ring. The box now fills the page and is focused the moment the page
+   opens, so an outline around it says only what the caret standing in it has
+   already said. Done keeps its own ring — it is the one other place a keyboard
+   can go, and it has to be findable. */
 .stage.stage:focus-visible {
   outline: none;
 }
@@ -188,19 +217,29 @@
    paper stops growing and centres. */
 @media (min-width: 40rem) {
   .bar {
-    padding-inline: var(--space-6);
+    /* The bar's rule stays full width — it is the page's own edge, and a
+       hairline that stops short of the screen looks like a card that failed
+       to draw. Only its CONTENTS follow the measure: half the room the cap
+       leaves over, plus the same gutter `.leaf` uses, which lands the label
+       exactly on the box's leading edge and Done exactly on its trailing one
+       at every width from 40rem up. */
+    padding-inline: calc((100% - min(42rem, 100%)) / 2 + var(--space-5));
   }
 
   .leaf {
     inline-size: min(42rem, 100%);
     margin-inline: auto;
-    padding-inline: var(--space-6);
-    padding-block-start: var(--space-4);
+    /* Still even, just wider. The measure is already held by the cap above, so
+       the gutters here are frame and nothing else, and a frame that is 32px at
+       the sides and 16px top and bottom reads as a mistake. */
+    padding: var(--space-5) var(--space-5)
+      max(var(--space-5), env(safe-area-inset-bottom));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page[open] {
+  .page[open] > .bar,
+  .page[open] > .leaf {
     animation: none;
   }
 

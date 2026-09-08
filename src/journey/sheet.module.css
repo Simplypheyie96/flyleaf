@@ -351,6 +351,37 @@
   padding-block-end: calc(var(--space-3) + 1.75rem);
 }
 
+/* AND THE STRIP THE HANDLE STANDS ON.
+   The padding above only clears the LAST line. Every line before it travels
+   through this corner on its way out of view, and the mark's own fill covers
+   them in the shape of a capsule — so a scrolling entry gets a word bitten
+   out of its middle, which does not read as "there is a button here", it
+   reads as a fault. The owner reported it as the sheet glitching.
+
+   A straight opaque band across the field's inner width fixes what the
+   occlusion MEANS. Text passing under a level edge is text scrolling out of a
+   box, which is what text does everywhere else; text passing under a floating
+   pill is a rendering bug. Same pixels hidden, and only one of them looks
+   deliberate.
+
+   Inset a pixel so the field's own border still draws around it, radiused to
+   the box's own two bottom corners, and `pointer-events: none` so the band
+   never eats a tap meant for the writing under it. `.room` carries a
+   `z-index` to sit on top of this: generated content counts as the last child
+   of its element, so without one the band would paint over the very mark it
+   exists to back. */
+.penned:has(.room)::after {
+  content: "";
+  position: absolute;
+  inset-inline: 1px;
+  inset-block-end: 1px;
+  block-size: calc(var(--space-3) + 1.75rem - 1px);
+  border-end-start-radius: calc(var(--radius-md) - 1px);
+  border-end-end-radius: calc(var(--radius-md) - 1px);
+  background: var(--field-fill);
+  pointer-events: none;
+}
+
 /* The open quote, hung in a gutter of its own the way a pull-quote hangs it.
    Not typed by the reader and not stored — the mark belongs to the form, and a
    reader who copies out their own opening quotation mark should get theirs on
@@ -657,6 +688,8 @@
    use rather than the accent, and at rest it is a mark and nothing else. */
 .room {
   position: absolute;
+  /* Above the band `.penned:has(.room)::after` draws behind it. */
+  z-index: 1;
   /* Inside the border, clear of both edges. The mark's own box is 23px tall
      (a 15px glyph on 4px of padding), so from 8 it reaches 31 off the bottom —
      the number `.penned .area` reserves its end padding against. */

@@ -66,14 +66,34 @@ function BookCover({
 
   const [loaded, setLoaded] = useState(() => Boolean(src && LOADED_COVERS.has(src)))
 
+  /* A NEW LIST STARTS THE SEARCH OVER, AND NOTHING ELSE DOES.
+
+     Keyed on `src` as well and a book whose every candidate misses never
+     settles: the last error pushes `attempt` past the end of the list, `src`
+     goes undefined, that reset sends it back to the first URL, and the
+     URL-keyed <img> remounts to fail the same way again — round and round for
+     as long as the shelf is on screen. Every turn of it is a real network
+     request and a real render, so it never trips React's update-depth guard;
+     it just burns the device quietly. Measured on one book with three dead
+     covers: 2191 error events in six seconds. And that is not an edge case —
+     Open Library answers a missing cover with a 404 by design, so "every
+     source missed" is the ordinary fate of an obscure book.
+
+     So running out of candidates is allowed to be a resting place. `attempt`
+     stays past the end, `src` stays undefined, no <img> is rendered, and the
+     drawn cover underneath — which was never a fallback, it has been there the
+     whole time — is simply what the book has. */
   useEffect(() => {
-    if (src && LOADED_COVERS.has(src)) {
-      setLoaded(true)
-    } else {
-      setAttempt(0)
-      setLoaded(Boolean(src && LOADED_COVERS.has(src)))
-    }
-  }, [list, src])
+    setAttempt(0)
+    /* Not plain `false`: a cover already decoded once this session is known
+       good, and blanking it here would flash the drawn art before the photo
+       came back. */
+    const first = covers?.[0]
+    setLoaded(Boolean(first && LOADED_COVERS.has(first)))
+    /* `covers` is read for its head only, and `list` is that array's identity
+       by value — an unchanged list of URLs must not restart the search. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list])
 
   const seed = seedFrom(title, author)
   const style = {

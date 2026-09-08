@@ -1656,6 +1656,17 @@ function KeepSheet({
         <Longhand
           open={room}
           onClose={() => setRoom(false)}
+          /* The way back. Caret at the end of the words, the same place this
+             page puts it on the way in — a reader who was writing a second ago
+             is returned to writing, and the keyboard never leaves. Longhand
+             calls this the instant its dialog closes; it says why there. */
+          back={() => {
+            const box = document.getElementById(textId)
+            if (!(box instanceof HTMLTextAreaElement)) return
+            box.focus()
+            const end = box.value.length
+            box.setSelectionRange(end, end)
+          }}
           kind={type}
           label={asks.text.label}
           placeholder={asks.text.placeholder}

@@ -48,9 +48,13 @@ interface Props {
   placeholder?: string
   value: string
   onChange: (next: string) => void
+  /** Where the caret goes on the way out — the field this page was opened
+      from. Called the instant the dialog closes and not a frame later; see the
+      effect below. */
+  back?: () => void
 }
 
-function Longhand({ open, onClose, kind, label, placeholder, value, onChange }: Props) {
+function Longhand({ open, onClose, kind, label, placeholder, value, onChange, back }: Props) {
   const dialog = useRef<HTMLDialogElement>(null)
   const area = useRef<HTMLTextAreaElement>(null)
 
@@ -58,11 +62,47 @@ function Longhand({ open, onClose, kind, label, placeholder, value, onChange }: 
      so this sits above it with the focus trap and Escape moving up here and
      the sheet left intact underneath — still mounted, still holding the
      draft. */
+  /* Whether this page has ever been up. Without it the first run of the effect
+     below — every mount, `open` still false — would count as a close and put
+     the caret in a field nobody has asked to leave. */
+  const wasOpen = useRef(false)
+
   useEffect(() => {
     const el = dialog.current
     if (!el) return
-    if (open && !el.open) el.showModal()
-    if (!open && el.open) el.close()
+
+    if (open) {
+      wasOpen.current = true
+      if (!el.open) el.showModal()
+      return
+    }
+
+    if (!wasOpen.current) return
+    wasOpen.current = false
+
+    /* Escape and the native close event get here with the dialog ALREADY
+       closed, Done and the backdrop with it still open, so the close is
+       conditional and the restore is not. Getting that the wrong way round is
+       how the keyboard route quietly kept the old behaviour while the tap
+       route got the fix. */
+    if (el.open) el.close()
+
+    /* And the caret goes straight back into the field this came out of.
+       HERE, and not in the handler that asked for the close: while this dialog
+       is open the rest of the document is inert and the field cannot take
+       focus, so the restore has to happen after the close — and this is the
+       only place guaranteed to be after it without waiting on a frame or a
+       timer, both of which stall in a backgrounded tab and neither of which
+       React orders for us.
+
+       Why it matters beyond politeness: leaving focus on the More room button
+       drops the keyboard, and the sheet underneath then re-fits itself in the
+       same handful of frames it is being uncovered in. Keeping the keyboard up
+       hands the sheet back at exactly the height it was already fitted to, and
+       nothing moves. */
+    back?.()
+    /* `back` is a fresh closure every render and must not re-run this. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   useKeyboardFit(dialog, open)
