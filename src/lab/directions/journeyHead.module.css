@@ -1,0 +1,201 @@
+/* The column the heads and the thread stand in.
+
+   Production sets these six variables on `.page`, which is also `100dvh` and
+   `overflow: hidden` because the journey scrolls inside itself. The lab stage
+   scrolls normally, so the geometry is redeclared here and the page mechanics
+   are not. Same numbers, read off the same file.
+
+   `--acts-hang` is zeroed because these rows carry no action bar: production
+   pays for a row that hangs below each card, and paying for one that is not
+   there would open every gap by 24px and make the thread look airier here
+   than it is in the app. */
+.column {
+  --journey-gap: var(--space-7);
+  --acts-hang: 0px;
+  --notch-pad: calc(var(--journey-gap) + var(--acts-hang));
+  --gutter: 26px;
+  --knot-size: 26px;
+  --knot-top: 3px;
+
+  inline-size: 100%;
+  max-inline-size: var(--column-max, clamp(340px, 78vw, 680px));
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ── The tie ──────────────────────────────────────────────────────────────
+
+   The one thing kept out of the Weave: a line from the knot to the card it
+   belongs to. It answers the question the thread has always left slightly
+   open on a long card — which circle is this one's.
+
+   Drawn in the keep's own hue rather than in the thread's grey, because the
+   knot is already that hue and a grey bridge between two coloured things
+   reads as a gap that has been papered over. Solid rather than dashed: the
+   run is the column gap and no longer, and a dash pattern in eight pixels is
+   two dashes and an argument.
+
+   It sits at the knot's own centre line — `--knot-top` plus half the circle —
+   which is the line production already nudged down onto the card's cap
+   height, so the tie arrives at the first line of type rather than at the top
+   of its line box. */
+.tied::before {
+  content: '';
+  position: absolute;
+  inset-block-start: calc(var(--knot-top) + var(--knot-size) / 2);
+  inset-inline-start: calc(-1 * var(--space-2));
+  inline-size: var(--space-2);
+  block-size: 0;
+  border-block-start: 1px solid color-mix(in oklab, var(--kind) 55%, transparent);
+  pointer-events: none;
+}
+
+/* ── 2 · LEDGER ───────────────────────────────────────────────────────── */
+
+.ledger {
+  /* The head's tail, inside the head's own box — see the note in
+     BookJourney.module.css for why this can never become a gap. */
+  padding-block-end: var(--space-5);
+}
+
+.ledgerTop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block-end: var(--space-4);
+}
+
+/* 72, not 110. The board is no longer carrying the head's height — the strip
+   below does that — so it can be the size a thumbnail wants to be, and the
+   forty pixels it gives back go to the title. The 2:3 floor still belongs to
+   the board rather than to the type beside it. */
+.thumb {
+  flex: none;
+  display: block;
+  line-height: 0;
+}
+
+.ledgerName {
+  min-inline-size: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* The one tighter join in the column, and the only one. */
+  gap: var(--space-2);
+}
+
+.ledgerSpark {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  color: var(--color-voice);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Everything that is true of the whole journey, on one line behind one rule.
+   It wraps to two rows on a phone and sits on one from 520 up; the rule is
+   what makes either read as a band rather than as leftovers. */
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--border-hairline);
+}
+
+/* Pushed to the far end of the band when the band is one row, and dropped to
+   a row of its own — left, under the controls — when it is two. Right-aligned
+   on a line by itself is an orphan rather than a column. */
+.stripFact {
+  margin: 0;
+  margin-inline-start: auto;
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-soft);
+}
+
+@media (max-width: 519px) {
+  .stripFact {
+    flex-basis: 100%;
+    margin-inline-start: 0;
+  }
+}
+
+/* ── 3 · PLATE ────────────────────────────────────────────────────────── */
+
+.plate {
+  position: relative;
+  align-items: center;
+  text-align: center;
+  padding-block-end: var(--space-5);
+}
+
+.plateCover {
+  display: block;
+  line-height: 0;
+  margin-block-end: var(--space-4);
+}
+
+/* The title is production's, re-centred and un-stretched. The two-line clamp
+   stays: a centred title that runs to four lines is a poster. */
+.plateTitle {
+  align-self: center;
+  max-inline-size: 22ch;
+}
+
+.plateAuthor {
+  margin-block-start: var(--space-2);
+  max-inline-size: 100%;
+}
+
+.plateRule {
+  display: block;
+  inline-size: 40px;
+  block-size: 1px;
+  margin-block: var(--space-4);
+  background: color-mix(in oklab, var(--color-ink) 20%, transparent);
+}
+
+.plateFact {
+  margin: 0;
+  max-inline-size: 34ch;
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-soft);
+}
+
+.plateFactLine {
+  display: block;
+  text-wrap: balance;
+}
+
+.plateFactLine + .plateFactLine {
+  margin-block-start: var(--space-1);
+}
+
+.plateControls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  margin-block-start: var(--space-4);
+}
+
+.plateSpark {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  color: var(--color-voice);
+  opacity: 0.55;
+  pointer-events: none;
+}

@@ -87,6 +87,24 @@ export default defineConfig({
       // it that asks the server outright, so "am I on the fix yet" is
       // answerable on demand rather than by waiting.
       registerType: 'prompt',
+
+      // NO WORKER IN DEV. The worker exists to make the built app survive a
+      // bad connection; it has no job on a dev server, where vite is already
+      // serving every module fresh over an open socket. What it does instead
+      // is answer from its cache, so an edit lands on disk, vite serves it,
+      // and the tab still shows yesterday — "i am checking here:
+      // localhost:5173/lab/directions and i am not seeing any changes". With
+      // registerType: 'prompt' that stall has no floor: the new worker installs
+      // and WAITS, so the stale one keeps answering until a toast is tapped
+      // that a dev is not looking for. Disabled here, the registration in
+      // components/UpdateToast.tsx becomes a no-op in dev and the prompt
+      // behaviour above is untouched in the build, which is the only place it
+      // was ever meant to run.
+      //
+      // If the worker itself ever needs debugging, flip enabled to true for
+      // that session — and unregister it again afterwards, or this comment
+      // gets written a second time.
+      devOptions: { enabled: false },
       manifest: {
         name: 'Flyleaf',
         short_name: 'Flyleaf',

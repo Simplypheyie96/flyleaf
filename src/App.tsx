@@ -25,6 +25,7 @@ import Journal from "./journal/Journal";
 import InstallGuide from "./settings/InstallGuide";
 import BookJourney from "./routes/BookJourney";
 import CardLab from "./routes/CardLab";
+import DirectionLab from "./lab/directions/DirectionLab";
 import Home from "./routes/Home";
 import Library from "./routes/Library";
 import Lost from "./routes/Lost";
@@ -249,6 +250,7 @@ function App() {
           <>
             <Route path="/styleguide" element={<Styleguide />} />
             <Route path="/lab/cards" element={<CardLab />} />
+            <Route path="/lab/directions" element={<DirectionLab />} />
             <Route path="/lab/og" element={<OgLab />} />
           </>
         )}

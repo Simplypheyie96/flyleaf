@@ -1,0 +1,351 @@
+/* DESK — depth. Everything here is about things resting on other things. */
+
+.column {
+  width: 100%;
+  max-width: var(--column-max, clamp(340px, 78vw, 680px));
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+/* ── Masthead ─────────────────────────────────────────────────────────── */
+
+.mast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.hello {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-label);
+  color: var(--color-ink-soft);
+}
+
+.who {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+.tally {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.portrait {
+  flex: none;
+  line-height: 0;
+}
+
+.slug {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* ── The desk ─────────────────────────────────────────────────────────── */
+
+.desk {
+  position: relative;
+  isolation: isolate;
+  /* Room at the foot for the three exposed edges, so the sheets never reach
+     past the section into the one below it. */
+  padding-block-end: 26px;
+}
+
+.sheet {
+  position: absolute;
+  inset: 0 0 26px;
+  border-radius: var(--radius-lg);
+  background: var(--color-paper);
+  border: var(--border-hairline);
+  box-shadow: var(--elevation-1);
+  transform-origin: 50% 0;
+}
+
+.sheet1 {
+  z-index: 1;
+  transform: translateY(9px) rotate(0.7deg);
+}
+
+.sheet2 {
+  z-index: 0;
+  transform: translateY(18px) rotate(-1.1deg);
+}
+
+.sheet3 {
+  z-index: -1;
+  transform: translateY(26px) rotate(1.4deg);
+}
+
+.plate {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-5);
+  padding: var(--card-pad);
+}
+
+.plateInfo {
+  min-width: 0;
+  padding-block-start: var(--space-1);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.author {
+  margin: var(--space-1) 0 var(--space-3);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+.fact {
+  margin: 0 0 2px;
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  color: var(--color-ink-faint);
+}
+
+/* ── The mounted keep ─────────────────────────────────────────────────── */
+
+.mounted {
+  position: relative;
+  padding: var(--space-3);
+}
+
+.mountedCard {
+  transform: rotate(-1.1deg);
+  transform-origin: 50% 50%;
+}
+
+.corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 0 solid var(--photo-corner);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.cornerTl {
+  top: 0;
+  inset-inline-start: 0;
+  border-block-start-width: 7px;
+  border-inline-start-width: 7px;
+  border-start-start-radius: 3px;
+}
+
+.cornerBr {
+  bottom: 22px;
+  inset-inline-end: 0;
+  border-block-end-width: 7px;
+  border-inline-end-width: 7px;
+  border-end-end-radius: 3px;
+}
+
+.caption {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  color: var(--color-ink-faint);
+  text-align: center;
+}
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.rule {
+  width: 48px;
+  height: 1px;
+  background: color-mix(in oklab, var(--color-ink) 18%, transparent);
+}
+
+.footLine {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--color-ink-faint);
+}
+
+/* ── The journey ──────────────────────────────────────────────────────── */
+
+.journeyHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.journeyTitle {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+.journeyFact {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.pile {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 var(--space-5);
+  isolation: isolate;
+}
+
+/* The cord: one unbroken line the whole length of the pile, behind everything
+   laid on it. It stops short at both ends so the journey does not look cut
+   off at the top of a scroll. */
+.pile::before {
+  content: '';
+  position: absolute;
+  inset-block: 14px 24px;
+  inset-inline-start: 5px;
+  width: 2px;
+  border-radius: 1px;
+  background: color-mix(in oklab, var(--color-ink) 16%, transparent);
+  z-index: 0;
+}
+
+.laid {
+  position: relative;
+  /* Newest first, so the top of the page is the top of the pile — and it is
+     what makes the overlap safe: every item sits above the one after it, so
+     the date line under a card is never the thing that gets covered. */
+  z-index: calc(60 - var(--i));
+  padding-block-end: var(--space-2);
+}
+
+/* THE OVERLAP. 18px: enough that the next card's top edge and its shadow are
+   visibly tucked under this one, and less than the smallest top padding any
+   card drawing has, so no overlap ever lands on a word. At 10 it read as a
+   list with tight spacing, which is the thing this direction exists to stop
+   being. */
+.laid + .laid {
+  margin-block-start: -22px;
+}
+
+.knot {
+  position: absolute;
+  top: 12px;
+  inset-inline-start: calc(var(--space-5) * -1);
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in oklab, var(--kind) 48%, transparent);
+  background: color-mix(in oklab, var(--kind) 20%, var(--color-paper));
+  z-index: 2;
+}
+
+/* Lean and shift on one transform, and a shadow heavy enough to be read as a
+   card lying ON something rather than floating over a background. Under about
+   1.5deg a rotation on a 340px card is invisible — it reads as a rendering
+   error rather than as a hand — so the leans are set where they can actually
+   be seen. The shift is small on purpose: past 8px a leaning card runs off a
+   390px screen. */
+.mount {
+  transform: rotate(var(--lean, 0deg)) translateX(var(--shift, 0px));
+  transform-origin: 50% 0;
+  filter: drop-shadow(0 1px 1px color-mix(in oklab, var(--color-ink) 6%, transparent))
+    drop-shadow(0 10px 18px color-mix(in oklab, var(--color-ink) 11%, transparent));
+}
+
+.laid:nth-child(odd) .mount {
+  --lean: -1.8deg;
+  --shift: -6px;
+}
+
+.laid:nth-child(even) .mount {
+  --lean: 1.6deg;
+  --shift: 5px;
+}
+
+.laid:nth-child(3n) .mount {
+  --lean: 2.4deg;
+  --shift: 0px;
+}
+
+/* The date is a written label, not a caption under a list item — a paper slip
+   laid across the corner of whatever is underneath. It has to be an object
+   rather than loose text, because this direction overlaps the cards, and loose
+   text set in the gap between two overlapping cards is text with a card edge
+   running through it.
+
+   Made an object, the collision stops being a bug and becomes the argument:
+   the item above carries its own label, and the label lands on the one below.
+   Right-aligned, so it never fouls the cord and the knots down the left. */
+.meta {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: fit-content;
+  margin: -6px 0 0 auto;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--color-paper) 88%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-ink) 7%, transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  color: var(--color-ink-faint);
+  transform: rotate(var(--lean, 0deg));
+  transform-origin: 100% 0;
+}
+
+/* Entrance: the sheet settles down onto the pile. Translate and opacity only,
+   on the item, while the lean lives on the child — one transform each. */
+@media (prefers-reduced-motion: no-preference) {
+  .laid {
+    animation: settle 280ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: calc(min(var(--i), 10) * 38ms);
+  }
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .column {
+    --column-max: 680px;
+  }
+}

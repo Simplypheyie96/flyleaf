@@ -37,7 +37,7 @@
    Home owns the greeting, Currently reading and the no-books-at-all state.
    This owns the slot underneath and nothing above it. */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import BookCover from '../../components/BookCover'
 import Bunny from '../../rabbit/Bunny'
 import ComingLines from '../../components/ComingLines'
@@ -330,15 +330,28 @@ interface Props {
       the app and does not need it introduced. Only the empty shelf gets the
       inscription. */
   opening?: boolean
+  /** The section's name. Home's is the default; the Home direction in
+      src/lab/directions calls the same section "A line you kept". */
+  name?: string
+  /** Draw from these instead of the library. Only the Home direction in
+      src/lab/directions passes it, so its stub shelf gets the real section —
+      the deck, the moth, the drop — without seeding anyone's database. */
+  pool?: Entry[]
 }
 
-function Draw({ books, reading, opening }: Props) {
-  const ids = useQuoteIds()
+function Draw({ books, reading, opening, name = 'Look what fell out', pool: given }: Props) {
+  const live = useQuoteIds()
+  const stubIds = useMemo(
+    () => given?.filter((k) => k.type === 'quote').map((k) => k.id!),
+    [given],
+  )
+  const ids = given ? stubIds : live
   /* Every keep, of every type — read for one comparison only, and never to
      draw from. It is how this tells "nothing has been kept yet" apart from
      "plenty has been kept, none of it a quote", which are the same empty pool
      and want opposite screens. A count on the table, so no row is read. */
-  const total = useKeepTotal()
+  const liveTotal = useKeepTotal()
+  const total = given ? given.length : liveTotal
 
   /* The id on screen, and the counter that replays the drop.
 
@@ -461,7 +474,8 @@ function Draw({ books, reading, opening }: Props) {
     return () => clearInterval(turn)
   }, [held, still])
 
-  const keep = useKeep(drawn ?? undefined)
+  const liveKeep = useKeep(given ? undefined : (drawn ?? undefined))
+  const keep = given ? given.find((k) => k.id === drawn) : liveKeep
 
   /* THE FIRST LINE, AND WHERE IT GOES.
      ══════════════════════════════════
@@ -530,7 +544,7 @@ function Draw({ books, reading, opening }: Props) {
     >
       <div className={styles.head}>
         <h2 id="draw-head" className={styles.kicker}>
-          Look what fell out
+          {name}
         </h2>
         {/* It says QUOTES, not "everything you've kept", because that is what
             the pool is now (useQuoteIds) and a subhead describing a wider

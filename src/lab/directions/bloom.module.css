@@ -1,0 +1,355 @@
+/* BLOOM — colour. Every hue here comes from tokens.css; nothing is invented,
+   and nothing carrying text sits on more than 10% of it. */
+
+.column {
+  position: relative;
+  width: 100%;
+  max-width: var(--column-max, clamp(340px, 78vw, 680px));
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+/* The tinted sky. Behind everything, fixed, and unreachable — it must never
+   take a tap meant for the page. 7% over the existing sky, which is below the
+   grain, so no contrast ratio on the page moves. */
+.wash {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      120% 70% at 50% 0%,
+      color-mix(in oklab, var(--dominant) 16%, transparent) 0%,
+      transparent 62%
+    );
+  opacity: 0.55;
+}
+
+.mast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.hello {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-label);
+  color: var(--color-ink-soft);
+}
+
+.who {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+.portrait {
+  flex: none;
+  line-height: 0;
+}
+
+.slug {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* ── The portrait bar ─────────────────────────────────────────────────── */
+
+.bar {
+  display: flex;
+  gap: 2px;
+  height: 14px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.band {
+  flex-basis: 0;
+  min-width: 6px;
+  background: color-mix(in oklab, var(--kind) 78%, var(--color-paper));
+  transform-origin: 0 50%;
+}
+
+.band:first-child {
+  border-start-start-radius: var(--radius-pill);
+  border-end-start-radius: var(--radius-pill);
+}
+
+.band:last-child {
+  border-start-end-radius: var(--radius-pill);
+  border-end-end-radius: var(--radius-pill);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .band {
+    animation: grow 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: calc(var(--i) * 45ms);
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.legend {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+
+.key {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  color: var(--color-ink-soft);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--kind) 78%, var(--color-paper));
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-5);
+  padding: var(--card-pad);
+  border-radius: var(--radius-lg);
+  background: var(--card-fill, var(--color-paper));
+  border: var(--border-hairline);
+  box-shadow: var(--elevation-1);
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.bleed {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    80% 120% at 0% 50%,
+    color-mix(in oklab, var(--dominant) 22%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+.heroInfo {
+  min-width: 0;
+  padding-block-start: var(--space-1);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.author {
+  margin: 2px 0 var(--space-3);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+.fact {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  color: var(--color-ink-faint);
+}
+
+/* ── The pool ─────────────────────────────────────────────────────────── */
+
+.pool {
+  position: relative;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: radial-gradient(
+    100% 90% at 50% 0%,
+    color-mix(in oklab, var(--kind) 14%, transparent) 0%,
+    transparent 72%
+  );
+}
+
+.caption {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  color: var(--color-ink-faint);
+  text-align: center;
+}
+
+/* ── The journey ──────────────────────────────────────────────────────── */
+
+.journeyHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.journeyTitle {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+.journeyFact {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.thread {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* THE WEAVE. Each keep owns the piece of spine beside it and colours it from
+   the last keep's hue into its own, so the line is a record of the order
+   things were kept in rather than a decoration laid over them. */
+.notch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  column-gap: var(--space-3);
+  padding-block-end: var(--space-6);
+}
+
+.strand {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 10px;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--prev) 62%, transparent) 0%,
+    color-mix(in oklab, var(--kind) 62%, transparent) 46%,
+    color-mix(in oklab, var(--kind) 62%, transparent) 100%
+  );
+}
+
+.notch:first-child .strand {
+  inset-block-start: 14px;
+}
+
+.notch:last-child .strand {
+  inset-block-end: auto;
+  block-size: 60px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--prev) 62%, transparent) 0%,
+    transparent 100%
+  );
+}
+
+.knot {
+  grid-column: 1;
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  margin-block-start: 8px;
+  width: 11px;
+  height: 11px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--kind) 82%, var(--color-paper));
+  box-shadow: 0 0 0 3px var(--color-bg);
+}
+
+.hang {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.kind {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--kind) 55%, var(--color-ink));
+}
+
+.when {
+  letter-spacing: var(--track-label);
+  text-transform: none;
+  color: var(--color-ink-faint);
+}
+
+.card {
+  position: relative;
+  isolation: isolate;
+}
+
+/* The keep warms the sky it hangs in. Behind the card, never over it, so no
+   word in the app is ever printed on a tint it did not choose. */
+.glow {
+  position: absolute;
+  inset: -18px -14px;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: var(--radius-lg);
+  background: radial-gradient(
+    75% 80% at 30% 40%,
+    color-mix(in oklab, var(--kind) 18%, transparent) 0%,
+    transparent 72%
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hang {
+    animation: bloom 280ms ease-out backwards;
+    animation-delay: calc(min(var(--i), 10) * 38ms);
+  }
+}
+
+@keyframes bloom {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .column {
+    --column-max: 680px;
+  }
+}
