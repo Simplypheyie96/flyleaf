@@ -63,7 +63,7 @@ import {
   palette,
   spell,
 } from './stub'
-import home from '../../routes/home.module.css'
+import home from '../../routes/Home.module.css'
 import s from './bloomHome.module.css'
 import d from './drawer.module.css'
 
