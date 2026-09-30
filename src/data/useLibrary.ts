@@ -1,6 +1,6 @@
 import Dexie from 'dexie'
 import { useLiveQuery } from 'dexie-react-hooks'
-import db, { type Book, type Entry } from './db'
+import db, { type Book, type Entry, type EntryType } from './db'
 
 /** Every book kept, newest first — the order a shelf actually fills.
 
@@ -144,5 +144,68 @@ export function useKeepCounts(bookIds: number[]): Record<number, number> | undef
       ),
     )
     return Object.fromEntries(pairs)
+  }, [key])
+}
+
+/** How much of each kind has been kept, across every book, biggest first —
+    Home's "What you have been keeping". Kinds with nothing kept are left out.
+
+    One `.count()` per kind on the `type` index, so the portrait of a reader
+    with a year of voice memos is eight integers and not one recording. */
+export function useKindTally(
+  kinds: readonly EntryType[],
+): { kind: EntryType; count: number }[] | undefined {
+  const key = kinds.join(',')
+
+  return useLiveQuery(async () => {
+    const counts = await Promise.all(
+      kinds.map(async (kind) => ({
+        kind,
+        count: await db.entries.where('type').equals(kind).count(),
+      })),
+    )
+    return counts.filter(({ count }) => count > 0).sort((a, b) => b.count - a.count)
+  }, [key])
+}
+
+/** Every word the reader has caught, newest first — the drawer's word tile.
+
+    Materialising these is safe where it would not be for the whole table: a
+    vocabulary row is a name and a sense, and never carries a blob. */
+export function useWords(): Entry[] | undefined {
+  return useLiveQuery(
+    () =>
+      db.entries
+        .where('type')
+        .equals('vocabulary')
+        .toArray()
+        .then((rows) => rows.sort((a, b) => b.createdAt - a.createdAt)),
+    [],
+  )
+}
+
+/** The furthest page anything was kept from, per book, for the given books.
+
+    Walks the `type` index for the text kinds ONLY. Voice and image rows can
+    carry a page too, but they carry a recording or a picture with it, and
+    loading every one of those to read a single number off it is the cost this
+    file exists to avoid. A page kept only as a voice memo is the rare case;
+    a Home that stalls on a year of recordings is not. */
+const PAGED: EntryType[] = ['quote', 'vocabulary', 'note', 'character', 'place', 'thread']
+
+export function useFurthestPages(bookIds: number[]): Record<number, number> | undefined {
+  const key = bookIds.join(',')
+
+  return useLiveQuery(async () => {
+    const wanted = new Set(bookIds)
+    const far: Record<number, number> = {}
+    await db.entries
+      .where('type')
+      .anyOf(PAGED)
+      .each((keep) => {
+        if (!wanted.has(keep.bookId) || !keep.page) return
+        far[keep.bookId] = Math.max(far[keep.bookId] ?? 0, keep.page)
+      })
+    return far
   }, [key])
 }

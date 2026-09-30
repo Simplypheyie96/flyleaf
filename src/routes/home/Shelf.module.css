@@ -1,0 +1,370 @@
+/* Currently reading — the plate. Promoted from the direction lab; see
+   Shelf.tsx for what a finger does here and CLAUDE.md for why it looks so.
+
+   THE CLOTH (`.spine`) is what a book is bound in: one muted hue from the
+   kind palette, a curl of shade down each vertical edge so the board reads as
+   round, and gilt at head and tail. It mixes into `--card-fill`, the one card
+   colour both themes define. */
+
+.plate {
+  padding: var(--space-5);
+}
+
+/* The card is full width; the TYPE is what gets capped. Capping the card
+   instead was tried and rejected — a narrow card on a wide page looks like a
+   mistake, a narrow measure on a wide card looks like a book.
+
+   The cap used to sit here, on the body, which also capped the shelf. That
+   was invisible with one book standing on it and wrong with three: a shelf
+   is not a measure and wants every pixel the card has. It now sits on
+   `.type` alone. */
+.plateBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+/* The pager hangs ~16px below the card's edge. Paid for here, so the ❧ below
+   sits as far from the pager as it sits from the card when there is no pager. */
+.hung {
+  margin-block-end: var(--space-3);
+}
+
+/* The production pager pads its arrows to 32×44. Here the count between them
+   is wide enough to take 10px from either side, so both reach a full 44. */
+.hung .reach::before {
+  inset: -10px;
+}
+
+/* The plate turns under a sideways finger; vertical travel stays the page's. */
+.plateBody[data-many] {
+  touch-action: pan-y;
+}
+
+.type {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  max-width: 34ch;
+}
+
+.shelfRow {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--space-3);
+  padding-block-end: var(--space-1);
+}
+
+/* The RAIL runs the full card; what stands on it stays centred. Pushing the
+   books to one end and the rabbit to the other was tried at 1440 and left
+   four hundred pixels of empty shelf between them — true to a shelf, and
+   unbalanced as a card. So the group centres, the rail runs past it on both
+   sides, and a fourth or fifth book scrolls inside the group rather than
+   squeezing the others. */
+.shelfRow[data-many] {
+  inline-size: 100%;
+  gap: var(--space-2);
+}
+
+/* The other open books, standing. The row is a strip of 44px-wide buttons
+   with a 40px spine centred in each, so every one clears the touch floor
+   while the books still sit 4px apart like books on a shelf — padding the
+   spine itself instead would have made the hit areas overlap and put half
+   of each book's face on its neighbour's target. */
+.pulls {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  /* Room for the ribbons to stand above the tallest book, and for the lift
+     on hover, inside the scroller rather than clipped by it. */
+  padding-block-start: 15px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.pulls::-webkit-scrollbar {
+  display: none;
+}
+
+.pull {
+  position: relative;
+  flex: none;
+  inline-size: 44px;
+  block-size: var(--h);
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+
+/* Pulled a little way off the shelf on hover, press and keyboard focus.
+   Transform only, from the bottom, so the book rises out of the row rather
+   than the row resettling around it. */
+@media (hover: hover) {
+  .pull:hover .spine {
+    transform: translateY(-5px);
+    box-shadow: var(--elevation-2);
+  }
+}
+
+.pull:active .spine,
+.pull:focus-visible .spine {
+  transform: translateY(-5px);
+  box-shadow: var(--elevation-2);
+}
+
+.pull:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+/* THE RIBBON — the whole affordance in one mark. A bookmark in the head of
+   a book is the one thing on this shelf that says the book is open rather
+   than furniture, and "open" is exactly the set you are allowed to pull.
+   It sits 3px down into the boards so there is no seam, and it is the
+   book's own cloth taken darker so it reads against it. */
+.ribbon {
+  position: absolute;
+  inset-block-end: calc(100% - 3px);
+  inset-inline-start: 26px;
+  inline-size: 6px;
+  block-size: 13px;
+  border-radius: 2px 2px 0 0;
+  background: color-mix(in oklab, var(--cloth) 55%, var(--color-ink));
+}
+
+.spines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.spine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  inline-size: var(--w, 27px);
+  block-size: var(--h);
+  padding-block: var(--space-2);
+  border: 1px solid color-mix(in oklab, var(--cloth) 45%, transparent);
+  border-radius: 2px 3px 3px 2px;
+  /* Cloth over paper, then a curl of shade down both vertical edges: a bound
+     board is round, and a flat fill is the one thing that made these read as
+     coloured rectangles rather than as books. */
+  background-color: color-mix(in oklab, var(--cloth) 30%, var(--card-fill));
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-ink) 20%, transparent) 0%,
+    transparent 16%,
+    color-mix(in oklab, var(--color-paper) 40%, transparent) 42%,
+    transparent 74%,
+    color-mix(in oklab, var(--color-ink) 14%, transparent) 100%
+  );
+  box-shadow: var(--elevation-1);
+  overflow: hidden;
+  transition:
+    transform var(--dur-quick) var(--ease-out),
+    box-shadow var(--dur-quick) var(--ease-out);
+}
+
+.gilt {
+  flex: none;
+  inline-size: 15px;
+  block-size: 1px;
+  background: color-mix(in oklab, var(--color-accent) 75%, transparent);
+}
+
+.spineText {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  max-inline-size: calc(var(--h) - var(--space-6));
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: color-mix(in oklab, var(--cloth) 35%, var(--color-ink));
+}
+
+.propped {
+  display: block;
+  line-height: 0;
+  margin-inline-start: calc(-1 * var(--space-2));
+  filter: drop-shadow(0 6px 10px color-mix(in oklab, var(--color-ink) 12%, transparent));
+}
+
+.onRail {
+  display: block;
+  line-height: 0;
+  margin-inline-start: var(--space-1);
+}
+
+.rail {
+  position: absolute;
+  inset-block-end: 0;
+  /* The full width of the measure, not just the width of the books: a shelf
+     is longer than what is standing on it, and the rabbit has to have
+     something to be sitting on. */
+  inset-inline: 0;
+  block-size: 2px;
+  border-radius: 1px;
+  background: color-mix(in oklab, var(--color-ink) 20%, transparent);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-read);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-display-read);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--track-title);
+  color: var(--color-ink);
+}
+
+.author {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+.fact {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--track-label);
+  color: var(--color-ink-faint);
+}
+
+/* A hairline, not a progress bar. The number behind it is the furthest page
+   anything was KEPT from, which is a record and not a claim about where the
+   reader is; a fat bar would state it far more confidently than it is known. */
+.gauge {
+  display: block;
+  inline-size: 100%;
+  max-inline-size: 220px;
+  margin-block-start: var(--space-1);
+  block-size: 2px;
+  border-radius: 1px;
+  background: color-mix(in oklab, var(--color-ink) 10%, transparent);
+  overflow: hidden;
+}
+
+.gaugeFill {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--dominant);
+  transform-origin: left center;
+  animation: gauge var(--dur-base) var(--ease-out) both;
+}
+
+@keyframes gauge {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ── Tap to open ──────────────────────────────────────────────────────────*/
+
+/* The cover and the words are links into the book. They look like neither a
+   link nor a button — the plate is the object and the object is the way in. */
+.propped,
+.type {
+  color: inherit;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+.type {
+  border-radius: var(--radius-sm);
+}
+
+.type:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: var(--space-1);
+}
+
+.propped:active,
+.type:active {
+  opacity: 0.8;
+}
+
+/* ── The page that turns ──────────────────────────────────────────────────
+
+   The cover and the words come in from the side the turn came from: from the
+   right on "next", from the left on "back", and in place (a fade) on a pull
+   or on arrival. `--from` is set by Shelf.tsx as 1, -1 or 0. `translate`
+   rather than `transform` so it composes with the nudge below and never
+   touches the cover's own tilt. */
+.type,
+.propped {
+  animation: turnIn var(--dur-base) var(--ease-out) both;
+}
+
+@keyframes turnIn {
+  from {
+    opacity: 0;
+    translate: calc(var(--from, 0) * 24px) 0;
+  }
+}
+
+/* ── The pointer ──────────────────────────────────────────────────────────
+
+   A one-time nudge on the first few visits with more than one book open: the
+   face-out book slides a little way left, as if a thumb had started to turn
+   it, and settles back. Delayed past the entrance so the two never overlap. */
+.plateBody[data-nudge] .type,
+.plateBody[data-nudge] .propped {
+  animation:
+    turnIn var(--dur-base) var(--ease-out) both,
+    nudge 900ms var(--ease-out) 900ms 1;
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  35% {
+    translate: -22px 0;
+  }
+  60% {
+    translate: 4px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gaugeFill,
+  .type,
+  .propped,
+  .plateBody[data-nudge] .type,
+  .plateBody[data-nudge] .propped {
+    animation: none;
+  }
+
+  .spine {
+    transition: none;
+  }
+}
