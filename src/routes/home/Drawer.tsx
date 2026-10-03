@@ -1,8 +1,11 @@
 /* THE DRAWER — Home's quiet facts, one sheet cut into tiles.
 
-   One sheet cut into three tiles, the way a phone's widget stack shows a
+   One sheet cut into three rooms, the way a phone's widget stack shows a
    word, a streak and a shelf at a glance: the word you caught across the
-   top, the chair and the closed shelf side by side under it. Two rounds of
+   top, the chair folded to one line under it, and the closed shelf across
+   the full width at the foot — four boards face out, each one a door to its
+   journey. The shelf once sat beside the chair at half width with 30px
+   boards; it was too small to read, so the chair gave up its height. Two rounds of
    tab strips over one panel were one layout in three costumes, and a tab
    hides two of the three things it exists to show. Nothing here is behind a
    switcher, so there is no switcher.
@@ -20,11 +23,11 @@
 
    Promoted from the direction lab. A TILE WITH NOTHING TO SAY IS NOT DRAWN:
    no words caught, no word tile; no minutes this week, no chair; nothing
-   finished, no closed shelf. One tile left in the pair takes the full width,
-   and a drawer with no tiles at all is not rendered — Home checks that with
+   finished, no closed shelf. A drawer with no tiles at all is not rendered — Home checks that with
    `drawerHas` before it rules a ❧ above it. */
 
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import BookCover from '../../components/BookCover'
 import PaperSurface from '../../components/PaperSurface'
 import { KIND } from '../../journey/kinds'
@@ -184,12 +187,12 @@ export function weekOf(sittings: Sitting[], now = Date.now()) {
 
 type Week = ReturnType<typeof weekOf>
 
-/** The week as a sparkline under its total. */
-function ChairTile({ week }: { week: Week }) {
+/** The chair, folded to one line: label, the week's total, the week. */
+function ChairLine({ week }: { week: Week }) {
   const most = Math.max(...week.map((day) => day.seconds))
   const total = week.reduce((sum, day) => sum + day.seconds, 0)
   return (
-    <section className={d.tile} aria-label="Time in the chair">
+    <section className={d.line} aria-label="Time in the chair">
       <h3 className={d.label}>In the chair</h3>
       <p className={d.figure}>
         <span className={d.num}>{inWords(total)}</span>
@@ -210,32 +213,34 @@ function ChairTile({ week }: { week: Week }) {
   )
 }
 
-/** The last three boards fanned on the table, and the latest one named. */
-function ClosedTile({ closed }: { closed: Book[] }) {
-  const latest = closed[0]
+const closedOn = (iso?: string) =>
+  iso ? new Date(`${iso}T00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''
+
+/** The last four boards face out, each dated and each a door to its
+    journey. Titles live in the aria-label: four names at 64px wide would be
+    four ellipses. */
+function ShelfTile({ closed }: { closed: Book[] }) {
   const year = String(new Date().getFullYear())
   const thisYear = closed.filter((book) => book.finishedOn?.startsWith(year)).length
   return (
-    <section className={d.tile} aria-label="Closed lately">
-      <h3 className={d.label}>Closed lately</h3>
-      <div className={d.fan} aria-hidden="true">
-        {closed
-          .slice(0, 3)
-          .reverse()
-          .map((book, i) => (
-            <span key={book.id} className={d.fanBook} data-i={i}>
-              <BookCover title={book.title} author={book.author} covers={coversOf(book)} width={30} />
-            </span>
-          ))}
+    <section className={d.shelf} aria-label="Closed lately">
+      <header className={d.shelfHead}>
+        <h3 className={d.label}>Closed lately</h3>
+        <span className={d.cap}>{thisYear ? `${thisYear} this year` : `${closed.length} closed`}</span>
+      </header>
+      <div className={d.boards}>
+        {closed.slice(0, 4).map((book) => (
+          <Link
+            key={book.id}
+            to={`/book/${book.id}`}
+            className={d.board}
+            aria-label={`${book.title} by ${book.author}, closed ${closedOn(book.finishedOn)}`}
+          >
+            <BookCover title={book.title} author={book.author} covers={coversOf(book)} />
+            <span className={d.boardWhen}>{closedOn(book.finishedOn)}</span>
+          </Link>
+        ))}
       </div>
-      <p className={d.figure}>
-        <span className={d.title}>{latest.title}</span>
-        <span className={d.cap}>
-          {thisYear
-            ? `${thisYear} closed this year`
-            : `${closed.length} closed`}
-        </span>
-      </p>
     </section>
   )
 }
@@ -253,17 +258,11 @@ export function drawerHas({ words, week, closed }: Props) {
 }
 
 export default function Drawer({ words, week, closed }: Props) {
-  const chair = week.some((day) => day.seconds > 0)
-  const shelf = closed.length > 0
   return (
     <PaperSurface className={d.sheet}>
       {words.length ? <WordTile words={words} /> : null}
-      {chair || shelf ? (
-        <div className={d.pair} data-one={chair !== shelf || undefined}>
-          {chair ? <ChairTile week={week} /> : null}
-          {shelf ? <ClosedTile closed={closed} /> : null}
-        </div>
-      ) : null}
+      {week.some((day) => day.seconds > 0) ? <ChairLine week={week} /> : null}
+      {closed.length ? <ShelfTile closed={closed} /> : null}
     </PaperSurface>
   )
 }
