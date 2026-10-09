@@ -87,7 +87,7 @@ function Settings() {
           <Group label="Support the maker">
             {TIP_JAR && <Tip />}
             <a
-              href="https://simplypheyie.is-a.dev/"
+              href="https://feyidesigns.com/"
               target="_blank"
               rel="noopener noreferrer"
               className={card.link}
