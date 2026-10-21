@@ -38,10 +38,14 @@ import {
   VoiceIcon,
 } from "../components/TabIcons";
 import Longhand from "./Longhand";
-import MapPicker from "./place/MapPicker";
-import MapView from "./place/MapView";
+import PlacePicker from "./place/PlacePicker";
+import LiveMap from "./place/LiveMap";
 import { useObjectUrl } from "./cards/shared";
-import { todayISO } from "../components/date/dates";
+import { longDate, todayISO } from "../components/date/dates";
+import CalendarPicker from "../components/date/CalendarPicker";
+import PaperSurface from "../components/PaperSurface";
+import { MicIcon, PictureAddIcon, RoomIcon, ShutIcon } from "./cardIcons";
+import { getKeepStyle } from "./keepStyle";
 import type { Book, Entry, EntryType, Stance } from "../data/db";
 import {
   KIND,
@@ -137,6 +141,16 @@ const GROUPS: { side: Side; kinds: EntryType[] }[] = (
 const ASK = "What are you keeping?";
 
 /** "the recording", "the name and the pronunciation", "a, b and c". */
+/* Spoken words joined onto what is written the way a keyboard does it: a
+   space when one is needed, a capital at the start of a sentence. */
+function joined(before: string, spoken: string) {
+  const words = spoken.trim();
+  if (!words) return "";
+  const sentence = before.trim() === "" || /[.!?]\s*$/.test(before);
+  const first = sentence ? words[0].toUpperCase() + words.slice(1) : words;
+  return (before === "" || /\s$/.test(before) ? "" : " ") + first;
+}
+
 function listed(parts: string[]) {
   if (parts.length < 3) return parts.join(" and ");
   return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
@@ -352,7 +366,7 @@ function KeepSheet({
   onClose,
   book,
   editing,
-  start = "quote",
+  start = "note",
   kept = [],
 }: Props) {
   const [type, setType] = useState<EntryType>(start);
@@ -390,6 +404,8 @@ function KeepSheet({
   const touchedMedia = useRef(false);
   const [duration, setDuration] = useState<number>();
   const [busy, setBusy] = useState(false);
+  /* The card's last 420ms: pressed, then posted down off the sheet. */
+  const [pressing, setPressing] = useState(false);
   /* The one thing that went wrong, said in the sheet rather than swallowed. */
   const [snag, setSnag] = useState<string>();
   /* The two facts the look-up brings back beside the definition. They ride
@@ -465,23 +481,85 @@ function KeepSheet({
      standing next to it. */
   const nameId = useId();
   const textId = useId();
+  /* Card or classic, read each time the sheet opens so the Settings switch
+     takes effect on the next keep without a reload. */
+  const [look, setLook] = useState(getKeepStyle);
+  const card = look === "card";
+  /* Which stamp along the card's foot is open for editing, if any. */
+  const [stamp, setStamp] = useState<"page" | "chapter" | "percent" | "keptOn" | null>(null);
+  useEffect(() => {
+    if (open) setLook(getKeepStyle());
+    else setStamp(null);
+  }, [open]);
   const mediaId = useId();
 
-  const baseTextRef = useRef("");
+  /* DICTATION WRITES WHERE THE CARET IS, AND NEVER OVER WHAT WAS TYPED.
+     It used to rebuild the whole field as "what was there when the mic
+     opened" plus "everything heard since", so a word typed while listening
+     was overwritten by the next phrase. Now the field is split at the caret
+     when the mic opens — `before` and `after` — and spoken words land
+     between them. Typing while it listens re-splits at the new caret and
+     remembers how much had already been heard, so only new speech lands. */
+  const voice = useRef({ before: "", after: "", heard: "", last: "" });
+  const textBox = () =>
+    document.getElementById(textId) as HTMLTextAreaElement | HTMLInputElement | null;
 
-  const speech = useDictation((sessionTranscript) => {
-    const base = baseTextRef.current.trim();
-    setText(base ? `${base} ${sessionTranscript}` : sessionTranscript);
+  const speech = useDictation((words) => {
+    const v = voice.current;
+    v.last = words;
+    const fresh = words.length > v.heard.length ? words.slice(v.heard.length) : "";
+    const add = joined(v.before, fresh);
+    setText(v.before + add + v.after);
+    const caret = v.before.length + add.length;
+    requestAnimationFrame(() => textBox()?.setSelectionRange(caret, caret));
   });
 
+  /* Split the words at the caret — or at the end, if the field is not the
+     thing focused, since an unfocused box has no caret worth trusting. */
+  const anchor = (value: string, heard: string) => {
+    const box = textBox();
+    const focused = box && document.activeElement === box;
+    const from = focused ? (box.selectionStart ?? value.length) : value.length;
+    const to = focused ? (box.selectionEnd ?? from) : value.length;
+    voice.current = { before: value.slice(0, from), after: value.slice(to), heard, last: heard };
+  };
+
   const toggleDictation = () => {
-    if (!speech.listening) {
-      baseTextRef.current = text.trim();
-    }
+    if (!speech.listening) anchor(text, "");
     speech.toggle();
   };
 
-  const draftKey = `flyleaf-draft-${book.id}`;
+  /* Every keystroke in the field comes through here, so typing alongside the
+     mic keeps both. */
+  const writeText = (value: string) => {
+    setText(value);
+    if (speech.listening) requestAnimationFrame(() => anchor(value, voice.current.last));
+  };
+
+  /* ONE DRAFT PER KIND, not one per book. A quote half-written and then a
+     note started on the same book used to overwrite each other; now each kind
+     keeps its own, and `:last` remembers which one the reader was on. */
+  const draftBase = `flyleaf-draft-${book.id}`;
+  const draftKey = `${draftBase}:${type}`;
+
+  /* A stored draft, only if it is readable and not already kept. */
+  const takeDraft = (key: string): Record<string, string | undefined> | null => {
+    try {
+      const saved = localStorage.getItem(key);
+      if (!saved) return null;
+      const d = JSON.parse(saved);
+      if (held(d, kept)) {
+        localStorage.removeItem(key);
+        return null;
+      }
+      return d;
+    } catch {
+      try {
+        localStorage.removeItem(key);
+      } catch {}
+      return null;
+    }
+  };
 
   /* Reset on open rather than on close: a sheet that empties itself while it
      is still sliding away does it in front of the reader. Restores auto-saved
@@ -540,20 +618,22 @@ function KeepSheet({
        reset the sheet — wiping whatever the reader is in the middle of typing —
        every time anything in the book changed. The effect only runs when the
        sheet opens, and on that render `kept` is already current. */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let draft: any = null;
-    const saved = localStorage.getItem(draftKey);
-    if (saved) {
-      try {
-        const d = JSON.parse(saved);
-        if (held(d, kept)) localStorage.removeItem(draftKey);
-        else draft = d;
-      } catch {
-        localStorage.removeItem(draftKey);
+    let last: string | null = null;
+    try {
+      /* The one-per-book draft from before, moved under its own kind. */
+      const legacy = localStorage.getItem(draftBase);
+      if (legacy) {
+        const kind = JSON.parse(legacy)?.type;
+        if (kind && !localStorage.getItem(`${draftBase}:${kind}`))
+          localStorage.setItem(`${draftBase}:${kind}`, legacy);
+        localStorage.removeItem(draftBase);
       }
-    }
+      last = localStorage.getItem(`${draftBase}:last`);
+    } catch {}
+    const draft =
+      (last && takeDraft(`${draftBase}:${last}`)) || takeDraft(`${draftBase}:${start}`);
     if (draft) {
-      const d = draft as Record<string, string | undefined>;
+      const d = draft;
       /* Mid-sentence, so the question is behind them. */
       setSettled(true);
       setType((d.type as EntryType) ?? start);
@@ -594,7 +674,7 @@ function KeepSheet({
     setPhonetic(undefined);
     setPos(undefined);
     setPin(undefined);
-  }, [open, editing, start, draftKey]);
+  }, [open, editing, start, draftBase]);
 
   /* Auto-save unsaved draft to localStorage so no words are ever lost.
 
@@ -639,6 +719,7 @@ function KeepSheet({
       return;
     }
     try {
+      localStorage.setItem(`${draftBase}:last`, type);
       localStorage.setItem(
         draftKey,
         JSON.stringify({
@@ -657,6 +738,7 @@ function KeepSheet({
     } catch {}
   }, [
     draftKey,
+    draftBase,
     editing,
     type,
     text,
@@ -751,6 +833,36 @@ function KeepSheet({
      belongs to the kind being left behind goes with it. */
   function choose(next: EntryType, rect?: DOMRect) {
     if (rect) from.current = rect;
+    /* A kind with its own draft waiting opens on that draft; this one stays
+       saved under its own name. Otherwise the words travel with the reader
+       and the draft they left is let go, so they are not kept twice. */
+    if (!editing && next !== type) {
+      speech.stop();
+      const waiting = takeDraft(`${draftBase}:${next}`);
+      if (waiting) {
+        setType(next);
+        setSettled(true);
+        setCame(false);
+        setText(waiting.text ?? "");
+        setName(waiting.name ?? "");
+        setPage(waiting.page ?? "");
+        setChapter(waiting.chapter ?? "");
+        setPercent(waiting.percent ?? "");
+        setKeptOn(waiting.keptOn ?? todayISO());
+        setStance((waiting.stance as Stance) ?? "hunch");
+        setFace(0);
+        setFacing(false);
+        setPhonetic(waiting.phonetic);
+        setPos(waiting.pos);
+        setLookSnag(undefined);
+        setPin(undefined);
+        setPicking(false);
+        return;
+      }
+      try {
+        localStorage.removeItem(draftKey);
+      } catch {}
+    }
     setType(next);
     setSettled(true);
     setCame(false);
@@ -926,6 +1038,10 @@ function KeepSheet({
       }
       else await addKeep({ bookId: book.id, ...shared });
       localStorage.removeItem(draftKey);
+      if (card && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        setPressing(true);
+        await new Promise((done) => setTimeout(done, 420));
+      }
       onClose();
     } catch {
       /* A write can fail — the device is out of room, or the browser is in a
@@ -985,6 +1101,8 @@ function KeepSheet({
         type="button"
         className={styles.dictate}
         data-on={speech.listening ? "" : undefined}
+        /* Keeps the caret where it was, so the words land there. */
+        onPointerDown={(event) => event.preventDefault()}
         onClick={toggleDictation}
         aria-pressed={speech.listening}
       >
@@ -1052,89 +1170,247 @@ function KeepSheet({
      on the form. It still gets the band, so a misfiled keep is corrected where
      it is read rather than deleted and written again. What the new kind has no
      room for is said out loud first; see `gone` below. */
-  const closeButton = (
+  const faceSwap = type === "character" && name.trim() && (
     <button
       type="button"
-      className={styles.iconButton}
-      onClick={onClose}
-      aria-label="Close"
+      className={styles.faceSwap}
+      aria-expanded={facing}
+      onClick={() => setFacing(!facing)}
     >
-      <CloseIcon size={20} />
+      <CycleIcon size={15} />
+      {facing ? "Done" : "Another face"}
     </button>
   );
 
-  return (
-    <>
-      <Sheet
-        open={open}
-        onClose={onClose}
-        label={settled ? title : ASK}
-        name="keep-sheet"
-      >
-        {!settled ? (
-          <>
-            <header className={styles.head}>
-              <h2 className={styles.title}>Keep something</h2>
-              {closeButton}
-            </header>
-            <div className={styles.body}>
-              <p className={styles.ask}>{ASK}</p>
-              <Kinds entering land={came} onPick={choose} />
-            </div>
-          </>
-        ) : (
-          <>
-            <header className={styles.head}>
-              {/* Back goes to the eight; the X drops the whole sheet. Two different
-              errands, so two different controls — and the reader chooses which
-              one they meant rather than finding out afterwards. */}
-              {!editing && (
-                <button
-                  type="button"
-                  className={styles.iconButton}
-                  aria-label="Back to what you are keeping"
-                  onClick={() => {
-                    setChoosing(false);
-                    setCame(true);
-                    setSettled(false);
-                  }}
-                >
-                  <BackIcon size={18} />
-                </button>
-              )}
-              <h2 className={styles.title}>{title}</h2>
-              {closeButton}
-            </header>
+  const closeButton = (
+    <button
+      type="button"
+      className={card ? styles.cardClose : styles.iconButton}
+      onClick={onClose}
+      aria-label="Close"
+    >
+      {card ? <ShutIcon /> : <CloseIcon size={20} />}
+    </button>
+  );
 
-            <Band
-              type={type}
-              open={choosing}
-              onToggle={() => (choosing ? shut() : setChoosing(true))}
-              bandRef={band}
-              pickRef={pick}
-              sub={editing ? "Change what this is" : undefined}
+  /* The card opens on its first field, caret in it: it is a page to write
+     on, and showModal would otherwise hand focus to Close. */
+  useEffect(() => {
+    if (!open || !card) return;
+    const id = requestAnimationFrame(() =>
+      document.getElementById(asks.name ? nameId : textId)?.focus({ preventScroll: true }),
+    );
+    return () => cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, card]);
+
+  /* ── The card ──────────────────────────────────────────────────────────────
+     The same form, written onto the paper it becomes. The eight kinds are tabs
+     along its top edge instead of a first step, and where in the book is a row
+     of stamps along its foot, each opening in place. Everything inside is the
+     classic form's own markup (`form` above), so no control exists in one and
+     not the other. */
+  const STAMP_FIELDS = [
+    {
+      key: "page" as const,
+      label: "Page",
+      value: page,
+      shown: `p. ${page || "—"}`,
+      numeric: true,
+      set: (v: string) => setPage(v.replace(/\D/g, "")),
+    },
+    {
+      key: "chapter" as const,
+      label: "Chapter",
+      value: chapter,
+      shown: chapter ? (/^\d+$/.test(chapter) ? `Ch. ${chapter}` : chapter) : "Ch. —",
+      numeric: false,
+      set: setChapter,
+    },
+    {
+      key: "percent" as const,
+      label: "Progress %",
+      value: percent,
+      shown: `${percent || "—"}%`,
+      numeric: true,
+      set: (v: string) => {
+        const val = v.replace(/\D/g, "");
+        if (!val || Number(val) <= 100) setPercent(val);
+      },
+    },
+  ];
+  const stamps = (
+    <div className={styles.stampHost}>
+      <div className={styles.stamps} role="group" aria-label="Where in the book, and when">
+        {STAMP_FIELDS.map(({ key, label, value, shown, numeric, set }) =>
+          stamp === key ? (
+            <input
+              key={key}
+              autoFocus
+              className={styles.stampEdit}
+              aria-label={label}
+              inputMode={numeric ? "numeric" : undefined}
+              value={value}
+              onChange={(e) => set(e.target.value)}
+              onBlur={() => setStamp(null)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === "Escape") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setStamp(null);
+                }
+              }}
             />
+          ) : (
+            <button
+              key={key}
+              type="button"
+              className={styles.stamp}
+              aria-label={`${label}: ${value || "not set"}`}
+              data-set={value ? "" : undefined}
+              onClick={() => setStamp(key)}
+            >
+              {shown}
+            </button>
+          ),
+        )}
+        <button
+          type="button"
+          className={styles.stamp}
+          data-set=""
+          aria-expanded={stamp === "keptOn"}
+          aria-label={`Kept on ${longDate(keptOn)}`}
+          onClick={() => setStamp(stamp === "keptOn" ? null : "keptOn")}
+        >
+          {keptOn === todayISO() ? "Today" : longDate(keptOn)}
+        </button>
+      </div>
+      {stamp === "keptOn" && (
+        <CalendarPicker
+          value={keptOn}
+          onChange={(iso) => {
+            setKeptOn(iso);
+            setStamp(null);
+          }}
+          max={todayISO()}
+          seed={book.id}
+        />
+      )}
+    </div>
+  );
 
-            <div className={styles.body}>
-              {/* Changing kind from the band. The form is HIDDEN rather than
-              unmounted, so everything already typed is still there when the
-              reader comes back to it — including, on the same-kind case, the
-              exact caret position they left. */}
-              {choosing && (
-                <Kinds
-                  current={type}
-                  onPick={(next, rect) => {
-                    choose(next, rect);
-                    shut();
-                  }}
-                />
-              )}
+  /* A radiogroup moves with the arrow keys and holds one tab stop, the way a
+     row of radios does everywhere else. Note leads: it is the kind kept most. */
+  const tabOrder: EntryType[] = ["note", ...GROUPS.flatMap((g) => g.kinds).filter((t) => t !== "note")];
+  const tabs = (
+    <div
+      className={styles.tabs}
+      role="radiogroup"
+      aria-label={ASK}
+      onKeyDown={(e) => {
+        const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+        if (!step) return;
+        e.preventDefault();
+        // Held now: React has cleared currentTarget by the next frame.
+        const row = e.currentTarget;
+        const next = tabOrder[(tabOrder.indexOf(type) + step + tabOrder.length) % tabOrder.length];
+        choose(next);
+        requestAnimationFrame(() =>
+          (row.querySelector(`[data-kind-tab="${next}"]`) as HTMLElement | null)?.focus(),
+        );
+      }}
+    >
+      {tabOrder.map((t) => {
+        const { Icon, label } = KIND[t];
+        const on = t === type;
+        const word = label.replace(/s$/, "").replace("Vocabulary", "Word");
+        return (
+          <button
+            key={t}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            aria-label={word}
+            tabIndex={on ? 0 : -1}
+            data-kind-tab={t}
+            className={styles.tab}
+            style={hue(t)}
+            onClick={() => choose(t)}
+          >
+            <Icon size={16} />
+            {on && <span>{word}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
 
-              <div hidden={choosing} className={styles.formHost}>
-                {/* What this change costs, before it is paid. `status` rather
-              than `alert`: it is the consequence of something the reader just
-              did on purpose, not an error, and it reads out after the field
-              they are on rather than interrupting it. */}
+  /* The card's foot: the two other ways to write — say it, or take the whole
+     screen — as tools beside the one action, so neither sits in the writing. */
+  const cardFooter = (
+    <>
+      {snag && (
+        <p className={styles.cardHint} role="alert">
+          {snag}
+        </p>
+      )}
+      <footer className={styles.cardFoot}>
+        {dictateButton && (
+          <button
+            type="button"
+            className={styles.tool}
+            data-on={speech.listening ? "" : undefined}
+            onPointerDown={(event) => event.preventDefault()}
+            onClick={toggleDictation}
+            aria-pressed={speech.listening}
+          >
+            <MicIcon />
+            <span>{speech.listening ? "Listening" : "Dictate"}</span>
+          </button>
+        )}
+        {asks.text && (
+          <button
+            type="button"
+            className={styles.tool}
+            aria-haspopup="dialog"
+            onPointerDown={(event) => event.preventDefault()}
+            onClick={() => setRoom(true)}
+          >
+            <RoomIcon />
+            <span>More room</span>
+          </button>
+        )}
+        <button
+          type="button"
+          className={styles.cardKeep}
+          aria-disabled={!ready || busy}
+          onClick={submit}
+        >
+          {editing ? "Save" : "Keep it"}
+        </button>
+      </footer>
+    </>
+  );
+
+  const footer = (
+    <footer className={styles.foot} hidden={choosing}>
+      {snag && (
+        <p className={styles.snag} role="alert">
+          {snag}
+        </p>
+      )}
+      <LeafButton
+        className={styles.submit}
+        onClick={submit}
+        disabled={!ready || busy}
+      >
+        {editing ? "Save" : "Keep it"}
+      </LeafButton>
+    </footer>
+  );
+
+  const form = (
+    <>
                 {gone.length > 0 && (
                   <p className={styles.letGo} role="status">
                     Saved as a {KIND[type].one}, this lets go of {listed(gone)}.
@@ -1164,25 +1440,21 @@ function KeepSheet({
               they are laid out and chosen from, and the pick is a pick rather
               than a spin. */}
                 {asks.name && (
-                  <div className={styles.label}>
-                    <span className={styles.labelLine}>
-                      <label htmlFor={nameId}>{asks.name.label}</label>
-                      {type === "character" && name.trim() && (
-                        <button
-                          type="button"
-                          className={styles.faceSwap}
-                          aria-expanded={facing}
-                          onClick={() => setFacing(!facing)}
-                        >
-                          <CycleIcon size={15} />
-                          {facing ? "Done" : "Another face"}
-                        </button>
-                      )}
-                    </span>
+                  <div className={card ? styles.nameBlock : styles.label}>
+                    {card ? (
+                      <label htmlFor={nameId} className={styles.hidden}>
+                        {asks.name.label}
+                      </label>
+                    ) : (
+                      <span className={styles.labelLine}>
+                        <label htmlFor={nameId}>{asks.name.label}</label>
+                        {faceSwap}
+                      </span>
+                    )}
                     <span className={styles.nameRow}>
                       <input
                         id={nameId}
-                        className={styles.input}
+                        className={card ? styles.cardName : styles.input}
                         value={name}
                         onChange={(e) => {
                           setName(e.target.value);
@@ -1208,6 +1480,7 @@ function KeepSheet({
                         </span>
                       )}
                     </span>
+                    {card && faceSwap}
                     {/* What the dictionary said the word sounds like, under the word
                   itself. It used to ride along invisibly and only appear once
                   the card was drawn, which meant the reader pressed Look it up,
@@ -1250,6 +1523,7 @@ function KeepSheet({
                         ))}
                       </span>
                     )}
+                    {card && lookUpButton}
                   </div>
                 )}
 
@@ -1313,7 +1587,7 @@ function KeepSheet({
                 one out of a roll of near-identical shots. */}
                 {asks.media === "image" && (
                   <div className={styles.media}>
-                    <span className={styles.label} id={mediaId}>
+                    <span className={card ? styles.hidden : styles.label} id={mediaId}>
                       Picture
                     </span>
 
@@ -1357,6 +1631,20 @@ function KeepSheet({
                         </div>
                       </div>
                     ) : (
+                      card ? (
+                        <>
+                          <button
+                            type="button"
+                            className={styles.pick}
+                            aria-describedby={mediaId}
+                            onClick={() => photo.current?.click()}
+                          >
+                            <PictureAddIcon />
+                            Choose a picture
+                          </button>
+                          <p className={styles.rowHint}>It stays on this device.</p>
+                        </>
+                      ) : (
                       <>
                         <div className={styles.offers} aria-describedby={mediaId}>
                           <button
@@ -1373,6 +1661,7 @@ function KeepSheet({
                           It stays on this device.
                         </p>
                       </>
+                      )
                     )}
                   </div>
                 )}
@@ -1382,14 +1671,12 @@ function KeepSheet({
               A location in a novel is either somewhere you can find on a map or
               somewhere that only exists in the book, and the reader is the only
               one who knows which. So the section offers both and prefers
-              neither: pin it on a map, or mount a picture of it. Choosing one
-              puts what was chosen on the page in place of the offer, because the
-              proof of a pin is the map and the proof of a photograph is the
-              photograph — a line of text saying "pinned" is the app asking to be
-              believed. */}
+              neither: find it by name, or mount a picture of it. A found place
+              is said by its name under the offers; a picture is mounted, since
+              a photograph is only judged by looking. */}
                 {asks.media === "optional-image" && (
                   <fieldset className={styles.group}>
-                    <legend className={styles.label}>
+                    <legend className={card ? styles.hidden : styles.label}>
                       <span className={styles.labelLine}>
                         Where it is{" "}
                         <span className={styles.optional}>optional</span>
@@ -1397,9 +1684,8 @@ function KeepSheet({
                     </legend>
 
                     {picking ? (
-                      <MapPicker
-                        start={pin}
-                        named={name}
+                      <PlacePicker
+                        named={pin?.label ?? name}
                         onPin={(spot) => {
                           setPin(spot);
                           setPicking(false);
@@ -1409,10 +1695,9 @@ function KeepSheet({
                     ) : (
                       <div
                         className={styles.recorder}
-                        data-mounted={pin || media ? "" : undefined}
+                        data-mounted={printUrl || pin ? "" : undefined}
                       >
-                        {pin && <MapView {...pin} className={styles.pinned} />}
-                        {printUrl && !pin && (
+                        {printUrl ? (
                           <span className={styles.mount}>
                             <img
                               className={styles.print}
@@ -1420,6 +1705,14 @@ function KeepSheet({
                               alt=""
                             />
                           </span>
+                        ) : (
+                          pin && (
+                            /* The map the card will carry, so the reader sees
+                               the search landed where they meant. */
+                            <span className={styles.plate}>
+                              <LiveMap lat={pin.lat} lon={pin.lon} />
+                            </span>
+                          )
                         )}
                         <div className={styles.offers}>
                           <button
@@ -1429,7 +1722,7 @@ function KeepSheet({
                             onClick={() => setPicking(true)}
                           >
                             <PlaceIcon size={18} />
-                            {pin ? "Move the pin" : "Pin it on a map"}
+                            {pin ? "Change the place" : "Find the place"}
                           </button>
                           <button
                             type="button"
@@ -1442,20 +1735,63 @@ function KeepSheet({
                         </div>
                         <p className={styles.rowHint}>
                           {pin
-                            ? (pin.label ?? "Pinned on the map.")
+                            ? (pin.label ?? "Where you were standing.")
                             : media
                               ? /* The file's own name, for the same reason as the
                                    picture row above: "Ready to keep." says a
                                    picture is there and nothing about WHICH. */
                                 (mediaName ?? "Picture added.")
-                              : "Without either you get a drawn field."}
+                              : "Without a picture you get a drawn field."}
                         </p>
                       </div>
                     )}
                   </fieldset>
                 )}
 
-                {asks.text && (
+                {/* On the card the writing is the page itself: no box, no label
+                    row, a field that grows with what is in it. Dictate and More
+                    room moved to the foot; Look it up went up beside the word. */}
+                {card && asks.text && (
+                  <div className={styles.cardWrite}>
+                    <label htmlFor={textId} className={styles.hidden}>
+                      {asks.text.label}
+                    </label>
+                    {/* A quote is set as an epigraph: a ruled mark above, the
+                        book and page signed below, both drawn from the stamps. */}
+                    {type === "quote" && <span className={styles.qOrnament} aria-hidden="true">“</span>}
+                    <div className={styles.grow} data-kind={type} data-value={`${text} `}>
+                      <textarea
+                        id={textId}
+                        rows={3}
+                        value={text}
+                        onChange={(e) => writeText(e.target.value)}
+                        placeholder={asks.text.placeholder}
+                      />
+                    </div>
+                    {type === "quote" && (
+                      <p className={styles.qCredit}>
+                        — <em>{book.title}</em>
+                        {page ? `, p. ${page}` : chapter ? `, ch. ${chapter}` : ""}
+                      </p>
+                    )}
+                    {lookSnag && (
+                      <p className={styles.lookNote} data-tone={lookSnag.tone} role="status">
+                        <span className={styles.lookMark} aria-hidden="true">
+                          {lookSnag.tone === "found" ? "✓" : lookSnag.tone === "miss" ? "?" : "!"}
+                        </span>
+                        {lookSnag.line}
+                      </p>
+                    )}
+                    {looking && (
+                      <p className={styles.hidden} role="status">
+                        Looking the word up…
+                      </p>
+                    )}
+                    {speech.snag && <p className={styles.rowHint}>{speech.snag}</p>}
+                  </div>
+                )}
+
+                {!card && asks.text && (
                   <div className={styles.label}>
                     <span className={styles.labelLine}>
                       <label htmlFor={textId}>{asks.text.label}</label>
@@ -1489,7 +1825,7 @@ function KeepSheet({
                           className={styles.area}
                           data-kind={type}
                           value={text}
-                          onChange={(e) => setText(e.target.value)}
+                          onChange={(e) => writeText(e.target.value)}
                           placeholder={asks.text.placeholder}
                           autoFocus={!asks.name}
                         />
@@ -1504,7 +1840,7 @@ function KeepSheet({
                         id={textId}
                         className={styles.input}
                         value={text}
-                        onChange={(e) => setText(e.target.value)}
+                        onChange={(e) => writeText(e.target.value)}
                         placeholder={asks.text.placeholder}
                       />
                     )}
@@ -1546,7 +1882,7 @@ function KeepSheet({
 
                 {asks.stance && (
                   <fieldset className={styles.group}>
-                    <legend className={styles.label}>How sure are you</legend>
+                    <legend className={card ? styles.hidden : styles.label}>How sure are you</legend>
                     <div
                       className={styles.chipRow}
                       role="radiogroup"
@@ -1575,6 +1911,8 @@ function KeepSheet({
                   </fieldset>
                 )}
 
+                {card ? stamps : (
+                <>
                 {/* Per keep, never per book: location can be page, chapter, or percentage progress. */}
                 <fieldset className={styles.group}>
                   <legend className={styles.label}>
@@ -1627,23 +1965,110 @@ function KeepSheet({
                   onChange={setKeptOn}
                   seed={book.id}
                 />
+                </>
+                )}
+    </>
+  );
+
+  return (
+    <>
+      <Sheet
+        open={open}
+        onClose={onClose}
+        label={card || settled ? title : ASK}
+        name="keep-sheet"
+        fill={card}
+      >
+        {card ? (
+          <>
+            <header className={styles.cardHead}>
+              <h2 className={styles.from}>
+                {editing ? "Changing" : "Keeping"} from <em>{book.title}</em>
+              </h2>
+              {closeButton}
+            </header>
+            <div className={styles.cardBody}>
+              {tabs}
+              <PaperSurface
+                tone={KIND[type].tone}
+                onGlass
+                className={styles.card}
+                data-pressing={pressing ? "" : undefined}
+              >
+                {form}
+              </PaperSurface>
+            </div>
+            {cardFooter}
+          </>
+        ) : !settled ? (
+          <>
+            <header className={styles.head}>
+              <h2 className={styles.title}>Keep something</h2>
+              {closeButton}
+            </header>
+            <div className={styles.body}>
+              <p className={styles.ask}>{ASK}</p>
+              <Kinds entering land={came} onPick={choose} />
+            </div>
+          </>
+        ) : (
+          <>
+            <header className={styles.head}>
+              {/* Back goes to the eight; the X drops the whole sheet. Two different
+              errands, so two different controls — and the reader chooses which
+              one they meant rather than finding out afterwards. */}
+              {!editing && (
+                <button
+                  type="button"
+                  className={styles.iconButton}
+                  aria-label="Back to what you are keeping"
+                  onClick={() => {
+                    setChoosing(false);
+                    setCame(true);
+                    setSettled(false);
+                  }}
+                >
+                  <BackIcon size={18} />
+                </button>
+              )}
+              <h2 className={styles.title}>{title}</h2>
+              {closeButton}
+            </header>
+
+            <Band
+              type={type}
+              open={choosing}
+              onToggle={() => (choosing ? shut() : setChoosing(true))}
+              bandRef={band}
+              pickRef={pick}
+              sub={editing ? "Change what this is" : undefined}
+            />
+
+            <div className={styles.body}>
+              {/* Changing kind from the band. The form is HIDDEN rather than
+              unmounted, so everything already typed is still there when the
+              reader comes back to it — including, on the same-kind case, the
+              exact caret position they left. */}
+              {choosing && (
+                <Kinds
+                  current={type}
+                  onPick={(next, rect) => {
+                    choose(next, rect);
+                    shut();
+                  }}
+                />
+              )}
+
+              <div hidden={choosing} className={styles.formHost}>
+                {/* What this change costs, before it is paid. `status` rather
+              than `alert`: it is the consequence of something the reader just
+              did on purpose, not an error, and it reads out after the field
+              they are on rather than interrupting it. */}
+                {form}
               </div>
             </div>
 
-            <footer className={styles.foot} hidden={choosing}>
-              {snag && (
-                <p className={styles.snag} role="alert">
-                  {snag}
-                </p>
-              )}
-              <LeafButton
-                className={styles.submit}
-                onClick={submit}
-                disabled={!ready || busy}
-              >
-                {editing ? "Save" : "Keep it"}
-              </LeafButton>
-            </footer>
+            {footer}
           </>
         )}
       </Sheet>
@@ -1652,7 +2077,7 @@ function KeepSheet({
           this still paints above — but a textarea nested in the sheet's DOM
           would bubble its focus up to the sheet's own keep-the-field-in-view
           listener, which would then scroll the form nobody is looking at. */}
-      {asks.text && longhand && (
+      {asks.text && (longhand || card) && (
         <Longhand
           open={room}
           onClose={() => setRoom(false)}

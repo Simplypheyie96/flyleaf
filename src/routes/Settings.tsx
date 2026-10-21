@@ -4,6 +4,7 @@ import Guide from '../onboarding/Guide'
 import Sheet from '../components/Sheet'
 import Sparkle from '../components/Sparkle'
 import ThemeToggle from '../components/ThemeToggle'
+import KeepStyleToggle from '../settings/KeepStyleToggle'
 import Group, { Row } from '../settings/Group'
 import Erase from '../settings/Erase'
 import LockCard from '../settings/Lock'
@@ -70,6 +71,7 @@ function Settings() {
             <NameCard />
             <FaceCard />
             <Row title="Theme" control={<ThemeToggle />} />
+            <Row title="Keep sheet" control={<KeepStyleToggle />} />
           </Group>
 
           {/* Second of six, directly under "You" — the owner's call, and it

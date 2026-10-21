@@ -26,6 +26,7 @@ import InstallGuide from "./settings/InstallGuide";
 import BookJourney from "./routes/BookJourney";
 import CardLab from "./routes/CardLab";
 import DirectionLab from "./lab/directions/DirectionLab";
+import KeepLab from "./lab/keep/KeepLab";
 import Home from "./routes/Home";
 import Library from "./routes/Library";
 import Lost from "./routes/Lost";
@@ -252,6 +253,7 @@ function App() {
             <Route path="/lab/cards" element={<CardLab />} />
             <Route path="/lab/directions" element={<DirectionLab />} />
             <Route path="/lab/og" element={<OgLab />} />
+            <Route path="/lab/keep" element={<KeepLab />} />
           </>
         )}
         {/* Last, and it matches everything left over. Without it a mistyped or

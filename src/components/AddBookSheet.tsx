@@ -1,30 +1,34 @@
+/* ADD A BOOK. Search, then the book form — one sheet, one height, from the
+   keep lab (2026-10-18).
+
+   Search is where nearly everyone starts and ends; typing it in is the floor
+   beneath it, so that no book — out of print, self-published, in a language
+   the catalogues index badly — can be refused by this app. It is offered
+   always, not only after a miss.
+
+   Results stay up while the next search runs, dimmed, so the list never
+   blinks empty under the reader's thumb. A book already on the shelf says so
+   and opens instead of being written over: same id, fresh addedAt, formats
+   and started day reset would be a loss nobody asked for. Back keeps
+   everything: the picked result and the typed-in book are two drafts, and
+   going between them never throws either away. */
+
 import { useEffect, useRef, useState } from 'react'
-import type { CSSProperties, RefObject } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLiveQuery } from 'dexie-react-hooks'
 import BookCover from './BookCover'
-import LeafButton from './LeafButton'
+import BookForm, { blankBook, bookGap, type BookDraft } from './BookForm'
 import Sheet from './Sheet'
-import FormatRow from './FormatRow'
-import {
-  BackIcon,
-  CalendarIcon,
-  CaretIcon,
-  CloseIcon,
-  NoteIcon,
-  SearchIcon,
-} from './TabIcons'
-import CalendarPicker from './date/CalendarPicker'
-import CoverStrip, { SwapCoverTab } from './CoverChoice'
-import { coversOf } from '../books/covers'
-import { longDate, todayISO } from './date/dates'
+import { BackIcon, CloseIcon, SearchIcon } from './TabIcons'
+import { todayISO } from './date/dates'
 import { useBookSearch } from '../books/useBookSearch'
 import type { BookResult } from '../books/sources'
 import { seedFrom } from '../books/seed'
-import db, { type BookFormat } from '../data/db'
+import db from '../data/db'
 import { bookGrave, unbury } from '../data/graves'
 import { addKeep } from '../journey/keeps'
 import { landOnShelf } from '../motion/shelfLanding'
-import styles from './AddBookSheet.module.css'
+import s from './BookSheet.module.css'
 
 interface AddBookSheetProps {
   open: boolean
@@ -38,550 +42,287 @@ interface AddBookSheetProps {
   firstKeep?: string
 }
 
-/* Three stages, one sheet. Search is where nearly everyone starts and ends;
-   manual entry is the floor beneath it, so that no book — out of print, self
-   published, in a language neither catalogue indexes well, or simply not
-   there — can be refused by this app. Confirm is where the reader says how
-   they are reading it, which is the only thing the catalogues cannot know. */
-type Stage =
-  | { kind: 'search' }
-  | { kind: 'manual' }
-  | { kind: 'confirm'; book: BookResult }
+function fromResult(r: BookResult): BookDraft {
+  return {
+    ...blankBook(),
+    title: r.title,
+    author: r.author,
+    pages: r.pages ? String(r.pages) : '',
+    year: r.year ? String(r.year) : '',
+    covers: r.covers,
+    coverPick: 0,
+  }
+}
 
 function AddBookSheet({ open, onClose, seed = '', firstKeep = '' }: AddBookSheetProps) {
   const field = useRef<HTMLInputElement>(null)
+  const navigate = useNavigate()
+  const [stage, setStage] = useState<'search' | 'form'>('search')
   const [query, setQuery] = useState('')
-  const [stage, setStage] = useState<Stage>({ kind: 'search' })
-  const search = useBookSearch(stage.kind === 'search' ? query : '')
+  /* Flipped to ask the same words again: the search keys on the string, and
+     asking twice is what a reader does when the catalogues did not answer. */
+  const [again, setAgain] = useState(false)
+  const search = useBookSearch(again ? `${query} ` : query)
+  const [picked, setPicked] = useState<{ id: number; draft: BookDraft } | null>(null)
+  const [manual, setManual] = useState<BookDraft>(blankBook)
+  const [byHand, setByHand] = useState(false)
+  const [askedOwned, setAskedOwned] = useState<number | null>(null)
+  const [nudge, setNudge] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [snag, setSnag] = useState('')
+  /* Every id on the shelf, so a result the reader already owns says so.
+     Walked through the addedAt index (every book has one): Dexie's live query
+     never re-fires for a bare `toCollection().primaryKeys()`, so a book
+     shelved a moment ago went unflagged until a reload (2026-10-18). */
+  const owned = useLiveQuery(
+    async () => new Set(await db.books.orderBy('addedAt').primaryKeys()),
+    [],
+    new Set<number>(),
+  )
+
+  const draft = byHand || !picked ? manual : picked.draft
+  const setDraft = (next: BookDraft) =>
+    byHand || !picked ? setManual(next) : setPicked({ ...picked, draft: next })
+  const gap = bookGap(draft)
+  const draftId = gap ? null : seedFrom(draft.title.trim(), draft.author.trim())
+  const draftOwned = draftId !== null && owned.has(draftId)
+
+  async function openOwned(id: number) {
+    if (firstKeep) await addKeep({ bookId: id, type: 'note', text: firstKeep, keptOn: todayISO() })
+    onClose()
+    navigate(`/book/${id}`)
+  }
 
   // Every visit starts at the beginning: an add flow left half-finished is
   // not a draft, and reopening to someone else's half-typed search is a bug.
   useEffect(() => {
-    if (open) {
-      setQuery(seed)
-      setStage({ kind: 'search' })
-    }
-    // `seed` is deliberately not a dependency: it is what the sheet opened
-    // with, and a reader editing the query afterwards must not have it typed
-    // back over them if anything upstream re-renders.
+    if (!open) return
+    setQuery(seed)
+    setStage('search')
+    setPicked(null)
+    setManual(blankBook())
+    setByHand(false)
+    setAskedOwned(null)
+    setNudge(false)
+    setSnag('')
+    setSaving(false)
+    // `seed` is what the sheet opened with; a reader editing the query
+    // afterwards must not have it typed back over them.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  /* The reader opened a sheet whose only purpose is this field, so the field
-     is where the caret belongs — and on a phone, that is what raises the
-     keyboard.
-
-     `autoFocus` cannot do it: React applies it when the input mounts, which
-     is while the dialog is still closed and nothing inside it is focusable,
-     and `showModal()` afterwards hands focus to the first focusable element
-     instead — Close. Keying on the stage as well as on `open` covers the
-     render where the sheet has opened but the stage has not been reset yet,
-     and gives the field back to the reader when they come back from confirm. */
+  /* The field is the sheet's whole purpose, so the caret goes there — and on a
+     phone that raises the keyboard. Not `autoFocus`: React applies it while
+     the dialog is still closed, and showModal() then hands focus to Close. */
   useEffect(() => {
-    if (open && stage.kind === 'search') field.current?.focus()
-  }, [open, stage.kind])
+    if (open && stage === 'search') field.current?.focus()
+  }, [open, stage])
+
+  function choose(r: BookResult) {
+    if (owned.has(r.id)) return setAskedOwned((at) => (at === r.id ? null : r.id))
+    if (picked?.id !== r.id) setPicked({ id: r.id, draft: fromResult(r) })
+    setByHand(false)
+    setNudge(false)
+    setStage('form')
+  }
+
+  function typeIn() {
+    if (!manual.title && query.trim()) setManual({ ...manual, title: query.trim() })
+    setByHand(true)
+    setNudge(false)
+    setStage('form')
+  }
+
+  async function shelve() {
+    if (saving) return
+    if (gap || draftId === null) return setNudge(true)
+    // Typed in by hand and it turns out to be a book they have: open it,
+    // never write over it.
+    if (draftOwned) return openOwned(draftId)
+    const id = draftId
+    setSnag('')
+    setSaving(true)
+    try {
+      await landOnShelf(
+        id,
+        async () => {
+          // put, not add: the id is the book's identity.
+          await db.books.put({
+            id,
+            title: draft.title.trim(),
+            author: draft.author.trim(),
+            pages: Number(draft.pages) || undefined,
+            year: Number(draft.year) || undefined,
+            covers: draft.covers,
+            coverPick: draft.coverPick,
+            formats: draft.formats,
+            startedOn: draft.startedOn || undefined,
+            addedAt: Date.now(),
+          })
+          /* And the headstone comes down: shelving a book is the reader
+             saying they want it, and that outranks every record of the time
+             they didn't. Without this the next sync takes it back off. */
+          await unbury([bookGrave(id)])
+          /* And the line they wrote first, in the same write, so the journey
+             never renders an empty spine and then pops a keep onto it.
+             `keptOn` is today: the day the line was written down. */
+          if (firstKeep) await addKeep({ bookId: id, type: 'note', text: firstKeep, keptOn: todayISO() })
+        },
+        onClose,
+      )
+      if (firstKeep) navigate(`/book/${id}`)
+    } catch {
+      /* The shelf is on the device, so this is a device saying no. Everything
+         typed is still true, so the form stays and the button is live again. */
+      setSnag('That would not save to your shelf. Your device may be out of room — try again.')
+      setSaving(false)
+    }
+  }
+
+  const term = query.trim()
+  const results = search.status === 'done' || search.status === 'searching' ? (search.results ?? []) : []
 
   return (
-    /* `fill` on the search stage only. A results list inside a content-sized
-       sheet was the owner's "one book per scroll": the sheet grew from the
-       rows it happened to have, so the list got whatever was left rather
-       than the room it deserved. Filling pins the sheet at its full allowed
-       height whenever the reader is searching — four to six rows at a glance
-       — while the manual and confirm stages stay exactly as tall as their
-       own rows, the way every other sheet in the app is. */
-    <Sheet
-      open={open}
-      onClose={onClose}
-      label="Add a book"
-      name="add-sheet"
-      fill={stage.kind === 'search'}
-    >
-      {stage.kind === 'search' && (
-        <SearchStage
-          field={field}
-          query={query}
-          onQuery={setQuery}
-          state={search}
-          onPick={(book) => setStage({ kind: 'confirm', book })}
-          onManual={() => setStage({ kind: 'manual' })}
-          onClose={onClose}
-        />
-      )}
-
-      {stage.kind === 'manual' && (
-        <ManualStage
-          onBack={() => setStage({ kind: 'search' })}
-          onReady={(book) => setStage({ kind: 'confirm', book })}
-        />
-      )}
-
-      {stage.kind === 'confirm' && (
-        <ConfirmStage
-          book={stage.book}
-          firstKeep={firstKeep}
-          onBack={() => setStage({ kind: 'search' })}
-          onDone={onClose}
-        />
+    <Sheet open={open} onClose={onClose} label="Add a book" name="add-sheet" fill>
+      {stage === 'search' ? (
+        <div className={s.stage}>
+          <header className={s.head}>
+            <h2 className={s.title}>Add a book</h2>
+            <button type="button" className={s.iconBtn} aria-label="Close" onClick={onClose}>
+              <CloseIcon size={22} />
+            </button>
+          </header>
+          <form
+            className={s.searchBar}
+            role="search"
+            onSubmit={(event) => {
+              event.preventDefault()
+              if (term.length >= 2) setAgain((on) => !on)
+              field.current?.blur()
+            }}
+          >
+            <SearchIcon size={20} />
+            <input
+              ref={field}
+              type="search"
+              aria-label="Title, author or ISBN"
+              placeholder="Title, author or ISBN"
+              value={query}
+              enterKeyHint="search"
+              autoComplete="off"
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            <span className={s.progress} data-on={search.status === 'searching' || undefined} aria-hidden="true" />
+          </form>
+          <div className={s.body} data-scroller aria-busy={search.status === 'searching'}>
+            {search.status === 'idle' && (
+              <p className={s.quiet}>Type a title, an author, or the ISBN on the back. The cover comes with it.</p>
+            )}
+            {search.status === 'searching' && !search.results && (
+              <p className={s.quiet}>Looking through the shelves…</p>
+            )}
+            {/* Said differently from a miss on purpose: a reader with no
+                signal is not looking at a spelling mistake. */}
+            {search.status === 'unreachable' && (
+              <div className={s.state}>
+                <p className={s.quiet}>We couldn’t reach the catalogues. Your connection may be off.</p>
+                <button type="button" className={s.chip} onClick={() => setAgain((on) => !on)}>
+                  Try again
+                </button>
+              </div>
+            )}
+            {search.status === 'done' && results.length === 0 && (
+              <p className={s.quiet}>
+                Nothing under “{term}”. Try fewer words or the author’s surname, or type it in yourself.
+              </p>
+            )}
+            {results.length > 0 && (
+              <ul className={s.results} data-stale={search.status === 'searching' || undefined}>
+                {results.map((r) => (
+                  <li key={r.id}>
+                    <button
+                      type="button"
+                      className={s.result}
+                      aria-expanded={owned.has(r.id) ? askedOwned === r.id : undefined}
+                      onClick={() => choose(r)}
+                    >
+                      <BookCover title={r.title} author={r.author} covers={r.covers} width={40} size="thumb" />
+                      <span className={s.resultText}>
+                        <span className={s.resultTitle}>{r.title}</span>
+                        <span className={s.resultMeta}>
+                          {[r.author, r.year].filter(Boolean).join(' · ')}
+                        </span>
+                      </span>
+                      {owned.has(r.id) && <span className={s.badge}>On your shelf</span>}
+                    </button>
+                    {askedOwned === r.id && (
+                      <p className={s.ownedLine}>
+                        Already on your shelf, with everything you’ve kept.{' '}
+                        <button type="button" className={s.link} onClick={() => openOwned(r.id)}>
+                          Open it
+                        </button>
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <footer className={s.foot}>
+            <button type="button" className={s.ghost} onClick={typeIn}>
+              Not here? Type it in
+            </button>
+          </footer>
+        </div>
+      ) : (
+        <form
+          className={s.stage}
+          onSubmit={(event) => {
+            event.preventDefault()
+            void shelve()
+          }}
+        >
+          <header className={s.head}>
+            <button type="button" className={s.iconBtn} aria-label="Back to search" onClick={() => setStage('search')}>
+              <BackIcon size={22} />
+            </button>
+            <h2 className={s.title}>{byHand ? 'Type it in' : 'Is this the one?'}</h2>
+            <button type="button" className={s.iconBtn} aria-label="Close" onClick={onClose}>
+              <CloseIcon size={22} />
+            </button>
+          </header>
+          <div className={s.body} data-scroller>
+            <BookForm
+              value={draft}
+              onChange={setDraft}
+              transition={draftId !== null && !draftOwned ? `book-${draftId}` : undefined}
+            />
+            {draftOwned && (
+              <p className={s.ownedLine} role="status">
+                This one’s already on your shelf. Opening it keeps everything you’ve kept.
+              </p>
+            )}
+          </div>
+          {snag ? (
+            <p className={s.snag} role="alert">
+              {snag}
+            </p>
+          ) : (
+            gap &&
+            nudge && (
+              <p className={s.hint} role="status">
+                {gap}
+              </p>
+            )
+          )}
+          <footer className={s.foot}>
+            <button type="submit" className={s.keep} aria-disabled={Boolean(gap) || saving}>
+              {draftOwned ? 'Open it' : saving ? 'Adding…' : 'Put it on the shelf'}
+            </button>
+          </footer>
+        </form>
       )}
     </Sheet>
-  )
-}
-
-/* ---- Stage one: search ---- */
-
-interface SearchStageProps {
-  field: RefObject<HTMLInputElement | null>
-  query: string
-  onQuery: (q: string) => void
-  state: ReturnType<typeof useBookSearch>
-  onPick: (book: BookResult) => void
-  onManual: () => void
-  onClose: () => void
-}
-
-function SearchStage({
-  field,
-  query,
-  onQuery,
-  state,
-  onPick,
-  onManual,
-  onClose,
-}: SearchStageProps) {
-  return (
-    <>
-      <header className={styles.head}>
-        <h2 className={styles.title}>Add a book</h2>
-        <button
-          type="button"
-          className={styles.iconButton}
-          onClick={onClose}
-          aria-label="Close"
-        >
-          <CloseIcon size={20} />
-        </button>
-      </header>
-
-      <div className={styles.field}>
-        <SearchIcon size={18} />
-        <input
-          ref={field}
-          className={styles.input}
-          type="search"
-          value={query}
-          onChange={(event) => onQuery(event.target.value)}
-          placeholder="Title, author, or ISBN"
-          aria-label="Search for a book by title, author, or ISBN"
-        />
-      </div>
-
-      <div className={styles.results}>
-        {state.status === 'idle' && (
-          <p className={styles.quiet}>
-            Search by title, author, or the ISBN printed on the back — the
-            cover comes with it.
-          </p>
-        )}
-
-        {state.status === 'searching' && (
-          <p className={styles.quiet}>Looking through the shelves…</p>
-        )}
-
-        {state.status === 'done' &&
-          state.results.map((book) => (
-            <button
-              key={book.id}
-              type="button"
-              className={styles.result}
-              onClick={() => onPick(book)}
-            >
-              <BookCover
-                size="thumb"
-                width={44}
-                title={book.title}
-                author={book.author}
-                covers={book.covers}
-                className={styles.resultCover}
-              />
-              <span className={styles.resultText}>
-                <span className={styles.resultTitle}>{book.title}</span>
-                <span className={styles.resultMeta}>
-                  {[book.author, book.year, book.pages && `${book.pages} pages`]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </span>
-              </span>
-            </button>
-          ))}
-
-        {state.status === 'done' && state.results.length === 0 && (
-          <p className={styles.quiet}>
-            Nothing came back for “{query.trim()}”. It may be out of print, or
-            spelled differently — you can put it on the shelf yourself.
-          </p>
-        )}
-
-        {/* Said differently from a miss on purpose. A reader with no signal is
-            not looking at a spelling mistake, and sending them off to check one
-            wastes their time on a search that never left the phone. */}
-        {state.status === 'unreachable' && (
-          <p className={styles.quiet}>
-            The catalogues didn’t answer — you may be offline. Try again in a
-            moment, or put the book on the shelf yourself.
-          </p>
-        )}
-      </div>
-
-      {/* Always offered, not only after a miss: the catalogues are a
-          convenience, and a reader who knows the book should never have to
-          fail a search first to be allowed to add it.
-
-          Which is exactly why it stopped being a text link. A link under a
-          list of results reads as a footnote to the search, and this is the
-          other half of the choice, not a consolation for the search failing.
-          Dashed rather than filled because it is still the second route: an
-          outline of a thing you have to fill in yourself. */}
-      <button type="button" className={styles.manualButton} onClick={onManual}>
-        <NoteIcon size={19} />
-        Shelve it yourself
-      </button>
-    </>
-  )
-}
-
-/* ---- Stage two: by hand ---- */
-
-function ManualStage({
-  onBack,
-  onReady,
-}: {
-  onBack: () => void
-  onReady: (book: BookResult) => void
-}) {
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [pages, setPages] = useState('')
-  const ready = title.trim().length > 0 && author.trim().length > 0
-
-  return (
-    <form
-      className={styles.form}
-      onSubmit={(event) => {
-        event.preventDefault()
-        if (!ready) return
-        const clean = { title: title.trim(), author: author.trim() }
-        onReady({
-          id: seedFrom(clean.title, clean.author),
-          ...clean,
-          pages: Number(pages) || undefined,
-          // No catalogue record means no photograph, which is exactly the
-          // case the drawn covers exist for. Nothing to look up, nothing to
-          // wait for, and the same cover every time it is drawn.
-          covers: [],
-        })
-      }}
-    >
-      <header className={styles.head}>
-        <button
-          type="button"
-          className={styles.iconButton}
-          onClick={onBack}
-          aria-label="Back to search"
-        >
-          <BackIcon size={20} />
-        </button>
-        <h2 className={styles.title}>Shelve it yourself</h2>
-      </header>
-
-      <div className={styles.formBody}>
-        <label className={styles.label}>
-          Title
-          <input
-            className={styles.textInput}
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            required
-          />
-        </label>
-
-        <label className={styles.label}>
-          Author
-          <input
-            className={styles.textInput}
-            value={author}
-            onChange={(event) => setAuthor(event.target.value)}
-            required
-          />
-        </label>
-
-        <label className={styles.label}>
-          {/* Both words in one flex item. Loose in the label they are two, and
-              the label is a column, so “optional” dropped onto a line of its
-              own and read as an instruction rather than as an aside. */}
-          <span className={styles.labelLine}>
-            Pages <span className={styles.optional}>optional</span>
-          </span>
-          <input
-            className={styles.textInput}
-            type="number"
-            inputMode="numeric"
-            min="1"
-            value={pages}
-            onChange={(event) => setPages(event.target.value)}
-          />
-        </label>
-      </div>
-
-      <LeafButton type="submit" disabled={!ready} className={styles.submit}>
-        Continue
-      </LeafButton>
-    </form>
-  )
-}
-
-/* ---- Stage three: how you are reading it ---- */
-
-function ConfirmStage({
-  book,
-  firstKeep,
-  onBack,
-  onDone,
-}: {
-  book: BookResult
-  firstKeep: string
-  onBack: () => void
-  onDone: () => void
-}) {
-  const navigate = useNavigate()
-  /* A set, not a choice. Plenty of people read the paperback at home and
-     listen to the same book in the car, and asking them to pick one is asking
-     them which half of their reading to leave out. Physical is on to start
-     with because it is the commonest answer and an empty row is a question
-     nobody asked to be asked. */
-  const [formats, setFormats] = useState<BookFormat[]>(['physical'])
-  const [startedOn, setStartedOn] = useState(todayISO)
-  /* The calendar is folded away to begin with. Almost every book is added the
-     day it is started, so the answer is already right on the row and opening
-     it is the exception, not the step. */
-  const [picking, setPicking] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [snag, setSnag] = useState<string>()
-  /* Which jacket, and whether the reader has asked to see the others. Local
-     rather than saved-as-you-go, because the book does not exist on the shelf
-     until this form is submitted — the pick rides along in the same write. */
-  const [coverPick, setCoverPick] = useState(0)
-  const [swapping, setSwapping] = useState(false)
-
-  const scroller = useRef<HTMLDivElement>(null)
-  const picker = useRef<HTMLDivElement>(null)
-
-  /* Follow the calendar down when it unfolds. The form's body is the sheet's
-     scroller and the panel is the better part of 300px, so on a short phone
-     opening it otherwise leaves the entire grid below the fold with nothing to
-     say it is there.
-
-     Measured and nudged by hand rather than `scrollIntoView`: that call walks
-     every scrollable ancestor, and it is what scrolled the whole page out from
-     under an earlier version of this control. */
-  useEffect(() => {
-    const panel = picker.current
-    const box = scroller.current
-    if (!picking || !panel || !box) return
-    const over = panel.getBoundingClientRect().bottom - box.getBoundingClientRect().bottom
-    if (over > 0) box.scrollTo({ top: box.scrollTop + over + 12, behavior: 'smooth' })
-  }, [picking])
-
-  return (
-    <form
-      className={styles.form}
-      onSubmit={async (event) => {
-        event.preventDefault()
-        setSnag(undefined)
-        setSaving(true)
-        try {
-        await landOnShelf(
-          book.id,
-          // put, not add: the id is the book's identity, so adding a book that
-          // is already on the shelf updates it rather than failing on a
-          // constraint or standing it beside itself.
-          async () => {
-            await db.books.put({
-              ...book,
-              coverPick,
-              formats,
-              startedOn,
-              addedAt: Date.now(),
-            })
-            /* AND THE HEADSTONE COMES DOWN. Shelving a book is the reader
-               saying they want it, and that outranks every record of the time
-               they didn't. Without this the stone stands: the next sync reads
-               it as a deletion this device still means and takes the book
-               straight back off the shelf, half a minute after it was added.
-               The owner's words, and they settle it — "that i deleted
-               something doesn't mean i don't want it back… it should only
-               obey." */
-            await unbury([bookGrave(book.id)])
-            /* AND THE LINE THEY WROTE FIRST. It was typed before this book
-               existed, on a screen that promised "the line you type is the
-               first thing kept" — and until now it was thrown away at the
-               moment they pressed the button. This is where the promise is
-               paid: the book goes on the shelf and the sentence goes on its
-               thread, in the same write, so the journey never renders a book
-               with an empty spine and then pops a keep onto it.
-
-               `keptOn` is today, not `startedOn`: the day this line was
-               written down is a fact about the line, and someone shelving a
-               book they began in March did not write this in March. */
-            if (firstKeep)
-              await addKeep({
-                bookId: book.id,
-                type: 'note',
-                text: firstKeep,
-                keptOn: todayISO(),
-              })
-          },
-          onDone,
-        )
-        /* Straight to the thread, and only when there was a line. They asked
-           a question by typing a sentence; landing back on Home would answer
-           it with the same empty card they just filled in. Every other way
-           into this sheet ends where it started, which is right — that reader
-           came to shelve a book, not to be taken somewhere. */
-        if (firstKeep) navigate(`/book/${book.id}`)
-        } catch {
-          /* The shelf is on the device, so this is a device saying no — out of
-             room, or a private window that keeps nothing. The form stays as it
-             was, with the button live again, because everything typed into it
-             is still true. */
-          setSnag('That would not save to your shelf. Your device may be out of room — try again.')
-          setSaving(false)
-        }
-      }}
-    >
-      <header className={styles.head}>
-        <button
-          type="button"
-          className={styles.iconButton}
-          onClick={onBack}
-          aria-label="Back to search"
-        >
-          <BackIcon size={20} />
-        </button>
-        <h2 className={styles.title}>Onto the shelf</h2>
-      </header>
-
-      <div ref={scroller} className={styles.formBody}>
-        <div className={styles.chosen}>
-          {/* The same name the shelf gives this book, so the browser treats
-              the cover here and the book that appears there as one object and
-              tweens the gap. Safe to hold while the sheet is open: the book is
-              not on the shelf yet, so the name is unique until the moment it
-              needs to stop being. */}
-          <span
-            className={styles.chosenCover}
-            style={{ viewTransitionName: `book-${book.id}` } as CSSProperties}
-          >
-            <BookCover
-              width={92}
-              title={book.title}
-              author={book.author}
-              covers={coversOf({ covers: book.covers, coverPick })}
-            />
-            <SwapCoverTab
-              covers={book.covers}
-              open={swapping}
-              onToggle={() => setSwapping((on) => !on)}
-            />
-          </span>
-          <div className={styles.chosenText}>
-            <p className={styles.chosenTitle}>{book.title}</p>
-            <p className={styles.resultMeta}>{book.author}</p>
-          </div>
-        </div>
-
-        {/* Unfolded under the book it belongs to, exactly as the calendar
-            below unfolds under its own row. Here rather than on the book's
-            page because the owner's point is that a reader is already
-            stopped on this screen answering questions about the book — if
-            the jacket is wrong, this is the cheapest moment to say so. */}
-        {swapping && (
-          <CoverStrip
-            title={book.title}
-            author={book.author}
-            covers={book.covers}
-            pick={coverPick}
-            onPick={setCoverPick}
-          />
-        )}
-
-        <fieldset className={styles.group}>
-          <legend className={styles.label}>How are you reading it?</legend>
-          <FormatRow value={formats} onChange={setFormats} />
-        </fieldset>
-
-        {/* The date, in our own control.
-
-            This was a `<input type="date">` laid over the row at zero opacity,
-            on the theory that a tap anywhere would land on the real input and
-            open the platform's own picker. On a phone it does. On desktop
-            Chrome it does not: clicking the body of a date input only focuses
-            a segment, and the one thing that opens the calendar is the little
-            indicator at its end — which at zero opacity is invisible. The row
-            was unclickable for anyone on a laptop, and a control that works by
-            accident of platform is not a control.
-
-            So it is ours now, on every device: the row is a button, and the
-            calendar unfolds underneath it. See CalendarPicker. */}
-        <div className={styles.dateField}>
-          <span className={styles.label} id="started-label">
-            When did you start it?
-          </span>
-          <button
-            type="button"
-            className={styles.dateBox}
-            onClick={() => setPicking((on) => !on)}
-            aria-expanded={picking}
-            aria-labelledby="started-label started-value"
-          >
-            <CalendarIcon size={20} />
-            <span className={styles.dateValue} id="started-value">
-              {longDate(startedOn)}
-            </span>
-            <CaretIcon size={18} className={styles.dateCaret} />
-          </button>
-
-          {picking && (
-            <div ref={picker} className={styles.datePicker}>
-              <CalendarPicker
-                value={startedOn}
-                /* The check closes the picker as well as setting the date:
-                   confirming is the end of the errand, and a calendar that
-                   stayed open after it would look like it had not heard. */
-                onChange={(iso) => {
-                  setStartedOn(iso)
-                  setPicking(false)
-                }}
-                // Nobody starts a book after today, and a stray year in the
-                // future would sort the shelf wrong forever.
-                max={todayISO()}
-                // The book's own threads, so the bloom on the chosen day is
-                // the one already on its cover.
-                seed={seedFrom(book.title, book.author)}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {snag && (
-        <p className={styles.snag} role="alert">
-          {snag}
-        </p>
-      )}
-      <LeafButton type="submit" disabled={saving} className={styles.submit}>
-        {saving ? 'Adding…' : 'Add to library'}
-      </LeafButton>
-    </form>
   )
 }
 

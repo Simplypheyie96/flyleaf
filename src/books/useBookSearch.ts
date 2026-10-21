@@ -3,7 +3,9 @@ import { searchBooks, type BookResult } from './sources'
 
 export type SearchState =
   | { status: 'idle' }
-  | { status: 'searching' }
+  /** Carries the last answer, so the list stays put while the next one is
+      fetched instead of blanking on every keystroke. */
+  | { status: 'searching'; results?: BookResult[] }
   | { status: 'done'; results: BookResult[] }
   /** No catalogue answered at all — offline, blocked, or both down together. */
   | { status: 'unreachable' }
@@ -20,7 +22,7 @@ export function useBookSearch(query: string): SearchState {
       return
     }
 
-    setState({ status: 'searching' })
+    setState((was) => ({ status: 'searching', results: 'results' in was ? was.results : undefined }))
 
     // Typing is much faster than the network. Waiting for a pause turns a
     // twenty-character title into one request instead of nineteen — which is

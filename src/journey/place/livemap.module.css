@@ -1,0 +1,23 @@
+/* Fills whatever plate it is put in; the plate owns the size and the frame. */
+.map {
+  position: absolute;
+  inset: 0;
+}
+.fill {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* The pin: a verdigris dot on a paper ring, with a soft halo so it holds on
+   water and road alike. */
+.dot {
+  display: block;
+  inline-size: 14px;
+  block-size: 14px;
+  border-radius: 50%;
+  background: var(--color-place);
+  border: 2.5px solid var(--card-place-solid);
+  box-shadow:
+    0 0 0 5px color-mix(in oklab, var(--color-place) 28%, transparent),
+    0 1px 3px rgb(0 0 0 / 0.3);
+}

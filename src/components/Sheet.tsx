@@ -55,7 +55,6 @@ function Sheet({ open, onClose, label, name, fill = false, children }: SheetProp
   }, [open])
 
   useKeyboardFit(dialog, open)
-  useFieldInView(dialog, open)
 
   return (
     <dialog
@@ -187,9 +186,11 @@ export function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open
         clear()
         return
       }
+      const arriving = !el.dataset.keyboard
       el.style.setProperty('--sheet-room', `${view.height}px`)
       el.style.setProperty('--sheet-shift', `${view.offsetTop}px`)
       el.dataset.keyboard = 'up'
+      if (arriving) requestAnimationFrame(() => reveal(el))
     }
 
     fit()
@@ -200,22 +201,30 @@ export function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open
     view.addEventListener('resize', fit)
     view.addEventListener('scroll', fit)
 
-    /* AND THE STATE PROVES ITSELF, twice a second, for as long as it claims a
-       keyboard is up. The owner's screenshot is why: keyboard gone, sheet
-       still strip-sized and hanging in the middle of the screen. iOS is not
-       obliged to close the loop — the last resize of the keyboard's closing
-       slide can arrive mid-animation with a short height, or dismissal can
-       end with no event at all — and a state that only listens is a state
-       that can be lied to once and believe it forever. The interval does
-       nothing at all while no keyboard is claimed; while one is, it re-reads
-       the real viewport and the real focus, and the stuck case dies within
-       half a second of the keyboard leaving. */
-    const proof = window.setInterval(() => {
-      if (el.dataset.keyboard) fit()
-    }, 400)
+    /* ONE SYSTEM, NOT THREE. There used to be a 400ms poller here re-proving
+       the keyboard, and a second hook that nudged the focused field on every
+       viewport scroll. Each was answering a real report, and together with
+       Safari's own scroll-to-caret they were three things moving the same
+       sheet — the jitter the owner called notes glitching. Now the viewport
+       events size the sheet, and the field is brought into view exactly
+       twice: when it takes focus, and when the keyboard arrives under it.
+       A keyboard that leaves without a resize still leaves with a blur, so
+       focusout re-checks one frame later instead of a timer guessing. */
+    let frame = 0
+    const settle = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        fit()
+        reveal(el)
+      })
+    }
+    el.addEventListener('focusin', settle)
+    el.addEventListener('focusout', settle)
 
     return () => {
-      window.clearInterval(proof)
+      cancelAnimationFrame(frame)
+      el.removeEventListener('focusin', settle)
+      el.removeEventListener('focusout', settle)
       view.removeEventListener('resize', fit)
       view.removeEventListener('scroll', fit)
       clear()
@@ -223,36 +232,9 @@ export function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open
   }, [dialog, open])
 }
 
-/* KEEPING THE FIELD YOU ARE TYPING IN ON THE SCREEN.
-   ═════════════════════════════════════════════════
-   The hook above wins back the strip of screen the keyboard left, which is
-   half the job. The other half is that the field being typed into has to be
-   inside that strip, and nothing arranges for it: the owner's report was that
-   the add-book sheet is hard to type in because you cannot see what you are
-   typing.
-
-   Two ways it goes wrong, and they are different failures.
-
-   The browser scrolls a focused field into view on its own, but it does that
-   against the layout it can see AT THE MOMENT OF FOCUS — which is the sheet at
-   full height, before visualViewport has reported anything and before the
-   panel has been resized. By the time the sheet is the short strip it should
-   be, the browser's scroll is answering a question nobody asked any more, and
-   the field it carefully revealed is under the keyboard.
-
-   And moving between fields with the keyboard ALREADY up fires no viewport
-   event at all — same keyboard, same height, nothing resized — so the fit hook
-   never runs and the third field of a form stays below the fold with the caret
-   blinking in it.
-
-   Hence both triggers: after every fit, and on every focus change inside the
-   sheet. The scroll is local to whichever region inside the sheet actually
-   scrolls; nothing walks out to the page, which is the failure mode
-   `scrollIntoView` has here and the reason it is not used. */
-
-/* Air left above and below the field, so it clears the edge of its scroller
-   rather than sitting flush against it — a caret hard against a boundary reads
-   as cut off whether or not it is. */
+/* Keeping the field you are typing in on the screen: scrolled within
+   whichever region inside the sheet actually scrolls, never the page, which
+   is the failure `scrollIntoView` has here. */
 const FIELD_AIR = 16
 
 function scrollerFor(node: Element, within: Element) {
@@ -265,46 +247,21 @@ function scrollerFor(node: Element, within: Element) {
   return null
 }
 
-function useFieldInView(dialog: RefObject<HTMLDialogElement | null>, open: boolean) {
-  useEffect(() => {
-    const el = dialog.current
-    if (!open || !el) return
-
-    let frame = 0
-    const reveal = () => {
-      cancelAnimationFrame(frame)
-      /* A frame late on purpose. Focus, the keyboard's arrival and the panel's
-         resize all land in the same tick, and a measurement taken inside it is
-         a measurement of the layout being replaced. */
-      frame = requestAnimationFrame(() => {
-        const field = document.activeElement
-        if (!(field instanceof HTMLElement) || !el.contains(field)) return
-        if (!field.matches('input, textarea, select, [contenteditable]')) return
-        const box = scrollerFor(field, el)
-        if (!box) return
-        const target = field.getBoundingClientRect()
-        const frame_ = box.getBoundingClientRect()
-        const below = target.bottom + FIELD_AIR - frame_.bottom
-        const above = frame_.top + FIELD_AIR - target.top
-        /* Whichever edge it is past, and never both — a field taller than its
-           scroller would otherwise be tugged at from both ends. Below wins
-           because that is the keyboard's side. */
-        if (below > 0) box.scrollTop += below
-        else if (above > 0) box.scrollTop -= above
-      })
-    }
-
-    const view = window.visualViewport
-    el.addEventListener('focusin', reveal)
-    view?.addEventListener('resize', reveal)
-    view?.addEventListener('scroll', reveal)
-    return () => {
-      cancelAnimationFrame(frame)
-      el.removeEventListener('focusin', reveal)
-      view?.removeEventListener('resize', reveal)
-      view?.removeEventListener('scroll', reveal)
-    }
-  }, [dialog, open])
+function reveal(within: HTMLElement) {
+  const field = document.activeElement
+  if (!(field instanceof HTMLElement) || !within.contains(field)) return
+  if (!field.matches('input, textarea, select, [contenteditable]')) return
+  const box = scrollerFor(field, within)
+  if (!box) return
+  const target = field.getBoundingClientRect()
+  const frame = box.getBoundingClientRect()
+  /* A field taller than its scroller (a long note) is left alone: the caret
+     is inside it and Safari keeps the caret in view on its own. */
+  if (target.height > frame.height - FIELD_AIR * 2) return
+  const below = target.bottom + FIELD_AIR - frame.bottom
+  const above = frame.top + FIELD_AIR - target.top
+  if (below > 0) box.scrollTop += below
+  else if (above > 0) box.scrollTop -= above
 }
 
 /* Dragging the sheet down to put it away.

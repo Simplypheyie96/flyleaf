@@ -1122,11 +1122,13 @@
   --color-action-hover: oklch(0.96 0.01 250);
   --color-action-press: oklch(0.85 0.02 252);
   --color-on-action: oklch(0.22 0.03 265);
-  --color-action-disabled: oklch(0.32 0.02 262);
+  /* 0.32 was a step off the sheet it sits on, so a waiting Keep it read as
+     no button at all. 0.37 is a shape you can find; 0.82 on it is 5.6. */
+  --color-action-disabled: oklch(0.37 0.02 262);
   /* Same reasoning as by day, and a longer way to travel: on the night fill
      0.58 measured 2.97, which is a label you can see is there without being
-     able to read it. 0.70 is 4.7. */
-  --color-on-action-disabled: oklch(0.7 0.02 258);
+     able to read it. */
+  --color-on-action-disabled: oklch(0.82 0.02 258);
 
   --color-accent: oklch(0.78 0.1 80); /* moon-honey */
   --color-accent-text: oklch(0.78 0.06 262); /* moonlit periwinkle ink */

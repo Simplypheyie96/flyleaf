@@ -23,7 +23,7 @@
    none of this and is left alone, which matters — burying a uid-named keep
    would tell the other device to delete the very row we are moving. */
 
-import db, { type Book } from './db'
+import db, { type Book, type BookFormat } from './db'
 import { seedFrom } from '../books/seed'
 import { bookGrave, bury, fingerprint, sittingGrave } from './graves'
 
@@ -35,6 +35,10 @@ export interface Corrections {
   pages?: number
   covers?: string[]
   coverPick?: number
+  formats?: BookFormat[]
+  /** Empty clears the day; absent leaves it. */
+  startedOn?: string
+  finishedOn?: string
 }
 
 /** Raised when the correction would land on a book the reader already has.
@@ -63,6 +67,9 @@ export async function reshelve(book: Book, next: Corrections): Promise<number> {
     pages: next.pages,
     covers: next.covers ?? book.covers,
     coverPick: next.coverPick ?? book.coverPick,
+    formats: next.formats ?? book.formats,
+    startedOn: next.startedOn === undefined ? book.startedOn : next.startedOn || undefined,
+    finishedOn: next.finishedOn === undefined ? book.finishedOn : next.finishedOn || undefined,
     editedAt: now,
   }
 

@@ -19,7 +19,7 @@ import { keptLabel } from '../lexicon'
 import { STANCE } from '../kinds'
 import { PlaceIcon } from '../../components/TabIcons'
 import { Place } from './art'
-import MapView from '../place/MapView'
+import LiveMap, { MAP_CREDIT } from '../place/LiveMap'
 import { Stance, clock, useObjectUrl, usePlayback, useWave, type CardProps } from './shared'
 import s from './pressed.module.css'
 
@@ -168,37 +168,31 @@ export function Character({ keep }: CardProps) {
 
 export function Location({ keep }: CardProps) {
   const url = useObjectUrl(keep.media)
+  /* A place found by search but never named is still named by the search. */
+  const name = keep.name || keep.pin?.label
   return (
     <article className={`${s.sheet} ${s.mapped}`}>
-      {keep.name && (
+      {name && (
         <h3 className={s.marked}>
           <span className={s.pin} aria-hidden="true">
             <PlaceIcon size={14} />
           </span>
-          {keep.name}
+          {name}
         </h3>
       )}
-      <div className={s.field}>
-        {/* A picture the reader chose outranks a map they pinned: the
-            photograph is theirs and the map is everybody's. The pin is the
-            next best answer, and the drawn field is what a keep gets when it
-            was given neither — see the hint under the chooser, which says so
-            in those words. */}
+      {/* A picture the reader chose, else the real map of a place they found,
+          else the drawn field — the hint under the chooser says so. */}
+      <div className={s.field} data-map={!url && keep.pin ? '' : undefined}>
         {url ? (
-          <img className={s.terrain} src={url} alt={`A map of ${keep.name ?? 'this location'}`} />
+          <img className={s.terrain} src={url} alt={`A picture of ${name ?? 'this location'}`} />
         ) : keep.pin ? (
-          <MapView
-            className={s.terrain}
-            lat={keep.pin.lat}
-            lon={keep.pin.lon}
-            zoom={keep.pin.zoom}
-            label={keep.pin.label ?? keep.name}
-          />
+          <LiveMap lat={keep.pin.lat} lon={keep.pin.lon} fallback={<Place seed={keep.id} className={s.terrain} />} />
         ) : (
           <Place seed={keep.id} className={s.terrain} />
         )}
         <span className={s.neat} aria-hidden="true" />
       </div>
+      {!url && keep.pin && <p className={s.credit}>{MAP_CREDIT}</p>}
       {keep.text && <p className={s.lore}>{keep.text}</p>}
     </article>
   )

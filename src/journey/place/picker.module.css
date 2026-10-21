@@ -1,0 +1,161 @@
+/* The place picker: a search box, the answers while there are some, and the
+   two other ways out. */
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.seek {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.seekBox {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+}
+
+.seekBox::placeholder {
+  color: var(--color-ink-faint);
+}
+
+.seekBox:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+.seekGo {
+  composes: pressable from '../../components/pressable.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  background: var(--color-accent-tint);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-strong);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.seekGo:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.seekGo:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+.seekWord {
+  white-space: nowrap;
+}
+
+.hits {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: var(--space-2);
+  list-style: none;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+}
+
+.hit {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  inline-size: 100%;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  text-align: start;
+  cursor: pointer;
+}
+
+.hitName {
+  font-weight: var(--weight-strong);
+}
+
+/* The gloss is support, not a second line of the name — a step down in size and
+   a step back in colour, so the eye still reads one row per answer. */
+.hitAbout {
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  color: var(--color-ink-soft);
+}
+
+.hit:hover,
+.hit:focus-visible {
+  background: color-mix(in oklch, var(--color-ink), transparent 92%);
+}
+
+.hit:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -2px;
+}
+
+.snag {
+  margin: 0;
+  font-family: var(--font-app);
+  font-size: var(--text-xs);
+  text-wrap: pretty;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in oklch, var(--color-danger), transparent 70%);
+  background: color-mix(in oklab, var(--color-danger), var(--color-paper) 92%);
+  color: var(--color-ink);
+}
+
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.act {
+  composes: pressable from '../../components/pressable.module.css';
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--field-border);
+  background: var(--field-fill);
+  font-family: var(--font-app);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-strong);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.act:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.act:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}

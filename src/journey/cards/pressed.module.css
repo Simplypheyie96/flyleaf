@@ -762,6 +762,20 @@
   pointer-events: none;
 }
 
+/* A real map has towns and rivers to show, where the drawing had a dozen
+   marks, so it gets a little more height. */
+.field[data-map] {
+  max-block-size: 220px;
+}
+
+/* The tiles' licence asks for this; it stays as quiet as type can be. */
+.credit {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-2xs);
+  color: var(--tint-ink-soft);
+  text-align: end;
+}
+
 /* Full width, both ends. Nothing hangs in the corner any more, so nothing is
    reserved for it. */
 .lore {

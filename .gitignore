@@ -33,3 +33,6 @@ DESIGN.md
 
 # Claude Code launch config stays local
 .claude/
+
+# Launch kit (Product Hunt copy, gallery, demo journey) stays local.
+launch/
