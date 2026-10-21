@@ -2765,8 +2765,11 @@ dialog:not([data-keyboard]) div:has(> div > div > .cardHead.cardHead.cardHead) {
   color: var(--color-ink);
 }
 
+/* Typed into, so the field size: iOS zooms the page into any input under 16px
+   (2026-10-21). The stamps around it stay small. */
 .stampEdit {
   inline-size: 8.5rem;
+  font-size: var(--text-field);
   border: 1px solid var(--color-ink-soft);
   background: var(--field-fill);
   color: var(--color-ink);

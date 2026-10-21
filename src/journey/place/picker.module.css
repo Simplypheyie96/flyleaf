@@ -21,7 +21,7 @@
   border: 1px solid var(--field-border);
   background: var(--field-fill);
   font-family: var(--font-app);
-  font-size: var(--text-sm);
+  font-size: var(--text-field); /* under 16px and iOS zooms in (2026-10-21) */
   color: var(--color-ink);
 }
 
