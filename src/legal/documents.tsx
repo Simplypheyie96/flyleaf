@@ -5,9 +5,9 @@ import styles from './legal.module.css'
    rather than survived.
 
    Two rules held throughout. First, every sentence describes what Flyleaf
-   ACTUALLY does today — there is no account system, no server holding anybody's
-   reading, and no sync, so none of that appears here, however much a policy
-   template would like it to. A privacy policy that describes a more impressive
+   ACTUALLY does today — an account only if the reader signs in to sync, and a
+   server that holds their journey only then — however much a policy template
+   would like to say more. A privacy policy that describes a more impressive
    app than the one you installed is not a privacy policy. Second, where the
    builder has to decide something a stranger cannot decide for them, the text
    says so in a slot they can see, instead of guessing and reading as settled.
@@ -90,11 +90,11 @@ const privacy: Doc = {
   title: 'Privacy',
   lede: 'What Flyleaf knows about you, which is next to nothing.',
   short: [
-    'There is no Flyleaf account and no server of ours holding your reading. One plain counter records that a page was opened — no cookie, no identifier, and never which book.',
-    'Everything you write, record and keep stays in this browser, on this device.',
-    'If you turn on syncing, your journey is copied into your OWN Google Drive, into a hidden folder no other app can open. We never receive a copy and we cannot read it.',
+    'You do not need an account, and without one nothing of yours is held by us. One plain counter records that a page was opened — no cookie, no identifier, and never which book.',
+    'Everything you write, record and keep stays in this browser, on this device, unless you sign in to sync.',
+    'If you sign in to sync, your journey is kept on Flyleaf’s servers, private to your account, so your other devices can have it. You can remove it from Settings at any time.',
     'Flyleaf reaches the internet for five things only: to load itself, to count that it was opened, to look up a book you searched for, to sync if you asked it to, and to take a tip if you offer one.',
-    'Because nothing is held on our side, clearing this browser clears your journey. Saving a copy — or syncing — is how you keep it.',
+    'Without syncing, nothing is held on our side, so clearing this browser clears your journey. Saving a copy — or syncing — is how you keep it.',
   ],
   body: [
     {
@@ -102,9 +102,9 @@ const privacy: Doc = {
       content: (
         <>
           <p>
-            No sign-up, no password, no profile, and no server with your name on
-            it. We could not tell you what is in your library if you asked us,
-            because we have never had it.
+            No sign-up, no password, no profile. Unless you sign in to sync, we
+            could not tell you what is in your library if you asked us, because
+            we have never had it.
           </p>
           <p>
             There is one exception, and it is worth being exact about. Flyleaf
@@ -117,12 +117,12 @@ const privacy: Doc = {
             all.
           </p>
           <p>
-            That stays true if you turn on syncing. Connecting your Google
-            Drive does not create a Flyleaf account — there is no such thing:
-            it gives this app permission to write into your own Drive and
-            nothing else. We are not told your
-            name, we do not keep your email address, and no record of you exists
-            on our side afterwards — there is no side for it to exist on.
+            <strong>If you sign in to sync.</strong> Signing in with Google
+            creates a Flyleaf account. Google tells us your email address and
+            your name, and that is all we ask it for: we get no access to your
+            Drive, your mail or anything else. We keep the address and name so
+            your devices can find the same journey, and a sign-in record for
+            each device until it signs out or goes unused for 400 days.
           </p>
           <p>
             The name you pick when you first open Flyleaf is stored in your own
@@ -149,20 +149,23 @@ const privacy: Doc = {
             another device on its own. That is the trade, and it is deliberate.
           </p>
           <p>
-            <strong>If you turn on syncing.</strong> Your whole journey, voice
-            recordings and pictures included, is written as one file into your
-            own Google Drive, in the hidden folder Google reserves for apps
-            (called <em>appDataFolder</em>). It does not appear among your
-            documents, no other app can open it, and the space it uses is yours.
-            It never passes through a server of ours, because we do not have
-            one. We are given permission to that one folder and to nothing else
-            in your Drive.
+            <strong>If you sign in to sync.</strong> Your whole journey, voice
+            recordings and pictures included, is kept on Flyleaf&rsquo;s servers,
+            which run on Cloudflare. It is stored against your account and
+            handed only to devices signed in to that account. We do not read it,
+            and it is not used for anything but giving it back to you.
           </p>
           <p>
-            When two devices sync, they merge — neither one overwrites the
-            other, so nothing you wrote on either can be lost by syncing them.
-            Turning syncing off on a device leaves the copy in your Drive alone;
-            deleting that copy is yours to do, in Drive, whenever you like.
+            When two devices sync, they merge on the devices — neither one
+            overwrites the other, so nothing you wrote on either can be lost by
+            syncing them. Signing out of a device leaves your journey on that
+            device and in your account. <em>Remove my journey from Flyleaf</em>,
+            in Settings, deletes it and every recording from our servers.
+          </p>
+          <p>
+            An older Flyleaf synced through a hidden folder in your own Google
+            Drive. If you used it, Settings offers to bring that copy in and to
+            remove it from Drive.
           </p>
         </>
       ),
@@ -203,12 +206,13 @@ const privacy: Doc = {
             and <Out href="https://policies.google.com/privacy">Google</Out>.
           </p>
           <p>
-            <strong>Syncing.</strong> Only if you turn it on. Your browser talks
-            to Google directly — first to sign you in, then to read and write
-            that one hidden folder in your Drive. Google sees those requests as
-            it sees any use of your Drive, under{' '}
-            <Out href="https://policies.google.com/privacy">their privacy policy</Out>.
-            Flyleaf is not in the middle of it and never holds the file.
+            <strong>Syncing.</strong> Only if you sign in. Google signs you in,
+            under{' '}
+            <Out href="https://policies.google.com/privacy">their privacy policy</Out>,
+            and from then on your browser talks to Flyleaf&rsquo;s own server at
+            api.flyleaf.cc, run on{' '}
+            <Out href="https://www.cloudflare.com/privacypolicy/">Cloudflare</Out>,
+            which records ordinary request information as any host does.
           </p>
           <p>
             <strong>Leaving a tip.</strong> Only if you choose to. See below.
@@ -288,8 +292,10 @@ const privacy: Doc = {
       content: (
         <>
           <p>
-            You do not need to ask us, and there is no request form, because
-            there is nothing on our side to delete. Clearing the site data for
+            You do not need to ask us, and there is no request form. If you
+            signed in to sync, Settings → Sync → <em>Remove my journey from
+            Flyleaf</em> deletes it and every recording from our servers; without
+            signing in there is nothing on our side to delete. Clearing the site data for
             Flyleaf in your browser's settings removes the whole library from
             that device, permanently and immediately. Uninstalling Flyleaf from
             your home screen does the same on most devices.
@@ -334,8 +340,8 @@ const terms: Doc = {
   title: 'Terms',
   lede: 'The deal, in the fewest words it can honestly be put in.',
   short: [
-    'Flyleaf is free, has no accounts, and is provided as it is, with no promises about it working forever.',
-    'Everything you write in it is yours. We claim nothing and can read nothing.',
+    'Flyleaf is free, needs no account, and is provided as it is, with no promises about it working forever.',
+    'Everything you write in it is yours. We claim nothing over it.',
     'Keeping your journey safe is your job, and the app gives you one button to do it with.',
     'Tips are a thank-you, not a purchase. Nothing in Flyleaf is ever behind one.',
   ],
@@ -346,7 +352,8 @@ const terms: Doc = {
         <p>
           By using Flyleaf you accept these terms. If you do not, the app is easy
           to stop using: close it, and if you have kept anything, clear the site
-          data to remove it. There is no account to cancel and nothing to unwind.
+          data to remove it. If you signed in to sync, remove your journey from
+          Settings first; there is nothing else to cancel.
         </p>
       ),
     },
@@ -356,8 +363,9 @@ const terms: Doc = {
         <p>
           Every note, quote, highlight, recording and picture you put into
           Flyleaf belongs to you. We claim no licence over it, no right to
-          publish it, and no right to look at it — and no technical means of
-          doing any of the three, since none of it ever leaves your device. If
+          publish it, and no right to look at it. Unless you sign in to sync,
+          none of it ever leaves your device; if you do, it is kept only to be
+          given back to your own devices. If
           you share something you have made, that is your decision and your
           responsibility.
         </p>
@@ -372,13 +380,16 @@ const terms: Doc = {
             than polite about it.
           </p>
           <p>
-            Because Flyleaf keeps your journey in your browser and nowhere else,
-            your journey can be lost the way anything on a device can be lost.
+            Unless you sign in to sync, Flyleaf keeps your journey in your
+            browser and nowhere else, so it can be lost the way anything on a
+            device can be lost.
             Clearing your browsing data will take it. So will a browser reclaiming
             storage from a site you have not opened in a long while, private or
             incognito windows closing, some "clean up my phone" tools, and a
             phone that goes into the sea. None of that reaches us and none of it
-            can be undone by us. There is no copy on our side. There never was.
+            can be undone by us. Without syncing there is no copy on our side.
+            Even with it, keep a saved copy now and then: our servers are a
+            convenience, not a promise.
           </p>
           <p>
             Flyleaf gives you a saved copy in one press, in Settings. Use it, keep

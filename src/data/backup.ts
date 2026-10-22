@@ -55,7 +55,24 @@ const FORMAT = 1
 const LAST_EXPORT_KEY = 'flyleaf-exported-at'
 
 interface PackedEntry extends Omit<Entry, 'id' | 'media'> {
-  media?: { type: string; data: string }
+  /** `data` inline for a file carried by hand; `ref`, the blob's sha-256, for a
+      sync, where the blob travels on its own and only once. */
+  media?: { type: string; data?: string; ref?: string }
+}
+
+/* Hashing every memo on every push would re-read the whole archive each time a
+   reader adds a comma. A keep's blob never changes once written, so its hash is
+   remembered by the keep's moment and size for as long as the app is open. */
+const hashes = new Map<string, string>()
+
+async function hashOf(entry: Entry, media: Blob): Promise<string> {
+  const key = `${entry.createdAt}:${media.size}`
+  const known = hashes.get(key)
+  if (known) return known
+  const digest = await crypto.subtle.digest('SHA-256', await media.arrayBuffer())
+  const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('')
+  hashes.set(key, hex)
+  return hex
 }
 
 interface Journey {
@@ -139,7 +156,10 @@ export interface JourneySize {
 }
 
 /** Everything on the shelf, packed and handed back as a file. */
-export async function exportJourney(handle: string): Promise<{ blob: Blob; name: string; size: JourneySize }> {
+export async function exportJourney(
+  handle: string,
+  how: { refs?: boolean } = {},
+): Promise<{ blob: Blob; name: string; size: JourneySize; media: Map<string, Blob> }> {
   const [books, entries, sittings, graves] = await Promise.all([
     db.books.toArray(),
     db.entries.toArray(),
@@ -147,11 +167,18 @@ export async function exportJourney(handle: string): Promise<{ blob: Blob; name:
     db.graves.toArray(),
   ])
 
+  const media = new Map<string, Blob>()
   const packed: PackedEntry[] = await Promise.all(
-    entries.map(async ({ id: _id, media, ...rest }) => {
-      if (!media) return rest
-      const bytes = new Uint8Array(await media.arrayBuffer())
-      return { ...rest, media: { type: media.type, data: toBase64(bytes) } }
+    entries.map(async (entry) => {
+      const { id: _id, media: blob, ...rest } = entry
+      if (!blob) return rest
+      if (how.refs) {
+        const ref = await hashOf(entry, blob)
+        media.set(ref, blob)
+        return { ...rest, media: { type: blob.type, ref } }
+      }
+      const bytes = new Uint8Array(await blob.arrayBuffer())
+      return { ...rest, media: { type: blob.type, data: toBase64(bytes) } }
     }),
   )
 
@@ -190,6 +217,7 @@ export async function exportJourney(handle: string): Promise<{ blob: Blob; name:
     blob,
     name: `flyleaf-journey-${day}.json`,
     size: { books: books.length, keeps: entries.length },
+    media,
   }
 }
 
@@ -254,6 +282,9 @@ export interface Restoring {
       never anything the file ITSELF buries: a file saying "this book is gone"
       is still believed. */
   exhume?: boolean
+  /** Fetches a blob a sync sent by reference. Asked only for the keeps this
+      device actually takes, so a memo it already holds is never downloaded. */
+  media?: (ref: string, type: string) => Promise<Blob>
 }
 
 /** Read a journey file back onto this device, merging rather than replacing. */
@@ -378,7 +409,10 @@ export async function importJourney(file: File, how: Restoring = {}): Promise<Re
       continue
     }
 
-    if (media) {
+    if (media?.ref) {
+      if (!how.media) throw new Error('That journey refers to recordings it does not carry.')
+      entry.media = await how.media(media.ref, media.type)
+    } else if (media?.data) {
       const bytes = fromBase64(media.data)
       // A fresh ArrayBuffer, so the Blob owns its bytes rather than a view
       // into a buffer this loop is about to move past.

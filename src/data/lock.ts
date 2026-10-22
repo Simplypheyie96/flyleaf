@@ -36,7 +36,7 @@
    real proof of who they are, so signing in clears the lock at once. That is
    why turning the lock on asks for a way back first — see canRecover(). */
 
-import { optedIn } from './google'
+import { optedIn } from './cloud'
 
 const CODE_KEY = 'flyleaf-lock'
 const RESET_KEY = 'flyleaf-lock-reset'

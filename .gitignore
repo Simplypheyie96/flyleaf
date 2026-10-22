@@ -36,3 +36,5 @@ DESIGN.md
 
 # Launch kit (Product Hunt copy, gallery, demo journey) stays local.
 launch/
+.wrangler/
+.playwright-mcp/

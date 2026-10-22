@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Row } from './Group'
-import { SYNC_AVAILABLE, account, needsSignIn, optedIn, signIn, signOut, tokenHeld, warmUp } from '../data/google'
+import GoogleButton from '../components/GoogleButton'
+import { SYNC_AVAILABLE, account, optedIn, signOut } from '../data/cloud'
+import { optedIn as usedDrive, warmUp } from '../data/google'
 import {
   autoSyncPaused,
+  bringArrivalIn,
+  forgetCopy,
   forgetDrive,
+  fromDrive,
   hasUnsharedWork,
   lastSync,
   otherJourney,
   pauseAutoSync,
   resumeAutoSync,
-  bringArrivalIn,
   syncNow,
 } from '../data/sync'
 import styles from './settings.module.css'
@@ -17,40 +21,25 @@ import styles from './settings.module.css'
 /* Sync, offered — never imposed.
 
    This row is the permanent home of the sign-in story, and where it sits is
-   the design. It is IN Settings, under a label that says "optional" before it
-   says anything else. Nothing is gated behind it, no screen interrupts to
-   demand it, and a reader can use Flyleaf for years and never touch it — an
-   app that asks who you are before it will hold your reading has already
-   broken the promise this one is built on.
+   the design. It is IN Settings, nothing is gated behind it, no screen
+   interrupts to demand it, and a reader can use Flyleaf for years and never
+   touch it. components/SyncNudge.tsx offers it once, after a dozen memories,
+   and never again after three refusals; that is the only place it is
+   mentioned unasked.
 
-   THERE IS NOW EXACTLY ONE PLACE THAT MENTIONS IT UNASKED, and this comment
-   used to say there were none. components/SyncNudge.tsx offers it once, after
-   a dozen memories are on the device, and never again after three refusals —
-   because a reader who has written a dozen entries has something a dropped
-   phone would really take away, and never being told is its own kind of
-   failure. That is the whole of the change: it is still not first run, still
-   not a wall, still nothing you must answer. See data/nudges.ts for the rules
-   that keep it to once.
+   SIGN IN ONCE, AND THAT IS ALL. The owner's words: "i don't need to sync once
+   i login, and i am never logged out". So there is no "Sync now" and no
+   "Reconnect": the session is Flyleaf's own and lasts as long as the device is
+   used (data/cloud.ts), and syncing runs by itself (data/sync.ts). What is left
+   in the tray is who it is signed in as, and the two ways out.
 
-   What it says, it says plainly. Not "back up to the cloud", which sounds like
-   our cloud: the journey goes into the reader's OWN Google Drive, into a hidden
-   folder no other app can open, and we never hold a copy. That sentence used to
-   live in a footnote under the card; footnotes are gone (see Group.tsx), so it
-   is now inside this row's fold, where the reader who pressed to find out how
-   syncing works is the one who meets it. The row's own line stays one line.
+   What it says, it says plainly: the journey is kept on Flyleaf's servers,
+   private to the account, and can be removed from here in two presses.
 
-   Signing out leaves the Drive copy alone, deliberately. Ending sync on one
-   device must not reach across and delete the reader's journey from their own
-   Drive.
-
-   REMOVING IT IS A SEPARATE, NAMED BUTTON, and it had to become one. The old
-   answer was "that is theirs to remove, in Drive, whenever they like" — which
-   was wrong, and the owner is the one who found out: the hidden folder Flyleaf
-   syncs into does not appear in Drive's file list, so there is nothing there
-   to delete and no set of steps that matches what she sees. An app that can
-   put a copy of a diary somewhere has to be able to take it back out from
-   inside itself. Two presses, because it is the only thing on this card that
-   cannot be undone. */
+   THE OLD DRIVE COPY. A device that synced through Google Drive before this
+   still has a journey sitting there, in a hidden folder with no row in
+   Drive's own list. It gets two buttons, shown only on such a device: bring
+   it in, and remove it. */
 
 function Cloud() {
   return (
@@ -84,396 +73,278 @@ function when(at: number) {
 
 type Note = { tone: 'good' | 'bad'; text: string } | null
 
+function came(gained: number) {
+  return `${gained} ${gained === 1 ? 'memory' : 'memories'}`
+}
+
 function SyncCard() {
   const [on, setOn] = useState(optedIn)
   const [at, setAt] = useState(lastSync)
-  const [busy, setBusy] = useState<'in' | 'now' | 'out' | 'drop' | null>(null)
-  /* The remove-from-Drive button, once pressed. Two presses rather than a
-     dialog, and rather than one: it is the only irreversible thing on this
-     card, and the second press is where the sentence explaining that lands. */
-  const [sure, setSure] = useState(false)
+  const [busy, setBusy] = useState<'in' | 'out' | 'drop' | 'drive' | null>(null)
+  /* Which irreversible button has been pressed once. Two presses rather than a
+     dialog, and the second is where the sentence explaining it lands. */
+  const [sure, setSure] = useState<'copy' | 'drive' | null>(null)
   const [note, setNote] = useState<Note>(null)
   const [open, setOpen] = useState(false)
   const [who, setWho] = useState(account)
-  const [stale, setStale] = useState(needsSignIn)
-  /* Set when this device and the Drive both already hold a journey and the
-     reader has not yet said what to do about it — and it holds WHERE and WHEN
-     the other one was last written, because that is the fact the question
-     turns on. See sync.ts/otherJourney. */
+  const [drive, setDrive] = useState(usedDrive)
+  /* Set when this device and the account both already hold a journey and the
+     reader has not yet said what to do about it, with WHERE and WHEN the other
+     one was last written, because that is the fact the question turns on. */
   const [ask, setAsk] = useState<{ device: string; at: number } | null>(null)
 
   /* Opened with the question already outstanding — the nudge signed in, found
-     another device's journey, paused and pointed here. Unfold so it is not
-     hidden behind a row nobody knew to press. */
+     another device's journey, paused and pointed here. */
   useEffect(() => {
     if (!autoSyncPaused()) return
     setOpen(true)
-    /* The nudge found the other journey and paused; it did not carry the
-       details over, so they are read again here. One metadata call. */
     void otherJourney().then((other) => other && setAsk(other))
   }, [])
 
-  /* Both `google.ts` and `sync.ts` fire this, so a sync that ran by itself in
-     the background updates the date under the reader's eyes rather than
-     leaving a stale one until the next reload. */
+  /* A sync that ran by itself updates the date under the reader's eyes. */
   useEffect(() => {
     const refresh = () => {
       setOn(optedIn())
       setAt(lastSync())
       setWho(account())
-      setStale(needsSignIn())
+      setDrive(usedDrive())
     }
     window.addEventListener('flyleaf-sync', refresh)
     return () => window.removeEventListener('flyleaf-sync', refresh)
   }, [])
 
-  /* Google's script, fetched now rather than during the press — see warmUp. */
+  /* Google's script, fetched now rather than during the press: Safari opens a
+     popup only from inside the gesture that asked for it. */
   useEffect(warmUp, [])
 
-  /* No client ID built in means no working sign-in, so the row does not exist.
-     Same rule as the tip jar: never offer a button that opens onto an error. */
   if (!SYNC_AVAILABLE) return null
 
-  async function connect() {
+  function fail(error: unknown, fallback: string) {
+    setNote({ tone: 'bad', text: error instanceof Error ? error.message : fallback })
+  }
+
+  /* Google's button has signed the reader in by the time this runs.
+
+     THE ONE QUESTION, AND THE ONLY ONE: this device is carrying work the
+     account has never seen, and the account already holds a journey from
+     somewhere else. That is what "my two devices have drifted apart" actually
+     looks like. The pause is held until she answers, or the write hooks would
+     merge it underneath the question. */
+  async function connected() {
+    setOn(true)
     setBusy('in')
     setNote(null)
     try {
-      await signIn()
-      setOn(true)
-
-      /* THE ONE QUESTION, AND THE ONLY ONE. It is asked here and nowhere else,
-         at the only moment it is really about: this device is carrying work
-         that Drive has never seen — written while signed out, or written
-         before this device ever synced — and Drive already holds a journey
-         from somewhere else. Those two things are what "my two devices have
-         drifted apart" actually looks like.
-
-         It is NOT asked merely because the other device wrote something. That
-         was the old rule and it fired on the ordinary life of a working pair,
-         which is how a question meant for one rare moment became a wall across
-         every sync. See the long note in data/sync.ts/run.
-
-         The pause is held until she answers, or the write hooks would merge
-         it underneath the question. */
       pauseAutoSync()
       const other = await otherJourney()
       if (other && (await hasUnsharedWork())) {
         setAsk(other)
-        setBusy(null)
         return
       }
       resumeAutoSync()
-
       const { gained } = await syncNow()
       setAt(lastSync())
       setNote({
         tone: 'good',
-        text: gained
-          ? `Synced. ${gained} ${gained === 1 ? 'memory' : 'memories'} came back from your other device.`
-          : 'Synced. Your journey is now in your own Google Drive.',
+        text: gained ? `Signed in. ${came(gained)} came back from your other device.` : 'Signed in. Your journey now syncs by itself.',
       })
     } catch (error) {
       resumeAutoSync()
       setOn(optedIn())
-      setNote({ tone: 'bad', text: error instanceof Error ? error.message : 'That did not connect.' })
+      fail(error, 'That did not connect.')
     } finally {
       setBusy(null)
     }
   }
 
-  /* Yes. Nothing here is a choice between the two journeys, because there is no
-     version of this that loses anything: what goes up is the union of both
-     sides, and both devices end up holding it. */
+  /* Yes. There is no version of this that loses anything: what goes up is the
+     union of both sides, and both devices end up holding it. */
   async function bringTogether() {
     setBusy('in')
     setAsk(null)
-    resumeAutoSync()
     try {
-      /* Not `syncNow` directly: answering here has to be recorded as answered,
-         or the arrival check asks the same question again a second later. */
       const { gained } = await bringArrivalIn()
       setAt(lastSync())
       setNote({
         tone: 'good',
-        text: gained
-          ? `Brought together. ${gained} ${gained === 1 ? 'memory' : 'memories'} came over from your other device.`
-          : 'Brought together. Your journey is now in your own Google Drive.',
+        text: gained ? `Brought together. ${came(gained)} came over from your other device.` : 'Brought together.',
       })
     } catch (error) {
-      setNote({ tone: 'bad', text: error instanceof Error ? error.message : 'That did not sync.' })
+      fail(error, 'That did not sync.')
     } finally {
       setBusy(null)
     }
   }
 
-  /* No. Signing back out is the honest undo: leaving this device signed in but
-     never syncing would be a switch that says On and does nothing. */
+  /* No. Signing back out is the honest undo: signed in but never syncing would
+     be a switch that says On and does nothing. */
   async function leaveThemApart() {
     setAsk(null)
     setBusy('out')
     await signOut()
     resumeAutoSync()
-    setOn(false)
-    setNote({
-      tone: 'good',
-      text: 'Left as they are. This device is not syncing, and the journey in your Drive is untouched.',
-    })
+    setNote({ tone: 'good', text: 'Left as they are. This device is not syncing, and the journey in your account is untouched.' })
     setBusy(null)
   }
 
-  async function now() {
-    setBusy('now')
-    setNote(null)
-    try {
-      /* THE SIGN-IN GOES FIRST, INSIDE THE PRESS. This used to sync, catch the
-         failure, and only then open Google's window — and by that point the
-         press was over. Safari grants a popup to the gesture that asked for
-         it and to nothing afterwards, so the recovery attempt was blocked
-         before it began and the reader was told "Google could not open its
-         sign-in window", which was true and useless.
-
-         So the decision is made here, synchronously, before a single await:
-         if this device is not already holding a live token, the one press
-         they made becomes the one sign-in they see, and the sync follows it. */
-      if (!tokenHeld()) await signIn()
-      const { gained, unchanged } = await syncNow()
-      setAt(lastSync())
-      setNote({
-        tone: 'good',
-        text: unchanged
-          ? 'Already up to date.'
-          : gained
-            ? `${gained} ${gained === 1 ? 'memory' : 'memories'} came back from your other device.`
-            : 'Synced.',
-      })
-    } catch (error) {
-      setNote({ tone: 'bad', text: error instanceof Error ? error.message : 'That did not sync.' })
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  async function disconnect() {
+  async function leave() {
     setBusy('out')
     setNote(null)
     await signOut()
-    setOn(false)
-    setNote({ tone: 'good', text: 'This device has stopped syncing. The copy in your Drive is untouched.' })
+    setNote({ tone: 'good', text: 'Signed out of this device. Your journey stays here and in your account.' })
     setBusy(null)
   }
 
-  /* The copy in Drive, removed from inside the app — because the owner could
-     not remove it from outside it: "things are not like that in google drive,
-     i couldn't follow your instructions to do that. so i can't delete it."
-     The hidden folder that makes syncing tidy is the same thing that leaves
-     her no row to delete, so the app owes her this button. */
-  async function drop() {
+  /* Signed out as part of the same press: still signed in, this device would
+     write the journey straight back up within seconds. */
+  async function dropCopy() {
     setBusy('drop')
     setNote(null)
     try {
-      const count = await forgetDrive(true)
-      /* Signed out as part of the same press: still signed in, this device
-         would write the journey straight back up and the removal would last
-         about four seconds. */
+      await forgetCopy()
       await signOut()
-      setOn(false)
       setAt(null)
-      setSure(false)
-      setNote({
-        tone: 'good',
-        text:
-          count > 0
-            ? `Removed ${count} journey ${count === 1 ? 'file' : 'files'} from Google Drive. Sync is turned off, and everything written on this device remains here.`
-            : 'No journey backup files were found in Google Drive. Sync is turned off.',
-      })
+      setSure(null)
+      setNote({ tone: 'good', text: 'Removed from Flyleaf. This device is signed out, and everything written on it remains here.' })
     } catch (error) {
-      setNote({ tone: 'bad', text: error instanceof Error ? error.message : 'That could not be removed.' })
+      fail(error, 'That could not be removed.')
     } finally {
       setBusy(null)
     }
   }
 
-  /* One folding row, the shape the lock beneath it already uses — the owner
-     asked for the two to match, and they should: they are the same kind of
-     thing, a subject with a state on the line and a tray of actions under it.
+  async function bringDrive() {
+    setBusy('drive')
+    setNote(null)
+    try {
+      const gained = await fromDrive()
+      setNote(
+        gained === null
+          ? { tone: 'good', text: 'That Google Drive holds no Flyleaf journey.' }
+          : { tone: 'good', text: gained ? `${came(gained)} came in from Google Drive.` : 'Brought in. Nothing there was new to this device.' },
+      )
+    } catch (error) {
+      fail(error, 'That did not connect.')
+    } finally {
+      setBusy(null)
+    }
+  }
 
-     WHAT IS ON THE LINE IS THE STATE, NOT AN INSTRUCTION. Shut, the row
-     answers the only question a reader opens Settings with — is my reading
-     safe, and how lately. "Off", or how long ago the last sync was, which
-     since sync now runs by itself is almost always "Just now". The buttons
-     inside are the exceptions: joining, leaving, and forcing a sync that has
-     already happened. */
+  async function dropDrive() {
+    setBusy('drive')
+    setNote(null)
+    try {
+      const count = await forgetDrive()
+      setSure(null)
+      setNote({
+        tone: 'good',
+        text: count > 0 ? 'Removed the old copy from Google Drive.' : 'Google Drive held no Flyleaf journey.',
+      })
+    } catch (error) {
+      fail(error, 'That could not be removed.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
   return (
     <>
       <Row
         title="Sync across devices"
-        control={
-          <span className={styles.value}>
-            {!on ? 'Off' : stale ? 'Reconnect' : at ? when(at) : 'Not yet'}
-          </span>
-        }
+        control={<span className={styles.value}>{!on ? 'Off' : at ? when(at) : 'Not yet'}</span>}
         open={open}
         onFold={() => {
           setOpen(!open)
-          // A half-armed irreversible button must not still be armed the next
-          // time this row is opened.
-          setSure(false)
+          // A half-armed irreversible button must not still be armed next time.
+          setSure(null)
         }}
       >
         <div className={styles.eraseBox}>
-          {/* Nothing about how syncing behaves, while the reader is being asked
-              whether it should start at all — the question below carries its own
-              explanation and is the only thing on this fold that matters. */}
-          {ask ? null : on ? (
-            <>
-              {/* WHO, before anything else. The owner's words were "why is the
-                  app not showing account the user is signed into? everything is
-                  just so vague" — and she was right: two devices could both say
-                  "On" while syncing to two different Drives, and nothing on
-                  this page could tell her. */}
-              <p className={styles.note}>
-                {who ? (
-                  <>
-                    Connected to <strong>{who}</strong>.
-                  </>
-                ) : (
-                  'Connected to Google Drive.'
-                )}
-              </p>
-              <p className={styles.note}>
-                {stale
-                  ? 'Google has stopped letting this device refresh quietly, so syncing has paused. Reconnect to start it up.'
-                  : 'This device syncs on its own — when you write something, when you open Flyleaf, and while it is in front of you. There is nothing to press.'}
-              </p>
-            </>
-          ) : (
-            <p className={styles.note}>
-              Connect your Google Drive and this journal appears on your
-              other devices, and keeps up with them by itself. There is no
-              Flyleaf account: the copy goes into your own Drive, in a hidden
-              folder only Flyleaf can open — never onto our servers.
-            </p>
-          )}
-
           {ask ? (
             <>
-              {/* WHERE, AND WHEN, BEFORE ANY BUTTON. The reason this question
-                  was unanswerable is that it used to be about "your Drive" —
-                  a place the reader has never been and cannot picture. Named
-                  as their own iPhone, and dated, it becomes a question about
-                  something they either remember doing or don't. */}
               <p className={styles.note}>
-                This Google account already holds a journey, last changed{' '}
+                This account already holds a journey, last changed{' '}
                 {ask.device ? <>on your <strong>{ask.device}</strong>, </> : null}
                 {ask.at ? when(ask.at).toLowerCase() : 'on another device'}.
               </p>
               <p className={styles.note}>
                 Bringing them together adds anything that is only there to this
                 device, and anything that is only here to that one. Nothing is
-                replaced and nothing is removed — it is the only choice here
-                that cannot lose a word.
+                replaced and nothing is removed.
               </p>
-              <button
-                type="button"
-                className={styles.action}
-                disabled={busy !== null}
-                onClick={bringTogether}
-              >
+              <button type="button" className={styles.action} disabled={busy !== null} onClick={bringTogether}>
                 {busy === 'in' ? 'Bringing them together…' : 'Bring them together'}
                 <span className={styles.mark}>
                   <Cloud />
                 </span>
               </button>
-              {/* There were three answers here and now there are two, which is
-                  what was asked for: "do I want to go with the data on device
-                  one or leave as is". The third was "keep only what is on this
-                  device" — the sole button in the app that could send a
-                  journey up in place of another one, and so the sole way to
-                  end a sync with less than you started with. Nobody needs a
-                  destructive option inside a question about two devices
-                  agreeing. */}
-              <button
-                type="button"
-                className={styles.action}
-                disabled={busy !== null}
-                onClick={leaveThemApart}
-              >
+              <button type="button" className={styles.action} disabled={busy !== null} onClick={leaveThemApart}>
                 {busy === 'out' ? 'Stopping…' : 'Leave them as they are'}
               </button>
             </>
-          ) : !on ? (
+          ) : on ? (
             <>
-              <button type="button" className={styles.action} disabled={busy !== null} onClick={connect}>
-                {busy === 'in' ? 'Connecting…' : 'Connect Google Drive'}
-                <span className={styles.mark}>
-                  <Cloud />
-                </span>
+              <p className={styles.note}>
+                Signed in as <strong>{who}</strong>. This device syncs on its own
+                and stays signed in. There is nothing to press.
+              </p>
+              <button type="button" className={styles.action} disabled={busy !== null} onClick={leave}>
+                {busy === 'out' ? 'Signing out…' : 'Sign out of this device'}
               </button>
-
-              {sure && (
+              {sure === 'copy' && (
                 <p className={styles.note} data-tone="bad">
-                  This opens Google to confirm the account, then deletes the copy in your Google Drive and stops sync. Everything on this device remains here.
+                  This deletes your journey and recordings from Flyleaf and signs
+                  this device out. Everything stays on this device, but your other
+                  devices will have nothing to sync with.
                 </p>
               )}
               <button
                 type="button"
                 className={styles.action}
                 disabled={busy !== null}
-                onClick={() => (sure ? void drop() : setSure(true))}
+                onClick={() => (sure === 'copy' ? void dropCopy() : setSure('copy'))}
               >
-                {busy === 'drop'
-                  ? 'Removing from Drive…'
-                  : sure
-                    ? 'Yes, remove it from Drive'
-                    : 'Remove my journey from Drive'}
+                {busy === 'drop' ? 'Removing…' : sure === 'copy' ? 'Yes, remove it' : 'Remove my journey from Flyleaf'}
               </button>
             </>
           ) : (
             <>
-              {/* "SYNC NOW" IS GONE, and its absence is the feature. Syncing
-                  happens on every write, on every return to the app and every
-                  ninety seconds it is in front of you; a button that asks for
-                  what is already happening only teaches the reader that it
-                  might not be. What remains here is the one case that is not
-                  automatic — Google has stopped letting this device refresh
-                  quietly and needs a human to say so again. */}
-              {stale && (
-                <button type="button" className={styles.action} disabled={busy !== null} onClick={now}>
-                  {busy === 'now' ? 'Reconnecting…' : 'Reconnect Google Drive'}
-                  <span className={styles.mark}>
-                    <Cloud />
-                  </span>
-                </button>
+              <p className={styles.note}>
+                Sign in once and this journal appears on your other devices and
+                keeps up with them by itself. It is kept on Flyleaf&rsquo;s
+                servers, private to your account, and you can remove it from
+                here at any time.
+              </p>
+              {busy === 'in' ? (
+                <p className={styles.note} role="status">Signing in…</p>
+              ) : (
+                <GoogleButton onDone={() => void connected()} onError={(text) => setNote({ tone: 'bad', text })} />
               )}
+            </>
+          )}
 
-              <button
-                type="button"
-                className={styles.action}
-                disabled={busy !== null}
-                onClick={disconnect}
-              >
-                {busy === 'out' ? 'Stopping…' : 'Stop syncing this device'}
+          {drive && !ask && (
+            <>
+              <p className={styles.note}>
+                An older Flyleaf kept a copy of this journal in your Google Drive.
+              </p>
+              <button type="button" className={styles.action} disabled={busy !== null} onClick={bringDrive}>
+                {busy === 'drive' && sure !== 'drive' ? 'Bringing it in…' : 'Bring in my Google Drive copy'}
               </button>
-
-              {sure && (
+              {sure === 'drive' && (
                 <p className={styles.note} data-tone="bad">
-                  This deletes the copy in your Google Drive and stops this
-                  device syncing. Everything you have written stays on this
-                  device — but your other devices will have nothing to sync
-                  with, and the copy cannot be brought back.
+                  This opens Google to confirm the account, then deletes the old
+                  copy in your Google Drive. Nothing here or in your Flyleaf
+                  account is touched.
                 </p>
               )}
               <button
                 type="button"
                 className={styles.action}
                 disabled={busy !== null}
-                onClick={() => (sure ? void drop() : setSure(true))}
+                onClick={() => (sure === 'drive' ? void dropDrive() : setSure('drive'))}
               >
-                {busy === 'drop'
-                  ? 'Removing…'
-                  : sure
-                    ? 'Yes, remove it from Drive'
-                    : 'Remove my journey from Drive'}
+                {busy === 'drive' && sure === 'drive' ? 'Removing…' : sure === 'drive' ? 'Yes, remove it from Drive' : 'Remove the Google Drive copy'}
               </button>
             </>
           )}

@@ -61,6 +61,21 @@ declare global {
   interface Window {
     google?: {
       accounts: {
+        /** Sign-in with an ID token: what the Flyleaf account uses. See cloud.ts. */
+        id?: {
+          initialize(config: {
+            client_id: string
+            callback: (response: { credential?: string }) => void
+            ux_mode?: 'popup'
+            auto_select?: boolean
+            itp_support?: boolean
+          }): void
+          renderButton(
+            el: HTMLElement,
+            options: { theme?: string; size?: string; shape?: string; text?: string; width?: number; logo_alignment?: string },
+          ): void
+          disableAutoSelect(): void
+        }
         oauth2: {
           initTokenClient(config: {
             client_id: string
@@ -197,7 +212,7 @@ function remember(on: boolean) {
   window.dispatchEvent(new Event('flyleaf-sync'))
 }
 
-function loadScript(): Promise<void> {
+export function loadScript(): Promise<void> {
   if (window.google?.accounts?.oauth2) return Promise.resolve()
   if (loading) return loading
 

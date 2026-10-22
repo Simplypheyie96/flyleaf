@@ -17,7 +17,8 @@ import {
   waitingFor,
   wrongTries,
 } from '../data/lock'
-import { optedIn, signIn } from '../data/google'
+import { account, optedIn } from '../data/cloud'
+import GoogleButton from './GoogleButton'
 import styles from './LockScreen.module.css'
 
 /* The door, and it is the app's own sky rather than a scrim.
@@ -59,6 +60,7 @@ function LockScreen() {
   const [code, setCode] = useState('')
   const [wrong, setWrong] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [proving, setProving] = useState(false)
   const [wait, setWait] = useState(waitingFor)
   const [asking, setAsking] = useState(false)
   const [pending, setPending] = useState(resetAt)
@@ -150,18 +152,11 @@ function LockScreen() {
 
   /* Sync is on, so the reader has a Google account attached to this journey,
      and Google confirming who they are is proof enough to skip the wait. It has
-     to be real: a failed sign-in leaves the lock exactly where it was. */
-  async function proveWithGoogle() {
-    setBusy(true)
-    try {
-      await signIn()
-      clearLock()
-      markOpen()
-    } catch {
-      setWrong(true)
-    } finally {
-      setBusy(false)
-    }
+     to be real: a failed sign-in leaves the lock exactly where it was, and so
+     does signing in as anybody else (cloud.ts refuses any other account). */
+  function provedWithGoogle() {
+    clearLock()
+    markOpen()
   }
 
   const hint = getHint()
@@ -271,14 +266,18 @@ function LockScreen() {
               </LeafButton>
 
               {optedIn() ? (
-                <button
-                  type="button"
-                  className={styles.plain}
-                  disabled={busy}
-                  onClick={proveWithGoogle}
-                >
-                  Forgot it? Unlock with Google
-                </button>
+                proving ? (
+                  <GoogleButton expect={account()} onDone={provedWithGoogle} onError={() => setWrong(true)} />
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.plain}
+                    disabled={busy}
+                    onClick={() => setProving(true)}
+                  >
+                    Forgot it? Unlock with Google
+                  </button>
+                )
               ) : pending > 0 ? null : asking ? (
                 <div className={styles.ask}>
                   <p className={styles.body}>

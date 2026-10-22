@@ -168,8 +168,8 @@ function LockCard() {
 
           <p className={styles.fine}>
             {canRecover()
-              ? 'Forget it and your connected Google account takes it off at once, with everything still in it.'
-              : 'Forget it and Flyleaf will open the journal for you after a day, with everything still in it. Turn on syncing above and it comes off straight away instead.'}
+              ? 'Forget it and signing in with Google takes it off at once, with everything still in it.'
+              : 'Forget it and Flyleaf will open the journal for you after a day, with everything still in it. Sign in to sync above and it comes off straight away instead.'}
           </p>
 
           {on && (

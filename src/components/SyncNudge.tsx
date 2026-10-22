@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import GlassSurface from './GlassSurface'
-import LeafButton from './LeafButton'
+import GoogleButton from './GoogleButton'
 import db from '../data/db'
-import { SYNC_AVAILABLE, optedIn, signIn } from '../data/google'
+import { SYNC_AVAILABLE, optedIn } from '../data/cloud'
 import { hasUnsharedWork, otherJourney, pauseAutoSync, syncNow } from '../data/sync'
 import { claim, markDismissed, markDone } from '../data/nudges'
 import styles from './Toast.module.css'
@@ -34,7 +34,6 @@ const ENOUGH = 12
 function SyncNudge() {
   const [live, setLive] = useState(false)
   const [gone, setGone] = useState(false)
-  const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
   /* Signed in, and a journey from another device was found waiting. Nothing has
      been merged; Settings holds the question. */
@@ -62,16 +61,15 @@ function SyncNudge() {
     setGone(true)
   }
 
-  async function connect() {
-    setBusy(true)
+  /* Google's button has already signed the reader in by the time this runs. */
+  async function connected() {
     setFailed(false)
     try {
-      await signIn()
-      /* Two conditions, and the second one is the whole point: Drive already
-         holds a journey from another device AND this device is carrying work
-         Drive has never been shown. Only then did two journeys genuinely
-         diverge, and only then is there anything to ask about. If Drive has a
-         copy and this device has nothing unshared, merging IS the answer and
+      /* Two conditions, and the second one is the whole point: the account
+         already holds a journey from another device AND this device is carrying
+         work the account has never been shown. Only then did two journeys genuinely
+         diverge, and only then is there anything to ask about. If the account has
+         a copy and this device has nothing unshared, merging IS the answer and
          the reader should never see the question — see the note on
          OFFLINE_KEY in data/sync.ts. The question does not fit in a toast, so
          when it is warranted the toast hands over to settings/Sync.tsx. */
@@ -86,8 +84,6 @@ function SyncNudge() {
       setGone(true)
     } catch {
       setFailed(true)
-    } finally {
-      setBusy(false)
     }
   }
 
@@ -97,24 +93,18 @@ function SyncNudge() {
         <div className={styles.body}>
           <p className={styles.message}>
             {meeting
-              ? `Connected. That Drive already holds a journey, last changed on your ${meeting} — nothing has been merged yet. Settings will ask you first.`
+              ? `Signed in. Your account already holds a journey, last changed on your ${meeting}. Nothing has been merged yet; Settings will ask you first.`
               : failed
                 ? 'That did not connect. You can try again from Settings whenever you like.'
-                : 'Your journal lives on this phone only. Connect your Google Drive and it waits for you on your other devices too.'}
+                : 'Your journal lives on this phone only. Sign in once and it waits for you on your other devices too, kept up to date by itself.'}
           </p>
+          {!failed && !meeting && (
+            <GoogleButton onDone={() => void connected()} onError={() => setFailed(true)} />
+          )}
           <div className={styles.actions}>
             <button type="button" className={styles.quiet} onClick={dismiss}>
               {failed || meeting ? 'Close' : 'Not now'}
             </button>
-            {!failed && !meeting && (
-              <LeafButton
-                className={styles.compact}
-                disabled={busy}
-                onClick={() => void connect()}
-              >
-                {busy ? 'Connecting…' : 'Connect Drive'}
-              </LeafButton>
-            )}
           </div>
         </div>
       </GlassSurface>

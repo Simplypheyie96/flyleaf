@@ -1,0 +1,47 @@
+# Flyleaf API: accounts and sync for Journal, Press and eReader.
+# Deploy:  cd server && npx wrangler deploy            (api.flyleaf.cc)
+#          cd server && npx wrangler deploy --env preview   (workers.dev, own data)
+name = "flyleaf-api"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+account_id = "26c7ff115382e750616a124d86535245"
+workers_dev = false
+routes = [{ pattern = "api.flyleaf.cc", custom_domain = true }]
+
+[vars]
+# The three apps' Google OAuth clients; a Google ID token must be for one of them.
+GOOGLE_CLIENT_IDS = "434887259881-2ck08c91lieobdpmjm5mc2hj5kobbvuf.apps.googleusercontent.com,997776608568-vfq90f4v1b1v82p2enm0li1f4sj72vrk.apps.googleusercontent.com,1093925806507-geheiusfcb8belpi6bdpl6p8afi74g99.apps.googleusercontent.com"
+SITES = "https://flyleaf.cc,https://www.flyleaf.cc,https://press.flyleaf.cc,https://read.flyleaf.cc"
+LOCAL = "0"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "flyleaf"
+database_id = "bd527aed-c6b4-4e5a-bb4b-6a52277124e7"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "flyleaf-data"
+
+[observability]
+enabled = true
+
+# Its own database and bucket, so testing never touches a reader's journey.
+# LOCAL lets localhost dev servers call it.
+[env.preview]
+workers_dev = true
+routes = []
+
+[env.preview.vars]
+GOOGLE_CLIENT_IDS = "434887259881-2ck08c91lieobdpmjm5mc2hj5kobbvuf.apps.googleusercontent.com,997776608568-vfq90f4v1b1v82p2enm0li1f4sj72vrk.apps.googleusercontent.com,1093925806507-geheiusfcb8belpi6bdpl6p8afi74g99.apps.googleusercontent.com"
+SITES = "https://flyleaf.cc,https://press.flyleaf.cc,https://read.flyleaf.cc"
+LOCAL = "1"
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "flyleaf-preview"
+database_id = "07611b54-c884-4298-aad6-6675d2af1887"
+
+[[env.preview.r2_buckets]]
+binding = "BUCKET"
+bucket_name = "flyleaf-data-preview"

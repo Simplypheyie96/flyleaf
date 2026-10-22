@@ -5,8 +5,10 @@ import PaperSurface from '../components/PaperSurface'
 import Wordmark from '../brand/Wordmark'
 import { FacePicker } from '../components/Face'
 import { getFace, getHandle, hasMet, markMet, setFace, setHandle } from '../data/reader'
-import { SYNC_AVAILABLE, signIn } from '../data/google'
-import { syncNow } from '../data/sync'
+import { SYNC_AVAILABLE } from '../data/cloud'
+import { warmUp } from '../data/google'
+import { fromDrive, otherJourney, syncNow } from '../data/sync'
+import GoogleButton from '../components/GoogleButton'
 import { markDone } from '../data/nudges'
 import styles from './onboarding.module.css'
 
@@ -47,6 +49,8 @@ function Welcome() {
   const [face, setPickedFace] = useState(getFace)
   const [busy, setBusy] = useState(false)
   const [trouble, setTrouble] = useState('')
+  const [door, setDoor] = useState(false)
+  const [fromDriveOffer, setFromDriveOffer] = useState(false)
   const field = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -85,17 +89,65 @@ function Welcome() {
     setBusy(true)
     setTrouble('')
     try {
-      await signIn()
       await syncNow()
-      markDone('sync')
-      markMet()
-      setOpen(false)
+      /* Signed in to an account that holds nothing yet: this reader's journal
+         is most likely still in the Google Drive an older Flyleaf kept it in.
+         Offer that door rather than landing them on an empty shelf. */
+      if (!(await otherJourney())) {
+        warmUp()
+        setFromDriveOffer(true)
+        return
+      }
+      arrived()
     } catch {
       setTrouble('That did not connect. You can start here and bring it back from Settings.')
     } finally {
       setBusy(false)
     }
   }
+
+  async function bringFromDrive() {
+    setBusy(true)
+    setTrouble('')
+    try {
+      if ((await fromDrive()) === null) {
+        setTrouble('That Google Drive holds no Flyleaf journal. You can start a new one here.')
+        return
+      }
+      arrived()
+    } catch {
+      setTrouble('That did not connect. You can start here and bring it back from Settings.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function arrived() {
+    markDone('sync')
+    markMet()
+    setOpen(false)
+  }
+
+  /* The sign-in itself is Google's button, so coming back takes two presses:
+     the door, then Google. Panel 1 shows Google's button straight away. */
+  const signInHere = (
+    <>
+      {fromDriveOffer ? (
+        <button
+          type="button"
+          className={`${styles.skip} ${styles.door}`}
+          disabled={busy}
+          onClick={() => void bringFromDrive()}
+        >
+          {busy ? 'Finding your journal…' : 'Bring it from my Google Drive'}
+        </button>
+      ) : busy ? (
+        <p className={styles.fine} role="status">Finding your journal…</p>
+      ) : (
+        <GoogleButton onDone={() => void comeBack()} onError={setTrouble} />
+      )}
+    </>
+  )
 
   function leave(withName: string) {
     if (withName.trim()) setHandle(withName)
@@ -132,16 +184,18 @@ function Welcome() {
               <LeafButton disabled={busy} onClick={() => setPanel(1)}>
                 Start my journal
               </LeafButton>
-              {SYNC_AVAILABLE && (
-                <button
-                  type="button"
-                  className={`${styles.skip} ${styles.door}`}
-                  disabled={busy}
-                  onClick={() => void comeBack()}
-                >
-                  {busy ? 'Finding your journal…' : 'Already have one? Bring it back'}
-                </button>
-              )}
+              {SYNC_AVAILABLE &&
+                (door ? (
+                  signInHere
+                ) : (
+                  <button
+                    type="button"
+                    className={`${styles.skip} ${styles.door}`}
+                    onClick={() => setDoor(true)}
+                  >
+                    Already have one? Bring it back
+                  </button>
+                ))}
             </div>
             {trouble && (
               <p className={styles.fine} data-tone="bad" role="status">
@@ -207,17 +261,10 @@ function Welcome() {
             {SYNC_AVAILABLE && (
               <div className={styles.alt}>
                 <p className={styles.fine}>
-                  Already keep this journal? Bring it down from your Google
-                  Drive — your name and face come with it.
+                  Already keep this journal? Sign in and it comes down, your
+                  name and face with it.
                 </p>
-                <button
-                  type="button"
-                  className={`${styles.skip} ${styles.door}`}
-                  disabled={busy}
-                  onClick={() => void comeBack()}
-                >
-                  {busy ? 'Finding your journal…' : 'Bring my journal back'}
-                </button>
+                {signInHere}
                 {trouble && (
                   <p className={styles.fine} data-tone="bad" role="status">
                     {trouble}
