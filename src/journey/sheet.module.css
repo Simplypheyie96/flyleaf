@@ -2435,24 +2435,35 @@ dialog:not([data-keyboard]) div:has(> div > div > .cardHead.cardHead.cardHead) {
   padding: 0 var(--space-3) var(--space-2) var(--space-5);
 }
 
+/* Two lines, not one: a small label over the title. Side by side the sans
+   label and the Garamond title sat on one baseline at two sizes and read as
+   a mismatch, and the clipped line cut the title's descenders. */
 .from {
   flex: 1;
   min-width: 0;
   margin: 0;
   font-family: var(--font-app);
-  font-size: var(--text-base);
+  font-size: var(--text-2xs);
   font-weight: 400;
+  letter-spacing: var(--track-label);
   color: var(--color-ink-soft);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .from em {
+  display: block;
+  margin-block-start: 2px;
   font-family: var(--font-read);
   font-style: normal;
   font-size: var(--text-lg);
+  line-height: 1.4;
+  /* Garamond's descenders hang past its line box; the ellipsis clip needs
+     room under them or g, p and y lose their tails. */
+  padding-block-end: 0.15em;
+  letter-spacing: normal;
   color: var(--color-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cardClose {
@@ -2572,6 +2583,10 @@ dialog:not([data-keyboard]) div:has(> div > div > .cardHead.cardHead.cardHead) {
    the way to the ink clears 4.5 and still reads as a hint, not an answer. */
 .card ::placeholder {
   color: color-mix(in oklch, var(--color-ink-faint) 65%, var(--color-ink));
+  /* index.css lifts every hint to body weight; the note types in Kalam 300,
+     so the hint came out heavier than the hand. On the card the hint matches
+     the field: every field here types at or under body weight. */
+  font-weight: inherit;
 }
 
 .nameBlock {

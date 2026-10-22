@@ -238,7 +238,7 @@ function Home() {
   const rows = [
     <section key="reading" aria-labelledby="currently-reading">
       {book && !PREVIEW_BARE ? (
-        <Shelf books={open} closed={closed.slice(0, 3)} far={far} />
+        <Shelf books={open} far={far} />
       ) : (
         /* BETWEEN BOOKS keeps its own tab over the paper it sits on. */
         <div className={styles.stage}>
