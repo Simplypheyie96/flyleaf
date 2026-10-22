@@ -33,10 +33,13 @@ export default function GoogleButton({ onDone, onError, expect }: Props) {
     ).catch((error: Error) => fail.current(error.message))
   }, [expect])
 
+  /* `colorScheme: light` matches Google's iframe document. In dark mode the page
+     is `color-scheme: dark`, and a mismatch makes the browser paint an opaque
+     white backdrop behind the iframe: the white box around the button. */
   return (
     <div
       ref={box}
-      style={{ width: '100%', maxWidth: 400, minHeight: 44, display: 'flex', justifyContent: 'center', alignItems: 'center', marginInline: 'auto' }}
+      style={{ width: '100%', maxWidth: 400, minHeight: 44, display: 'flex', justifyContent: 'center', alignItems: 'center', marginInline: 'auto', colorScheme: 'light' }}
     />
   )
 }
