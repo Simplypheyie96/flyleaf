@@ -29,9 +29,9 @@ import styles from './legal.module.css'
    --------------------------------------------------------------------------- */
 export const MAKER = {
   name: 'Ajayi Feyikemi Mabel',
-  email: 'ajayifey@gmail.com',
+  email: 'support@feyidesigns.com',
   place: 'Nigeria',
-  updated: '6 August 2026',
+  updated: '22 October 2026',
   /* Deliberately separate from the details above. Those are filled in; a
      professional reading is not, and only one of those two is the maker's to
      do alone. The banner comes off when this turns true — it is not
@@ -197,13 +197,15 @@ const privacy: Doc = {
           <p>
             <strong>Searching for a book.</strong> When you look up a title, the
             words you typed go from your browser directly to{' '}
-            <Out href="https://openlibrary.org/">Open Library</Out> and{' '}
-            <Out href="https://books.google.com/">Google Books</Out>, and cover
+            <Out href="https://openlibrary.org/">Open Library</Out>,{' '}
+            <Out href="https://books.google.com/">Google Books</Out> and{' '}
+            <Out href="https://books.apple.com/">Apple Books</Out>, and cover
             images load from their servers. Those requests carry your IP address
             to them, as any web request does. They do not pass through us —
             there is no us in the middle to pass through. Their terms:{' '}
-            <Out href="https://archive.org/about/terms.php">Internet Archive</Out>{' '}
-            and <Out href="https://policies.google.com/privacy">Google</Out>.
+            <Out href="https://archive.org/about/terms.php">Internet Archive</Out>,{' '}
+            <Out href="https://policies.google.com/privacy">Google</Out> and{' '}
+            <Out href="https://www.apple.com/legal/privacy/">Apple</Out>.
           </p>
           <p>
             <strong>Syncing.</strong> Only if you sign in. Google signs you in,
@@ -418,8 +420,8 @@ const terms: Doc = {
       heading: 'Book information comes from elsewhere',
       content: (
         <p>
-          Titles, authors, dates and covers are fetched from Open Library and
-          Google Books. That information is theirs, not ours, and it is sometimes
+          Titles, authors, dates and covers are fetched from Open Library,
+          Google Books and Apple Books. That information is theirs, not ours, and it is sometimes
           wrong, incomplete, or attached to the wrong edition. Flyleaf passes on
           what it is given and lets you correct it. Nothing shown about a book is
           a statement of fact by us.
