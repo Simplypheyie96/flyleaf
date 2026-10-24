@@ -10,6 +10,8 @@
    content-addressed media. It never reads either: the merge happens on the
    devices. See docs/plans/2026-10-22-flyleaf-cloud-sync.md for the contract. */
 
+import { appleSignIn, appleNotice, verifyPurchase, unlockOf } from './unlock.js';
+
 const APPS = new Set(['journal', 'press', 'reader']);
 const DOC_MAX = 8 * 1024 * 1024;
 const MEDIA_MAX = 25 * 1024 * 1024;
@@ -211,9 +213,14 @@ async function route(env, req, url) {
   const m = req.method;
   if (a === 'health') return json({ ok: true });
   if (a === 'auth' && b === 'google' && m === 'POST') return signIn(env, req);
+  if (a === 'auth' && b === 'apple' && m === 'POST') return appleSignIn(env, req, APPS);
+  if (a === 'iap' && b === 'notify' && m === 'POST') return appleNotice(env, req, url.pathname.split('/')[3]);
 
   const s = await session(env, req);
   if (!s) return json({ error: 'session' }, 401);
+
+  if (a === 'iap' && b === 'verify' && m === 'POST') return verifyPurchase(env, req, s);
+  if (a === 'unlock' && b && m === 'GET') return unlockOf(env, s, b);
 
   if (a === 'me' && m === 'GET') {
     const u = await env.DB.prepare('SELECT email, name FROM users WHERE id = ?').bind(s.uid).first();

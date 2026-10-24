@@ -11,7 +11,7 @@ routes = [{ pattern = "api.flyleaf.cc", custom_domain = true }]
 [vars]
 # The three apps' Google OAuth clients; a Google ID token must be for one of them.
 GOOGLE_CLIENT_IDS = "434887259881-2ck08c91lieobdpmjm5mc2hj5kobbvuf.apps.googleusercontent.com,997776608568-vfq90f4v1b1v82p2enm0li1f4sj72vrk.apps.googleusercontent.com,1093925806507-geheiusfcb8belpi6bdpl6p8afi74g99.apps.googleusercontent.com"
-SITES = "https://flyleaf.cc,https://www.flyleaf.cc,https://press.flyleaf.cc,https://read.flyleaf.cc"
+SITES = "https://flyleaf.cc,https://www.flyleaf.cc,https://press.flyleaf.cc,https://read.flyleaf.cc,capacitor://localhost,https://localhost"
 LOCAL = "0"
 
 [[d1_databases]]
@@ -34,7 +34,7 @@ routes = []
 
 [env.preview.vars]
 GOOGLE_CLIENT_IDS = "434887259881-2ck08c91lieobdpmjm5mc2hj5kobbvuf.apps.googleusercontent.com,997776608568-vfq90f4v1b1v82p2enm0li1f4sj72vrk.apps.googleusercontent.com,1093925806507-geheiusfcb8belpi6bdpl6p8afi74g99.apps.googleusercontent.com"
-SITES = "https://flyleaf.cc,https://press.flyleaf.cc,https://read.flyleaf.cc"
+SITES = "https://flyleaf.cc,https://press.flyleaf.cc,https://read.flyleaf.cc,capacitor://localhost,https://localhost"
 LOCAL = "1"
 
 [[env.preview.d1_databases]]
