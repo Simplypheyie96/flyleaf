@@ -182,3 +182,9 @@
     transition: none;
   }
 }
+
+@media (orientation: portrait) {
+  :global(html.native) .group:first-of-type .row:first-of-type .head {
+    padding-inline-end: var(--cw, 0px);
+  }
+}

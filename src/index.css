@@ -217,3 +217,11 @@ input::placeholder,
 textarea::placeholder {
   font-weight: var(--weight-body);
 }
+
+/* A status column down the right edge (iPhone Duo) keeps its clock and camera in the
+   top corner; native pages step round that corner only, never the whole column. */
+@media (orientation: portrait) {
+  html.native {
+    --cw: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  }
+}

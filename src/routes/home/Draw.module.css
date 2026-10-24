@@ -1118,3 +1118,10 @@
     opacity: 1;
   }
 }
+
+/* The perched cover would sit under the clock in a status column's corner. */
+@media (orientation: portrait) {
+  :global(html.native) .stage {
+    padding-block-start: calc(var(--cw, 0px) * 0.3);
+  }
+}

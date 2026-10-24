@@ -704,3 +704,10 @@
     max-block-size: 80mm;
   }
 }
+
+@media (orientation: portrait) {
+  :global(html.native) .bar,
+  :global(html.native) .how {
+    padding-inline-end: var(--cw, 0px);
+  }
+}
