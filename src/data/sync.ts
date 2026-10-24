@@ -28,6 +28,7 @@ import { dropAllJourneys, findJourney, readJourney } from './drive'
 import { signIn, signOut as dropDrive, silentToken } from './google'
 import { getHandle, setHandle } from './reader'
 import { unseed } from './seed'
+import { full } from '../native/unlock'
 
 const SYNCED_AT_KEY = 'flyleaf-synced-at'
 /** Set the moment anything is written while this device is NOT signed in, and
@@ -389,7 +390,8 @@ let held: ReturnType<typeof setTimeout> | null = null
    timer, not one per caller: three triggers firing inside the same window
    still produce one sync, which is what the floor was for. */
 function attempt() {
-  if (!optedIn() || paused) return
+  // full(): always true on the web; in the store apps sync is part of the unlock.
+  if (!optedIn() || paused || !full()) return
 
   const waited = Date.now() - lastRun
   if (waited < QUIET) {
@@ -440,7 +442,7 @@ function flush() {
   if (!settling) return
   clearTimeout(settling)
   settling = null
-  if (optedIn() && !paused) void syncNow().catch(() => {})
+  if (optedIn() && !paused && full()) void syncNow().catch(() => {})
 }
 
 export function startAutoSync() {

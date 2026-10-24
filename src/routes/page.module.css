@@ -10,7 +10,8 @@
    clearance for the floating bar. */
 .page {
   min-height: 100svh;
-  padding: var(--space-6) var(--space-5)
+  /* The top inset is 0 everywhere but the store apps (viewport-fit=cover). */
+  padding: calc(var(--space-6) + env(safe-area-inset-top, 0px)) var(--space-5)
     calc(var(--space-8) + var(--space-7) + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;

@@ -21,6 +21,7 @@ import { IMPRINT } from '../brand/imprint'
 import type { Book, Entry } from '../data/db'
 import { countWords, fairCopy } from './lexicon'
 import styles from './sheet.module.css'
+import { native } from '../native/platform'
 
 interface Props {
   open: boolean
@@ -68,7 +69,8 @@ function FairCopySheet({ open, onClose, book, keeps }: Props) {
 
   async function share() {
     try {
-      if (navigator.share) await navigator.share({ text: draft, title: book.title })
+      if (native) await (await import('../native/device')).shareText(draft, book.title)
+      else if (navigator.share) await navigator.share({ text: draft, title: book.title })
       else await copy()
     } catch {
       /* Cancelled. */

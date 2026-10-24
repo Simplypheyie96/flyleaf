@@ -13,6 +13,8 @@ import InstallHow from '../settings/InstallHow'
 import Recheck from '../settings/Recheck'
 import { BackupCard, FaceCard, NameCard } from '../settings/Journey'
 import Tip, { TIP_JAR } from '../settings/Tip'
+import { native } from '../native/platform'
+import { UnlockRow } from '../native/UnlockSheet'
 import { DOCS } from '../legal/documents'
 import card from '../settings/settings.module.css'
 import pageStyles from './page.module.css'
@@ -87,7 +89,9 @@ function Settings() {
               reader, not before them. Everything about the journey, syncing,
               the tour, installing and the small print now follows. */}
           <Group label="Support the maker">
-            {TIP_JAR && <Tip />}
+            {/* Store apps: the purchase stands where the tip jar does (Paystack
+                may not sell anything digital inside them). */}
+            {native ? <UnlockRow /> : TIP_JAR && <Tip />}
             <a
               href="https://feyidesigns.com/"
               target="_blank"
@@ -193,9 +197,12 @@ function Settings() {
               for the thing rather than the place it lands — the first row
               already says "Add to your home screen", and a caption repeating
               its own first row is a stutter. */}
-          <Group label="Install Flyleaf">
-            <InstallHow />
-          </Group>
+          {/* Already installed, from a store, which also handles updates. */}
+          {!native && (
+            <Group label="Install Flyleaf">
+              <InstallHow />
+            </Group>
+          )}
 
           {/* Last, and deliberately plain. The three documents are the part of
               Settings a reader opens once — and the part that has to be
@@ -231,7 +238,7 @@ function Settings() {
               This asks the server directly and then says what it found, in
               those words. There is no state it can leave the reader in where
               the honest answer is "keep reloading and hope". */}
-          <Recheck />
+          {!native && <Recheck />}
         </div>
       </div>
 

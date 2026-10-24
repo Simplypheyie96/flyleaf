@@ -64,6 +64,7 @@ import { startAutoSync } from './data/sync'
 import { watchIdle } from './data/lock'
 import App from './App.tsx'
 import Boundary from './components/Boundary'
+import { native } from './native/platform'
 
 applyTheme(getPref())
 
@@ -75,6 +76,8 @@ applyTheme(getPref())
    that is precisely when the app is being put down. Does nothing at all on a
    device with no code on it. */
 watchIdle()
+// Store apps: read what the App Store / Play account owns, and hear about late purchases.
+if (native) void import('./native/unlock').then((u) => Promise.all([u.refresh(), u.watchLate()])).catch(() => {})
 
 /* ASK THE BROWSER NOT TO THROW THE JOURNEY AWAY.
    Everything a reader writes lives in IndexedDB on their own device, and a

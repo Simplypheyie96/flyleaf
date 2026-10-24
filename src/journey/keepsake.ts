@@ -27,6 +27,8 @@ import type { Book, Entry } from '../data/db'
 import { IMPRINT } from '../brand/imprint'
 import { MARK } from '../brand/Wordmark'
 import { colophon } from './lexicon'
+import { native } from '../native/platform'
+import { askUnlock, full } from '../native/unlock'
 
 /* ── The two axes ──────────────────────────────────────────────────────── */
 
@@ -754,8 +756,17 @@ export async function sendKeepsake(
   canvas: HTMLCanvasElement,
   title: string,
 ): Promise<'shared' | 'saved' | 'cancelled'> {
+  if (native && !full()) {
+    askUnlock('export')
+    return 'cancelled'
+  }
   const file = await fileOf(canvas, title)
   if (!file) return 'cancelled'
+  if (native) {
+    const { shareFile } = await import('../native/device')
+    await shareFile(file, file.name)
+    return 'shared'
+  }
 
   if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
     try {

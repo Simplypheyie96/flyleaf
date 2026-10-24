@@ -124,6 +124,28 @@ export async function googleButton(
   })
 }
 
+/** The store apps' sign-in. Google's web button cannot run inside a webview,
+    so the phone's own Google sign-in is asked instead. It is configured with
+    the WEB client as the server client, so the ID token it returns is
+    addressed to the same client the website's is and /auth/google takes it
+    unchanged. iOS also needs its own client id (VITE_GOOGLE_IOS_CLIENT_ID);
+    see docs/store/launch.md. */
+export async function googleNative(expect?: string): Promise<string> {
+  const { SocialLogin } = await import('@capgo/capacitor-social-login')
+  await SocialLogin.initialize({
+    google: {
+      webClientId: CLIENT_ID,
+      iOSClientId: import.meta.env.VITE_GOOGLE_IOS_CLIENT_ID,
+      iOSServerClientId: CLIENT_ID,
+      mode: 'online',
+    },
+  })
+  const { result } = await SocialLogin.login({ provider: 'google', options: {} })
+  const idToken = 'idToken' in result ? result.idToken : null
+  if (!idToken) throw new Error('Google did not say who you are. Try again.')
+  return exchange(idToken, expect)
+}
+
 async function exchange(credential: string, expect?: string): Promise<string> {
   let res: Response
   try {

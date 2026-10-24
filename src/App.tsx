@@ -34,6 +34,9 @@ import OgLab from "./routes/OgLab";
 import Settings from "./routes/Settings";
 import Styleguide from "./routes/Styleguide";
 import styles from "./App.module.css";
+import { native } from "./native/platform";
+import { askUnlock, canAddBook, useUnlock } from "./native/unlock";
+import UnlockSheet from "./native/UnlockSheet";
 
 /* The two workbench routes below are ours, not the reader's. They are where a
    card or a token gets looked at under a lamp, and on the live app they are a
@@ -165,11 +168,15 @@ function Dock() {
      wait until she is somewhere they belong. */
   const quiet =
     pathname.startsWith("/lab/") || pathname.startsWith("/journal");
+  /* Store apps: the store installs and updates them, so neither the update
+     toast (and its service worker) nor the install invitation belongs there,
+     and sync is part of the unlock. Always true on the web. */
+  const { full } = useUnlock();
 
   return (
     <div className={toast.dock}>
       {/* Never route-gated. See above. */}
-      <UpdateToast />
+      {!native && <UpdateToast />}
       {/* Three invitations now, and every one of them is optional — so what
           keeps them from becoming a nag is not any of the three, it is
           data/nudges: one on screen at a time, one per launch, five days
@@ -177,8 +184,8 @@ function Dock() {
           before adding a fourth. */}
       {!quiet && (
         <>
-          <InstallPrompt />
-          <SyncNudge />
+          {!native && <InstallPrompt />}
+          {full && <SyncNudge />}
           <LockNudge />
         </>
       )}
@@ -200,6 +207,14 @@ function App() {
   // for why a keep cannot exist without a book in the first place.
   const [firstKeep, setFirstKeep] = useState("");
 
+  /* The web opens the sheet at once, as it always has. The store apps' free
+     tier asks for the unlock past its book limit instead; books already on the
+     shelf are never touched. */
+  function add() {
+    if (!native) return setAdding(true);
+    void canAddBook().then((ok) => (ok ? setAdding(true) : askUnlock("books")));
+  }
+
   /* Books imported from another app's file arrive with no cover — their file
      never had one to give. This goes back and asks the same catalogues the
      add sheet asks, for the whole shelf, so a book imported weeks ago repairs
@@ -213,7 +228,7 @@ function App() {
   useEffect(() => {
     function find(event: Event) {
       setSeed((event as CustomEvent<string>).detail ?? "");
-      setAdding(true);
+      add();
     }
     function first(event: Event) {
       setFirstKeep((event as CustomEvent<string>).detail ?? "");
@@ -233,7 +248,7 @@ function App() {
       <FlowerField />
       {/* Draws nothing. Inside the router so a move between pages counts as a
           page; see components/Visits.tsx for what it will and will not send. */}
-      <Visits />
+      {!native && <Visits />}
       <SplashScreen />
       {/* Outside the routes on purpose: the welcome is the app's front door,
           not a page, and it must cover whichever screen a fresh install lands
@@ -263,11 +278,12 @@ function App() {
         <Route path="*" element={<Lost />} />
       </Routes>
 
-      <Shell onAdd={() => setAdding(true)} />
+      <Shell onAdd={add} />
       {/* One instance, opened by an event: the Settings row asks for it, and
           so does the invitation when the browser has no install route to
           offer. Neither of them is on screen at the same time as the other. */}
-      <InstallGuide />
+      {!native && <InstallGuide />}
+      {native && <UnlockSheet />}
       <AddBookSheet
         open={adding}
         seed={seed}

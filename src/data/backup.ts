@@ -40,6 +40,7 @@ import { SEED_GRAVES } from './seed'
 import { adopt } from './adopt'
 import { lockOff, packLock, unpackLock } from './lock'
 import { getFace, setFace } from './reader'
+import { native } from '../native/platform'
 
 /** Bumped only when a reader's older file would otherwise be misread.
 
@@ -529,6 +530,10 @@ export async function importJourney(file: File, how: Restoring = {}): Promise<Re
     caller download it the same way, including the object-URL cleanup that is
     easy to forget and leaks the whole journey's worth of memory. */
 export function download(blob: Blob, name: string) {
+  // Store apps: a webview cannot download, so the file goes to the share
+  // sheet (Save to Files, Drive, mail). Free on every tier: it is the reader's
+  // own data.
+  if (native) return void import('../native/device').then(({ shareFile }) => shareFile(blob, name))
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url

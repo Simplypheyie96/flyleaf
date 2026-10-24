@@ -11,7 +11,7 @@
   z-index: 90;
   display: grid;
   place-items: center;
-  padding: var(--space-7) var(--space-5)
+  padding: calc(var(--space-7) + env(safe-area-inset-top, 0px)) var(--space-5)
     calc(var(--space-7) + env(safe-area-inset-bottom, 0px));
   /* The app's own sky, not a scrim: there is nothing behind this worth
      showing through, and a dimmed shelf would imply one. The same two stops

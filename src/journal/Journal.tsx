@@ -10,6 +10,8 @@ import db, { formatsOf, type Book, type Entry } from '../data/db'
 import { getHandle } from '../data/reader'
 import { KIND } from '../journey/kinds'
 import styles from './journal.module.css'
+import { native } from '../native/platform'
+import { askUnlock, full } from '../native/unlock'
 
 /* THE JOURNAL — everything kept, laid out as a book you can hold.
 
@@ -294,6 +296,8 @@ function Journal() {
      box and a face that has not loaded prints in the fallback, and neither
      failure is visible until the reader is holding the paper. */
   async function toPaper() {
+    // Store apps: the printed journal is part of the unlock.
+    if (native && !full()) return askUnlock('export')
     setReadying(true)
     try {
       await document.fonts.ready
@@ -306,7 +310,9 @@ function Journal() {
     } finally {
       setReadying(false)
     }
-    window.print()
+    // A webview has no window.print(); the store apps ask the system printer.
+    if (native) void import('../native/device').then(({ printPage }) => printPage('Flyleaf journal'))
+    else window.print()
   }
 
   const empty = shelf ? shelf.books === 0 : true

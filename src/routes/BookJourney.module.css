@@ -708,7 +708,7 @@
    rectangle floating on it. */
 .tabsRow {
   position: sticky;
-  inset-block-start: 0;
+  inset-block-start: env(safe-area-inset-top, 0px);
   /* Above the keeps, not level with them. At 2 it tied with the verb circles
      riding each card's corner and lost on document order, so three glass
      discs rode up over the parked bar instead of passing under it. */

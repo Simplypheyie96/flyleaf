@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Flyleaf Journal</string>
+    <string name="title_activity_main">Flyleaf Journal</string>
+    <string name="package_name">com.feyidesigns.journal</string>
+    <string name="custom_url_scheme">com.feyidesigns.journal</string>
+</resources>

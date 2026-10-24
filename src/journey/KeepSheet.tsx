@@ -61,6 +61,8 @@ import { useDictation } from "./dictation";
 import { addKeep, editKeep } from "./keeps";
 import { shrink, tooBig } from "./shrink";
 import styles from "./sheet.module.css";
+import { native } from "../native/platform";
+import { askUnlock, kindLocked } from "../native/unlock";
 
 /* The faces offered when a reader goes looking for a different one.
 
@@ -831,7 +833,33 @@ function KeepSheet({
      Whatever has been typed stays typed — a reader who realises their quote was
      really a note should not be made to write it twice — but anything that
      belongs to the kind being left behind goes with it. */
+  async function takePicture(file: File | null | undefined) {
+    if (!file) return;
+    setSnag(undefined);
+    if (tooBig(file)) {
+      setSnag(
+        "That picture is very large. Try a photo rather than a scan or a raw file.",
+      );
+      return;
+    }
+    touchedMedia.current = true;
+    setMedia(await shrink(file));
+    setMediaName(file.name);
+  }
+
+  /* The store apps ask the phone's own camera or library (a file input in a
+     webview offers neither well); the web keeps its file input. */
+  function pickPicture() {
+    if (!native) return photo.current?.click();
+    void import("../native/device")
+      .then(({ pickPhoto }) => pickPhoto())
+      .then(takePicture)
+      .catch(() => setSnag("The camera did not open. Check Flyleaf may use it in Settings."));
+  }
+
   function choose(next: EntryType, rect?: DOMRect) {
+    /* Store apps, free tier: a locked kind asks for the unlock instead. */
+    if (!editing && kindLocked(next)) return askUnlock("kind");
     if (rect) from.current = rect;
     /* A kind with its own draft waiting opens on that draft; this one stays
        saved under its own name. Otherwise the words travel with the reader
@@ -1550,20 +1578,7 @@ function KeepSheet({
                     type="file"
                     accept="image/*"
                     className={styles.hidden}
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      setSnag(undefined);
-                      if (tooBig(file)) {
-                        setSnag(
-                          "That picture is very large. Try a photo rather than a scan or a raw file.",
-                        );
-                        return;
-                      }
-                      touchedMedia.current = true;
-                      setMedia(await shrink(file));
-                      setMediaName(file.name);
-                    }}
+                    onChange={(e) => void takePicture(e.target.files?.[0])}
                   />
                 )}
 
@@ -1612,7 +1627,7 @@ function KeepSheet({
                           <button
                             type="button"
                             className={styles.capture}
-                            onClick={() => photo.current?.click()}
+                            onClick={pickPicture}
                           >
                             <ImageIcon size={17} />
                             Change it
@@ -1637,7 +1652,7 @@ function KeepSheet({
                             type="button"
                             className={styles.pick}
                             aria-describedby={mediaId}
-                            onClick={() => photo.current?.click()}
+                            onClick={pickPicture}
                           >
                             <PictureAddIcon />
                             Choose a picture
@@ -1651,7 +1666,7 @@ function KeepSheet({
                             type="button"
                             className={styles.capture}
                             data-lead="true"
-                            onClick={() => photo.current?.click()}
+                            onClick={pickPicture}
                           >
                             <ImageIcon size={17} />
                             Choose a picture
@@ -1727,7 +1742,7 @@ function KeepSheet({
                           <button
                             type="button"
                             className={styles.capture}
-                            onClick={() => photo.current?.click()}
+                            onClick={pickPicture}
                           >
                             <ImageIcon size={18} />
                             {media ? "Choose another" : "Add a picture"}

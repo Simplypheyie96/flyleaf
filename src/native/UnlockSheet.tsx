@@ -1,0 +1,159 @@
+import { useEffect, useState } from 'react'
+import LeafButton from '../components/LeafButton'
+import Sheet from '../components/Sheet'
+import { CloseIcon } from '../components/TabIcons'
+import { Row } from '../settings/Group'
+import card from '../settings/settings.module.css'
+import tip from '../settings/tip.module.css'
+import { ios } from './platform'
+import { askUnlock, buy, FREE_BOOKS, prices, restore, useUnlock, type Reason } from './unlock'
+
+/* The store apps' one sheet for buying. It opens from a gate (a fourth book, a
+   locked kind of keep, the printed journal, sync) or from Settings, and it is
+   built from the tip jar's furniture so it looks like the rest of Settings. Only
+   ever mounted when `native`; see App.tsx. */
+
+const WHY: Record<Reason, string> = {
+  books: `The free journal holds ${FREE_BOOKS} books. Every book you have stays yours.`,
+  kind: 'Voice memos, characters, places and threads come with the unlock.',
+  export: 'The printed journal and sharing come with the unlock.',
+  sync: 'Sync comes with the unlock.',
+  settings: 'One purchase, once. No subscription.',
+}
+
+const day = (t: number) => new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })
+
+export default function UnlockSheet() {
+  const [reason, setReason] = useState<Reason | null>(null)
+  const [price, setPrice] = useState<Awaited<ReturnType<typeof prices>>>({})
+  const [busy, setBusy] = useState(false)
+  const [note, setNote] = useState<string>()
+  const { trialEnds, full } = useUnlock()
+
+  useEffect(() => {
+    const open = (e: Event) => {
+      setNote(undefined)
+      setReason((e as CustomEvent<Reason>).detail)
+    }
+    window.addEventListener('flyleaf-unlock', open)
+    return () => window.removeEventListener('flyleaf-unlock', open)
+  }, [])
+
+  useEffect(() => {
+    if (reason) void prices().then(setPrice).catch(() => {})
+  }, [reason])
+
+  async function run(job: () => Promise<boolean>, done: string) {
+    setBusy(true)
+    setNote(undefined)
+    try {
+      if (await job()) {
+        setNote(done)
+        window.setTimeout(() => setReason(null), 900)
+      }
+    } catch (e) {
+      setNote((e as Error).message || 'The store could not finish that. Try again in a moment.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const close = () => setReason(null)
+
+  return (
+    <Sheet open={reason !== null} onClose={close} label="Unlock Flyleaf" name="unlock">
+      <div className={tip.jar}>
+        <header className={tip.head}>
+          <div className={tip.headLine}>
+            <h2 className={tip.title} id="unlock">
+              The whole journal
+            </h2>
+            <button type="button" className={tip.close} onClick={close} aria-label="Close">
+              <CloseIcon size={20} />
+            </button>
+          </div>
+          <p className={tip.lede}>{reason && WHY[reason]}</p>
+          <p className={tip.lede}>
+            Unlimited books, voice memos, characters, places and threads, the printed journal, and
+            sync between your devices.
+          </p>
+        </header>
+
+        <div className={card.row}>
+          <LeafButton disabled={busy || full} onClick={() => void run(() => buy('unlock'), 'Unlocked. Thank you.')}>
+            Unlock{price.unlock ? ` · ${price.unlock}` : ''}
+          </LeafButton>
+          <button
+            type="button"
+            className={tip.amount}
+            disabled={busy || full}
+            onClick={() => void run(() => buy('supporter'), 'Unlocked. Thank you for the extra.')}
+          >
+            Supporter{price.supporter ? ` · ${price.supporter}` : ''}
+          </button>
+        </div>
+
+        {ios && trialEnds === null && (
+          <button
+            type="button"
+            className={card.action}
+            disabled={busy}
+            onClick={() => void run(() => buy('trial'), 'Your 14 days have started.')}
+          >
+            Try everything free for 14 days
+          </button>
+        )}
+        <button
+          type="button"
+          className={card.action}
+          disabled={busy}
+          onClick={() =>
+            void run(async () => {
+              if (await restore()) return true
+              setNote('No purchase found for this store account.')
+              return false
+            }, 'Restored.')
+          }
+        >
+          Restore purchases
+        </button>
+
+        {note && (
+          <p className={card.note} role="status">
+            {note}
+          </p>
+        )}
+
+        <p className={card.fine}>
+          Unlock and Supporter open exactly the same things; Supporter pays a little more toward
+          keeping Flyleaf going. Payment goes through your {ios ? 'App Store' : 'Google Play'}{' '}
+          account.
+          {trialEnds !== null && !full && ` Your trial ended on ${day(trialEnds)}.`}
+        </p>
+      </div>
+    </Sheet>
+  )
+}
+
+/** The Settings row: where the reader stands, and the way to the sheet. */
+export function UnlockRow() {
+  const { owned, trialEnds, full } = useUnlock()
+  const status = owned.length
+    ? owned.includes('supporter')
+      ? 'Supporter'
+      : 'Unlocked'
+    : full && trialEnds
+      ? `Trial until ${day(trialEnds)}`
+      : 'Free'
+  return (
+    <>
+      <Row title="Flyleaf" control={<span className={card.value}>{status}</span>} />
+      <button type="button" className={card.action} onClick={() => askUnlock('settings')}>
+        {owned.length ? 'Restore or support' : 'Unlock the whole journal'}
+        <span className={card.linkHint} aria-hidden="true">
+          ›
+        </span>
+      </button>
+    </>
+  )
+}
