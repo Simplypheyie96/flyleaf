@@ -132,7 +132,9 @@ Then `npm run android:bundle` makes `android/app/build/outputs/bundle/release/ap
 ## 4 · Store listing (both stores)
 
 - Name: **Flyleaf Journal**. Subtitle (iOS, 30 chars): "A reading journal, book by book".
-- Icon: `public/icon-512.png` (Play 512², iOS 1024² from the same master; no transparency on iOS).
+- Icon: already in both projects, rendered from `public/leaf-icon-maskable.svg` (iOS 1024², no alpha;
+  Android launcher, round and adaptive foreground on `#C2E4F8`). Splash: the rosette on `#C2E4F8`.
+  Play also wants a 512² upload: `public/icon-maskable-512.png`.
 - Screenshots: iPhone 6.9" and Play phone, from the Simulator: timeline, a book's keeps, the printed journal.
 - Play feature graphic 1024×500: not made yet.
 
