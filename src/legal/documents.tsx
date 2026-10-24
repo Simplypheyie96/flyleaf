@@ -303,6 +303,15 @@ const privacy: Doc = {
             your home screen does the same on most devices.
           </p>
           <p>
+            To close the Flyleaf account itself, the one sign-in Journal, Press
+            and eReader share, use Settings → Sync across devices → <em>Delete my Flyleaf
+            account</em> in the App Store or Google Play app, or write to {mail}{' '}
+            from the address you signed in with and we will delete it within 30
+            days. Everything the account holds for all three apps goes with it,
+            along with its sign-ins and purchase records. A purchase stays yours
+            with the store and comes back with Restore.
+          </p>
+          <p>
             This is irreversible and there is no backup on our side to restore
             from. Save a copy first if you might want the journey back.
           </p>

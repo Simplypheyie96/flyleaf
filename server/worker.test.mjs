@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 
 const dir = fileURLToPath(new URL('.', import.meta.url));
 const PORT = 8799, BASE = `http://127.0.0.1:${PORT}`;
-const A = 'a'.repeat(64), B = 'b'.repeat(64);
+const A = 'a'.repeat(64), B = 'b'.repeat(64), C = 'c'.repeat(64);
 const sha = (s) => createHash('sha256').update(s).digest('hex');
 const wr = (args) => execFileSync('npx', ['--no-install', 'wrangler', ...args], { cwd: dir, stdio: 'pipe' });
 let dev;
@@ -22,10 +22,13 @@ before(async () => {
   const now = Date.now();
   wr(['d1', 'execute', 'flyleaf-preview', '--env', 'preview', '--local', '--file=schema.sql']);
   wr(['d1', 'execute', 'flyleaf-preview', '--env', 'preview', '--local', '--command',
-    `DELETE FROM docs; DELETE FROM media; DELETE FROM sessions; DELETE FROM users;
+    `DELETE FROM docs; DELETE FROM media; DELETE FROM sessions; DELETE FROM users; DELETE FROM unlocks;
      INSERT INTO users VALUES ('gtest', 'reader@example.com', 'Reader', ${now});
      INSERT INTO sessions VALUES ('${sha(A)}', 'gtest', 'journal', ${now - 2 * 86400000});
-     INSERT INTO sessions VALUES ('${sha(B)}', 'gtest', 'press', ${now - 401 * 86400000});`]);
+     INSERT INTO sessions VALUES ('${sha(B)}', 'gtest', 'press', ${now - 401 * 86400000});
+     INSERT INTO users VALUES ('ggone', 'gone@example.com', 'Gone', ${now});
+     INSERT INTO sessions VALUES ('${sha(C)}', 'ggone', 'reader', ${now});
+     INSERT INTO unlocks (ref, user_id, app, product, store, env, at) VALUES ('ios_1', 'ggone', 'reader', 'com.feyidesigns.ereader.unlock', 'apple', 'Sandbox', ${now});`]);
   dev = spawn('npx', ['--no-install', 'wrangler', 'dev', '--env', 'preview', '--port', String(PORT), '--ip', '127.0.0.1'], { cwd: dir, stdio: 'ignore' });
   for (let i = 0; i < 60; i++) {
     try { if ((await fetch(BASE + '/health')).ok) return; } catch {}
@@ -111,4 +114,21 @@ test('deleting the journal takes its media with it', async () => {
 test('signing out ends that session only', async () => {
   assert.equal((await call('/auth/out', { method: 'POST' })).status, 200);
   assert.equal((await call('/me')).status, 401);
+});
+
+test('deleting the account removes the reader and everything they stored', async () => {
+  const as = (path, o = {}) => call(path, { token: C, ...o });
+  assert.equal((await as('/doc/reader', { method: 'PUT', body: '{"v":1}', headers: { 'x-rev': '0' } })).status, 200);
+  const blob = new Uint8Array([9, 8, 7]);
+  assert.equal((await as(`/media/${sha(blob)}?app=reader`, { method: 'PUT', body: blob })).status, 200);
+
+  assert.equal((await as('/me', { method: 'DELETE' })).status, 200);
+  assert.equal((await as('/me')).status, 401);
+  const left = JSON.parse(wr(['d1', 'execute', 'flyleaf-preview', '--env', 'preview', '--local', '--json', '--command',
+    `SELECT (SELECT COUNT(*) FROM users WHERE id = 'ggone') + (SELECT COUNT(*) FROM sessions WHERE user_id = 'ggone')
+          + (SELECT COUNT(*) FROM docs WHERE user_id = 'ggone') + (SELECT COUNT(*) FROM media WHERE user_id = 'ggone')
+          + (SELECT COUNT(*) FROM unlocks WHERE user_id = 'ggone') AS n,
+     (SELECT COUNT(*) FROM users WHERE id = 'gtest') AS kept`]).toString());
+  assert.equal(left[0].results[0].n, 0);
+  assert.equal(left[0].results[0].kept, 1);
 });

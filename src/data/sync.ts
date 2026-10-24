@@ -23,7 +23,7 @@
 import { exportJourney, importJourney } from './backup'
 import db from './db'
 import { deviceName } from './device'
-import { drop, fetchMedia, optedIn, peek, pull, push, sendMedia } from './cloud'
+import { deleteAccount, drop, fetchMedia, optedIn, peek, pull, push, sendMedia } from './cloud'
 import { dropAllJourneys, findJourney, readJourney } from './drive'
 import { signIn, signOut as dropDrive, silentToken } from './google'
 import { getHandle, setHandle } from './reader'
@@ -261,10 +261,19 @@ export async function otherJourney(): Promise<{ device: string; at: number } | n
 
     Nothing on the device is touched. Every book, every keep, every recording
     stays exactly where it is — this removes the copy, not the reading. */
-export async function forgetCopy(): Promise<void> {
+export function forgetCopy(): Promise<void> {
+  return forget(drop)
+}
+
+/** The same for the whole account, which also signs this device out. */
+export function forgetAccount(): Promise<void> {
+  return forget(deleteAccount)
+}
+
+async function forget(remove: () => Promise<void>): Promise<void> {
   pauseAutoSync()
   try {
-    await drop()
+    await remove()
     write(MARK_KEY, '')
     write(SYNCED_AT_KEY, '')
     /* Everything on this device is now unshared by definition, so signing in

@@ -168,6 +168,21 @@ async function dropDoc(env, s, app) {
   return json({ removed: keys.length });
 }
 
+/* Store rules (Apple 5.1.1(v), Google Play): a reader who made an account can
+   end it from the app. Everything goes: documents and media in every app, the
+   unlock records (the store still holds the purchase, so Restore brings it
+   back to a new account), every session, and the reader. */
+async function dropAccount(env, s) {
+  const docs = await env.DB.prepare('SELECT obj, prev FROM docs WHERE user_id = ?').bind(s.uid).all();
+  const media = await env.DB.prepare('SELECT hash FROM media WHERE user_id = ?').bind(s.uid).all();
+  const keys = media.results.map((m) => `m/${s.uid}/${m.hash}`);
+  for (const d of docs.results) keys.push(d.obj, ...(d.prev ? [d.prev] : []));
+  for (let i = 0; i < keys.length; i += 1000) await env.BUCKET.delete(keys.slice(i, i + 1000));
+  await env.DB.batch(['docs', 'media', 'unlocks', 'sessions'].map((t) => env.DB.prepare(`DELETE FROM ${t} WHERE user_id = ?`).bind(s.uid))
+    .concat(env.DB.prepare('DELETE FROM users WHERE id = ?').bind(s.uid)));
+  return json({ ok: true });
+}
+
 const isHash = (h) => /^[0-9a-f]{64}$/.test(h);
 
 async function missing(env, req, s) {
@@ -226,6 +241,7 @@ async function route(env, req, url) {
     const u = await env.DB.prepare('SELECT email, name FROM users WHERE id = ?').bind(s.uid).first();
     return u ? json({ user: { email: u.email, name: u.name || '' } }) : json({ error: 'session' }, 401);
   }
+  if (a === 'me' && m === 'DELETE') return dropAccount(env, s);
   if (a === 'auth' && b === 'out' && m === 'POST') {
     await env.DB.prepare('DELETE FROM sessions WHERE hash = ?').bind(s.hash).run();
     return json({ ok: true });

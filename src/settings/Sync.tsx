@@ -6,6 +6,7 @@ import { optedIn as usedDrive, warmUp } from '../data/google'
 import {
   autoSyncPaused,
   bringArrivalIn,
+  forgetAccount,
   forgetCopy,
   forgetDrive,
   fromDrive,
@@ -16,6 +17,7 @@ import {
   resumeAutoSync,
   syncNow,
 } from '../data/sync'
+import { native } from '../native/platform'
 import styles from './settings.module.css'
 
 /* Sync, offered — never imposed.
@@ -80,10 +82,10 @@ function came(gained: number) {
 function SyncCard() {
   const [on, setOn] = useState(optedIn)
   const [at, setAt] = useState(lastSync)
-  const [busy, setBusy] = useState<'in' | 'out' | 'drop' | 'drive' | null>(null)
+  const [busy, setBusy] = useState<'in' | 'out' | 'drop' | 'account' | 'drive' | null>(null)
   /* Which irreversible button has been pressed once. Two presses rather than a
      dialog, and the second is where the sentence explaining it lands. */
-  const [sure, setSure] = useState<'copy' | 'drive' | null>(null)
+  const [sure, setSure] = useState<'copy' | 'account' | 'drive' | null>(null)
   const [note, setNote] = useState<Note>(null)
   const [open, setOpen] = useState(false)
   const [who, setWho] = useState(account)
@@ -213,6 +215,21 @@ function SyncCard() {
     }
   }
 
+  async function dropAccount() {
+    setBusy('account')
+    setNote(null)
+    try {
+      await forgetAccount()
+      setAt(null)
+      setSure(null)
+      setNote({ tone: 'good', text: 'Your Flyleaf account is deleted. This device is signed out, and everything written on it remains here.' })
+    } catch (error) {
+      fail(error, 'That could not be deleted.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
   async function bringDrive() {
     setBusy('drive')
     setNote(null)
@@ -306,6 +323,24 @@ function SyncCard() {
               >
                 {busy === 'drop' ? 'Removing…' : sure === 'copy' ? 'Yes, remove it' : 'Remove my journey from Flyleaf'}
               </button>
+              {/* The store apps must let a reader close the account they made there. */}
+              {native && sure === 'account' && (
+                <p className={styles.note} data-tone="bad">
+                  This deletes your Flyleaf account and everything it holds for
+                  Journal, Press and eReader, and signs this device out. Everything
+                  stays on this device. A purchase comes back with Restore.
+                </p>
+              )}
+              {native && (
+                <button
+                  type="button"
+                  className={styles.action}
+                  disabled={busy !== null}
+                  onClick={() => (sure === 'account' ? void dropAccount() : setSure('account'))}
+                >
+                  {busy === 'account' ? 'Deleting…' : sure === 'account' ? 'Yes, delete my account' : 'Delete my Flyleaf account'}
+                </button>
+              )}
             </>
           ) : (
             <>
