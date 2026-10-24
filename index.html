@@ -28,10 +28,6 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"
     />
-    <!-- Store apps only: draw under the notch and home bar, where the app's
-         env(safe-area-inset-*) padding takes over. The website never has
-         window.Capacitor, so its viewport is exactly as above. -->
-    <script>if (window.Capacitor) document.querySelector('meta[name=viewport]').content += ', viewport-fit=cover'</script>
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#c2e4f8" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c2338" />
     <!-- The name first, then what it is. Optimized for search queries like:

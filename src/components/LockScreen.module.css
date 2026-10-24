@@ -13,7 +13,7 @@
   z-index: 120;
   display: grid;
   place-items: center;
-  padding: calc(var(--space-7) + env(safe-area-inset-top, 0px)) var(--space-5)
+  padding: var(--space-7) var(--space-5)
     calc(var(--space-7) + env(safe-area-inset-bottom, 0px));
   /* The app's own sky rather than a scrim. A blurred shelf behind glass would
      show the reader's own book titles through the door they just locked. */
@@ -221,4 +221,9 @@
   .code {
     transition-duration: 0.01ms;
   }
+}
+
+/* Store apps only (html.native, set in main.tsx): clear the notch. */
+:global(html.native) .lock {
+  padding-top: calc(var(--space-7) + env(safe-area-inset-top, 0px));
 }

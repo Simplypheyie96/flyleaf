@@ -708,7 +708,7 @@
    rectangle floating on it. */
 .tabsRow {
   position: sticky;
-  inset-block-start: env(safe-area-inset-top, 0px);
+  inset-block-start: 0;
   /* Above the keeps, not level with them. At 2 it tied with the verb circles
      riding each card's corner and lost on document order, so three glass
      discs rode up over the parked bar instead of passing under it. */
@@ -2059,4 +2059,9 @@
   .page {
     --column-max: 760px;
   }
+}
+
+/* Store apps only (html.native, set in main.tsx): clear the notch. */
+:global(html.native) .tabsRow {
+  inset-block-start: env(safe-area-inset-top, 0px);
 }

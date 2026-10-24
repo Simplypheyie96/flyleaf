@@ -76,8 +76,14 @@ applyTheme(getPref())
    that is precisely when the app is being put down. Does nothing at all on a
    device with no code on it. */
 watchIdle()
-// Store apps: read what the App Store / Play account owns, and hear about late purchases.
-if (native) void import('./native/unlock').then((u) => Promise.all([u.refresh(), u.watchLate()])).catch(() => {})
+// Store apps only: draw under the notch and home bar (the html.native CSS
+// pads for it), and read what the App Store / Play account owns.
+if (native) {
+  document.documentElement.classList.add('native')
+  const viewport = document.querySelector<HTMLMetaElement>('meta[name=viewport]')
+  if (viewport) viewport.content += ', viewport-fit=cover'
+  void import('./native/unlock').then((u) => Promise.all([u.refresh(), u.watchLate()])).catch(() => {})
+}
 
 /* ASK THE BROWSER NOT TO THROW THE JOURNEY AWAY.
    Everything a reader writes lives in IndexedDB on their own device, and a
