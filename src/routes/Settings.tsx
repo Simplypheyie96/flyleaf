@@ -118,7 +118,7 @@ function Settings() {
               className={card.link}
             >
               <span className={card.linkBody}>
-                Flyleaf Press
+                {native ? 'Bookprint' : 'Flyleaf Press'}
                 <span className={card.linkNote}>
                   Publish your full reviews, and every month’s reading as
                   one collage.
@@ -135,9 +135,9 @@ function Settings() {
               className={card.link}
             >
               <span className={card.linkBody}>
-                Flyleaf Ereader
+                {native ? 'Octavo' : 'Flyleaf eReader'}
                 <span className={card.linkNote}>
-                  Read your EPUB books in a clean, distraction-free web reader.
+                  Read your EPUB and PDF books in a clean, distraction-free reader.
                 </span>
               </span>
               <span className={card.linkHint} aria-hidden="true">
