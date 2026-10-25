@@ -1,5 +1,5 @@
 /* Flyleaf account unlocks for the store apps, written for the shared API
-   (flyleaf/server/worker.js in the Journal repo). Not deployed: see unlock.md.
+   (flyleaf/server/worker.js in the Journal repo), deployed with it.
 
    One table and four routes, shared by every Flyleaf app that sells through a
    store. An app name (reader, journal, press) picks the bundle id, the Play
@@ -29,7 +29,9 @@ const hex = (buf) => [...new Uint8Array(buf)].map((x) => x.toString(16).padStart
 const sha = async (s) => hex(await crypto.subtle.digest('SHA-256', enc(s)));
 const nonce = (n) => hex(crypto.getRandomValues(new Uint8Array(n)));
 const json = (v, status) => new Response(JSON.stringify(v), { status: status || 200, headers: { 'content-type': 'application/json' } });
-const bundles = () => Object.values(STORE_APPS).map((x) => x.bundle);
+// Store apps that sign in with Apple but have no server-checked unlock (yet).
+const SIGN_IN_ONLY = ['com.feyidesigns.journal'];
+const bundles = () => [...Object.values(STORE_APPS).map((x) => x.bundle), ...SIGN_IN_ONLY];
 
 /* ---------- Sign in with Apple ---------- */
 let akeys = null, akeysAt = 0;

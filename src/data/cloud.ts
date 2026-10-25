@@ -17,6 +17,7 @@
    document per reader per app, merged on the devices, never read on the server. */
 
 import { loadScript } from './google'
+import { ios } from '../native/platform'
 
 const API = import.meta.env.VITE_FLYLEAF_API || 'https://api.flyleaf.cc'
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
@@ -125,31 +126,50 @@ export async function googleButton(
 }
 
 /** The store apps' sign-in. Google's web button cannot run inside a webview,
-    so the phone's own Google sign-in is asked instead. It is configured with
+    so the phone's own sign-in is asked instead. Google is configured with
     the WEB client as the server client, so the ID token it returns is
     addressed to the same client the website's is and /auth/google takes it
     unchanged. iOS also needs its own client id (VITE_GOOGLE_IOS_CLIENT_ID);
-    see docs/store/launch.md. */
-export async function googleNative(expect?: string): Promise<string> {
-  const { SocialLogin } = await import('@capgo/capacitor-social-login')
-  await SocialLogin.initialize({
-    google: {
-      webClientId: CLIENT_ID,
-      iOSClientId: import.meta.env.VITE_GOOGLE_IOS_CLIENT_ID,
-      iOSServerClientId: CLIENT_ID,
-      mode: 'online',
+    see docs/store/launch.md. Without one iOS offers Apple only, which
+    guideline 4.8 asks for beside Google anyway; /auth/apple takes its token. */
+const GOOGLE_IOS = import.meta.env.VITE_GOOGLE_IOS_CLIENT_ID ?? ''
+export const nativeProviders: Provider[] = ios ? (GOOGLE_IOS ? ['apple', 'google'] : ['apple']) : ['google']
+export type Provider = 'google' | 'apple'
+
+let social: Promise<typeof import('@capgo/capacitor-social-login').SocialLogin> | null = null
+function login() {
+  return (social ??= import('@capgo/capacitor-social-login').then(
+    async ({ SocialLogin }) => {
+      await SocialLogin.initialize({
+        ...(ios && { apple: {} }),
+        ...((!ios || GOOGLE_IOS) && {
+          google: { webClientId: CLIENT_ID, iOSClientId: GOOGLE_IOS, iOSServerClientId: CLIENT_ID, mode: 'online' as const },
+        }),
+      })
+      return SocialLogin
     },
-  })
-  const { result } = await SocialLogin.login({ provider: 'google', options: {} })
-  const idToken = 'idToken' in result ? result.idToken : null
-  if (!idToken) throw new Error('Google did not say who you are. Try again.')
-  return exchange(idToken, expect)
+    (e) => {
+      social = null
+      throw e
+    },
+  ))
 }
 
-async function exchange(credential: string, expect?: string): Promise<string> {
+export async function signInNative(p: Provider, expect?: string): Promise<string> {
+  const s = await login()
+  const { result } =
+    p === 'google'
+      ? await s.login({ provider: 'google', options: {} })
+      : await s.login({ provider: 'apple', options: { scopes: ['email', 'name'] } })
+  const idToken = 'idToken' in result ? result.idToken : null
+  if (!idToken) throw new Error(`${p === 'google' ? 'Google' : 'Apple'} did not say who you are. Try again.`)
+  return exchange(idToken, expect, p)
+}
+
+async function exchange(credential: string, expect?: string, p: Provider = 'google'): Promise<string> {
   let res: Response
   try {
-    res = await fetch(`${API}/auth/google`, {
+    res = await fetch(`${API}/auth/${p}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ credential, app: APP }),
@@ -157,7 +177,7 @@ async function exchange(credential: string, expect?: string): Promise<string> {
   } catch {
     throw new Error('Could not reach Flyleaf. Check your connection and try again.')
   }
-  if (!res.ok) throw new Error('Google signed you in, but Flyleaf could not. Try again.')
+  if (!res.ok) throw new Error(`${p === 'google' ? 'Google' : 'Apple'} signed you in, but Flyleaf could not. Try again.`)
   const { token, user } = (await res.json()) as { token: string; user: { email: string; name: string } }
   if (expect && user.email !== expect) {
     void fetch(`${API}/auth/out`, { method: 'POST', headers: { authorization: `Bearer ${token}` } })
