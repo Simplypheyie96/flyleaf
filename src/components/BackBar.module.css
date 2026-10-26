@@ -120,3 +120,9 @@
     transform: none;
   }
 }
+
+/* Store apps only: the page already clears the notch at rest, so the bar gives
+   that inset back and only uses its own once it sticks. */
+:global(html.native) .bar {
+  margin-block-start: calc(-1 * env(safe-area-inset-top, 0px));
+}

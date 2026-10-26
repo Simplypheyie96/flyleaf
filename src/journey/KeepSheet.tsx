@@ -44,7 +44,7 @@ import { useObjectUrl } from "./cards/shared";
 import { longDate, todayISO } from "../components/date/dates";
 import CalendarPicker from "../components/date/CalendarPicker";
 import PaperSurface from "../components/PaperSurface";
-import { MicIcon, PictureAddIcon, RoomIcon, ShutIcon } from "./cardIcons";
+import { LockIcon, MicIcon, PictureAddIcon, RoomIcon, ShutIcon } from "./cardIcons";
 import { getKeepStyle } from "./keepStyle";
 import type { Book, Entry, EntryType, Stance } from "../data/db";
 import {
@@ -1358,7 +1358,7 @@ function KeepSheet({
             type="button"
             role="radio"
             aria-checked={on}
-            aria-label={word}
+            aria-label={kindLocked(t) ? `${word}, comes with the unlock` : word}
             tabIndex={on ? 0 : -1}
             data-kind-tab={t}
             className={styles.tab}
@@ -1367,6 +1367,7 @@ function KeepSheet({
           >
             <Icon size={16} />
             {on && <span>{word}</span>}
+            {kindLocked(t) && <span className={styles.tabLock}><LockIcon /></span>}
           </button>
         );
       })}

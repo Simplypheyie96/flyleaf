@@ -205,3 +205,9 @@
     transform: none;
   }
 }
+
+/* Store apps only: the floating action never moves there, so the verbs end
+   short of its column instead and the two can never meet. */
+:global(html.native) .acts {
+  inset-inline-end: calc(var(--fab-size) + var(--space-3));
+}

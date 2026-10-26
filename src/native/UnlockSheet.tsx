@@ -6,7 +6,7 @@ import { Row } from '../settings/Group'
 import card from '../settings/settings.module.css'
 import tip from '../settings/tip.module.css'
 import { ios } from './platform'
-import { askUnlock, buy, FREE_BOOKS, prices, restore, useUnlock, type Reason } from './unlock'
+import { askUnlock, buy, prices, restore, useUnlock, type Reason } from './unlock'
 
 /* The store apps' one sheet for buying. It opens from a gate (a fourth book, a
    locked kind of keep, the printed journal, sync) or from Settings, and it is
@@ -14,7 +14,7 @@ import { askUnlock, buy, FREE_BOOKS, prices, restore, useUnlock, type Reason } f
    ever mounted when `native`; see App.tsx. */
 
 const WHY: Record<Reason, string> = {
-  books: `The free journal holds ${FREE_BOOKS} books. Every book you have stays yours.`,
+  books: "The free journal holds one book. Every book you have stays yours.",
   kind: 'Voice memos, characters, places and threads come with the unlock.',
   export: 'The printed journal and sharing come with the unlock.',
   sync: 'Sync comes with the unlock.',

@@ -25,7 +25,7 @@ import { useSyncExternalStore } from 'react'
 import type { EntryType } from '../data/db'
 import { android, ios, native } from './platform'
 
-export const FREE_BOOKS = 3
+export const FREE_BOOKS = 1
 export const TRIAL_DAYS = 14
 const DAY = 86_400_000
 

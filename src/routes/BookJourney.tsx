@@ -87,6 +87,7 @@ import {
   type Tie,
 } from '../journey/order'
 import pageStyles from './page.module.css'
+import { native } from '../native/platform'
 import sheet from '../journey/sheet.module.css'
 import styles from './BookJourney.module.css'
 
@@ -276,6 +277,7 @@ function BookJourney() {
      measure the button where the last step put it, and every check would move
      the box it was checking against. Insets don't move. */
   const step = useCallback(() => {
+    if (native) return // the verbs stand clear of it there; it never moves
     const fab = keepIt.current
     const thread = scroller.current
     if (!fab || !thread) return
