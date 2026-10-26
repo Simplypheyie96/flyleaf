@@ -15,6 +15,8 @@ SITES = "https://flyleaf.cc,https://www.flyleaf.cc,https://press.flyleaf.cc,http
 LOCAL = "0"
 # Sign in with Apple: the team that signs revoke requests. Keys: SIWA_KEY_<APP> (secret) + SIWA_KID_<APP>.
 APPLE_TEAM = "3B5KFU3FK6"
+SIWA_KID_JOURNAL = "YQFVNR6XRU"
+SIWA_KID_READER = "K8A6NN6VW4"
 
 [[d1_databases]]
 binding = "DB"
