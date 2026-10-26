@@ -50,7 +50,14 @@ function Sheet({ open, onClose, label, name, fill = false, children }: SheetProp
   useEffect(() => {
     const el = dialog.current
     if (!el) return
-    if (open && !el.open) el.showModal()
+    if (open && !el.open) {
+      el.showModal()
+      /* showModal hands focus to the first button when nothing asks for it,
+         and WebKit rings it: a sheet that opens with its close button lit up.
+         The sheet itself takes focus instead; a field marked to autofocus
+         keeps it. */
+      if (document.activeElement instanceof HTMLButtonElement) el.focus()
+    }
     if (!open && el.open) el.close()
   }, [open])
 
@@ -59,6 +66,7 @@ function Sheet({ open, onClose, label, name, fill = false, children }: SheetProp
   return (
     <dialog
       ref={dialog}
+      tabIndex={-1}
       className={styles.dialog}
       style={{ '--sheet-name': name } as CSSProperties}
       aria-label={label}
@@ -122,6 +130,22 @@ function Sheet({ open, onClose, label, name, fill = false, children }: SheetProp
    `--sheet-shift` into its own stylesheet the way Sheet.module.css does. */
 const KEYBOARD_AT = 120
 
+/* The app's web view breaks the rule above on the keyboard's second arrival:
+   it shrinks the layout viewport too (956 to 640 on a Pro Max) and scrolls it,
+   so innerHeight minus the visual height reads 74, "no keyboard", and the
+   sheet is handed back full height and carried up under the clock. In the app
+   the screen does not change size behind the keyboard, so the tallest layout
+   height seen at this width is the screen, and the keyboard is measured
+   against that. The website keeps innerHeight: a browser window really does
+   change height. */
+let tallest = { width: 0, height: 0 }
+function fullHeight() {
+  if (!document.documentElement.classList.contains('native')) return window.innerHeight
+  if (tallest.width !== window.innerWidth) tallest = { width: window.innerWidth, height: 0 }
+  tallest.height = Math.max(tallest.height, window.innerHeight)
+  return tallest.height
+}
+
 export function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open: boolean) {
   useEffect(() => {
     const el = dialog.current
@@ -145,7 +169,7 @@ export function useKeyboardFit(dialog: RefObject<HTMLDialogElement | null>, open
          full-height sheet pinned to a viewport that was scrolled away — the
          reported "the modal disappears when I want to type". Where the
          viewport IS cannot change how tall the keyboard is. */
-      const covered = window.innerHeight - view.height
+      const covered = fullHeight() - view.height
 
       /* And a keyboard cannot exist without a caret. iOS only raises one for
          a focused editable, so whatever the viewport numbers momentarily

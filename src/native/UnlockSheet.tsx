@@ -114,7 +114,7 @@ export default function UnlockSheet() {
 
         <button
           type="button"
-          className={card.action}
+          className={`${card.action} ${tip.restore}`}
           disabled={busy}
           onClick={() =>
             void run(async () => {

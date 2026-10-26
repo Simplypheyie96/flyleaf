@@ -72,6 +72,18 @@
   outline-offset: -2px;
 }
 
+/* A settings row's action, standing in a sheet: it lines up with the copy
+   above it instead of the row inset it was drawn for. */
+.jar .restore {
+  inline-size: auto;
+  padding-inline: 0;
+}
+
+.jar .restore:hover:not(:disabled) {
+  background: none;
+  color: var(--color-ink-soft);
+}
+
 .lede {
   margin: 0;
   font-size: var(--text-sm);

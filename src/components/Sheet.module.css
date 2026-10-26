@@ -48,6 +48,10 @@
   view-transition-name: var(--sheet-name);
 }
 
+.dialog:focus {
+  outline: none;
+}
+
 .dialog::backdrop {
   background: oklch(from var(--shadow-tint) l c h / 0.28);
   -webkit-backdrop-filter: blur(2px);
@@ -158,12 +162,22 @@
   max-block-size: 100%;
 }
 
+/* In the app the strip starts at the very top of the glass, under the status
+   bar, so "everything that is left" stops short of the clock. */
+:global(html.native) .dialog[data-keyboard] .panel,
+:global(html.native) .dialog[data-keyboard] .fill {
+  block-size: calc(100% - env(safe-area-inset-top));
+  max-block-size: calc(100% - env(safe-area-inset-top));
+}
+
 /* And the strip stops paying for lounge spacing. Twenty pixels between rows
    is right for a sheet with a screen to itself; over a keyboard the same gaps
    cost most of a result row. The short-screen block below makes the identical
    trade for the identical reason. */
 .dialog[data-keyboard] .inner {
   gap: var(--space-3);
+  /* The keyboard covers the home indicator, so its inset is empty air. */
+  padding-block-end: var(--space-4);
 }
 
 /* A short screen does not have smaller chrome. The handle, the header, the

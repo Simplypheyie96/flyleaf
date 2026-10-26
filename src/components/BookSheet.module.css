@@ -491,3 +491,8 @@ div:has(> .stage.stage.stage) {
     animation: none;
   }
 }
+
+/* The keyboard covers the home indicator, so its inset is empty air. */
+:global(dialog[data-keyboard]) .foot {
+  padding-block-end: var(--space-3);
+}

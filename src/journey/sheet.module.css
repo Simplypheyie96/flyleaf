@@ -2897,3 +2897,8 @@ dialog:not([data-keyboard]) div:has(> div > div > .cardHead.cardHead.cardHead) {
   font-size: 12px;
   opacity: 0.7;
 }
+
+/* The keyboard covers the home indicator, so its inset is empty air. */
+:global(dialog[data-keyboard]) .cardFoot {
+  padding-block-end: var(--space-3);
+}
