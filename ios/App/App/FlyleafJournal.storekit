@@ -1,25 +1,15 @@
 {
-  "appPolicies": {
-    "eula": "",
-    "policies": [
-      {
-        "locale": "en_US",
-        "policyText": "",
-        "policyURL": ""
-      }
-    ]
-  },
-  "identifier": "FLYLEAFJOURNAL",
+  "identifier": "C4C19E7D",
   "nonRenewingSubscriptions": [],
   "products": [
     {
       "displayPrice": "4.99",
       "familyShareable": false,
-      "internalID": "8EC08FBE",
+      "internalID": "1062402770",
       "localizations": [
         {
-          "description": "Unlimited books, voice memos, characters, places, threads, the printed journal and sync.",
-          "displayName": "Unlock Flyleaf",
+          "description": "Unlock",
+          "displayName": "Unlock",
           "locale": "en_US"
         }
       ],
@@ -30,10 +20,10 @@
     {
       "displayPrice": "9.99",
       "familyShareable": false,
-      "internalID": "EFE665FB",
+      "internalID": "3117121037",
       "localizations": [
         {
-          "description": "Everything in Unlock, with a little extra for the maker.",
+          "description": "Supporter",
           "displayName": "Supporter",
           "locale": "en_US"
         }
@@ -43,24 +33,54 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "0",
+      "displayPrice": "0.99",
       "familyShareable": false,
-      "internalID": "6EDA985C",
+      "internalID": "1184277691",
       "localizations": [
         {
-          "description": "Everything in Flyleaf, free for 14 days. Nothing is charged.",
-          "displayName": "14-day full trial",
+          "description": "Small tip",
+          "displayName": "Small tip",
           "locale": "en_US"
         }
       ],
-      "productID": "com.feyidesigns.journal.trial",
-      "referenceName": "14-day full trial",
-      "type": "NonConsumable"
+      "productID": "com.feyidesigns.journal.tip1",
+      "referenceName": "Small tip",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "2548244382",
+      "localizations": [
+        {
+          "description": "Kind tip",
+          "displayName": "Kind tip",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.feyidesigns.journal.tip2",
+      "referenceName": "Kind tip",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "3125381669",
+      "localizations": [
+        {
+          "description": "Generous tip",
+          "displayName": "Generous tip",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.feyidesigns.journal.tip3",
+      "referenceName": "Generous tip",
+      "type": "Consumable"
     }
   ],
   "settings": {
-    "_applicationInternalID": "",
-    "_developerTeamID": "",
+    "_applicationInternalID": "0",
+    "_developerTeamID": "3B5KFU3FK6",
     "_failTransactionsEnabled": false,
     "_locale": "en_US",
     "_storefront": "USA",

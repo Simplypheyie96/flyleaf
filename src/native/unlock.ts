@@ -1,6 +1,7 @@
-/* What the store apps sell: one unlock, bought once. Two products open the
-   same door: Unlock and Supporter (the second is the tip jar's place in the
-   store apps, where Paystack may not be used for anything digital). There is no
+/* What the store apps sell: one unlock, bought once, and after it three
+   optional tips (consumables that open nothing; the tip jar's place in the
+   store apps, where Paystack may not be used for anything digital). Supporter
+   is no longer sold, but whoever bought it keeps the unlock. There is no
    subscription and nobody pays before using the app.
 
    Free in the store apps: the timeline for FREE_BOOKS books, with quotes,
@@ -168,6 +169,36 @@ export async function buy(which: Paid): Promise<boolean> {
   }
   await refresh()
   return true
+}
+
+/* Tips can be given again and again, so they are never owned and never
+   counted by refresh(). */
+export const TIPS = ['tip1', 'tip2', 'tip3'] as const
+export type Tip = (typeof TIPS)[number]
+const tipId = (t: Tip) => `com.feyidesigns.journal.${t}`
+
+/** Tip prices as the reader's storefront shows them. */
+export async function tipPrices(): Promise<Partial<Record<Tip, string>>> {
+  const { NativePurchases, PURCHASE_TYPE } = await plugin()
+  const { products } = await NativePurchases.getProducts({ productIdentifiers: TIPS.map(tipId), productType: PURCHASE_TYPE.INAPP })
+  const out: Partial<Record<Tip, string>> = {}
+  for (const p of products) {
+    const t = TIPS.find((t) => tipId(t) === p.identifier)
+    if (t) out[t] = p.priceString
+  }
+  return out
+}
+
+/** Gives one tip. False when the reader backs out; throws with a sentence fit to show. */
+export async function giveTip(t: Tip): Promise<boolean> {
+  const { NativePurchases, PURCHASE_TYPE } = await plugin()
+  try {
+    await NativePurchases.purchaseProduct({ productIdentifier: tipId(t), productType: PURCHASE_TYPE.INAPP, quantity: 1, isConsumable: true })
+    return true
+  } catch (e) {
+    if (cancelled(e)) return false
+    throw new Error('The tip did not go through. Nothing was charged.')
+  }
 }
 
 /** Restore purchases: asks the store to sync, then reads it again. The sync

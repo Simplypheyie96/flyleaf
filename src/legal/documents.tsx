@@ -471,8 +471,7 @@ const terms: Doc = {
       heading: 'The Unlock',
       content: (
         <p>
-          One book is free. The Unlock (or Supporter, the same thing for more) is
-          a one-time, non-consumable purchase through the App Store that opens
+          One book is free. The Unlock is a one-time, non-consumable purchase through the App Store that opens
           unlimited books and the other features marked with a lock. Apple takes
           the payment and handles refunds under{' '}
           <Out href="https://www.apple.com/legal/internet-services/itunes/">its terms</Out>, which
