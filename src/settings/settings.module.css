@@ -180,6 +180,12 @@
   text-wrap: balance;
 }
 
+.fine a {
+  color: inherit;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 3px;
+}
+
 /* ---- The erase row ----
 
    The one destructive thing in Flyleaf, so it is the one place --color-danger

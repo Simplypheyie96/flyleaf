@@ -25,7 +25,7 @@ const WHY: Record<Reason, string> = {
 export default function UnlockSheet() {
   const [reason, setReason] = useState<Reason | null>(null)
   const [price, setPrice] = useState<Awaited<ReturnType<typeof prices>>>({})
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState<'unlock' | 'supporter' | 'restore' | null>(null)
   const [note, setNote] = useState<string>()
   const { owned, full } = useUnlock()
 
@@ -39,25 +39,28 @@ export default function UnlockSheet() {
   }, [])
 
   useEffect(() => {
-    if (reason) void prices().then(setPrice).catch(() => {})
+    if (reason) void prices().then(setPrice).catch(() => setNote('Could not reach the store. Check your connection.'))
   }, [reason])
 
-  async function run(job: () => Promise<boolean>, done: string) {
-    setBusy(true)
-    setNote(undefined)
+  async function run(which: NonNullable<typeof busy>, job: () => Promise<boolean>, done: string) {
+    setBusy(which)
+    setNote(which === 'restore' ? 'Checking with the store…' : 'Opening the store…')
     try {
       if (await job()) {
         setNote(done)
         window.setTimeout(() => setReason(null), 1400)
-      }
+      } else setNote((n) => (n === 'Checking with the store…' || n === 'Opening the store…' ? undefined : n))
     } catch (e) {
       setNote((e as Error).message || 'The store could not finish that. Try again in a moment.')
     } finally {
-      setBusy(false)
+      setBusy(null)
     }
   }
 
-  const close = () => setReason(null)
+  // A store sheet is up while busy: closing now would lose its answer.
+  const close = () => {
+    if (!busy) setReason(null)
+  }
 
   return (
     <Sheet open={reason !== null} onClose={close} label="Unlock Flyleaf" name="unlock">
@@ -90,24 +93,26 @@ export default function UnlockSheet() {
             button. Supporter stays on after Unlock, as a tip. */}
         <div className={card.row}>
           {!full && (
-            <LeafButton disabled={busy} onClick={() => void run(() => buy('unlock'), 'Unlocked. Thank you.')}>
-              Unlock{price.unlock ? ` · ${price.unlock}` : ''}
+            <LeafButton disabled={!!busy} onClick={() => void run('unlock', () => buy('unlock'), 'Unlocked. Thank you.')}>
+              {busy === 'unlock' ? 'Opening the store…' : `Unlock${price.unlock ? ` · ${price.unlock}` : ''}`}
             </LeafButton>
           )}
           {!owned.includes('supporter') && (
             <button
               type="button"
               className={tip.amount}
-              disabled={busy}
+              disabled={!!busy}
               onClick={() =>
                 void run(
+                  'supporter',
                   () => buy('supporter'),
                   full ? 'Thank you for supporting Flyleaf.' : 'Unlocked. Thank you for the extra.',
                 )
               }
             >
-              {full ? 'Support Flyleaf' : 'Supporter'}
-              {price.supporter ? ` · ${price.supporter}` : ''}
+              {busy === 'supporter'
+                ? 'Opening the store…'
+                : `${full ? 'Support Flyleaf' : 'Supporter'}${price.supporter ? ` · ${price.supporter}` : ''}`}
             </button>
           )}
         </div>
@@ -115,9 +120,9 @@ export default function UnlockSheet() {
         <button
           type="button"
           className={`${card.action} ${tip.restore}`}
-          disabled={busy}
+          disabled={!!busy}
           onClick={() =>
-            void run(async () => {
+            void run('restore', async () => {
               const found = await restore()
               if (found) return true
               if (found === false) setNote('No purchase found for this store account.')
@@ -125,14 +130,13 @@ export default function UnlockSheet() {
             }, 'Restored. Everything is open.')
           }
         >
-          {busy ? 'Checking with the store…' : 'Restore purchases'}
+          {busy === 'restore' ? 'Checking…' : 'Restore purchases'}
         </button>
 
-        {note && (
-          <p className={card.note} role="status">
-            {note}
-          </p>
-        )}
+        {/* Always mounted, so VoiceOver hears every change to it. */}
+        <p className={card.note} role="status" aria-live="polite">
+          {note}
+        </p>
 
         <p className={card.fine}>
           Unlock and Supporter open exactly the same things; Supporter pays a little more toward

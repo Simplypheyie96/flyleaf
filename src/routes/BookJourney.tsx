@@ -1005,7 +1005,7 @@ function BookJourney() {
                 </span>
               </span>
               <div className={styles.hang}>
-                <button type="button" className={styles.blank} onClick={() => setAdding('quote')}>
+                <button type="button" className={styles.blank} onClick={() => setAdding('note')}>
                   <KeepIcon size={17} />
                   Keep something
                 </button>
@@ -1127,7 +1127,7 @@ function BookJourney() {
         type="button"
         className={styles.keepIt}
         style={keepStep ? ({ '--keep-step': `${keepStep}px` } as CSSProperties) : undefined}
-        onClick={() => setAdding('quote')}
+        onClick={() => setAdding('note')}
         aria-label="Keep something from this book"
         title="Keep something"
       >
@@ -1148,7 +1148,7 @@ function BookJourney() {
         }}
         book={book}
         editing={editing ?? undefined}
-        start={adding ?? 'quote'}
+        start={adding ?? 'note'}
         kept={keeps}
       />
 

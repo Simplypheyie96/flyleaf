@@ -368,7 +368,7 @@ function KeepSheet({
   onClose,
   book,
   editing,
-  start = "quote",
+  start = "note",
   kept = [],
 }: Props) {
   const [type, setType] = useState<EntryType>(start);
@@ -1331,10 +1331,8 @@ function KeepSheet({
   );
 
   /* A radiogroup moves with the arrow keys and holds one tab stop, the way a
-     row of radios does everywhere else. Quote leads, because it is the kind the
-     sheet opens on; Note, the kind kept most, comes straight after. */
-  const LEAD: EntryType[] = ["quote", "note"];
-  const tabOrder: EntryType[] = [...LEAD, ...GROUPS.flatMap((g) => g.kinds).filter((t) => !LEAD.includes(t))];
+     row of radios does everywhere else. Note leads: it is the kind kept most. */
+  const tabOrder: EntryType[] = ["note", ...GROUPS.flatMap((g) => g.kinds).filter((t) => t !== "note")];
   const tabs = (
     <div
       className={styles.tabs}
