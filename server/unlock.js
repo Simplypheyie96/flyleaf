@@ -75,6 +75,33 @@ export async function appleSignIn(env, req, APPS) {
   return json({ token, user: { email, name: (had && had.name) || '' } });
 }
 
+/* Deleting an Apple account also revokes its Sign in with Apple token, as Apple asks.
+   That takes a fresh authorization code (the app re-runs Apple sign-in on delete) and a
+   client secret signed with the app's Sign in with Apple key. An app whose key is not set
+   yet skips the revoke rather than block the deletion. */
+const SIWA = { journal: 'com.feyidesigns.journal', reader: 'com.feyidesigns.ereader' };
+export const appleRevokes = (env, app) => !!(SIWA[app] && env['SIWA_KEY_' + app.toUpperCase()] && env['SIWA_KID_' + app.toUpperCase()]);
+async function appleSecret(env, app) {
+  const pem = env['SIWA_KEY_' + app.toUpperCase()].replace(/-----[^-]+-----|\s/g, '');
+  const key = await crypto.subtle.importKey('pkcs8', unb64u(pem), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  const now = Math.floor(Date.now() / 1000);
+  const part = (o) => b64u(enc(JSON.stringify(o)));
+  const head = part({ alg: 'ES256', kid: env['SIWA_KID_' + app.toUpperCase()] });
+  const body = part({ iss: env.APPLE_TEAM, iat: now, exp: now + 300, aud: 'https://appleid.apple.com', sub: SIWA[app] });
+  return head + '.' + body + '.' + b64u(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, enc(head + '.' + body)));
+}
+// true once Apple has revoked the token; false if the code is bad or belongs to someone else.
+export async function appleRevoke(env, app, code, uid) {
+  const id = SIWA[app], secret = await appleSecret(env, app);
+  const post = (path, f) => fetch('https://appleid.apple.com/auth/' + path, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(f) });
+  const r = await post('token', { client_id: id, client_secret: secret, code: String(code || ''), grant_type: 'authorization_code' });
+  if (!r.ok) return false;
+  const t = await r.json();
+  const who = JSON.parse(dec(unb64u(String(t.id_token || '').split('.')[1] || '')) || '{}');
+  if ('a' + who.sub !== uid) return false;
+  return (await post('revoke', { client_id: id, client_secret: secret, token: t.refresh_token || t.access_token, token_type_hint: t.refresh_token ? 'refresh_token' : 'access_token' })).ok;
+}
+
 /* ---------- App Store transactions ---------- */
 // A StoreKit 2 transaction is a JWS whose x5c chain must end in Apple Root CA - G3 (pinned by its SHA-256), with
 // Apple's App Store receipt-signing marks on the leaf and the intermediate, as Apple's own server library checks.

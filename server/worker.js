@@ -10,7 +10,7 @@
    content-addressed media. It never reads either: the merge happens on the
    devices. See docs/plans/2026-10-22-flyleaf-cloud-sync.md for the contract. */
 
-import { appleSignIn, appleNotice, verifyPurchase, unlockOf } from './unlock.js';
+import { appleSignIn, appleNotice, verifyPurchase, unlockOf, appleRevokes, appleRevoke } from './unlock.js';
 
 const APPS = new Set(['journal', 'press', 'reader']);
 const DOC_MAX = 8 * 1024 * 1024;
@@ -172,7 +172,13 @@ async function dropDoc(env, s, app) {
    end it from the app. Everything goes: documents and media in every app, the
    unlock records (the store still holds the purchase, so Restore brings it
    back to a new account), every session, and the reader. */
-async function dropAccount(env, s) {
+async function dropAccount(env, req, s) {
+  // An Apple account confirms with Apple first: 409 asks the app for a fresh code to revoke with.
+  const b = await req.json().catch(() => ({}));
+  if (s.uid[0] === 'a' && appleRevokes(env, b.app)) {
+    if (!b.apple) return json({ error: 'apple' }, 409);
+    if (!(await appleRevoke(env, b.app, b.apple, s.uid))) return json({ error: 'apple' }, 403);
+  }
   const docs = await env.DB.prepare('SELECT obj, prev FROM docs WHERE user_id = ?').bind(s.uid).all();
   const media = await env.DB.prepare('SELECT hash FROM media WHERE user_id = ?').bind(s.uid).all();
   const keys = media.results.map((m) => `m/${s.uid}/${m.hash}`);
@@ -241,7 +247,7 @@ async function route(env, req, url) {
     const u = await env.DB.prepare('SELECT email, name FROM users WHERE id = ?').bind(s.uid).first();
     return u ? json({ user: { email: u.email, name: u.name || '' } }) : json({ error: 'session' }, 401);
   }
-  if (a === 'me' && m === 'DELETE') return dropAccount(env, s);
+  if (a === 'me' && m === 'DELETE') return dropAccount(env, req, s);
   if (a === 'auth' && b === 'out' && m === 'POST') {
     await env.DB.prepare('DELETE FROM sessions WHERE hash = ?').bind(s.hash).run();
     return json({ ok: true });

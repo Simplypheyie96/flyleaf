@@ -37,6 +37,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Flyleaf uses the camera when you photograph a page or a cover to keep in your journal.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Flyleaf uses your location only when you tap Use my location, to name the place where you read.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Flyleaf uses the microphone to record voice memos and to dictate keeps.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

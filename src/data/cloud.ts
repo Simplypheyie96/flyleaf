@@ -166,6 +166,14 @@ export async function signInNative(p: Provider, expect?: string): Promise<string
   return exchange(idToken, expect, p)
 }
 
+async function appleCode(): Promise<string> {
+  const s = await login()
+  const { result } = await s.login({ provider: 'apple', options: { scopes: [] } }).catch(() => ({ result: {} }))
+  const code = 'authorizationCode' in result ? result.authorizationCode : undefined
+  if (!code) throw new Error('Confirm with Apple to delete the account.')
+  return code
+}
+
 async function exchange(credential: string, expect?: string, p: Provider = 'google'): Promise<string> {
   let res: Response
   try {
@@ -278,7 +286,11 @@ export async function fetchMedia(hash: string, type: string): Promise<Blob> {
 /** Close the Flyleaf account: every app's copy, its media, the purchase records
     (the store keeps the purchase, so Restore brings it back), every session. */
 export async function deleteAccount() {
-  const res = await call('/me', { method: 'DELETE' })
+  const del = (apple?: string) =>
+    call('/me', { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ app: APP, apple }) })
+  let res = await del()
+  // An Apple account confirms with Apple, so the server can revoke its sign-in too.
+  if (res.status === 409) res = await del(await appleCode())
   if (!res.ok) throw new Error('That could not be deleted. Try again.')
   window.google?.accounts?.id?.disableAutoSelect()
   keep(null)

@@ -13,6 +13,8 @@ routes = [{ pattern = "api.flyleaf.cc", custom_domain = true }]
 GOOGLE_CLIENT_IDS = "434887259881-2ck08c91lieobdpmjm5mc2hj5kobbvuf.apps.googleusercontent.com,997776608568-vfq90f4v1b1v82p2enm0li1f4sj72vrk.apps.googleusercontent.com,1093925806507-geheiusfcb8belpi6bdpl6p8afi74g99.apps.googleusercontent.com"
 SITES = "https://flyleaf.cc,https://www.flyleaf.cc,https://press.flyleaf.cc,https://read.flyleaf.cc,capacitor://localhost,https://localhost"
 LOCAL = "0"
+# Sign in with Apple: the team that signs revoke requests. Keys: SIWA_KEY_<APP> (secret) + SIWA_KID_<APP>.
+APPLE_TEAM = "3B5KFU3FK6"
 
 [[d1_databases]]
 binding = "DB"

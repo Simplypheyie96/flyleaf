@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import styles from './legal.module.css'
+import { native } from '../native/platform'
 
 /* The three pages a free, local-first app owes its readers, written to be read
    rather than survived.
@@ -117,9 +118,9 @@ const privacy: Doc = {
             all.
           </p>
           <p>
-            <strong>If you sign in to sync.</strong> Signing in with Google
-            creates a Flyleaf account. Google tells us your email address and
-            your name, and that is all we ask it for: we get no access to your
+            <strong>If you sign in to sync.</strong> Signing in with {native ? 'Apple or Google' : 'Google'}
+            creates a Flyleaf account. {native ? 'Apple or Google tells' : 'Google tells'} us your email address and
+            your name (Apple may give a private relay address instead), and that is all we ask for: we get no access to your
             Drive, your mail or anything else. We keep the address and name so
             your devices can find the same journey, and a sign-in record for
             each device until it signs out or goes unused for 400 days.
@@ -208,9 +209,10 @@ const privacy: Doc = {
             <Out href="https://www.apple.com/legal/privacy/">Apple</Out>.
           </p>
           <p>
-            <strong>Syncing.</strong> Only if you sign in. Google signs you in,
+            <strong>Syncing.</strong> Only if you sign in. {native ? 'Apple or Google' : 'Google'} signs you in,
             under{' '}
-            <Out href="https://policies.google.com/privacy">their privacy policy</Out>,
+            {native && <><Out href="https://www.apple.com/legal/privacy/">Apple&rsquo;s</Out> or{' '}</>}
+            <Out href="https://policies.google.com/privacy">{native ? 'Google’s' : 'their'} privacy policy</Out>,
             and from then on your browser talks to Flyleaf&rsquo;s own server at
             api.flyleaf.cc, run on{' '}
             <Out href="https://www.cloudflare.com/privacypolicy/">Cloudflare</Out>,
@@ -222,7 +224,18 @@ const privacy: Doc = {
         </>
       ),
     },
-    {
+    native ? {
+      heading: 'If you buy the Unlock',
+      content: (
+        <p>
+          The Unlock is bought through Apple&rsquo;s App Store, under{' '}
+          <Out href="https://www.apple.com/legal/internet-services/itunes/">Apple&rsquo;s terms</Out>. Apple
+          handles the payment; Flyleaf never sees your card or your Apple ID. We
+          only learn that this App Store account owns the Unlock, so it can come
+          back with Restore.
+        </p>
+      ),
+    } : {
       heading: 'If you tip',
       content: (
         <>
@@ -351,10 +364,14 @@ const terms: Doc = {
   title: 'Terms',
   lede: 'The deal, in the fewest words it can honestly be put in.',
   short: [
-    'Flyleaf is free, needs no account, and is provided as it is, with no promises about it working forever.',
+    native
+      ? 'Flyleaf Journal is free to start with one book, needs no account, and is provided as it is, with no promises about it working forever.'
+      : 'Flyleaf is free, needs no account, and is provided as it is, with no promises about it working forever.',
     'Everything you write in it is yours. We claim nothing over it.',
     'Keeping your journey safe is your job, and the app gives you one button to do it with.',
-    'Tips are a thank-you, not a purchase. Nothing in Flyleaf is ever behind one.',
+    native
+      ? 'The Unlock is a one-time App Store purchase. It is yours on every device signed in to the same Apple ID.'
+      : 'Tips are a thank-you, not a purchase. Nothing in Flyleaf is ever behind one.',
   ],
   body: [
     {
@@ -450,7 +467,21 @@ const terms: Doc = {
         </p>
       ),
     },
-    {
+    native ? {
+      heading: 'The Unlock',
+      content: (
+        <p>
+          One book is free. The Unlock (or Supporter, the same thing for more) is
+          a one-time, non-consumable purchase through the App Store that opens
+          unlimited books and the other features marked with a lock. Apple takes
+          the payment and handles refunds under{' '}
+          <Out href="https://www.apple.com/legal/internet-services/itunes/">its terms</Out>, which
+          apply alongside these. Restore in Settings brings it back on a new
+          device. Use of the app is also subject to Apple&rsquo;s{' '}
+          <Out href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/">standard licence (EULA)</Out>.
+        </p>
+      ),
+    } : {
       heading: 'Tips',
       content: (
         <p>
@@ -674,8 +705,10 @@ const licences: Doc = {
             which plays the rabbit — MIT
           </li>
           <li>
-            Hosted on <Out href="https://vercel.com/">Vercel</Out>; tips
-            processed by <Out href="https://paystack.com/">Paystack</Out>
+            {native
+              ? <>Sync on <Out href="https://www.cloudflare.com/">Cloudflare</Out>; purchases through the App Store</>
+              : <>Hosted on <Out href="https://vercel.com/">Vercel</Out>; tips
+            processed by <Out href="https://paystack.com/">Paystack</Out></>}
           </li>
         </ul>
       ),

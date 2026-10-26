@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   /* TEMPORARY, with src/data/seed.ts — a link is no use if it opens on an
      empty library, so preview and dev builds lay down five books to look at.
 
@@ -19,7 +19,8 @@ export default defineConfig({
      seed off does nothing for devices that already have the demo rows;
      src/data/reset.ts is what takes those back off. */
   define: {
-    __PREVIEW_SEED__: JSON.stringify(process.env.VERCEL_ENV !== 'production'),
+    // Off in every local production build too: that is the App Store build.
+    __PREVIEW_SEED__: JSON.stringify(process.env.VERCEL_ENV ? process.env.VERCEL_ENV !== 'production' : command === 'serve'),
     /* WHICH BUILD AM I LOOKING AT. Stamped in at build time and shown at the
        foot of Settings, because "I can't confirm if it hasn't synced or the fix
        is not working" is not a question anyone should have to answer by
@@ -32,7 +33,7 @@ export default defineConfig({
        something true rather than "unknown". */
     __BUILD__: JSON.stringify(
       process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ??
-        `dev ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`,
+        new Date().toISOString().slice(0, 10),
     ),
   },
   /* Listen on the network, not just on loopback.
@@ -174,4 +175,4 @@ export default defineConfig({
       },
     }),
   ],
-})
+}))

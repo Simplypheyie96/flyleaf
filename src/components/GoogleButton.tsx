@@ -32,7 +32,8 @@ function NativeButtons({ onDone, onError, expect }: Props) {
       {nativeProviders.map((p) => (
         <LeafButton
           key={p}
-          style={{ width: '100%' }}
+          // Apple asks for its own black button; Google keeps the house button.
+          style={p === 'apple' ? { width: '100%', background: '#000', color: '#fff', borderColor: '#000' } : { width: '100%' }}
           onClick={() => {
             if (!expect && !full()) return askUnlock('sync')
             signInNative(p, expect).then(onDone, (error: Error) => {

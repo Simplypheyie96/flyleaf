@@ -110,41 +110,43 @@ function Settings() {
               place on this page a row is allowed two lines, because the
               destination is outside Flyleaf and nobody arrives already
               knowing it. */}
+          {!native && (
           <Group label="Also from Flyleaf">
-            <a
-              href="https://press.flyleaf.cc/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={card.link}
-            >
-              <span className={card.linkBody}>
-                {native ? 'Bookprint' : 'Flyleaf Press'}
-                <span className={card.linkNote}>
-                  Publish your full reviews, and every month’s reading as
-                  one collage.
+              <a
+                href="https://press.flyleaf.cc/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={card.link}
+              >
+                <span className={card.linkBody}>
+                  {native ? 'Bookprint' : 'Flyleaf Press'}
+                  <span className={card.linkNote}>
+                    Publish your full reviews, and every month’s reading as
+                    one collage.
+                  </span>
                 </span>
-              </span>
-              <span className={card.linkHint} aria-hidden="true">
-                ↗
-              </span>
-            </a>
-            <a
-              href="https://read.flyleaf.cc/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={card.link}
-            >
-              <span className={card.linkBody}>
-                {native ? 'Octavo' : 'Flyleaf eReader'}
-                <span className={card.linkNote}>
-                  Read your EPUB and PDF books in a clean, distraction-free reader.
+                <span className={card.linkHint} aria-hidden="true">
+                  ↗
                 </span>
-              </span>
-              <span className={card.linkHint} aria-hidden="true">
-                ↗
-              </span>
-            </a>
-          </Group>
+              </a>
+              <a
+                href="https://read.flyleaf.cc/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={card.link}
+              >
+                <span className={card.linkBody}>
+                  {native ? 'Octavo' : 'Flyleaf eReader'}
+                  <span className={card.linkNote}>
+                    Read your EPUB and PDF books in a clean, distraction-free reader.
+                  </span>
+                </span>
+                <span className={card.linkHint} aria-hidden="true">
+                  ↗
+                </span>
+              </a>
+            </Group>
+          )}
 
           {/* Erase sits in this group and last in it, not in a group of its
               own. It is the same subject as the rows above — where the journey

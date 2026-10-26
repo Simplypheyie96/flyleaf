@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import LeafButton from '../components/LeafButton'
 import Sheet from '../components/Sheet'
 import { CloseIcon } from '../components/TabIcons'
@@ -129,6 +130,10 @@ export default function UnlockSheet() {
           keeping Flyleaf going. Payment goes through your {ios ? 'App Store' : 'Google Play'}{' '}
           account.
           {trialEnds !== null && !full && ` Your trial ended on ${day(trialEnds)}.`}
+        </p>
+        <p className={card.fine}>
+          <Link to="/legal/terms" onClick={close}>Terms of Use</Link> ·{' '}
+          <Link to="/legal/privacy" onClick={close}>Privacy</Link>
         </p>
       </div>
     </Sheet>
