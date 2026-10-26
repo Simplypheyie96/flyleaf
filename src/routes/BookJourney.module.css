@@ -2062,8 +2062,10 @@
 }
 
 
-/* Store apps only: .page already clears the notch, so the head adds no second
-   inset of its own. */
+/* Store apps only: .page already clears the notch. The head also gives back
+   the page's own top padding, so the back button sits right under the status
+   bar where an iOS nav bar puts it, not 44pt lower. */
 :global(html.native) .pinned {
-  padding-block-start: var(--space-3);
+  margin-block-start: calc(-1 * var(--space-6));
+  padding-block-start: 0;
 }

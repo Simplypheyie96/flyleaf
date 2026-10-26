@@ -296,7 +296,7 @@ function SyncCard() {
                 </span>
               </button>
               <button type="button" className={styles.action} disabled={busy !== null} onClick={leaveThemApart}>
-                {busy === 'out' ? 'Stopping…' : 'Leave them as they are'}
+                {busy === 'out' ? 'Signing out…' : 'Keep them apart and sign out'}
               </button>
             </>
           ) : on ? (

@@ -22,14 +22,12 @@ const WHY: Record<Reason, string> = {
   settings: 'One purchase, once. No subscription.',
 }
 
-const day = (t: number) => new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })
-
 export default function UnlockSheet() {
   const [reason, setReason] = useState<Reason | null>(null)
   const [price, setPrice] = useState<Awaited<ReturnType<typeof prices>>>({})
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string>()
-  const { trialEnds, full } = useUnlock()
+  const { owned, full } = useUnlock()
 
   useEffect(() => {
     const open = (e: Event) => {
@@ -50,7 +48,7 @@ export default function UnlockSheet() {
     try {
       if (await job()) {
         setNote(done)
-        window.setTimeout(() => setReason(null), 900)
+        window.setTimeout(() => setReason(null), 1400)
       }
     } catch (e) {
       setNote((e as Error).message || 'The store could not finish that. Try again in a moment.')
@@ -80,43 +78,54 @@ export default function UnlockSheet() {
           </p>
         </header>
 
+        {full && (
+          <p className={card.note} role="status">
+            {owned.includes('supporter')
+              ? 'Everything is open. Thank you for supporting Flyleaf.'
+              : 'Everything is open on this account.'}
+          </p>
+        )}
+
+        {/* Bought things go, not grey out: a disabled price still read as a
+            button. Supporter stays on after Unlock, as a tip. */}
         <div className={card.row}>
-          <LeafButton disabled={busy || full} onClick={() => void run(() => buy('unlock'), 'Unlocked. Thank you.')}>
-            Unlock{price.unlock ? ` · ${price.unlock}` : ''}
-          </LeafButton>
-          <button
-            type="button"
-            className={tip.amount}
-            disabled={busy || full}
-            onClick={() => void run(() => buy('supporter'), 'Unlocked. Thank you for the extra.')}
-          >
-            Supporter{price.supporter ? ` · ${price.supporter}` : ''}
-          </button>
+          {!full && (
+            <LeafButton disabled={busy} onClick={() => void run(() => buy('unlock'), 'Unlocked. Thank you.')}>
+              Unlock{price.unlock ? ` · ${price.unlock}` : ''}
+            </LeafButton>
+          )}
+          {!owned.includes('supporter') && (
+            <button
+              type="button"
+              className={tip.amount}
+              disabled={busy}
+              onClick={() =>
+                void run(
+                  () => buy('supporter'),
+                  full ? 'Thank you for supporting Flyleaf.' : 'Unlocked. Thank you for the extra.',
+                )
+              }
+            >
+              {full ? 'Support Flyleaf' : 'Supporter'}
+              {price.supporter ? ` · ${price.supporter}` : ''}
+            </button>
+          )}
         </div>
 
-        {ios && trialEnds === null && (
-          <button
-            type="button"
-            className={card.action}
-            disabled={busy}
-            onClick={() => void run(() => buy('trial'), 'Your 14 days have started.')}
-          >
-            Try everything free for 14 days
-          </button>
-        )}
         <button
           type="button"
           className={card.action}
           disabled={busy}
           onClick={() =>
             void run(async () => {
-              if (await restore()) return true
-              setNote('No purchase found for this store account.')
+              const found = await restore()
+              if (found) return true
+              if (found === false) setNote('No purchase found for this store account.')
               return false
-            }, 'Restored.')
+            }, 'Restored. Everything is open.')
           }
         >
-          Restore purchases
+          {busy ? 'Checking with the store…' : 'Restore purchases'}
         </button>
 
         {note && (
@@ -129,7 +138,6 @@ export default function UnlockSheet() {
           Unlock and Supporter open exactly the same things; Supporter pays a little more toward
           keeping Flyleaf going. Payment goes through your {ios ? 'App Store' : 'Google Play'}{' '}
           account.
-          {trialEnds !== null && !full && ` Your trial ended on ${day(trialEnds)}.`}
         </p>
         <p className={card.fine}>
           <Link to="/legal/terms" onClick={close}>Terms of Use</Link> ·{' '}
@@ -142,14 +150,8 @@ export default function UnlockSheet() {
 
 /** The Settings row: where the reader stands, and the way to the sheet. */
 export function UnlockRow() {
-  const { owned, trialEnds, full } = useUnlock()
-  const status = owned.length
-    ? owned.includes('supporter')
-      ? 'Supporter'
-      : 'Unlocked'
-    : full && trialEnds
-      ? `Trial until ${day(trialEnds)}`
-      : 'Free'
+  const { owned } = useUnlock()
+  const status = owned.includes('supporter') ? 'Supporter' : owned.length ? 'Unlocked' : 'Free'
   return (
     <>
       <Row title="Flyleaf" control={<span className={card.value}>{status}</span>} />

@@ -6,12 +6,13 @@ build is unchanged and stays free and complete.
 
 What the store apps do differently:
 
-- **Free:** the timeline for 3 books, with quotes, words, notes and photographs. Backups (save and load) free.
+- **Free:** the timeline for 1 book, with quotes, words, notes and photographs. Backups (save and load) free.
 - **Unlock** ($4.99) or **Supporter** ($9.99), one-time, same contents: unlimited books, voice memos,
   characters, places, threads, the printed journal and keepsake sharing, sync.
-- **Trial:** 14 days of everything. iOS: a $0 non-consumable the reader taps. Android: counted from first launch.
+- **No trial.** The free book is the trial; the unlock sheet opens when a reader adds a second book.
+  Supporter stays buyable after the Unlock, as a one-time tip.
 - Nobody loses anything: a reader over the limit keeps and edits every book and keep, and is only asked to
-  unlock to add a fourth book or start a locked kind of keep.
+  unlock to add a second book or start a locked kind of keep.
 - Purchases are checked on the device (StoreKit 2 / Play Billing via `@capgo/native-purchases`),
   cached for offline launches, re-read at start-up. Restore lives in the unlock sheet.
 - No tip jar (Paystack), no install prompt, no update toast, no service worker, no page-view counter.
@@ -72,10 +73,9 @@ The apps sign in natively and hand Google's ID token to the same `/auth/google` 
   |---|---|---|---|
   | `com.feyidesigns.journal.unlock` | Unlock | $4.99 (tier) | Unlock Flyleaf |
   | `com.feyidesigns.journal.supporter` | Supporter | $9.99 (tier) | Flyleaf Supporter |
-  | `com.feyidesigns.journal.trial` | 14-day trial | Free | 14-day full trial |
 
-  The trial must be named so the length is clear (Apple's rule for free trials of non-subscription apps,
-  guideline 3.1.1). Attach all three to the first version you submit.
+  Attach both to the first version you submit. (`com.feyidesigns.journal.trial` was dropped 2026-10-26:
+  remove it from the submission if it is still attached.)
 - [ ] App Privacy (nutrition labels). Data linked to the reader, only when they sign in to sync:
   - Contact Info → **Email address**, **Name**: App Functionality.
   - User Content → **Photos**, **Audio data**, **Other user content** (notes, quotes): App Functionality.
@@ -83,8 +83,8 @@ The apps sign in natively and hand Google's ID token to the same `/auth/google` 
   - Privacy policy URL: `https://flyleaf.cc/legal/privacy` (see "Privacy text" below).
 - [ ] Age rating questionnaire: all None → 4+. Export compliance is answered in Info.plist
   (`ITSAppUsesNonExemptEncryption` = NO).
-- [ ] App Review notes: "Sync is optional; the whole journal works without an account. The 14-day trial is a
-  free non-consumable in the unlock sheet (Settings → Flyleaf)."
+- [ ] App Review notes: "Sync is optional; the whole journal works without an account. One book is free; the
+  unlock sheet opens on the second book and in Settings → Flyleaf."
 - [ ] Upload: Xcode → Product → Archive → Distribute → App Store Connect. TestFlight internal testing first,
   buy with a Sandbox tester (Users and Access → Sandbox).
 
@@ -109,7 +109,6 @@ Then `npm run android:bundle` makes `android/app/build/outputs/bundle/release/ap
 ### 3c · In-app products (Monetize → Products → One-time products)
 - [ ] Payments profile set up.
 - [ ] `com.feyidesigns.journal.unlock` $4.99 and `com.feyidesigns.journal.supporter` $9.99. Activate both.
-  No trial product on Android: the app counts 14 days from first launch.
 
 ### 3d · App content
 - [ ] Privacy policy URL (same as iOS).
@@ -127,7 +126,7 @@ Then `npm run android:bundle` makes `android/app/build/outputs/bundle/release/ap
 - [ ] Internal testing: upload the .aab, add yourself, buy with a licence tester (Settings → License testing)
   so no money moves. Check restore after reinstall.
 - [ ] Closed testing (personal account): 12+ testers opted in for 14 consecutive days, then apply for
-  production. Use the closed test to check the Android trial counting down and sync across two devices.
+  production. Use the closed test to check the unlock and sync across two devices.
 
 ## 4 · Store listing (both stores)
 

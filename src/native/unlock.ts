@@ -7,8 +7,8 @@
    words, notes and photographs. The unlock adds unlimited books, voice memos,
    characters, places and threads, the printed journal, and sync.
 
-   Nothing is ever taken away. A reader past the free limit (from a restored
-   backup, or after the trial) keeps every book and every keep they have, can
+   There is no trial: the free book is the trial. Nothing is ever taken away.
+   A reader past the free limit (from a restored backup) keeps every book and every keep they have, can
    open, edit and add free kinds of keep to all of them, and is only asked to
    unlock when they shelve one more book or start a locked kind.
 
@@ -26,16 +26,10 @@ import type { EntryType } from '../data/db'
 import { android, ios, native } from './platform'
 
 export const FREE_BOOKS = 1
-export const TRIAL_DAYS = 14
-const DAY = 86_400_000
 
 export const PRODUCTS = {
   unlock: 'com.feyidesigns.journal.unlock',
   supporter: 'com.feyidesigns.journal.supporter',
-  /** iOS only: a $0 non-consumable named "14-day full trial" (App Review
-      guideline 3.1.1 allows free trials for non-subscription apps this way).
-      Android has no such product: the app counts from its first launch. */
-  trial: 'com.feyidesigns.journal.trial',
 } as const
 type Paid = 'unlock' | 'supporter'
 
@@ -44,24 +38,21 @@ const LOCKED: EntryType[] = ['voice', 'character', 'place', 'thread']
 
 interface State {
   owned: Paid[]
-  /** When the trial began: the trial purchase on iOS, first launch on Android. */
-  trialFrom: number | null
 }
 
 const KEY = 'flyleaf-unlock'
-const FIRST = 'flyleaf-first-launch'
 
 function load(): State {
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) return JSON.parse(raw) as State
+    if (raw) return { owned: (JSON.parse(raw) as State).owned ?? [] }
   } catch {
     /* falls through to an empty state */
   }
-  return { owned: [], trialFrom: null }
+  return { owned: [] }
 }
 
-let state: State = native ? load() : { owned: [], trialFrom: null }
+let state: State = native ? load() : { owned: [] }
 const listeners = new Set<() => void>()
 
 function set(next: State) {
@@ -74,30 +65,9 @@ function set(next: State) {
   listeners.forEach((fn) => fn())
 }
 
-/* Android: the trial starts the first time the app opens. */
-if (android) {
-  try {
-    let first = Number(localStorage.getItem(FIRST))
-    if (!first) {
-      first = Date.now()
-      localStorage.setItem(FIRST, String(first))
-    }
-    if (state.trialFrom !== first) state = { ...state, trialFrom: first }
-  } catch {
-    /* no storage: no trial, the free tier still works */
-  }
-}
-
-export function trialEnds(s: State = state): number | null {
-  return s.trialFrom === null ? null : s.trialFrom + TRIAL_DAYS * DAY
-}
-
-/** Everything open: the web, a purchase, or a running trial. */
+/** Everything open: the web, or a purchase. */
 export function full(): boolean {
-  if (!native) return true
-  if (state.owned.length > 0) return true
-  const ends = trialEnds()
-  return ends !== null && Date.now() < ends
+  return !native || state.owned.length > 0
 }
 
 export function kindLocked(type: EntryType): boolean {
@@ -126,7 +96,7 @@ export function useUnlock() {
     },
     () => state,
   )
-  return { owned: s.owned, trialEnds: trialEnds(s), full: full() }
+  return { owned: s.owned, full: full() }
 }
 
 /* ── The store ────────────────────────────────────────────────────────── */
@@ -143,7 +113,6 @@ export async function refresh(): Promise<void> {
     android ? { productType: PURCHASE_TYPE.INAPP } : {},
   )
   const owned = new Set<Paid>()
-  let trialFrom = android ? state.trialFrom : null
   for (const p of purchases) {
     // Refunded on iOS: still in the history, with a revocation date.
     if (ios && p.revocationDate) continue
@@ -155,19 +124,15 @@ export async function refresh(): Promise<void> {
     }
     if (p.productIdentifier === PRODUCTS.unlock) owned.add('unlock')
     if (p.productIdentifier === PRODUCTS.supporter) owned.add('supporter')
-    if (ios && p.productIdentifier === PRODUCTS.trial) {
-      const from = Date.parse(p.purchaseDate)
-      if (!Number.isNaN(from)) trialFrom = trialFrom === null ? from : Math.min(trialFrom, from)
-    }
   }
-  set({ owned: [...owned], trialFrom })
+  set({ owned: [...owned] })
 }
 
 /** Store prices as the reader's storefront shows them. */
 export async function prices(): Promise<Partial<Record<keyof typeof PRODUCTS, string>>> {
   const { NativePurchases, PURCHASE_TYPE } = await plugin()
   const { products } = await NativePurchases.getProducts({
-    productIdentifiers: Object.values(PRODUCTS).filter((id) => android ? id !== PRODUCTS.trial : true),
+    productIdentifiers: Object.values(PRODUCTS),
     productType: PURCHASE_TYPE.INAPP,
   })
   const out: Partial<Record<keyof typeof PRODUCTS, string>> = {}
@@ -182,8 +147,9 @@ const cancelled = (e: unknown) => /cancel/i.test(`${(e as { code?: string })?.co
 
 /** Buys one product. Resolves false when the reader backs out; throws with a
     sentence fit to show when the store refuses. */
-export async function buy(which: keyof typeof PRODUCTS): Promise<boolean> {
+export async function buy(which: Paid): Promise<boolean> {
   const { NativePurchases, PURCHASE_TYPE } = await plugin()
+  const had = state.owned.includes(which)
   try {
     await NativePurchases.purchaseProduct({
       productIdentifier: PRODUCTS[which],
@@ -194,7 +160,7 @@ export async function buy(which: keyof typeof PRODUCTS): Promise<boolean> {
     if (cancelled(e)) return false
     // Already owned (bought on another device, or a reinstall): that is a restore.
     await refresh().catch(() => {})
-    if (full()) return true
+    if (!had && state.owned.includes(which)) return true
     if (/pending/i.test(String((e as Error)?.message))) {
       throw new Error('The store is still waiting on this payment. Flyleaf opens up the moment it goes through.')
     }
@@ -204,12 +170,21 @@ export async function buy(which: keyof typeof PRODUCTS): Promise<boolean> {
   return true
 }
 
-/** Restore purchases: asks the store to sync, then reads it again. */
-export async function restore(): Promise<boolean> {
+/** Restore purchases: asks the store to sync, then reads it again. The sync
+    can fail on its own (TestFlight's AppStore.sync throws an unknown error),
+    but the purchases this phone already holds still read, so a failed sync
+    only matters when nothing turns up. Null when the reader backed out. */
+export async function restore(): Promise<boolean | null> {
   const { NativePurchases } = await plugin()
-  await NativePurchases.restorePurchases()
-  await refresh()
-  return state.owned.length > 0
+  let failed: unknown = null
+  await NativePurchases.restorePurchases().catch((e) => {
+    failed = e
+  })
+  await refresh().catch(() => {})
+  if (state.owned.length > 0) return true
+  if (failed && cancelled(failed)) return null
+  if (failed) throw new Error('The store could not be reached to check. Try again in a moment.')
+  return false
 }
 
 /** Purchases the store finishes later (Ask to Buy, a slow bank) arrive here. */

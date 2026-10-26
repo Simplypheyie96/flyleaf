@@ -119,9 +119,16 @@ async function getDoc(env, req, s, app) {
   if (!row) return json({ error: 'none' }, 404);
   const meta = { 'x-rev': String(row.rev), 'x-at': String(row.at), 'x-device': row.device || '' };
   // Nothing new since this device last looked: one D1 read, no R2 read.
-  if (req.method === 'HEAD' || req.headers.get('x-rev') === String(row.rev)) return new Response(null, { status: 204, headers: meta });
-  const obj = await env.BUCKET.get(row.obj);
-  if (!obj) return json({ error: 'lost' }, 500);
+  if (req.headers.get('x-rev') === String(row.rev)) return new Response(null, { status: 204, headers: meta });
+  /* A row whose object is gone (a delete that removed the object and then
+     failed in D1) is no journey at all: drop the row, so sign-in stops
+     offering to bring together a copy that cannot be read. */
+  const obj = req.method === 'HEAD' ? await env.BUCKET.head(row.obj) : await env.BUCKET.get(row.obj);
+  if (!obj) {
+    await env.DB.prepare('DELETE FROM docs WHERE user_id = ? AND app = ? AND obj = ?').bind(s.uid, app, row.obj).run();
+    return json({ error: 'none' }, 404);
+  }
+  if (req.method === 'HEAD') return new Response(null, { status: 204, headers: meta });
   return new Response(obj.body, { headers: Object.assign({ 'content-type': 'application/json' }, meta) });
 }
 
@@ -183,9 +190,11 @@ async function dropAccount(env, req, s) {
   const media = await env.DB.prepare('SELECT hash FROM media WHERE user_id = ?').bind(s.uid).all();
   const keys = media.results.map((m) => `m/${s.uid}/${m.hash}`);
   for (const d of docs.results) keys.push(d.obj, ...(d.prev ? [d.prev] : []));
-  for (let i = 0; i < keys.length; i += 1000) await env.BUCKET.delete(keys.slice(i, i + 1000));
+  // Rows first: a failed D1 batch then leaves everything readable, where the
+  // old order left rows pointing at objects that were already gone.
   await env.DB.batch(['docs', 'media', 'unlocks', 'sessions'].map((t) => env.DB.prepare(`DELETE FROM ${t} WHERE user_id = ?`).bind(s.uid))
     .concat(env.DB.prepare('DELETE FROM users WHERE id = ?').bind(s.uid)));
+  for (let i = 0; i < keys.length; i += 1000) await env.BUCKET.delete(keys.slice(i, i + 1000));
   return json({ ok: true });
 }
 

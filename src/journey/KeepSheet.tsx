@@ -765,6 +765,9 @@ function KeepSheet({
      it. */
   useEffect(() => {
     if (!open) setRoom(false);
+    /* The press animation ends at opacity 0 and holds there; left set, the
+       next keep opened on an invisible card. */
+    if (!open) setPressing(false);
   }, [open]);
 
   /* Shutting the band's menu is two things, not one: the eight go away, and

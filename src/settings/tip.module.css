@@ -105,8 +105,13 @@
     color var(--dur-press) var(--ease-out);
 }
 
-.amount:hover {
+.amount:hover:not(:disabled) {
   color: var(--color-ink);
+}
+
+.amount:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 
 .amount[aria-pressed='true'] {

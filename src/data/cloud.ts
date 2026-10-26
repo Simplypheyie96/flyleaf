@@ -169,7 +169,9 @@ export async function signInNative(p: Provider, expect?: string): Promise<string
 async function appleCode(): Promise<string> {
   const s = await login()
   const { result } = await s.login({ provider: 'apple', options: { scopes: [] } }).catch(() => ({ result: {} }))
-  const code = 'authorizationCode' in result ? result.authorizationCode : undefined
+  // The plugin's default (legacy) mode hands the code back as accessToken.token.
+  const r = result as { authorizationCode?: string; accessToken?: { token?: string } | null }
+  const code = r.authorizationCode || r.accessToken?.token
   if (!code) throw new Error('Confirm with Apple to delete the account.')
   return code
 }
