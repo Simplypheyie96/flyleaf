@@ -95,10 +95,10 @@ export async function appleRevoke(env, app, code, uid) {
   const id = SIWA[app], secret = await appleSecret(env, app);
   const post = (path, f) => fetch('https://appleid.apple.com/auth/' + path, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(f) });
   const r = await post('token', { client_id: id, client_secret: secret, code: String(code || ''), grant_type: 'authorization_code' });
-  if (!r.ok) return false;
+  if (!r.ok) return console.error('apple token', r.status, await r.text()), false;
   const t = await r.json();
   const who = JSON.parse(dec(unb64u(String(t.id_token || '').split('.')[1] || '')) || '{}');
-  if ('a' + who.sub !== uid) return false;
+  if ('a' + who.sub !== uid) return console.error('apple token for another account'), false;
   return (await post('revoke', { client_id: id, client_secret: secret, token: t.refresh_token || t.access_token, token_type_hint: t.refresh_token ? 'refresh_token' : 'access_token' })).ok;
 }
 

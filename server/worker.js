@@ -180,11 +180,15 @@ async function dropDoc(env, s, app) {
    unlock records (the store still holds the purchase, so Restore brings it
    back to a new account), every session, and the reader. */
 async function dropAccount(env, req, s) {
-  // An Apple account confirms with Apple first: 409 asks the app for a fresh code to revoke with.
+  /* An Apple account confirms with Apple first: 409 asks the app for a fresh code,
+     and the server revokes the Sign in with Apple token with it. The revoke never
+     blocks the delete: a code Apple refuses, or none at all (force), still closes
+     the account, and Apple's answer goes to the log. */
   const b = await req.json().catch(() => ({}));
   if (s.uid[0] === 'a' && appleRevokes(env, b.app)) {
-    if (!b.apple) return json({ error: 'apple' }, 409);
-    if (!(await appleRevoke(env, b.app, b.apple, s.uid))) return json({ error: 'apple' }, 403);
+    if (!b.apple && !b.force) return json({ error: 'apple' }, 409);
+    if (!b.apple || !(await appleRevoke(env, b.app, b.apple, s.uid).catch((e) => (console.error('apple revoke', e), false))))
+      console.error('apple revoke skipped', b.app, b.apple ? 'refused' : 'no code');
   }
   const docs = await env.DB.prepare('SELECT obj, prev FROM docs WHERE user_id = ?').bind(s.uid).all();
   const media = await env.DB.prepare('SELECT hash FROM media WHERE user_id = ?').bind(s.uid).all();

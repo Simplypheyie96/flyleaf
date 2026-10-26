@@ -38,6 +38,7 @@
    This owns the slot underneath and nothing above it. */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import BookCover from '../../components/BookCover'
 import Bunny from '../../rabbit/Bunny'
 import ComingLines from '../../components/ComingLines'
@@ -47,6 +48,8 @@ import { KIND } from '../../journey/kinds'
 import { usePlayback } from '../../journey/cards/shared'
 import type { Book, Entry } from '../../data/db'
 import { useKeep, useKeepTotal, useQuoteIds } from '../../data/useLibrary'
+import { addKeep } from '../../journey/keeps'
+import { todayISO } from '../../components/date/dates'
 import styles from './Draw.module.css'
 
 /** A different one from the one on screen. Never the same twice running, so
@@ -500,8 +503,18 @@ function Draw({ books, reading, opening, name = 'Look what fell out', pool: give
      term (the Library sends real words down it), and the line is not a
      search term. Sending it as one would type somebody's private sentence
      into Open Library. */
-  function startWriting(first: string) {
+  const navigate = useNavigate()
+  /* With a book already on the shelf the line is about THAT book (the card
+     asks what you noticed in it), so it is kept there and the book opens.
+     Sending it to the book search instead asked for a second book, which the
+     store apps' free tier answers with the unlock sheet. */
+  async function startWriting(first: string) {
     const line = first.trim()
+    if (reading?.id != null) {
+      if (line) await addKeep({ bookId: reading.id, type: 'note', text: line, keptOn: todayISO() })
+      navigate(`/book/${reading.id}`)
+      return
+    }
     if (line) window.dispatchEvent(new CustomEvent('flyleaf-first-keep', { detail: line }))
     window.dispatchEvent(new CustomEvent('flyleaf-find-book', { detail: '' }))
   }
@@ -827,7 +840,7 @@ function FirstDraw({
                 placeholder="A line, a name, a thing you noticed…"
               />
               <button type="submit" className={styles.act}>
-                {line.trim() ? 'Keep it' : 'Start with a book instead'}
+                {line.trim() ? 'Keep it' : reading ? 'Open the book' : 'Start with a book instead'}
               </button>
 
               {/* SAY THE NEXT STEP BEFORE THEY TAKE IT. "Keep it" now opens a
@@ -840,7 +853,7 @@ function FirstDraw({
                   instead", and telling a reader who has typed nothing that
                   their nothing needs a book is noise. Below the button, so
                   the button never moves as it appears. */}
-              {line.trim() && (
+              {line.trim() && !reading && (
                 <p className={styles.next}>
                   Then the book it came from — every line hangs on one.
                 </p>

@@ -5,12 +5,14 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { createHash, generateKeyPairSync } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const dir = fileURLToPath(new URL('.', import.meta.url));
 const PORT = 8799, BASE = `http://127.0.0.1:${PORT}`;
-const A = 'a'.repeat(64), B = 'b'.repeat(64), C = 'c'.repeat(64);
+const A = 'a'.repeat(64), B = 'b'.repeat(64), C = 'c'.repeat(64), D = 'd'.repeat(64);
+// A throwaway Sign in with Apple key, so the delete walks the real revoke path (Apple refuses it).
+const SIWA = generateKeyPairSync('ec', { namedCurve: 'P-256' }).privateKey.export({ type: 'pkcs8', format: 'der' }).toString('base64');
 const sha = (s) => createHash('sha256').update(s).digest('hex');
 const wr = (args) => execFileSync('npx', ['--no-install', 'wrangler', ...args], { cwd: dir, stdio: 'pipe' });
 let dev;
@@ -28,15 +30,19 @@ before(async () => {
      INSERT INTO sessions VALUES ('${sha(B)}', 'gtest', 'press', ${now - 401 * 86400000});
      INSERT INTO users VALUES ('ggone', 'gone@example.com', 'Gone', ${now});
      INSERT INTO sessions VALUES ('${sha(C)}', 'ggone', 'reader', ${now});
-     INSERT INTO unlocks (ref, user_id, app, product, store, env, at) VALUES ('ios_1', 'ggone', 'reader', 'com.feyidesigns.ereader.unlock', 'apple', 'Sandbox', ${now});`]);
-  dev = spawn('npx', ['--no-install', 'wrangler', 'dev', '--env', 'preview', '--port', String(PORT), '--ip', '127.0.0.1'], { cwd: dir, stdio: 'ignore' });
+     INSERT INTO unlocks (ref, user_id, app, product, store, env, at) VALUES ('ios_1', 'ggone', 'reader', 'com.feyidesigns.ereader.unlock', 'apple', 'Sandbox', ${now});
+     INSERT INTO users VALUES ('aapple', 'Apple ID', NULL, ${now});
+     INSERT INTO sessions VALUES ('${sha(D)}', 'aapple', 'reader', ${now});`]);
+  dev = spawn('npx', ['--no-install', 'wrangler', 'dev', '--env', 'preview', '--port', String(PORT), '--ip', '127.0.0.1',
+    '--var', `SIWA_KEY_READER:${SIWA}`, '--var', 'SIWA_KID_READER:TESTKID', '--var', 'APPLE_TEAM:TESTTEAM'], { cwd: dir, stdio: 'ignore', detached: true });
   for (let i = 0; i < 60; i++) {
     try { if ((await fetch(BASE + '/health')).ok) return; } catch {}
     await new Promise((r) => setTimeout(r, 500));
   }
   throw new Error('wrangler dev never came up');
 });
-after(() => dev?.kill());
+// The whole group: killing npx alone left workerd holding the port for the next run.
+after(() => dev && process.kill(-dev.pid));
 
 test('signs in only with a real Google token', async () => {
   const r = await fetch(BASE + '/auth/google', { method: 'POST', body: JSON.stringify({ credential: 'x.y.z', app: 'journal' }) });
@@ -131,4 +137,11 @@ test('deleting the account removes the reader and everything they stored', async
      (SELECT COUNT(*) FROM users WHERE id = 'gtest') AS kept`]).toString());
   assert.equal(left[0].results[0].n, 0);
   assert.equal(left[0].results[0].kept, 1);
+});
+
+test('an Apple account asks Apple once, then deletes even when Apple refuses the code', async () => {
+  const del = (b) => call('/me', { token: D, method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) });
+  assert.equal((await del({ app: 'reader' })).status, 409);
+  assert.equal((await del({ app: 'reader', apple: 'not-a-real-code', force: true })).status, 200);
+  assert.equal((await call('/me', { token: D })).status, 401);
 });

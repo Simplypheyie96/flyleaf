@@ -29,6 +29,7 @@ import { signIn, signOut as dropDrive, silentToken } from './google'
 import { getHandle, setHandle } from './reader'
 import { unseed } from './seed'
 import { full } from '../native/unlock'
+import { native } from '../native/platform'
 
 const SYNCED_AT_KEY = 'flyleaf-synced-at'
 /** Set the moment anything is written while this device is NOT signed in, and
@@ -140,6 +141,9 @@ function markWroteSignedOut() {
     shipped. Either way there is a local journey the account has not seen, and
     that is the one thing worth stopping to ask about. */
 export async function hasUnsharedWork(): Promise<boolean> {
+  /* The store apps never ask: the answer that keeps everything is the merge, and
+     the other answer signed the reader straight back out, which read as a bug. */
+  if (native) return false
   if (!(await hasLocalJourney())) return false
   return wroteWhileSignedOut() || lastSync() === null
 }

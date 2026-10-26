@@ -231,6 +231,8 @@ export async function pull(known: number): Promise<Remote | null> {
   const res = await call(`/doc/${APP}`, { headers: { 'x-rev': String(known) } })
   if (res.status === 404) return null
   if (res.status === 204) return meta(res)
+  // An error page is not a journey: merging its text would fail further on, less clearly.
+  if (!res.ok) throw new Error('Flyleaf could not send your journey just now. Try again in a minute.')
   return { ...meta(res), text: await res.text() }
 }
 
@@ -288,11 +290,12 @@ export async function fetchMedia(hash: string, type: string): Promise<Blob> {
 /** Close the Flyleaf account: every app's copy, its media, the purchase records
     (the store keeps the purchase, so Restore brings it back), every session. */
 export async function deleteAccount() {
-  const del = (apple?: string) =>
-    call('/me', { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ app: APP, apple }) })
+  const del = (more?: { apple?: string; force: true }) =>
+    call('/me', { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ app: APP, ...more }) })
   let res = await del()
   // An Apple account confirms with Apple, so the server can revoke its sign-in too.
-  if (res.status === 409) res = await del(await appleCode())
+  // No code (a cancelled or failed Apple sheet) still deletes: the reader already said yes twice.
+  if (res.status === 409) res = await del({ apple: await appleCode().catch(() => undefined), force: true })
   if (!res.ok) throw new Error('That could not be deleted. Try again.')
   window.google?.accounts?.id?.disableAutoSelect()
   keep(null)
