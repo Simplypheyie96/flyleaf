@@ -161,6 +161,8 @@
    blocks reads as attached to the one whose type is heavier — here the small
    caps. Slightly nearer the gloss is optically centred. */
 .gloss {
+  /* The reader's own line breaks and spaces are part of what they wrote. */
+  white-space: pre-wrap;
   margin: var(--space-4) 0 0;
   font-family: var(--font-app);
   font-weight: var(--weight-card);
@@ -357,6 +359,8 @@
    rule visibly high — which for a while it did, because the band was set to 12
    as well and only this note knew otherwise. */
 .about {
+  /* The reader's own line breaks and spaces are part of what they wrote. */
+  white-space: pre-wrap;
   margin: var(--space-3) 0 0;
   font-family: var(--font-app);
   font-weight: var(--weight-card);
@@ -661,6 +665,8 @@
 /* The working note. Sans, secondary, capped at the measure — the same voice
    the note and the dossier use everywhere else in the app. */
 .working {
+  /* The reader's own line breaks and spaces are part of what they wrote. */
+  white-space: pre-wrap;
   margin: var(--space-4) 0 0;
   font-family: var(--font-app);
   font-weight: var(--weight-card);
@@ -882,6 +888,8 @@
 /* What was said about the recording, in the reader's own words. Same voice as
    the working note, reversed. */
 .said {
+  /* The reader's own line breaks and spaces are part of what they wrote. */
+  white-space: pre-wrap;
   margin: var(--space-4) 0 0;
   font-family: var(--font-app);
   font-weight: var(--weight-card);

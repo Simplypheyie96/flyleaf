@@ -252,6 +252,8 @@
 }
 
 .hand {
+  /* The reader's own line breaks and spaces are part of what they wrote. */
+  white-space: pre-wrap;
   margin: 0;
   font-family: var(--font-hand);
   /* Not normalised to the sans — see --font-adjust in tokens.css. */
@@ -779,6 +781,8 @@
 /* Full width, both ends. Nothing hangs in the corner any more, so nothing is
    reserved for it. */
 .lore {
+  /* The reader's own line breaks and spaces are part of what they wrote. */
+  white-space: pre-wrap;
   margin: var(--space-4) 0 0;
   font-family: var(--font-app);
   font-weight: var(--weight-card);

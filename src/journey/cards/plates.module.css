@@ -146,6 +146,8 @@
    somewhere else rather than typed by the reader. The two places Flyleaf
    speaks in the book's voice now lean the same way. */
 .said {
+  /* The reader's own line breaks and spaces are part of what they wrote. */
+  white-space: pre-wrap;
   position: relative;
   margin: 0;
   font-family: var(--font-read);
@@ -331,6 +333,8 @@
    face on a card that already had three and made a printed caption pretend to
    be something the reader wrote. The hand is now the note card's alone. */
 .scrawl {
+  /* The reader's own line breaks and spaces are part of what they wrote. */
+  white-space: pre-wrap;
   margin-block-start: var(--space-4);
   font-family: var(--font-app);
   font-weight: var(--weight-card);
