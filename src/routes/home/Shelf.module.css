@@ -120,23 +120,46 @@
   line-height: 0;
 }
 
-.more {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  min-block-size: var(--tap-min);
-  margin: var(--space-4) calc(var(--space-5) * -1) calc(var(--space-5) * -1);
-  border-block-start: 1px solid var(--border-hairline);
-  font-family: var(--font-app);
-  font-size: var(--text-sm);
-  color: var(--color-ink-soft);
-  text-decoration: none;
+/* Every open book lies in one sideways deck inside the plate. The few pixels
+   of padding keep the card's focus ring from being clipped by the scroller. */
+.deck {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  gap: var(--space-5);
+  margin: calc(var(--space-1) * -1);
+  padding: var(--space-1);
+  scroll-padding: var(--space-1);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
 }
 
-.more:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: -4px;
+.deck::-webkit-scrollbar {
+  display: none;
+}
+
+.slide {
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+/* The deck is as tall as its tallest slide, so no slide may outgrow one card:
+   with more than one book, titles stop at two lines and authors at one. */
+.slide:not(:only-child) .title {
+  -webkit-line-clamp: 2;
+}
+
+.slide:not(:only-child) .author {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pager button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 @media (prefers-reduced-motion: reduce) {
