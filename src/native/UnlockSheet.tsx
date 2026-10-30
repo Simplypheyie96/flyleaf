@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import LeafButton from '../components/LeafButton'
 import Sheet from '../components/Sheet'
-import { CloseIcon } from '../components/TabIcons'
+import { CharacterIcon, CloseIcon, CycleIcon, FairCopyIcon, ShelfIcon, VoiceIcon } from '../components/TabIcons'
+import type { EntryType } from '../data/db'
 import { Row } from '../settings/Group'
 import card from '../settings/settings.module.css'
 import tip from '../settings/tip.module.css'
 import { ios } from './platform'
-import { askUnlock, buy, giveTip, prices, restore, TIPS, tipPrices, useUnlock, type Reason, type Tip } from './unlock'
+import { askUnlock, buy, giveTip, prices, restore, TIPS, tipPrices, useUnlock, type Ask, type Reason, type Tip } from './unlock'
 
 /* The store apps' one sheet for buying. It opens from a gate (a fourth book, a
    locked kind of keep, the printed journal, sync) or from Settings, and it is
@@ -16,16 +17,33 @@ import { askUnlock, buy, giveTip, prices, restore, TIPS, tipPrices, useUnlock, t
 
 const TIER: Record<Tip, string> = { tip1: 'Small tip', tip2: 'Kind tip', tip3: 'Generous tip' }
 
-const WHY: Record<Reason, string> = {
-  books: "The free journal holds one book. Every book you have stays yours.",
-  kind: 'Voice memos, characters, places and threads come with the unlock.',
-  export: 'The printed journal and sharing come with the unlock.',
-  sync: 'Sync comes with the unlock.',
-  settings: 'One purchase, once. No subscription.',
+/* The title says back what was tapped, so the sheet answers the reader's own
+   question before it lists anything else. */
+const TITLE: Record<Reason, string> = {
+  books: 'More books open with the unlock',
+  kind: 'This opens with the unlock',
+  export: 'The printed journal opens with the unlock',
+  sync: 'Sync opens with the unlock',
+  settings: 'The whole journal',
+}
+const KIND_TITLE: Partial<Record<EntryType, string>> = {
+  voice: 'Voice memos open with the unlock',
+  character: 'Characters open with the unlock',
+  place: 'Places open with the unlock',
+  thread: 'Threads open with the unlock',
 }
 
+/* Everything the one purchase opens, whichever gate the sheet came from. */
+const OPENS = [
+  { Icon: ShelfIcon, title: 'Every book, not only the first' },
+  { Icon: VoiceIcon, title: 'Voice memos' },
+  { Icon: CharacterIcon, title: 'Characters, places and threads' },
+  { Icon: FairCopyIcon, title: 'The printed journal' },
+  { Icon: CycleIcon, title: 'Sync between your devices' },
+]
+
 export default function UnlockSheet() {
-  const [reason, setReason] = useState<Reason | null>(null)
+  const [ask, setAsk] = useState<Ask | null>(null)
   const [price, setPrice] = useState<Awaited<ReturnType<typeof prices>>>({})
   const [tips, setTips] = useState<Partial<Record<Tip, string>>>({})
   const [busy, setBusy] = useState<'unlock' | Tip | 'restore' | null>(null)
@@ -35,7 +53,7 @@ export default function UnlockSheet() {
   useEffect(() => {
     const open = (e: Event) => {
       setNote(undefined)
-      setReason((e as CustomEvent<Reason>).detail)
+      setAsk((e as CustomEvent<Ask>).detail)
     }
     window.addEventListener('flyleaf-unlock', open)
     return () => window.removeEventListener('flyleaf-unlock', open)
@@ -43,10 +61,10 @@ export default function UnlockSheet() {
 
   // Once unlocked the sheet offers tips, so it asks for their prices instead.
   useEffect(() => {
-    if (!reason) return
+    if (!ask) return
     if (full) void tipPrices().then(setTips).catch(() => setNote('Tips are unavailable right now. Please try again later.'))
     else void prices().then(setPrice).catch(() => setNote('Could not reach the store. Check your connection.'))
-  }, [reason, full])
+  }, [ask, full])
 
   async function run(which: NonNullable<typeof busy>, job: () => Promise<boolean>, done: string) {
     setBusy(which)
@@ -55,7 +73,7 @@ export default function UnlockSheet() {
       if (await job()) {
         setNote(done)
         // A tip leaves the sheet open, so another can follow.
-        if (!which.startsWith('tip')) window.setTimeout(() => setReason(null), 1400)
+        if (!which.startsWith('tip')) window.setTimeout(() => setAsk(null), 1400)
       } else setNote((n) => (n === 'Checking with the store…' || n === 'Opening the store…' ? undefined : n))
     } catch (e) {
       setNote((e as Error).message || 'The store could not finish that. Try again in a moment.')
@@ -66,16 +84,16 @@ export default function UnlockSheet() {
 
   // A store sheet is up while busy: closing now would lose its answer.
   const close = () => {
-    if (!busy) setReason(null)
+    if (!busy) setAsk(null)
   }
 
   return (
-    <Sheet open={reason !== null} onClose={close} label="Unlock Flyleaf" name="unlock">
+    <Sheet open={ask !== null} onClose={close} label="Unlock Flyleaf" name="unlock">
       <div className={tip.jar}>
         <header className={tip.head}>
           <div className={tip.headLine}>
             <h2 className={tip.title} id="unlock">
-              {full ? 'Unlocked' : 'The whole journal'}
+              {full ? 'Unlocked' : ask && ((ask.kind && KIND_TITLE[ask.kind]) || TITLE[ask.reason])}
             </h2>
             <button type="button" className={tip.close} onClick={close} aria-label="Close">
               <CloseIcon size={20} />
@@ -83,11 +101,10 @@ export default function UnlockSheet() {
           </div>
           {!full && (
             <>
-              <p className={tip.lede}>{reason && WHY[reason]}</p>
-              <p className={tip.lede}>
-                Unlimited books, voice memos, characters, places and threads, the printed journal, and
-                sync between your devices.
-              </p>
+              {ask?.reason === 'books' && (
+                <p className={tip.lede}>The free journal holds one book. Every book you have stays yours.</p>
+              )}
+              <p className={tip.lede}>The same purchase opens all of it, for good. No subscription.</p>
             </>
           )}
         </header>
@@ -113,11 +130,24 @@ export default function UnlockSheet() {
             </div>
           </>
         ) : (
-          <div className={card.row}>
-            <LeafButton disabled={!!busy} onClick={() => void run('unlock', () => buy('unlock'), 'Unlocked. Thank you.')}>
-              {busy === 'unlock' ? 'Opening the store…' : `Unlock${price.unlock ? ` · ${price.unlock}` : ''}`}
-            </LeafButton>
-          </div>
+          <>
+            <ul className={tip.opens}>
+              {OPENS.map(({ Icon, title }) => (
+                <li key={title}>
+                  <Icon size={20} />
+                  {title}
+                </li>
+              ))}
+            </ul>
+            <div className={card.row}>
+              <LeafButton disabled={!!busy} onClick={() => void run('unlock', () => buy('unlock'), 'Unlocked. Thank you.')}>
+                {busy === 'unlock' ? 'Opening the store…' : `Unlock${price.unlock ? ` · ${price.unlock}` : ''}`}
+              </LeafButton>
+              <button type="button" className={`${card.action} ${tip.restore}`} disabled={!!busy} onClick={close}>
+                Not now
+              </button>
+            </div>
+          </>
         )}
 
         <button

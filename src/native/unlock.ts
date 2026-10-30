@@ -83,10 +83,12 @@ export async function canAddBook(): Promise<boolean> {
 }
 
 export type Reason = 'books' | 'kind' | 'export' | 'sync' | 'settings'
+export type Ask = { reason: Reason; kind?: EntryType }
 
-/** Opens the unlock sheet (mounted once in App). */
-export function askUnlock(reason: Reason) {
-  window.dispatchEvent(new CustomEvent<Reason>('flyleaf-unlock', { detail: reason }))
+/** Opens the unlock sheet (mounted once in App). A locked kind names itself,
+    so the sheet can say what was tapped. */
+export function askUnlock(reason: Reason, kind?: EntryType) {
+  window.dispatchEvent(new CustomEvent<Ask>('flyleaf-unlock', { detail: { reason, kind } }))
 }
 
 export function useUnlock() {

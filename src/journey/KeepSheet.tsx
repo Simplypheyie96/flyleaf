@@ -862,7 +862,7 @@ function KeepSheet({
 
   function choose(next: EntryType, rect?: DOMRect) {
     /* Store apps, free tier: a locked kind asks for the unlock instead. */
-    if (!editing && kindLocked(next)) return askUnlock("kind");
+    if (!editing && kindLocked(next)) return askUnlock("kind", next);
     if (rect) from.current = rect;
     /* A kind with its own draft waiting opens on that draft; this one stays
        saved under its own name. Otherwise the words travel with the reader

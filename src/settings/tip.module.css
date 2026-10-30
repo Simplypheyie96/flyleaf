@@ -92,6 +92,28 @@
   text-wrap: pretty;
 }
 
+/* What the unlock opens: the app's own glyphs, one line each. */
+.opens {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.opens li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-base);
+  color: var(--color-ink);
+}
+
+.opens svg {
+  flex: none;
+  color: var(--color-ink-soft);
+}
+
 .amounts {
   display: flex;
   flex-wrap: wrap;
